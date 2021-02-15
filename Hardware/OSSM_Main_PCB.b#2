@@ -269,34 +269,6 @@
 <wire x1="-4.7752" y1="0" x2="-4.0132" y2="0" width="0.508" layer="22" curve="-180"/>
 <text x="9.2202" y="-0.635" size="1.27" layer="25" ratio="6" rot="SR0">&gt;Name</text>
 </package>
-<package name="USC_TOS" library_version="1" library_locally_modified="yes">
-<smd name="1" x="-1.15" y="0" dx="1.099996875" dy="0.46" layer="1"/>
-<smd name="2" x="1.15" y="0" dx="1.099996875" dy="0.46" layer="1"/>
-<wire x1="-0.8636" y1="-0.2032" x2="-0.8636" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="0.2032" x2="-1.3462" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="-1.3462" y1="0.2032" x2="-1.3462" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="-1.3462" y1="-0.2032" x2="-0.8636" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="0.2032" x2="0.8636" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="-0.2032" x2="1.3462" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="1.3462" y1="-0.2032" x2="1.3462" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="1.3462" y1="0.2032" x2="0.8636" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="0.3302" x2="-0.5588" y2="0.6604" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="-0.3302" x2="-0.5588" y2="-0.6604" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="-0.6604" x2="0.8636" y2="-0.6604" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="-0.6604" x2="0.8636" y2="0.6604" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="0.6604" x2="-0.8636" y2="0.6604" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="0.6604" x2="-0.8636" y2="-0.6604" width="0.1524" layer="51"/>
-<text x="-1.1938" y="-0.635" size="1.27" layer="51" ratio="6" rot="SR0">*</text>
-<wire x1="-0.9906" y1="-0.7874" x2="0.9906" y2="-0.7874" width="0.1524" layer="21"/>
-<wire x1="0.9906" y1="-0.7874" x2="0.9906" y2="-0.5588" width="0.1524" layer="21"/>
-<wire x1="0.9906" y1="0.7874" x2="-0.9906" y2="0.7874" width="0.1524" layer="21"/>
-<wire x1="-0.9906" y1="0.7874" x2="-0.9906" y2="0.5588" width="0.1524" layer="21"/>
-<wire x1="-0.9906" y1="-0.5588" x2="-0.9906" y2="-0.7874" width="0.1524" layer="21"/>
-<wire x1="0.9906" y1="0.5588" x2="0.9906" y2="0.7874" width="0.1524" layer="21"/>
-<text x="-2.667" y="-0.635" size="1.27" layer="21" ratio="6" rot="SR0">*</text>
-<text x="-1.7272" y="-0.635" size="1.27" layer="21" ratio="6" rot="SR0">&gt;Value</text>
-<text x="-3.2766" y="-0.635" size="1.27" layer="25" ratio="6" rot="SR0">&gt;Name</text>
-</package>
 </packages>
 </library>
 <library name="BM04B-SRSS-TB_LF__SN_">
@@ -729,15 +701,6 @@ design rules under a new name.</description>
 <attribute name="PARTREV" value="1.05" x="12.7" y="2.54" size="1.778" layer="27" display="off"/>
 <attribute name="STANDARD" value="Manufacturer Recommendations" x="12.7" y="2.54" size="1.778" layer="27" display="off"/>
 <attribute name="VALUE" x="12.2" y="-2.46" size="1.27" layer="27" align="top-left"/>
-</element>
-<element name="CR1" library="@DT-TRAINER" library_urn="urn:adsk.eagle:library:19991785" package="USC_TOS" value="CUS551V30" x="13.97" y="-6.35" smashed="yes">
-<attribute name="BUILT_BY" value="EMA_TJ" x="13.97" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="COPYRIGHT" value="Copyright (C) 2016 Accelerated Designs. All rights reserved" x="13.97" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="MANUFACTURER_PART_NUMBER" value="CUS551V30" x="13.97" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="10.6934" y="-6.985" size="1.27" layer="25" ratio="6" rot="SR0"/>
-<attribute name="SOURCELIBRARY" value="Toshiba_2018-09-20" x="13.97" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="12.2428" y="-6.985" size="1.27" layer="21" ratio="6" rot="SR0"/>
-<attribute name="VENDOR" value="Toshiba" x="13.97" y="-6.35" size="1.778" layer="27" display="off"/>
 </element>
 <element name="PS1" library="R-78E5.0-0.5" package="CONV_R-78E5.0-0.5" value="R-78E5.0-0.5" x="3.81" y="0" smashed="yes">
 <attribute name="DESCRIPTION" value=" Switching regulator module - DC/DC converter . Single Output. 7.0V to 28.0V input voltage range and 5 V output voltage range " x="3.81" y="0" size="1.778" layer="27" display="off"/>
