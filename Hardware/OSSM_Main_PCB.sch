@@ -830,8 +830,8 @@ DIN A4, landscape with location and doc. field</description>
 <instance part="IO_CONN" gate="A" x="132.08" y="66.04" smashed="yes">
 <attribute name="NAME" x="136.2456" y="71.3486" size="2.0828" layer="95" ratio="6" rot="SR0"/>
 </instance>
-<instance part="MTR_CONN" gate="A" x="160.02" y="66.04" smashed="yes">
-<attribute name="NAME" x="164.1856" y="71.3486" size="2.0828" layer="95" ratio="6" rot="SR0"/>
+<instance part="MTR_CONN" gate="A" x="160.02" y="68.58" smashed="yes">
+<attribute name="NAME" x="164.1856" y="73.8886" size="2.0828" layer="95" ratio="6" rot="SR0"/>
 </instance>
 <instance part="QWIIC_CONN" gate="G$1" x="205.74" y="58.42" smashed="yes">
 <attribute name="NAME" x="200.66" y="69.215" size="1.778" layer="95"/>

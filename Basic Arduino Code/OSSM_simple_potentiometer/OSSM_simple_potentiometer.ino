@@ -2,7 +2,7 @@
 //
 //Based on accellStepper demo - Make a single stepper bounce from one limit to another
 //
-//Modified t owork with OSSM sex machine
+//Modified to work with OSSM sex machine
 //
 //This is a very simple method of control that only updates the speed and stroke after each move completes
 //This means it responds to potentiometer changes at each end of stroke.
@@ -12,8 +12,8 @@
 #include <AccelStepper.h>
 
 #define enable 12
-const int analogSpeedPin = A0;
-const int analogStrokePin = A1;
+const int analogSpeedPin = A0;//connect your potentiometer for speed here
+const int analogStrokePin = A1;//connect your potentiometer for stroke length here
 
 //you will need to change these parameters based on your stroke length, stepper capability, and step resolution
 //if stepper is skipping while moving, lower max speed
