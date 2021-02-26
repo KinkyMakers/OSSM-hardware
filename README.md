@@ -1,4 +1,8 @@
-# OSFM-Design
-OSFM requirements, design, experimentation, and prototype analysis
+# OSSM-Design
+OSSM PCB and 3D printed enclosure design.
 
-# Hardware STL Files
+## Getting Started
+
+### Eagle PCB
+
+### Enclosure
