@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="50" unitdist="mil" unit="mil" style="lines" multiple="1" display="no" altdistance="5" altunitdist="mil" altunit="mil"/>
+<grid distance="50" unitdist="mil" unit="mm" style="lines" multiple="1" display="no" altdistance="5" altunitdist="mil" altunit="mm"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="2" name="Route2" color="16" fill="1" visible="no" active="no"/>
@@ -174,10 +174,10 @@
 </layers>
 <board>
 <plain>
-<wire x1="0" y1="0" x2="160" y2="0" width="0" layer="20"/>
-<wire x1="160" y1="0" x2="160" y2="100" width="0" layer="20"/>
-<wire x1="160" y1="100" x2="0" y2="100" width="0" layer="20"/>
-<wire x1="0" y1="100" x2="0" y2="0" width="0" layer="20"/>
+<wire x1="-2.54" y1="33.02" x2="111.74" y2="33.02" width="0" layer="20"/>
+<wire x1="111.74" y1="33.02" x2="111.74" y2="78.41" width="0" layer="20"/>
+<wire x1="111.74" y1="78.41" x2="-2.54" y2="78.41" width="0" layer="20"/>
+<wire x1="-2.54" y1="78.41" x2="-2.54" y2="33.02" width="0" layer="20"/>
 </plain>
 <libraries>
 <library name="$DT-TRAINER">
@@ -297,6 +297,102 @@
 <smd name="4" x="1.5" y="-1.325" dx="0.6" dy="1.55" layer="1"/>
 <smd name="S1" x="-2.8" y="1.2" dx="1.2" dy="1.8" layer="1"/>
 <smd name="S2" x="2.8" y="1.2" dx="1.2" dy="1.8" layer="1"/>
+</package>
+</packages>
+</library>
+<library name="A4988_STEPPER_MOTOR_DRIVER_CARRIER">
+<packages>
+<package name="MODULE_A4988_STEPPER_MOTOR_DRIVER_CARRIER">
+<wire x1="-7.62" y1="10.16" x2="7.62" y2="10.16" width="0.127" layer="21"/>
+<wire x1="7.62" y1="10.16" x2="7.62" y2="-10.16" width="0.127" layer="21"/>
+<wire x1="7.62" y1="-10.16" x2="-7.62" y2="-10.16" width="0.127" layer="21"/>
+<wire x1="-7.62" y1="-10.16" x2="-7.62" y2="10.16" width="0.127" layer="21"/>
+<wire x1="-7.87" y1="10.41" x2="-7.87" y2="-10.41" width="0.05" layer="39"/>
+<wire x1="-7.87" y1="-10.41" x2="7.87" y2="-10.41" width="0.05" layer="39"/>
+<wire x1="7.87" y1="-10.41" x2="7.87" y2="10.41" width="0.05" layer="39"/>
+<wire x1="7.87" y1="10.41" x2="-7.87" y2="10.41" width="0.05" layer="39"/>
+<text x="-7.75" y="10.5" size="1.27" layer="25">&gt;NAME</text>
+<text x="-7.75" y="-11.7" size="1.27" layer="27">&gt;VALUE</text>
+<circle x="-8.4" y="9.45" radius="0.1" width="0.2" layer="21"/>
+<wire x1="-7.62" y1="10.16" x2="7.62" y2="10.16" width="0.127" layer="51"/>
+<wire x1="7.62" y1="10.16" x2="7.62" y2="-10.16" width="0.127" layer="51"/>
+<wire x1="7.62" y1="-10.16" x2="-7.62" y2="-10.16" width="0.127" layer="51"/>
+<wire x1="-7.62" y1="-10.16" x2="-7.62" y2="10.16" width="0.127" layer="51"/>
+<circle x="-8.4" y="9.45" radius="0.1" width="0.2" layer="51"/>
+<pad name="1" x="-6.35" y="8.89" drill="1.02" shape="square"/>
+<pad name="2" x="-6.35" y="6.35" drill="1.02"/>
+<pad name="3" x="-6.35" y="3.81" drill="1.02"/>
+<pad name="4" x="-6.35" y="1.27" drill="1.02"/>
+<pad name="5" x="-6.35" y="-1.27" drill="1.02"/>
+<pad name="6" x="-6.35" y="-3.81" drill="1.02"/>
+<pad name="7" x="-6.35" y="-6.35" drill="1.02"/>
+<pad name="8" x="-6.35" y="-8.89" drill="1.02"/>
+<pad name="9" x="6.35" y="-8.89" drill="1.02" rot="R180"/>
+<pad name="10" x="6.35" y="-6.35" drill="1.02" rot="R180"/>
+<pad name="11" x="6.35" y="-3.81" drill="1.02" rot="R180"/>
+<pad name="12" x="6.35" y="-1.27" drill="1.02" rot="R180"/>
+<pad name="13" x="6.35" y="1.27" drill="1.02" rot="R180"/>
+<pad name="14" x="6.35" y="3.81" drill="1.02" rot="R180"/>
+<pad name="15" x="6.35" y="6.35" drill="1.02" rot="R180"/>
+<pad name="16" x="6.35" y="8.89" drill="1.02" rot="R180"/>
+</package>
+</packages>
+</library>
+<library name="PJ-037AH">
+<packages>
+<package name="CUI_PJ-037AH">
+<text x="-0.5" y="5" size="1.27" layer="25">&gt;NAME</text>
+<text x="-0.5" y="-5" size="1.27" layer="27" align="top-left">&gt;VALUE</text>
+<wire x1="-0.8" y1="4.5" x2="13.7" y2="4.5" width="0.127" layer="51"/>
+<wire x1="13.7" y1="-4.5" x2="-0.8" y2="-4.5" width="0.127" layer="51"/>
+<wire x1="-0.8" y1="-4.5" x2="-0.8" y2="4.5" width="0.127" layer="51"/>
+<wire x1="13.7" y1="4.5" x2="13.7" y2="-4.5" width="0.127" layer="21"/>
+<wire x1="13.7" y1="-4.5" x2="-0.8" y2="-4.5" width="0.127" layer="21"/>
+<wire x1="-0.8" y1="-4.5" x2="-0.8" y2="-2.7" width="0.127" layer="21"/>
+<wire x1="-0.8" y1="4.5" x2="13.7" y2="4.5" width="0.127" layer="21"/>
+<wire x1="-0.8" y1="2.7" x2="-0.8" y2="4.5" width="0.127" layer="21"/>
+<wire x1="-1.5" y1="4.75" x2="13.95" y2="4.75" width="0.05" layer="39"/>
+<wire x1="13.95" y1="4.75" x2="13.95" y2="-4.75" width="0.05" layer="39"/>
+<wire x1="13.95" y1="-4.75" x2="-1.5" y2="-4.75" width="0.05" layer="39"/>
+<circle x="-2" y="0" radius="0.15" width="0.3" layer="21"/>
+<wire x1="-1.5" y1="4.75" x2="-1.5" y2="-4.75" width="0.05" layer="39"/>
+<wire x1="13.7" y1="4.5" x2="13.7" y2="-4.5" width="0.127" layer="51"/>
+<circle x="-2" y="0" radius="0.15" width="0.3" layer="51"/>
+<wire x1="0.5" y1="-1.75" x2="-0.5" y2="-1.75" width="0" layer="46"/>
+<wire x1="-0.5" y1="-1.75" x2="-0.5" y2="1.75" width="0" layer="46"/>
+<wire x1="-0.5" y1="1.75" x2="0.5" y2="1.75" width="0" layer="46"/>
+<wire x1="0.5" y1="1.75" x2="0.5" y2="-1.75" width="0" layer="46"/>
+<wire x1="6.5" y1="-1.5" x2="5.5" y2="-1.5" width="0" layer="46"/>
+<wire x1="5.5" y1="-1.5" x2="5.5" y2="1.5" width="0" layer="46"/>
+<wire x1="5.5" y1="1.5" x2="6.5" y2="1.5" width="0" layer="46"/>
+<wire x1="6.5" y1="1.5" x2="6.5" y2="-1.5" width="0" layer="46"/>
+<pad name="1" x="0" y="0" drill="1" diameter="2.5" shape="long" rot="R90"/>
+<pad name="2" x="6" y="0" drill="1" diameter="2.25" shape="long" rot="R90"/>
+</package>
+</packages>
+</library>
+<library name="R-78E5.0-0.5">
+<packages>
+<package name="CONV_R-78E5.0-0.5">
+<text x="-5.715" y="5.08" size="1.27" layer="25">&gt;NAME</text>
+<text x="-5.715" y="-5.08" size="1.27" layer="27" align="top-left">&gt;VALUE</text>
+<circle x="-6.4" y="-2.25" radius="0.1" width="0.2" layer="21"/>
+<circle x="-6.4" y="-2.25" radius="0.1" width="0.2" layer="51"/>
+<wire x1="-5.85" y1="4.25" x2="-5.85" y2="-4.25" width="0.127" layer="51"/>
+<wire x1="-5.85" y1="-4.25" x2="5.75" y2="-4.25" width="0.127" layer="51"/>
+<wire x1="5.75" y1="-4.25" x2="5.75" y2="4.25" width="0.127" layer="51"/>
+<wire x1="5.75" y1="4.25" x2="-5.85" y2="4.25" width="0.127" layer="51"/>
+<wire x1="-5.85" y1="4.25" x2="-5.85" y2="-4.25" width="0.127" layer="21"/>
+<wire x1="-5.85" y1="-4.25" x2="5.75" y2="-4.25" width="0.127" layer="21"/>
+<wire x1="5.75" y1="-4.25" x2="5.75" y2="4.25" width="0.127" layer="21"/>
+<wire x1="5.75" y1="4.25" x2="-5.85" y2="4.25" width="0.127" layer="21"/>
+<wire x1="-6.1" y1="4.5" x2="-6.1" y2="-4.5" width="0.05" layer="39"/>
+<wire x1="-6.1" y1="-4.5" x2="6" y2="-4.5" width="0.05" layer="39"/>
+<wire x1="6" y1="-4.5" x2="6" y2="4.5" width="0.05" layer="39"/>
+<wire x1="6" y1="4.5" x2="-6.1" y2="4.5" width="0.05" layer="39"/>
+<pad name="1" x="-2.54" y="-2.25" drill="1" shape="square"/>
+<pad name="2" x="0" y="-2.25" drill="1"/>
+<pad name="3" x="2.54" y="-2.25" drill="1"/>
 </package>
 </packages>
 </library>
@@ -493,100 +589,128 @@ design rules under a new name.</description>
 </pass>
 </autorouter>
 <elements>
-<element name="U1" library="$DT-TRAINER" package="LOLIN32_PRODUCTION" value="LOLIN32_PRODUCTION" x="34.29" y="30.48" smashed="yes"/>
-<element name="GND_CONN" library="@DT-TRAINER" library_urn="urn:adsk.eagle:library:19991785" package="CONN_1792902_PXC" value="1792902" x="5.08" y="-6.35" smashed="yes">
-<attribute name="ARTICLE_DESCRIPTION" value="PTS 1,5/ 6-5,0-H" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="BUILT_BY" value="EMA_Cory" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="CONTACT_TYPE" value="Unknown" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="COPYRIGHT" value="Copyright (C) 2018 Accelerated Designs. All rights reserved" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="MANUFACTURER_PART_NUMBER" value="1792902" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="14.3002" y="-6.985" size="1.27" layer="25" ratio="6" rot="SR0"/>
-<attribute name="NUMBER_OF_CONNECTION" value="6" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_POSITION_PER_ROW" value="6" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_POTENTIALS" value="6" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_ROWS" value="1" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_SOLDER_PINS_PER_POTENTIALS" value="1" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="PITCH__MM_" value="5" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="PLUG_SYSTEM" value="Unknown" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="PRODUCTTYP" value="Printed circuit board terminal" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="PRODUCT_FAMILY" value="PTS 1,5/..-H" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="SOLDER_PIN_LENGTH__MM_" value="2.5" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="SOURCELIBRARY" value="Phoenix_Contact_2020-03-19" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="15.8496" y="-6.985" size="1.27" layer="21" ratio="6" rot="SR0"/>
-<attribute name="VENDOR" value="Phoenix Contact" x="5.08" y="-6.35" size="1.778" layer="27" display="off"/>
+<element name="U1" library="$DT-TRAINER" package="LOLIN32_PRODUCTION" value="LOLIN32_PRODUCTION" x="-1.27" y="76.2" smashed="yes" rot="R270"/>
+<element name="GND_CONN" library="@DT-TRAINER" library_urn="urn:adsk.eagle:library:19991785" package="CONN_1792902_PXC" value="1792902" x="97.79" y="63.5" smashed="yes" rot="R180">
+<attribute name="ARTICLE_DESCRIPTION" value="PTS 1,5/ 6-5,0-H" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="BUILT_BY" value="EMA_Cory" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="CONTACT_TYPE" value="Unknown" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="COPYRIGHT" value="Copyright (C) 2018 Accelerated Designs. All rights reserved" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MANUFACTURER_PART_NUMBER" value="1792902" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="NAME" x="88.5698" y="66.675" size="1.27" layer="25" ratio="6" rot="SR180"/>
+<attribute name="NUMBER_OF_CONNECTION" value="6" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="NUMBER_OF_POSITION_PER_ROW" value="6" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="NUMBER_OF_POTENTIALS" value="6" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="NUMBER_OF_ROWS" value="1" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="NUMBER_OF_SOLDER_PINS_PER_POTENTIALS" value="1" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="PITCH__MM_" value="5" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="PLUG_SYSTEM" value="Unknown" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="PRODUCTTYP" value="Printed circuit board terminal" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="PRODUCT_FAMILY" value="PTS 1,5/..-H" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="SOLDER_PIN_LENGTH__MM_" value="2.5" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="SOURCELIBRARY" value="Phoenix_Contact_2020-03-19" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="VALUE" x="87.0204" y="64.135" size="1.27" layer="21" ratio="6" rot="SR180"/>
+<attribute name="VENDOR" value="Phoenix Contact" x="97.79" y="63.5" size="1.778" layer="27" rot="R180" display="off"/>
 </element>
-<element name="3.3V_CONN" library="@DT-TRAINER" library_urn="urn:adsk.eagle:library:19991785" package="CONN_1792902_PXC" value="1792902" x="5.08" y="-17.78" smashed="yes">
-<attribute name="ARTICLE_DESCRIPTION" value="PTS 1,5/ 6-5,0-H" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="BUILT_BY" value="EMA_Cory" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="CONTACT_TYPE" value="Unknown" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="COPYRIGHT" value="Copyright (C) 2018 Accelerated Designs. All rights reserved" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="MANUFACTURER_PART_NUMBER" value="1792902" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="14.3002" y="-18.415" size="1.27" layer="25" ratio="6" rot="SR0"/>
-<attribute name="NUMBER_OF_CONNECTION" value="6" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_POSITION_PER_ROW" value="6" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_POTENTIALS" value="6" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_ROWS" value="1" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_SOLDER_PINS_PER_POTENTIALS" value="1" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="PITCH__MM_" value="5" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="PLUG_SYSTEM" value="Unknown" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="PRODUCTTYP" value="Printed circuit board terminal" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="PRODUCT_FAMILY" value="PTS 1,5/..-H" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="SOLDER_PIN_LENGTH__MM_" value="2.5" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="SOURCELIBRARY" value="Phoenix_Contact_2020-03-19" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="15.8496" y="-18.415" size="1.27" layer="21" ratio="6" rot="SR0"/>
-<attribute name="VENDOR" value="Phoenix Contact" x="5.08" y="-17.78" size="1.778" layer="27" display="off"/>
+<element name="3.3V_CONN" library="@DT-TRAINER" library_urn="urn:adsk.eagle:library:19991785" package="CONN_1792902_PXC" value="1792902" x="72.39" y="49.53" smashed="yes">
+<attribute name="ARTICLE_DESCRIPTION" value="PTS 1,5/ 6-5,0-H" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="BUILT_BY" value="EMA_Cory" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="CONTACT_TYPE" value="Unknown" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="COPYRIGHT" value="Copyright (C) 2018 Accelerated Designs. All rights reserved" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="MANUFACTURER_PART_NUMBER" value="1792902" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="73.9902" y="46.355" size="1.27" layer="25" ratio="6" rot="SR0"/>
+<attribute name="NUMBER_OF_CONNECTION" value="6" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="NUMBER_OF_POSITION_PER_ROW" value="6" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="NUMBER_OF_POTENTIALS" value="6" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="NUMBER_OF_ROWS" value="1" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="NUMBER_OF_SOLDER_PINS_PER_POTENTIALS" value="1" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="PITCH__MM_" value="5" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="PLUG_SYSTEM" value="Unknown" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="PRODUCTTYP" value="Printed circuit board terminal" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="PRODUCT_FAMILY" value="PTS 1,5/..-H" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="SOLDER_PIN_LENGTH__MM_" value="2.5" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="SOURCELIBRARY" value="Phoenix_Contact_2020-03-19" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="83.1596" y="48.895" size="1.27" layer="21" ratio="6" rot="SR0"/>
+<attribute name="VENDOR" value="Phoenix Contact" x="72.39" y="49.53" size="1.778" layer="27" display="off"/>
 </element>
-<element name="IO_CONN" library="@DT-TRAINER" library_urn="urn:adsk.eagle:library:19991785" package="CONN_1792902_PXC" value="1792902" x="5.08" y="-29.21" smashed="yes">
-<attribute name="ARTICLE_DESCRIPTION" value="PTS 1,5/ 6-5,0-H" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="BUILT_BY" value="EMA_Cory" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="CONTACT_TYPE" value="Unknown" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="COPYRIGHT" value="Copyright (C) 2018 Accelerated Designs. All rights reserved" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="MANUFACTURER_PART_NUMBER" value="1792902" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="14.3002" y="-29.845" size="1.27" layer="25" ratio="6" rot="SR0"/>
-<attribute name="NUMBER_OF_CONNECTION" value="6" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_POSITION_PER_ROW" value="6" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_POTENTIALS" value="6" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_ROWS" value="1" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_SOLDER_PINS_PER_POTENTIALS" value="1" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="PITCH__MM_" value="5" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="PLUG_SYSTEM" value="Unknown" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="PRODUCTTYP" value="Printed circuit board terminal" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="PRODUCT_FAMILY" value="PTS 1,5/..-H" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="SOLDER_PIN_LENGTH__MM_" value="2.5" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="SOURCELIBRARY" value="Phoenix_Contact_2020-03-19" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="15.8496" y="-29.845" size="1.27" layer="21" ratio="6" rot="SR0"/>
-<attribute name="VENDOR" value="Phoenix Contact" x="5.08" y="-29.21" size="1.778" layer="27" display="off"/>
+<element name="IO_CONN" library="@DT-TRAINER" library_urn="urn:adsk.eagle:library:19991785" package="CONN_1792902_PXC" value="1792902" x="106.68" y="43.18" smashed="yes" rot="R90">
+<attribute name="ARTICLE_DESCRIPTION" value="PTS 1,5/ 6-5,0-H" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="BUILT_BY" value="EMA_Cory" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="CONTACT_TYPE" value="Unknown" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="COPYRIGHT" value="Copyright (C) 2018 Accelerated Designs. All rights reserved" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MANUFACTURER_PART_NUMBER" value="1792902" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="NAME" x="109.855" y="48.5902" size="1.27" layer="25" ratio="6" rot="SR90"/>
+<attribute name="NUMBER_OF_CONNECTION" value="6" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="NUMBER_OF_POSITION_PER_ROW" value="6" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="NUMBER_OF_POTENTIALS" value="6" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="NUMBER_OF_ROWS" value="1" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="NUMBER_OF_SOLDER_PINS_PER_POTENTIALS" value="1" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="PITCH__MM_" value="5" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="PLUG_SYSTEM" value="Unknown" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="PRODUCTTYP" value="Printed circuit board terminal" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="PRODUCT_FAMILY" value="PTS 1,5/..-H" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="SOLDER_PIN_LENGTH__MM_" value="2.5" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="SOURCELIBRARY" value="Phoenix_Contact_2020-03-19" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="VALUE" x="107.315" y="53.9496" size="1.27" layer="21" ratio="6" rot="SR90"/>
+<attribute name="VENDOR" value="Phoenix Contact" x="106.68" y="43.18" size="1.778" layer="27" rot="R90" display="off"/>
 </element>
-<element name="MTR_CONN" library="@DT-TRAINER" library_urn="urn:adsk.eagle:library:19991785" package="CONN_1792902_PXC" value="1792902" x="5.08" y="-40.64" smashed="yes">
-<attribute name="ARTICLE_DESCRIPTION" value="PTS 1,5/ 6-5,0-H" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="BUILT_BY" value="EMA_Cory" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="CONTACT_TYPE" value="Unknown" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="COPYRIGHT" value="Copyright (C) 2018 Accelerated Designs. All rights reserved" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="MANUFACTURER_PART_NUMBER" value="1792902" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="14.3002" y="-41.275" size="1.27" layer="25" ratio="6" rot="SR0"/>
-<attribute name="NUMBER_OF_CONNECTION" value="6" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_POSITION_PER_ROW" value="6" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_POTENTIALS" value="6" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_ROWS" value="1" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="NUMBER_OF_SOLDER_PINS_PER_POTENTIALS" value="1" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="PITCH__MM_" value="5" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="PLUG_SYSTEM" value="Unknown" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="PRODUCTTYP" value="Printed circuit board terminal" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="PRODUCT_FAMILY" value="PTS 1,5/..-H" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="SOLDER_PIN_LENGTH__MM_" value="2.5" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="SOURCELIBRARY" value="Phoenix_Contact_2020-03-19" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="15.8496" y="-41.275" size="1.27" layer="21" ratio="6" rot="SR0"/>
-<attribute name="VENDOR" value="Phoenix Contact" x="5.08" y="-40.64" size="1.778" layer="27" display="off"/>
+<element name="MTR_CONN" library="@DT-TRAINER" library_urn="urn:adsk.eagle:library:19991785" package="CONN_1792902_PXC" value="1792902" x="39.37" y="43.18" smashed="yes">
+<attribute name="ARTICLE_DESCRIPTION" value="PTS 1,5/ 6-5,0-H" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="BUILT_BY" value="EMA_Cory" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="CONTACT_TYPE" value="Unknown" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="COPYRIGHT" value="Copyright (C) 2018 Accelerated Designs. All rights reserved" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="MANUFACTURER_PART_NUMBER" value="1792902" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="46.0502" y="40.005" size="1.27" layer="25" ratio="6" rot="SR0"/>
+<attribute name="NUMBER_OF_CONNECTION" value="6" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="NUMBER_OF_POSITION_PER_ROW" value="6" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="NUMBER_OF_POTENTIALS" value="6" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="NUMBER_OF_ROWS" value="1" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="NUMBER_OF_SOLDER_PINS_PER_POTENTIALS" value="1" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="PITCH__MM_" value="5" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="PLUG_SYSTEM" value="Unknown" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="PRODUCTTYP" value="Printed circuit board terminal" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="PRODUCT_FAMILY" value="PTS 1,5/..-H" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="SOLDER_PIN_LENGTH__MM_" value="2.5" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="SOURCELIBRARY" value="Phoenix_Contact_2020-03-19" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="50.1396" y="42.545" size="1.27" layer="21" ratio="6" rot="SR0"/>
+<attribute name="VENDOR" value="Phoenix Contact" x="39.37" y="43.18" size="1.778" layer="27" display="off"/>
 </element>
-<element name="QWIIC_CONN" library="BM04B-SRSS-TB_LF__SN_" package="CONN_BM04B-SRSS-TB(LF)(SN)" value="BM04B-SRSS-TB(LF)(SN)" x="-5.08" y="-40.64" smashed="yes">
-<attribute name="DESCRIPTION" value=" Connector Header Surface Mount 4 position 0.039 (1.00mm) " x="-5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="DIGI-KEY_PART_NUMBER" value="455-1790-1-ND" x="-5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="JST Sales" x="-5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="MP" value="BM04B-SRSS-TB(LF)(SN)" x="-5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-8.08" y="-38.125" size="1.27" layer="25"/>
-<attribute name="PACKAGE" value="None" x="-5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/BM04B-SRSS-TB(LF)(SN)/?ref=eda" x="-5.08" y="-40.64" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-8.08" y="-44.365" size="1.27" layer="27"/>
+<element name="QWIIC_CONN" library="BM04B-SRSS-TB_LF__SN_" package="CONN_BM04B-SRSS-TB(LF)(SN)" value="BM04B-SRSS-TB(LF)(SN)" x="60.96" y="66.04" smashed="yes">
+<attribute name="DESCRIPTION" value=" Connector Header Surface Mount 4 position 0.039 (1.00mm) " x="60.96" y="66.04" size="1.778" layer="27" display="off"/>
+<attribute name="DIGI-KEY_PART_NUMBER" value="455-1790-1-ND" x="60.96" y="66.04" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="JST Sales" x="60.96" y="66.04" size="1.778" layer="27" display="off"/>
+<attribute name="MP" value="BM04B-SRSS-TB(LF)(SN)" x="60.96" y="66.04" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="57.96" y="68.555" size="1.27" layer="25"/>
+<attribute name="PACKAGE" value="None" x="60.96" y="66.04" size="1.778" layer="27" display="off"/>
+<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/BM04B-SRSS-TB(LF)(SN)/?ref=eda" x="60.96" y="66.04" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="57.96" y="62.315" size="1.27" layer="27"/>
+</element>
+<element name="STEPPER" library="A4988_STEPPER_MOTOR_DRIVER_CARRIER" package="MODULE_A4988_STEPPER_MOTOR_DRIVER_CARRIER" value="A4988_STEPPER_MOTOR_DRIVER_CARRIER" x="25.4" y="41.91" smashed="yes" rot="R270">
+<attribute name="AVAILABILITY" value="Unavailable" x="25.4" y="41.91" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="DESCRIPTION" value=" Stepper Motor Driver " x="25.4" y="41.91" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="MF" value="Pololu" x="25.4" y="41.91" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="MP" value="A4988 STEPPER MOTOR DRIVER CARRIER" x="25.4" y="41.91" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="NAME" x="35.9" y="49.66" size="1.27" layer="25" rot="R270"/>
+<attribute name="PACKAGE" value="None" x="25.4" y="41.91" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="PRICE" value="None" x="25.4" y="41.91" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="VALUE" x="13.7" y="49.66" size="1.27" layer="27" rot="R270"/>
+</element>
+<element name="J1" library="PJ-037AH" package="CUI_PJ-037AH" value="PJ-037AH" x="0" y="41.91" smashed="yes">
+<attribute name="MANUFACTURER" value="CUI Devices" x="0" y="41.91" size="1.778" layer="27" display="off"/>
+<attribute name="MAXIMUM_PACKAGE_HEIGHT" value="11.2 mm" x="0" y="41.91" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="-0.5" y="46.91" size="1.27" layer="25"/>
+<attribute name="PARTREV" value="1.05" x="0" y="41.91" size="1.778" layer="27" display="off"/>
+<attribute name="STANDARD" value="Manufacturer Recommendations" x="0" y="41.91" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="-0.5" y="36.91" size="1.27" layer="27" align="top-left"/>
+</element>
+<element name="PS1" library="R-78E5.0-0.5" package="CONV_R-78E5.0-0.5" value="R-78E5.0-0.5" x="60.96" y="57.15" smashed="yes">
+<attribute name="DESCRIPTION" value=" Switching regulator module - DC/DC converter . Single Output. 7.0V to 28.0V input voltage range and 5 V output voltage range " x="60.96" y="57.15" size="1.778" layer="27" display="off"/>
+<attribute name="DIGI-KEY_PART_NUMBER" value="945-1648-5-ND" x="60.96" y="57.15" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="Recom Power" x="60.96" y="57.15" size="1.778" layer="27" display="off"/>
+<attribute name="MP" value="R-78E5.0-0.5" x="60.96" y="57.15" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="55.245" y="62.23" size="1.27" layer="25"/>
+<attribute name="PACKAGE" value="SIP-3 Recom Power" x="60.96" y="57.15" size="1.778" layer="27" display="off"/>
+<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/R-78E5.0-0.5/?ref=eda" x="60.96" y="57.15" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="55.245" y="52.07" size="1.27" layer="27" align="top-left"/>
 </element>
 </elements>
 <signals>
@@ -597,6 +721,8 @@ design rules under a new name.</description>
 </signal>
 <signal name="5V">
 <contactref element="U1" pad="15"/>
+<contactref element="PS1" pad="3"/>
+<wire x1="63.5" y1="54.9" x2="12.14" y2="74.93" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="GND">
 <contactref element="U1" pad="17" route="any" routetag="G$1.GND"/>
@@ -611,13 +737,21 @@ design rules under a new name.</description>
 <contactref element="GND_CONN" pad="5"/>
 <contactref element="GND_CONN" pad="6"/>
 <contactref element="QWIIC_CONN" pad="1"/>
-<wire x1="30.0736" y1="-6.35" x2="35.56" y2="41.35" width="0" layer="19" extent="1-1"/>
-<wire x1="25.0698" y1="-6.35" x2="30.0736" y2="-6.35" width="0" layer="19" extent="1-1"/>
-<wire x1="20.0914" y1="-6.35" x2="25.0698" y2="-6.35" width="0" layer="19" extent="1-1"/>
-<wire x1="15.0876" y1="-6.35" x2="20.0914" y2="-6.35" width="0" layer="19" extent="1-1"/>
-<wire x1="10.0838" y1="-6.35" x2="15.0876" y2="-6.35" width="0" layer="19" extent="1-1"/>
-<wire x1="5.08" y1="-6.35" x2="10.0838" y2="-6.35" width="0" layer="19" extent="1-1"/>
-<wire x1="-6.58" y1="-41.965" x2="5.08" y2="-6.35" width="0" layer="19" extent="1-1"/>
+<contactref element="STEPPER" pad="9"/>
+<contactref element="STEPPER" pad="15"/>
+<contactref element="J1" pad="2"/>
+<contactref element="PS1" pad="2"/>
+<wire x1="97.79" y1="63.5" x2="59.46" y2="64.715" width="0" layer="19" extent="1-1"/>
+<wire x1="92.7862" y1="63.5" x2="97.79" y2="63.5" width="0" layer="19" extent="1-1"/>
+<wire x1="87.7824" y1="63.5" x2="92.7862" y2="63.5" width="0" layer="19" extent="1-1"/>
+<wire x1="82.7786" y1="63.5" x2="87.7824" y2="63.5" width="0" layer="19" extent="1-1"/>
+<wire x1="77.8002" y1="63.5" x2="82.7786" y2="63.5" width="0" layer="19" extent="1-1"/>
+<wire x1="72.7964" y1="63.5" x2="77.8002" y2="63.5" width="0" layer="19" extent="1-1"/>
+<wire x1="47.7" y1="52.07" x2="72.7964" y2="63.5" width="0" layer="19" extent="1-1"/>
+<wire x1="16.51" y1="35.56" x2="4.52" y2="52.07" width="0" layer="19" extent="1-1"/>
+<wire x1="31.75" y1="35.56" x2="16.51" y2="35.56" width="0" layer="19" extent="1-1"/>
+<wire x1="6" y1="41.91" x2="16.51" y2="35.56" width="0" layer="19" extent="1-1"/>
+<wire x1="60.96" y1="54.9" x2="6" y2="41.91" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="3_3V">
 <contactref element="3.3V_CONN" pad="1"/>
@@ -627,22 +761,33 @@ design rules under a new name.</description>
 <contactref element="3.3V_CONN" pad="5"/>
 <contactref element="3.3V_CONN" pad="6"/>
 <contactref element="QWIIC_CONN" pad="2"/>
-<wire x1="5.08" y1="-17.78" x2="-5.58" y2="-41.965" width="0" layer="19" extent="1-1"/>
-<wire x1="10.0838" y1="-17.78" x2="5.08" y2="-17.78" width="0" layer="19" extent="1-1"/>
-<wire x1="15.0876" y1="-17.78" x2="10.0838" y2="-17.78" width="0" layer="19" extent="1-1"/>
-<wire x1="20.0914" y1="-17.78" x2="15.0876" y2="-17.78" width="0" layer="19" extent="1-1"/>
-<wire x1="25.0698" y1="-17.78" x2="20.0914" y2="-17.78" width="0" layer="19" extent="1-1"/>
-<wire x1="30.0736" y1="-17.78" x2="25.0698" y2="-17.78" width="0" layer="19" extent="1-1"/>
+<wire x1="72.39" y1="49.53" x2="60.46" y2="64.715" width="0" layer="19" extent="1-1"/>
+<wire x1="77.3938" y1="49.53" x2="72.39" y2="49.53" width="0" layer="19" extent="1-1"/>
+<wire x1="82.3976" y1="49.53" x2="77.3938" y2="49.53" width="0" layer="19" extent="1-1"/>
+<wire x1="87.4014" y1="49.53" x2="82.3976" y2="49.53" width="0" layer="19" extent="1-1"/>
+<wire x1="92.3798" y1="49.53" x2="87.4014" y2="49.53" width="0" layer="19" extent="1-1"/>
+<wire x1="97.3836" y1="49.53" x2="92.3798" y2="49.53" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="22_SCL">
 <contactref element="U1" pad="21"/>
 <contactref element="QWIIC_CONN" pad="4"/>
-<wire x1="-3.58" y1="-41.965" x2="58.42" y2="69.29" width="0" layer="19" extent="1-1"/>
+<wire x1="62.46" y1="64.715" x2="37.54" y2="52.07" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="21_SDA">
 <contactref element="U1" pad="22"/>
 <contactref element="QWIIC_CONN" pad="3"/>
-<wire x1="-4.58" y1="-41.965" x2="58.42" y2="66.75" width="0" layer="19" extent="1-1"/>
+<wire x1="61.46" y1="64.715" x2="35" y2="52.07" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="VDD">
+<contactref element="STEPPER" pad="10"/>
+</signal>
+<signal name="VMOT">
+<contactref element="STEPPER" pad="16"/>
+</signal>
+<signal name="24V">
+<contactref element="J1" pad="1"/>
+<contactref element="PS1" pad="1"/>
+<wire x1="58.42" y1="54.9" x2="0" y2="41.91" width="0" layer="19" extent="1-1"/>
 </signal>
 </signals>
 <mfgpreviewcolors>
