@@ -895,8 +895,8 @@ DIN A4, landscape with location and doc. field</description>
 <instance part="3.3V_CONN" gate="A" x="91.44" y="66.04" smashed="yes">
 <attribute name="NAME" x="95.6056" y="71.3486" size="2.0828" layer="95" ratio="6" rot="SR0"/>
 </instance>
-<instance part="IO_CONN" gate="A" x="132.08" y="66.04" smashed="yes">
-<attribute name="NAME" x="136.2456" y="71.3486" size="2.0828" layer="95" ratio="6" rot="SR0"/>
+<instance part="IO_CONN" gate="A" x="22.86" y="124.46" smashed="yes" rot="R180">
+<attribute name="NAME" x="18.6944" y="119.1514" size="2.0828" layer="95" ratio="6" rot="SR180"/>
 </instance>
 <instance part="MTR_CONN" gate="A" x="187.96" y="129.54" smashed="yes">
 <attribute name="NAME" x="192.1256" y="134.8486" size="2.0828" layer="95" ratio="6" rot="SR0"/>
@@ -970,16 +970,15 @@ DIN A4, landscape with location and doc. field</description>
 <pinref part="J1" gate="G$1" pin="2"/>
 <wire x1="167.64" y1="154.94" x2="175.26" y2="154.94" width="0.1524" layer="91"/>
 <label x="172.72" y="154.94" size="1.778" layer="95"/>
+<pinref part="STEPPER" gate="G$1" pin="GND"/>
+<wire x1="152.4" y1="132.08" x2="167.64" y2="132.08" width="0.1524" layer="91"/>
+<wire x1="167.64" y1="132.08" x2="167.64" y2="154.94" width="0.1524" layer="91"/>
+<junction x="167.64" y="154.94"/>
 </segment>
 <segment>
 <pinref part="PS1" gate="G$1" pin="GND"/>
 <wire x1="208.28" y1="154.94" x2="218.44" y2="154.94" width="0.1524" layer="91"/>
 <label x="213.36" y="154.94" size="1.778" layer="95"/>
-</segment>
-<segment>
-<pinref part="STEPPER" gate="G$1" pin="GND"/>
-<wire x1="152.4" y1="132.08" x2="160.02" y2="132.08" width="0.1524" layer="91"/>
-<label x="160.02" y="132.08" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="3_3V" class="0">
@@ -1131,9 +1130,9 @@ DIN A4, landscape with location and doc. field</description>
 <net name="N$7" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="IO13"/>
-<wire x1="36.83" y1="121.92" x2="17.78" y2="121.92" width="0.1524" layer="91"/>
-<wire x1="17.78" y1="121.92" x2="17.78" y2="99.06" width="0.1524" layer="91"/>
-<wire x1="17.78" y1="99.06" x2="111.76" y2="99.06" width="0.1524" layer="91"/>
+<wire x1="36.83" y1="121.92" x2="25.4" y2="121.92" width="0.1524" layer="91"/>
+<wire x1="25.4" y1="121.92" x2="25.4" y2="99.06" width="0.1524" layer="91"/>
+<wire x1="25.4" y1="99.06" x2="111.76" y2="99.06" width="0.1524" layer="91"/>
 <pinref part="STEPPER" gate="G$1" pin="DIR"/>
 <wire x1="111.76" y1="99.06" x2="116.84" y2="99.06" width="0.1524" layer="91"/>
 <wire x1="116.84" y1="99.06" x2="116.84" y2="106.68" width="0.1524" layer="91"/>
@@ -1165,6 +1164,48 @@ DIN A4, landscape with location and doc. field</description>
 <pinref part="MTR_CONN" gate="A" pin="3"/>
 <pinref part="STEPPER" gate="G$1" pin="2B"/>
 <wire x1="187.96" y1="124.46" x2="152.4" y2="124.46" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$12" class="0">
+<segment>
+<pinref part="U1" gate="G$1" pin="IO12"/>
+<pinref part="IO_CONN" gate="A" pin="1"/>
+<wire x1="36.83" y1="124.46" x2="22.86" y2="124.46" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$13" class="0">
+<segment>
+<pinref part="IO_CONN" gate="A" pin="2"/>
+<pinref part="U1" gate="G$1" pin="IO14"/>
+<wire x1="22.86" y1="127" x2="36.83" y2="127" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$14" class="0">
+<segment>
+<pinref part="U1" gate="G$1" pin="IO27"/>
+<pinref part="IO_CONN" gate="A" pin="3"/>
+<wire x1="36.83" y1="129.54" x2="22.86" y2="129.54" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$15" class="0">
+<segment>
+<pinref part="IO_CONN" gate="A" pin="4"/>
+<pinref part="U1" gate="G$1" pin="IO26"/>
+<wire x1="22.86" y1="132.08" x2="36.83" y2="132.08" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$16" class="0">
+<segment>
+<pinref part="U1" gate="G$1" pin="IO25"/>
+<pinref part="IO_CONN" gate="A" pin="5"/>
+<wire x1="36.83" y1="134.62" x2="22.86" y2="134.62" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$17" class="0">
+<segment>
+<pinref part="IO_CONN" gate="A" pin="6"/>
+<pinref part="U1" gate="G$1" pin="IO35"/>
+<wire x1="22.86" y1="137.16" x2="36.83" y2="137.16" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>

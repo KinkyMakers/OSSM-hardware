@@ -5367,6 +5367,11 @@ Source: AVX .. aphvc.pdf</description>
 <wire x1="195.58" y1="63.5" x2="185.42" y2="63.5" width="0.1524" layer="91"/>
 <label x="185.42" y="63.5" size="1.778" layer="95"/>
 </segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="3V3"/>
+<wire x1="36.83" y1="154.94" x2="22.86" y2="154.94" width="0.1524" layer="91"/>
+<label x="22.86" y="154.94" size="1.778" layer="95"/>
+</segment>
 </net>
 <net name="22_SCL" class="0">
 <segment>
