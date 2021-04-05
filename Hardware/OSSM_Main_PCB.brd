@@ -204,6 +204,7 @@
 <hole x="5.92" y="45.07" drill="4"/>
 <text x="11" y="45" size="2.54" layer="21">Be  OSSM</text>
 <text x="10" y="42" size="1.778" layer="25">KinkyMakers.com</text>
+<text x="83" y="40" size="1.778" layer="25" rot="R90">24V</text>
 </plain>
 <libraries>
 <library name="$DT-TRAINER">

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.6.1">
+<eagle version="9.6.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -173,7 +173,7 @@
 <layer number="255" name="routoute" color="7" fill="1" visible="yes" active="yes"/>
 </layers>
 <board>
-<fusionsync huburn="a.cGVyc29uYWw6dWUyYzQ4Yzk0" projecturn="a.cGVyc29uYWw6dWUyODJhZTcyIzIwMTkxMDAxMjIxMDYwMzgx" f3durn="urn:adsk.wipprod:dm.lineage:1fqrZAinQcCWnb5WX0o0Jg" pcbguid="" lastpulledtime="" lastsyncedchangeguid="" latestrevisionid="936eb7c4-54d2-4e20-9cf5-19f87d9b7519" lastsyncedrevisionid="936eb7c4-54d2-4e20-9cf5-19f87d9b7519" lastboardhashguid="c1262d79-7258-d3c1-be9d-ffa79a74015f" lastpushedtime="2021-04-05T14:20:12Z" linktopcb3d="%12"/>
+<fusionsync huburn="a.cGVyc29uYWw6dWUyYzQ4Yzk0" projecturn="a.cGVyc29uYWw6dWUyODJhZTcyIzIwMTkxMDAxMjIxMDYwMzgx" f3durn="urn:adsk.wipprod:dm.lineage:1fqrZAinQcCWnb5WX0o0Jg" pcbguid="" lastpulledtime="" lastsyncedchangeguid="" latestrevisionid="936eb7c4-54d2-4e20-9cf5-19f87d9b7519" lastsyncedrevisionid="936eb7c4-54d2-4e20-9cf5-19f87d9b7519" lastboardhashguid="c1262d79-7258-d3c1-be9d-ffa79a74015f" lastpushedtime="2021-04-05T14:20:12Z" linktopcb3d="true"/>
 <plain>
 <text x="62.23" y="40.64" size="1.778" layer="21" rot="R90">A+</text>
 <text x="67.31" y="40.64" size="1.778" layer="21" rot="R90">A-</text>
@@ -1918,7 +1918,8 @@ design rules under a new name.</description>
 <wire x1="90.17" y1="68.58" x2="86.36" y2="72.39" width="0.6096" layer="16"/>
 <wire x1="86.36" y1="72.39" x2="61.3664" y2="72.39" width="0.6096" layer="1"/>
 <wire x1="108.53" y1="45.395" x2="107.26" y2="45.395" width="0.254" layer="1"/>
-<wire x1="107.26" y1="45.395" x2="99.7976" y2="52.8574" width="0.254" layer="1"/>
+<wire x1="107.26" y1="45.395" x2="99.8275" y2="52.8275" width="0.254" layer="1"/>
+<wire x1="99.8275" y1="52.8275" x2="99.7976" y2="52.8574" width="0.254" layer="1"/>
 <wire x1="99.7976" y1="52.8574" x2="89.7382" y2="52.8574" width="0.254" layer="1"/>
 <wire x1="89.7382" y1="52.8574" x2="87.6554" y2="50.7746" width="0.254" layer="1"/>
 <wire x1="87.6554" y1="50.7746" x2="87.0204" y2="50.1396" width="0.254" layer="1"/>
@@ -2050,7 +2051,8 @@ design rules under a new name.</description>
 <wire x1="86.0074" y1="46.6374" x2="86.36" y2="46.99" width="2.54" layer="16"/>
 <wire x1="60.98120625" y1="42.2626" x2="82.18605625" y2="42.2626" width="2.54" layer="16"/>
 <contactref element="C1" pad="2"/>
-<wire x1="82.18605625" y1="42.2626" x2="93.0626" y2="42.2626" width="2.54" layer="16"/>
+<wire x1="82.18605625" y1="42.2626" x2="84" y2="42.2626" width="2.54" layer="16"/>
+<wire x1="84" y1="42.2626" x2="93.0626" y2="42.2626" width="2.54" layer="16"/>
 <wire x1="93.0626" y1="42.2626" x2="95.25" y2="44.45" width="2.54" layer="16"/>
 <wire x1="40.64" y1="34.1696" x2="40.64" y2="31.48" width="2.54" layer="16"/>
 <wire x1="40.64" y1="31.48" x2="41.91" y2="30.21" width="2.54" layer="16"/>
@@ -2060,6 +2062,9 @@ design rules under a new name.</description>
 <wire x1="0" y1="34.83" x2="0" y2="33.83" width="2.54" layer="16"/>
 <wire x1="0" y1="33.83" x2="3.6724" y2="30.1576" width="2.54" layer="16"/>
 <wire x1="40.64" y1="34.58" x2="40.64" y2="34.1696" width="2.54" layer="16"/>
+<contactref element="MTR_CONN" pad="2"/>
+<wire x1="81.3562" y1="33.02" x2="81.3562" y2="39.6188" width="2.54" layer="16"/>
+<wire x1="81.3562" y1="39.6188" x2="84" y2="42.2626" width="2.54" layer="16"/>
 </signal>
 <signal name="N$1">
 <contactref element="PS1" pad="3"/>
