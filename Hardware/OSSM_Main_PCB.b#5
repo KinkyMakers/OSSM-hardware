@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.6.1">
+<eagle version="9.6.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -396,6 +396,31 @@
 </package>
 </packages>
 </library>
+<library name="SS24FL">
+<packages>
+<package name="SODFL3617X108N">
+<wire x1="1.5" y1="-0.975" x2="-0.6" y2="-0.975" width="0.127" layer="51"/>
+<wire x1="-0.6" y1="-0.975" x2="-1.5" y2="-0.975" width="0.127" layer="51"/>
+<wire x1="-1.5" y1="0.975" x2="-1.5" y2="-0.975" width="0.127" layer="51"/>
+<wire x1="-1.38" y1="0.975" x2="1.38" y2="0.975" width="0.127" layer="21"/>
+<wire x1="1.5" y1="-0.975" x2="1.5" y2="0.975" width="0.127" layer="51"/>
+<circle x="-2.605" y="0" radius="0.1" width="0.2" layer="21"/>
+<circle x="-2.605" y="0" radius="0.1" width="0.2" layer="51"/>
+<wire x1="-2.405" y1="1.225" x2="-2.405" y2="-1.225" width="0.05" layer="39"/>
+<wire x1="-2.405" y1="1.225" x2="2.405" y2="1.225" width="0.05" layer="39"/>
+<wire x1="2.405" y1="-1.225" x2="2.405" y2="1.225" width="0.05" layer="39"/>
+<wire x1="2.405" y1="-1.225" x2="-2.405" y2="-1.225" width="0.05" layer="39"/>
+<text x="-2.54" y="1.397" size="1.27" layer="25">&gt;NAME</text>
+<text x="-2.54" y="-2.54" size="1.27" layer="27">&gt;VALUE</text>
+<wire x1="-1.5" y1="0.975" x2="-0.6" y2="0.975" width="0.127" layer="51"/>
+<wire x1="-0.6" y1="0.975" x2="1.5" y2="0.975" width="0.127" layer="51"/>
+<wire x1="-1.38" y1="-0.975" x2="1.38" y2="-0.975" width="0.127" layer="21"/>
+<wire x1="-0.6" y1="0.975" x2="-0.6" y2="-0.975" width="0.127" layer="51"/>
+<smd name="C" x="-1.53" y="0" dx="1.25" dy="1.16" layer="1" roundness="25"/>
+<smd name="A" x="1.53" y="0" dx="1.25" dy="1.16" layer="1" roundness="25"/>
+</package>
+</packages>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -712,6 +737,16 @@ design rules under a new name.</description>
 <attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/R-78E5.0-0.5/?ref=eda" x="60.96" y="57.15" size="1.778" layer="27" display="off"/>
 <attribute name="VALUE" x="55.245" y="52.07" size="1.27" layer="27" align="top-left"/>
 </element>
+<element name="D1" library="SS24FL" package="SODFL3617X108N" value="SS24FL" x="80.01" y="74.93" smashed="yes">
+<attribute name="DESCRIPTION" value=" Diode Schottky 40V 2A Surface Mount SOD-123F " x="80.01" y="74.93" size="1.778" layer="27" display="off"/>
+<attribute name="DIGI-KEY_PART_NUMBER" value="SS24FLCT-ND" x="80.01" y="74.93" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="ON Semiconductor" x="80.01" y="74.93" size="1.778" layer="27" display="off"/>
+<attribute name="MP" value="SS24FL" x="80.01" y="74.93" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="77.47" y="76.327" size="1.27" layer="25"/>
+<attribute name="PACKAGE" value="SOD-123 FL-2 ON Semiconductor" x="80.01" y="74.93" size="1.778" layer="27" display="off"/>
+<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/SS24FL/?ref=eda" x="80.01" y="74.93" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="77.47" y="72.39" size="1.27" layer="27"/>
+</element>
 </elements>
 <signals>
 <signal name="3V3">
@@ -720,9 +755,9 @@ design rules under a new name.</description>
 <contactref element="U1" pad="29" route="any" routetag="G$1.3V3"/>
 </signal>
 <signal name="5V">
+<contactref element="D1" pad="C"/>
 <contactref element="U1" pad="15"/>
-<contactref element="PS1" pad="3"/>
-<wire x1="63.5" y1="54.9" x2="12.14" y2="74.93" width="0" layer="19" extent="1-1"/>
+<wire x1="78.48" y1="74.93" x2="12.14" y2="74.93" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="GND">
 <contactref element="U1" pad="17" route="any" routetag="G$1.GND"/>
@@ -788,6 +823,11 @@ design rules under a new name.</description>
 <contactref element="J1" pad="1"/>
 <contactref element="PS1" pad="1"/>
 <wire x1="58.42" y1="54.9" x2="0" y2="41.91" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="N$1">
+<contactref element="PS1" pad="3"/>
+<contactref element="D1" pad="A"/>
+<wire x1="81.54" y1="74.93" x2="63.5" y2="54.9" width="0" layer="19" extent="1-1"/>
 </signal>
 </signals>
 <mfgpreviewcolors>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.6.1">
+<eagle version="9.6.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -737,15 +737,15 @@ design rules under a new name.</description>
 <attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/R-78E5.0-0.5/?ref=eda" x="60.96" y="57.15" size="1.778" layer="27" display="off"/>
 <attribute name="VALUE" x="55.245" y="52.07" size="1.27" layer="27" align="top-left"/>
 </element>
-<element name="D1" library="SS24FL" package="SODFL3617X108N" value="SS24FL" x="0" y="6.35" smashed="yes">
-<attribute name="DESCRIPTION" value=" Diode Schottky 40V 2A Surface Mount SOD-123F " x="0" y="6.35" size="1.778" layer="27" display="off"/>
-<attribute name="DIGI-KEY_PART_NUMBER" value="SS24FLCT-ND" x="0" y="6.35" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="ON Semiconductor" x="0" y="6.35" size="1.778" layer="27" display="off"/>
-<attribute name="MP" value="SS24FL" x="0" y="6.35" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-2.54" y="7.747" size="1.27" layer="25"/>
-<attribute name="PACKAGE" value="SOD-123 FL-2 ON Semiconductor" x="0" y="6.35" size="1.778" layer="27" display="off"/>
-<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/SS24FL/?ref=eda" x="0" y="6.35" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-2.54" y="3.81" size="1.27" layer="27"/>
+<element name="D1" library="SS24FL" package="SODFL3617X108N" value="SS24FL" x="80.01" y="74.93" smashed="yes">
+<attribute name="DESCRIPTION" value=" Diode Schottky 40V 2A Surface Mount SOD-123F " x="80.01" y="74.93" size="1.778" layer="27" display="off"/>
+<attribute name="DIGI-KEY_PART_NUMBER" value="SS24FLCT-ND" x="80.01" y="74.93" size="1.778" layer="27" display="off"/>
+<attribute name="MF" value="ON Semiconductor" x="80.01" y="74.93" size="1.778" layer="27" display="off"/>
+<attribute name="MP" value="SS24FL" x="80.01" y="74.93" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="77.47" y="76.327" size="1.27" layer="25"/>
+<attribute name="PACKAGE" value="SOD-123 FL-2 ON Semiconductor" x="80.01" y="74.93" size="1.778" layer="27" display="off"/>
+<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/SS24FL/?ref=eda" x="80.01" y="74.93" size="1.778" layer="27" display="off"/>
+<attribute name="VALUE" x="77.47" y="72.39" size="1.27" layer="27"/>
 </element>
 </elements>
 <signals>
@@ -757,7 +757,9 @@ design rules under a new name.</description>
 <signal name="5V">
 <contactref element="D1" pad="C"/>
 <contactref element="U1" pad="15"/>
-<wire x1="-1.53" y1="6.35" x2="12.14" y2="74.93" width="0" layer="19" extent="1-1"/>
+<contactref element="STEPPER" pad="10"/>
+<wire x1="12.14" y1="74.93" x2="78.48" y2="74.93" width="0" layer="19" extent="1-1"/>
+<wire x1="19.05" y1="35.56" x2="12.14" y2="74.93" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="GND">
 <contactref element="U1" pad="17" route="any" routetag="G$1.GND"/>
@@ -772,21 +774,21 @@ design rules under a new name.</description>
 <contactref element="GND_CONN" pad="5"/>
 <contactref element="GND_CONN" pad="6"/>
 <contactref element="QWIIC_CONN" pad="1"/>
-<contactref element="STEPPER" pad="9"/>
-<contactref element="STEPPER" pad="15"/>
 <contactref element="J1" pad="2"/>
 <contactref element="PS1" pad="2"/>
-<wire x1="97.79" y1="63.5" x2="59.46" y2="64.715" width="0" layer="19" extent="1-1"/>
+<contactref element="STEPPER" pad="9"/>
+<contactref element="STEPPER" pad="15"/>
 <wire x1="92.7862" y1="63.5" x2="97.79" y2="63.5" width="0" layer="19" extent="1-1"/>
 <wire x1="87.7824" y1="63.5" x2="92.7862" y2="63.5" width="0" layer="19" extent="1-1"/>
 <wire x1="82.7786" y1="63.5" x2="87.7824" y2="63.5" width="0" layer="19" extent="1-1"/>
 <wire x1="77.8002" y1="63.5" x2="82.7786" y2="63.5" width="0" layer="19" extent="1-1"/>
 <wire x1="72.7964" y1="63.5" x2="77.8002" y2="63.5" width="0" layer="19" extent="1-1"/>
-<wire x1="47.7" y1="52.07" x2="72.7964" y2="63.5" width="0" layer="19" extent="1-1"/>
-<wire x1="16.51" y1="35.56" x2="4.52" y2="52.07" width="0" layer="19" extent="1-1"/>
+<wire x1="59.46" y1="64.715" x2="72.7964" y2="63.5" width="0" layer="19" extent="1-1"/>
+<wire x1="60.96" y1="54.9" x2="59.46" y2="64.715" width="0" layer="19" extent="1-1"/>
+<wire x1="47.7" y1="52.07" x2="60.96" y2="54.9" width="0" layer="19" extent="1-1"/>
+<wire x1="6" y1="41.91" x2="4.52" y2="52.07" width="0" layer="19" extent="1-1"/>
+<wire x1="16.51" y1="35.56" x2="6" y2="41.91" width="0" layer="19" extent="1-1"/>
 <wire x1="31.75" y1="35.56" x2="16.51" y2="35.56" width="0" layer="19" extent="1-1"/>
-<wire x1="6" y1="41.91" x2="16.51" y2="35.56" width="0" layer="19" extent="1-1"/>
-<wire x1="60.96" y1="54.9" x2="6" y2="41.91" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="3_3V">
 <contactref element="3.3V_CONN" pad="1"/>
@@ -813,21 +815,67 @@ design rules under a new name.</description>
 <contactref element="QWIIC_CONN" pad="3"/>
 <wire x1="61.46" y1="64.715" x2="35" y2="52.07" width="0" layer="19" extent="1-1"/>
 </signal>
-<signal name="VDD">
-<contactref element="STEPPER" pad="10"/>
-</signal>
-<signal name="VMOT">
-<contactref element="STEPPER" pad="16"/>
-</signal>
 <signal name="24V">
 <contactref element="J1" pad="1"/>
 <contactref element="PS1" pad="1"/>
-<wire x1="58.42" y1="54.9" x2="0" y2="41.91" width="0" layer="19" extent="1-1"/>
+<contactref element="STEPPER" pad="16"/>
+<wire x1="34.29" y1="35.56" x2="58.42" y2="54.9" width="0" layer="19" extent="1-1"/>
+<wire x1="0" y1="41.91" x2="34.29" y2="35.56" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$1">
 <contactref element="PS1" pad="3"/>
 <contactref element="D1" pad="A"/>
-<wire x1="1.53" y1="6.35" x2="63.5" y2="54.9" width="0" layer="19" extent="1-1"/>
+<wire x1="81.54" y1="74.93" x2="63.5" y2="54.9" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="N$2">
+<contactref element="U1" pad="25"/>
+<contactref element="STEPPER" pad="1"/>
+<wire x1="27.38" y1="52.07" x2="34.29" y2="48.26" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="N$3">
+<contactref element="U1" pad="26"/>
+<contactref element="STEPPER" pad="2"/>
+<wire x1="24.84" y1="52.07" x2="31.75" y2="48.26" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="N$4">
+<contactref element="U1" pad="27"/>
+<contactref element="STEPPER" pad="3"/>
+<wire x1="22.3" y1="52.07" x2="29.21" y2="48.26" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="N$5">
+<contactref element="U1" pad="30"/>
+<contactref element="STEPPER" pad="4"/>
+<wire x1="14.68" y1="52.07" x2="26.67" y2="48.26" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="N$6">
+<contactref element="U1" pad="31"/>
+<contactref element="STEPPER" pad="7"/>
+<wire x1="12.14" y1="52.07" x2="19.05" y2="48.26" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="N$7">
+<contactref element="U1" pad="14"/>
+<contactref element="STEPPER" pad="8"/>
+<wire x1="16.51" y1="48.26" x2="14.68" y2="74.93" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="N$8">
+<contactref element="STEPPER" pad="11"/>
+<contactref element="MTR_CONN" pad="6"/>
+<wire x1="21.59" y1="35.56" x2="64.3636" y2="43.18" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="N$9">
+<contactref element="MTR_CONN" pad="5"/>
+<contactref element="STEPPER" pad="12"/>
+<wire x1="24.13" y1="35.56" x2="59.3598" y2="43.18" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="N$10">
+<contactref element="STEPPER" pad="13"/>
+<contactref element="MTR_CONN" pad="4"/>
+<wire x1="26.67" y1="35.56" x2="54.3814" y2="43.18" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="N$11">
+<contactref element="MTR_CONN" pad="3"/>
+<contactref element="STEPPER" pad="14"/>
+<wire x1="29.21" y1="35.56" x2="49.3776" y2="43.18" width="0" layer="19" extent="1-1"/>
 </signal>
 </signals>
 <mfgpreviewcolors>

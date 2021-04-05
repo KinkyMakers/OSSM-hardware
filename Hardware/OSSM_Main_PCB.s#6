@@ -395,90 +395,6 @@ DIN A4, landscape with location and doc. field</description>
 <wire x1="-4.7752" y1="0" x2="-4.0132" y2="0" width="0.508" layer="22" curve="-180"/>
 <text x="9.2202" y="-0.635" size="1.27" layer="25" ratio="6" rot="SR0">&gt;Name</text>
 </package>
-<package name="USC_TOS" library_version="1" library_locally_modified="yes">
-<smd name="1" x="-1.15" y="0" dx="1.099996875" dy="0.46" layer="1"/>
-<smd name="2" x="1.15" y="0" dx="1.099996875" dy="0.46" layer="1"/>
-<wire x1="-0.8636" y1="-0.2032" x2="-0.8636" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="0.2032" x2="-1.3462" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="-1.3462" y1="0.2032" x2="-1.3462" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="-1.3462" y1="-0.2032" x2="-0.8636" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="0.2032" x2="0.8636" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="-0.2032" x2="1.3462" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="1.3462" y1="-0.2032" x2="1.3462" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="1.3462" y1="0.2032" x2="0.8636" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="0.3302" x2="-0.5588" y2="0.6604" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="-0.3302" x2="-0.5588" y2="-0.6604" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="-0.6604" x2="0.8636" y2="-0.6604" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="-0.6604" x2="0.8636" y2="0.6604" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="0.6604" x2="-0.8636" y2="0.6604" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="0.6604" x2="-0.8636" y2="-0.6604" width="0.1524" layer="51"/>
-<text x="-1.1938" y="-0.635" size="1.27" layer="51" ratio="6" rot="SR0">*</text>
-<wire x1="-0.9906" y1="-0.7874" x2="0.9906" y2="-0.7874" width="0.1524" layer="21"/>
-<wire x1="0.9906" y1="-0.7874" x2="0.9906" y2="-0.5588" width="0.1524" layer="21"/>
-<wire x1="0.9906" y1="0.7874" x2="-0.9906" y2="0.7874" width="0.1524" layer="21"/>
-<wire x1="-0.9906" y1="0.7874" x2="-0.9906" y2="0.5588" width="0.1524" layer="21"/>
-<wire x1="-0.9906" y1="-0.5588" x2="-0.9906" y2="-0.7874" width="0.1524" layer="21"/>
-<wire x1="0.9906" y1="0.5588" x2="0.9906" y2="0.7874" width="0.1524" layer="21"/>
-<text x="-2.667" y="-0.635" size="1.27" layer="21" ratio="6" rot="SR0">*</text>
-<text x="-1.7272" y="-0.635" size="1.27" layer="21" ratio="6" rot="SR0">&gt;Value</text>
-<text x="-3.2766" y="-0.635" size="1.27" layer="25" ratio="6" rot="SR0">&gt;Name</text>
-</package>
-<package name="USC_TOS-M" library_version="1" library_locally_modified="yes">
-<smd name="1" x="-1.2" y="0" dx="1.399996875" dy="0.5" layer="1"/>
-<smd name="2" x="1.2" y="0" dx="1.399996875" dy="0.5" layer="1"/>
-<wire x1="-0.8636" y1="-0.2032" x2="-0.8636" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="0.2032" x2="-1.3462" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="-1.3462" y1="0.2032" x2="-1.3462" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="-1.3462" y1="-0.2032" x2="-0.8636" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="0.2032" x2="0.8636" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="-0.2032" x2="1.3462" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="1.3462" y1="-0.2032" x2="1.3462" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="1.3462" y1="0.2032" x2="0.8636" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="0.3302" x2="-0.5588" y2="0.6604" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="-0.3302" x2="-0.5588" y2="-0.6604" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="-0.6604" x2="0.8636" y2="-0.6604" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="-0.6604" x2="0.8636" y2="0.6604" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="0.6604" x2="-0.8636" y2="0.6604" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="0.6604" x2="-0.8636" y2="-0.6604" width="0.1524" layer="51"/>
-<text x="-1.1938" y="-0.635" size="1.27" layer="51" ratio="6" rot="SR0">*</text>
-<wire x1="-0.9906" y1="-0.7874" x2="0.9906" y2="-0.7874" width="0.1524" layer="21"/>
-<wire x1="0.9906" y1="-0.7874" x2="0.9906" y2="-0.5842" width="0.1524" layer="21"/>
-<wire x1="0.9906" y1="0.7874" x2="-0.9906" y2="0.7874" width="0.1524" layer="21"/>
-<wire x1="-0.9906" y1="0.7874" x2="-0.9906" y2="0.5842" width="0.1524" layer="21"/>
-<wire x1="-0.9906" y1="-0.5842" x2="-0.9906" y2="-0.7874" width="0.1524" layer="21"/>
-<wire x1="0.9906" y1="0.5842" x2="0.9906" y2="0.7874" width="0.1524" layer="21"/>
-<text x="-2.8448" y="-0.635" size="1.27" layer="21" ratio="6" rot="SR0">*</text>
-<text x="-1.7272" y="-0.635" size="1.27" layer="21" ratio="6" rot="SR0">&gt;Value</text>
-<text x="-3.2766" y="-0.635" size="1.27" layer="25" ratio="6" rot="SR0">&gt;Name</text>
-</package>
-<package name="USC_TOS-L" library_version="1" library_locally_modified="yes">
-<smd name="1" x="-1.1" y="0" dx="0.799996875" dy="0.42" layer="1"/>
-<smd name="2" x="1.1" y="0" dx="0.799996875" dy="0.42" layer="1"/>
-<wire x1="-0.8636" y1="-0.2032" x2="-0.8636" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="0.2032" x2="-1.3462" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="-1.3462" y1="0.2032" x2="-1.3462" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="-1.3462" y1="-0.2032" x2="-0.8636" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="0.2032" x2="0.8636" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="-0.2032" x2="1.3462" y2="-0.2032" width="0.1524" layer="51"/>
-<wire x1="1.3462" y1="-0.2032" x2="1.3462" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="1.3462" y1="0.2032" x2="0.8636" y2="0.2032" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="0.3302" x2="-0.5588" y2="0.6604" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="-0.3302" x2="-0.5588" y2="-0.6604" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="-0.6604" x2="0.8636" y2="-0.6604" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="-0.6604" x2="0.8636" y2="0.6604" width="0.1524" layer="51"/>
-<wire x1="0.8636" y1="0.6604" x2="-0.8636" y2="0.6604" width="0.1524" layer="51"/>
-<wire x1="-0.8636" y1="0.6604" x2="-0.8636" y2="-0.6604" width="0.1524" layer="51"/>
-<text x="-1.1938" y="-0.635" size="1.27" layer="51" ratio="6" rot="SR0">*</text>
-<wire x1="-0.9906" y1="-0.7874" x2="0.9906" y2="-0.7874" width="0.1524" layer="21"/>
-<wire x1="0.9906" y1="-0.7874" x2="0.9906" y2="-0.5334" width="0.1524" layer="21"/>
-<wire x1="0.9906" y1="0.7874" x2="-0.9906" y2="0.7874" width="0.1524" layer="21"/>
-<wire x1="-0.9906" y1="0.7874" x2="-0.9906" y2="0.5334" width="0.1524" layer="21"/>
-<wire x1="-0.9906" y1="-0.5334" x2="-0.9906" y2="-0.7874" width="0.1524" layer="21"/>
-<wire x1="0.9906" y1="0.5334" x2="0.9906" y2="0.7874" width="0.1524" layer="21"/>
-<text x="-2.4638" y="-0.635" size="1.27" layer="21" ratio="6" rot="SR0">*</text>
-<text x="-1.7272" y="-0.635" size="1.27" layer="21" ratio="6" rot="SR0">&gt;Value</text>
-<text x="-3.2766" y="-0.635" size="1.27" layer="25" ratio="6" rot="SR0">&gt;Name</text>
-</package>
 </packages>
 <symbols>
 <symbol name="CONN_6P_1" library_version="1" library_locally_modified="yes">
@@ -511,20 +427,6 @@ DIN A4, landscape with location and doc. field</description>
 <wire x1="12.7" y1="-15.24" x2="12.7" y2="2.54" width="0.1524" layer="94"/>
 <wire x1="12.7" y1="2.54" x2="5.08" y2="2.54" width="0.1524" layer="94"/>
 <text x="4.1656" y="5.3086" size="2.0828" layer="95" ratio="6" rot="SR0">&gt;Name</text>
-</symbol>
-<symbol name="DIODE" library_version="1" library_locally_modified="yes">
-<pin name="ANODE" x="0" y="0" visible="off" length="short" direction="pas"/>
-<pin name="CATHODE" x="10.16" y="0" visible="off" length="short" direction="pas" rot="R180"/>
-<wire x1="3.81" y1="1.905" x2="3.81" y2="0" width="0.2032" layer="94"/>
-<wire x1="3.81" y1="0" x2="3.81" y2="-1.905" width="0.2032" layer="94"/>
-<wire x1="2.54" y1="0" x2="3.81" y2="0" width="0.2032" layer="94"/>
-<wire x1="6.35" y1="-1.905" x2="6.35" y2="0" width="0.2032" layer="94"/>
-<wire x1="6.35" y1="0" x2="6.35" y2="1.905" width="0.2032" layer="94"/>
-<wire x1="6.35" y1="0" x2="7.62" y2="0" width="0.2032" layer="94"/>
-<wire x1="6.35" y1="0" x2="3.81" y2="1.905" width="0.2032" layer="94"/>
-<wire x1="3.81" y1="-1.905" x2="6.35" y2="0" width="0.2032" layer="94"/>
-<text x="-3.8862" y="-5.5372" size="3.4798" layer="96" ratio="10" rot="SR0">&gt;Value</text>
-<text x="-2.8194" y="2.6924" size="3.4798" layer="95" ratio="10" rot="SR0">&gt;Name</text>
 </symbol>
 </symbols>
 <devicesets>
@@ -561,58 +463,6 @@ DIN A4, landscape with location and doc. field</description>
 <attribute name="SOLDER_PIN_LENGTH__MM_" value="2.5" constant="no"/>
 <attribute name="SOURCELIBRARY" value="Phoenix_Contact_2020-03-19" constant="no"/>
 <attribute name="VENDOR" value="Phoenix Contact" constant="no"/>
-</technology>
-</technologies>
-</device>
-</devices>
-</deviceset>
-<deviceset name="CUS551V30" prefix="CR" library_version="1" library_locally_modified="yes">
-<gates>
-<gate name="A" symbol="DIODE" x="0" y="0"/>
-</gates>
-<devices>
-<device name="" package="USC_TOS">
-<connects>
-<connect gate="A" pin="ANODE" pad="2"/>
-<connect gate="A" pin="CATHODE" pad="1"/>
-</connects>
-<technologies>
-<technology name="">
-<attribute name="BUILT_BY" value="EMA_TJ" constant="no"/>
-<attribute name="COPYRIGHT" value="Copyright (C) 2016 Accelerated Designs. All rights reserved" constant="no"/>
-<attribute name="MANUFACTURER_PART_NUMBER" value="CUS551V30" constant="no"/>
-<attribute name="SOURCELIBRARY" value="Toshiba_2018-09-20" constant="no"/>
-<attribute name="VENDOR" value="Toshiba" constant="no"/>
-</technology>
-</technologies>
-</device>
-<device name="USC_TOS-M" package="USC_TOS-M">
-<connects>
-<connect gate="A" pin="ANODE" pad="2"/>
-<connect gate="A" pin="CATHODE" pad="1"/>
-</connects>
-<technologies>
-<technology name="">
-<attribute name="BUILT_BY" value="EMA_TJ" constant="no"/>
-<attribute name="COPYRIGHT" value="Copyright (C) 2016 Accelerated Designs. All rights reserved" constant="no"/>
-<attribute name="MANUFACTURER_PART_NUMBER" value="CUS551V30" constant="no"/>
-<attribute name="SOURCELIBRARY" value="Toshiba_2018-09-20" constant="no"/>
-<attribute name="VENDOR" value="Toshiba" constant="no"/>
-</technology>
-</technologies>
-</device>
-<device name="USC_TOS-L" package="USC_TOS-L">
-<connects>
-<connect gate="A" pin="ANODE" pad="2"/>
-<connect gate="A" pin="CATHODE" pad="1"/>
-</connects>
-<technologies>
-<technology name="">
-<attribute name="BUILT_BY" value="EMA_TJ" constant="no"/>
-<attribute name="COPYRIGHT" value="Copyright (C) 2016 Accelerated Designs. All rights reserved" constant="no"/>
-<attribute name="MANUFACTURER_PART_NUMBER" value="CUS551V30" constant="no"/>
-<attribute name="SOURCELIBRARY" value="Toshiba_2018-09-20" constant="no"/>
-<attribute name="VENDOR" value="Toshiba" constant="no"/>
 </technology>
 </technologies>
 </device>
@@ -956,7 +806,6 @@ DIN A4, landscape with location and doc. field</description>
 <part name="QWIIC_CONN" library="BM04B-SRSS-TB_LF__SN_" deviceset="BM04B-SRSS-TB(LF)(SN)" device=""/>
 <part name="STEPPER" library="A4988_STEPPER_MOTOR_DRIVER_CARRIER" deviceset="A4988_STEPPER_MOTOR_DRIVER_CARRIER" device=""/>
 <part name="J1" library="PJ-037AH" deviceset="PJ-037AH" device=""/>
-<part name="CR1" library="@DT-TRAINER" library_urn="urn:adsk.eagle:library:19991785" deviceset="CUS551V30" device=""/>
 <part name="PS1" library="R-78E5.0-0.5" deviceset="R-78E5.0-0.5" device=""/>
 </parts>
 <sheets>
@@ -995,10 +844,6 @@ DIN A4, landscape with location and doc. field</description>
 <instance part="J1" gate="G$1" x="162.56" y="157.48" smashed="yes">
 <attribute name="NAME" x="154.93983125" y="162.560109375" size="1.778" layer="95"/>
 <attribute name="VALUE" x="154.92931875" y="152.39288125" size="1.778" layer="96"/>
-</instance>
-<instance part="CR1" gate="A" x="198.12" y="129.54" smashed="yes">
-<attribute name="VALUE" x="194.2338" y="124.0028" size="3.4798" layer="96" ratio="10" rot="SR0"/>
-<attribute name="NAME" x="195.3006" y="132.2324" size="3.4798" layer="95" ratio="10" rot="SR0"/>
 </instance>
 <instance part="PS1" gate="G$1" x="193.04" y="157.48" smashed="yes">
 <attribute name="NAME" x="182.8761" y="163.8379" size="1.77938125" layer="95"/>
