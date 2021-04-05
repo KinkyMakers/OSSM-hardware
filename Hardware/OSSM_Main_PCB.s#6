@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.6.1">
+<eagle version="9.6.2">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -787,6 +787,73 @@ DIN A4, landscape with location and doc. field</description>
 </deviceset>
 </devicesets>
 </library>
+<library name="SS24FL">
+<packages>
+<package name="SODFL3617X108N">
+<wire x1="1.5" y1="-0.975" x2="-0.6" y2="-0.975" width="0.127" layer="51"/>
+<wire x1="-0.6" y1="-0.975" x2="-1.5" y2="-0.975" width="0.127" layer="51"/>
+<wire x1="-1.5" y1="0.975" x2="-1.5" y2="-0.975" width="0.127" layer="51"/>
+<wire x1="-1.38" y1="0.975" x2="1.38" y2="0.975" width="0.127" layer="21"/>
+<wire x1="1.5" y1="-0.975" x2="1.5" y2="0.975" width="0.127" layer="51"/>
+<circle x="-2.605" y="0" radius="0.1" width="0.2" layer="21"/>
+<circle x="-2.605" y="0" radius="0.1" width="0.2" layer="51"/>
+<wire x1="-2.405" y1="1.225" x2="-2.405" y2="-1.225" width="0.05" layer="39"/>
+<wire x1="-2.405" y1="1.225" x2="2.405" y2="1.225" width="0.05" layer="39"/>
+<wire x1="2.405" y1="-1.225" x2="2.405" y2="1.225" width="0.05" layer="39"/>
+<wire x1="2.405" y1="-1.225" x2="-2.405" y2="-1.225" width="0.05" layer="39"/>
+<text x="-2.54" y="1.397" size="1.27" layer="25">&gt;NAME</text>
+<text x="-2.54" y="-2.54" size="1.27" layer="27">&gt;VALUE</text>
+<wire x1="-1.5" y1="0.975" x2="-0.6" y2="0.975" width="0.127" layer="51"/>
+<wire x1="-0.6" y1="0.975" x2="1.5" y2="0.975" width="0.127" layer="51"/>
+<wire x1="-1.38" y1="-0.975" x2="1.38" y2="-0.975" width="0.127" layer="21"/>
+<wire x1="-0.6" y1="0.975" x2="-0.6" y2="-0.975" width="0.127" layer="51"/>
+<smd name="C" x="-1.53" y="0" dx="1.25" dy="1.16" layer="1" roundness="25"/>
+<smd name="A" x="1.53" y="0" dx="1.25" dy="1.16" layer="1" roundness="25"/>
+</package>
+</packages>
+<symbols>
+<symbol name="SS24FL">
+<text x="-5.08" y="2.54" size="1.778" layer="95">&gt;NAME</text>
+<text x="-5.08" y="-3.81" size="1.778" layer="96">&gt;VALUE</text>
+<wire x1="-1.27" y1="-1.27" x2="1.27" y2="0" width="0.254" layer="94"/>
+<wire x1="1.27" y1="0" x2="-1.27" y2="1.27" width="0.254" layer="94"/>
+<wire x1="1.27" y1="1.27" x2="1.27" y2="0" width="0.254" layer="94"/>
+<wire x1="-1.27" y1="1.27" x2="-1.27" y2="0" width="0.254" layer="94"/>
+<wire x1="-1.27" y1="0" x2="-1.27" y2="-1.27" width="0.254" layer="94"/>
+<wire x1="1.27" y1="0" x2="1.27" y2="-1.27" width="0.254" layer="94"/>
+<wire x1="-2.54" y1="0" x2="-1.27" y2="0" width="0.254" layer="94"/>
+<wire x1="1.27" y1="0" x2="2.54" y2="0" width="0.254" layer="94"/>
+<pin name="C" x="5.08" y="0" visible="off" length="short" direction="pas" rot="R180"/>
+<pin name="A" x="-5.08" y="0" visible="off" length="short" direction="pas"/>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="SS24FL" prefix="D">
+<description>Diode Schottky Barrier Rectifier 30V 1A 2-Pin SOD-123F T/R </description>
+<gates>
+<gate name="G$1" symbol="SS24FL" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="SODFL3617X108N">
+<connects>
+<connect gate="G$1" pin="A" pad="A"/>
+<connect gate="G$1" pin="C" pad="C"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="DESCRIPTION" value=" Diode Schottky 40V 2A Surface Mount SOD-123F "/>
+<attribute name="DIGI-KEY_PART_NUMBER" value="SS24FLCT-ND"/>
+<attribute name="MF" value="ON Semiconductor"/>
+<attribute name="MP" value="SS24FL"/>
+<attribute name="PACKAGE" value="SOD-123 FL-2 ON Semiconductor"/>
+<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/SS24FL/?ref=eda"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -807,6 +874,7 @@ DIN A4, landscape with location and doc. field</description>
 <part name="STEPPER" library="A4988_STEPPER_MOTOR_DRIVER_CARRIER" deviceset="A4988_STEPPER_MOTOR_DRIVER_CARRIER" device=""/>
 <part name="J1" library="PJ-037AH" deviceset="PJ-037AH" device=""/>
 <part name="PS1" library="R-78E5.0-0.5" deviceset="R-78E5.0-0.5" device=""/>
+<part name="D1" library="SS24FL" deviceset="SS24FL" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -830,8 +898,8 @@ DIN A4, landscape with location and doc. field</description>
 <instance part="IO_CONN" gate="A" x="132.08" y="66.04" smashed="yes">
 <attribute name="NAME" x="136.2456" y="71.3486" size="2.0828" layer="95" ratio="6" rot="SR0"/>
 </instance>
-<instance part="MTR_CONN" gate="A" x="160.02" y="66.04" smashed="yes">
-<attribute name="NAME" x="164.1856" y="71.3486" size="2.0828" layer="95" ratio="6" rot="SR0"/>
+<instance part="MTR_CONN" gate="A" x="187.96" y="129.54" smashed="yes">
+<attribute name="NAME" x="192.1256" y="134.8486" size="2.0828" layer="95" ratio="6" rot="SR0"/>
 </instance>
 <instance part="QWIIC_CONN" gate="G$1" x="205.74" y="58.42" smashed="yes">
 <attribute name="NAME" x="200.66" y="69.215" size="1.778" layer="95"/>
@@ -848,6 +916,10 @@ DIN A4, landscape with location and doc. field</description>
 <instance part="PS1" gate="G$1" x="193.04" y="157.48" smashed="yes">
 <attribute name="NAME" x="182.8761" y="163.8379" size="1.77938125" layer="95"/>
 <attribute name="VALUE" x="182.8786" y="149.8573" size="1.77848125" layer="96"/>
+</instance>
+<instance part="D1" gate="G$1" x="228.6" y="160.02" smashed="yes">
+<attribute name="NAME" x="223.52" y="162.56" size="1.778" layer="95"/>
+<attribute name="VALUE" x="223.52" y="156.21" size="1.778" layer="96"/>
 </instance>
 </instances>
 <busses>
@@ -903,6 +975,11 @@ DIN A4, landscape with location and doc. field</description>
 <pinref part="PS1" gate="G$1" pin="GND"/>
 <wire x1="208.28" y1="154.94" x2="218.44" y2="154.94" width="0.1524" layer="91"/>
 <label x="213.36" y="154.94" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="STEPPER" gate="G$1" pin="GND"/>
+<wire x1="152.4" y1="132.08" x2="160.02" y2="132.08" width="0.1524" layer="91"/>
+<label x="160.02" y="132.08" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="3_3V" class="0">
@@ -976,13 +1053,118 @@ DIN A4, landscape with location and doc. field</description>
 <junction x="172.72" y="160.02"/>
 <label x="172.72" y="167.64" size="1.778" layer="95"/>
 </segment>
+<segment>
+<pinref part="STEPPER" gate="G$1" pin="VMOT"/>
+<wire x1="152.4" y1="134.62" x2="154.94" y2="134.62" width="0.1524" layer="91"/>
+<wire x1="154.94" y1="134.62" x2="157.48" y2="134.62" width="0.1524" layer="91"/>
+<wire x1="157.48" y1="134.62" x2="160.02" y2="134.62" width="0.1524" layer="91"/>
+<label x="160.02" y="134.62" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="N$1" class="0">
+<segment>
+<pinref part="PS1" gate="G$1" pin="+VOUT"/>
+<pinref part="D1" gate="G$1" pin="A"/>
+<wire x1="208.28" y1="160.02" x2="223.52" y2="160.02" width="0.1524" layer="91"/>
+</segment>
 </net>
 <net name="5V" class="0">
 <segment>
-<pinref part="PS1" gate="G$1" pin="+VOUT"/>
-<wire x1="208.28" y1="160.02" x2="215.9" y2="160.02" width="0.1524" layer="91"/>
-<wire x1="215.9" y1="160.02" x2="215.9" y2="167.64" width="0.1524" layer="91"/>
-<label x="215.9" y="167.64" size="1.778" layer="95"/>
+<pinref part="D1" gate="G$1" pin="C"/>
+<wire x1="233.68" y1="160.02" x2="243.84" y2="160.02" width="0.1524" layer="91"/>
+<label x="243.84" y="160.02" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="5V"/>
+<wire x1="36.83" y1="119.38" x2="27.94" y2="119.38" width="0.1524" layer="91"/>
+<label x="27.94" y="119.38" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="STEPPER" gate="G$1" pin="VDD"/>
+<wire x1="152.4" y1="109.22" x2="160.02" y2="109.22" width="0.1524" layer="91"/>
+<label x="162.56" y="109.22" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="N$2" class="0">
+<segment>
+<pinref part="U1" gate="G$1" pin="IO19"/>
+<pinref part="STEPPER" gate="G$1" pin="!ENABLE"/>
+<wire x1="77.47" y1="134.62" x2="116.84" y2="134.62" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$3" class="0">
+<segment>
+<pinref part="U1" gate="G$1" pin="IO23"/>
+<wire x1="77.47" y1="132.08" x2="104.14" y2="132.08" width="0.1524" layer="91"/>
+<wire x1="104.14" y1="132.08" x2="106.68" y2="132.08" width="0.1524" layer="91"/>
+<wire x1="106.68" y1="132.08" x2="106.68" y2="129.54" width="0.1524" layer="91"/>
+<pinref part="STEPPER" gate="G$1" pin="MS1/SDI/CFG1"/>
+<wire x1="106.68" y1="129.54" x2="106.68" y2="127" width="0.1524" layer="91"/>
+<wire x1="106.68" y1="127" x2="116.84" y2="127" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$4" class="0">
+<segment>
+<pinref part="U1" gate="G$1" pin="IO18"/>
+<wire x1="77.47" y1="129.54" x2="104.14" y2="129.54" width="0.1524" layer="91"/>
+<wire x1="104.14" y1="129.54" x2="104.14" y2="124.46" width="0.1524" layer="91"/>
+<pinref part="STEPPER" gate="G$1" pin="MS2/SCK/CFG2"/>
+<wire x1="104.14" y1="124.46" x2="116.84" y2="124.46" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$5" class="0">
+<segment>
+<pinref part="U1" gate="G$1" pin="IO17"/>
+<pinref part="STEPPER" gate="G$1" pin="MS3/CSN/CFG3"/>
+<wire x1="77.47" y1="121.92" x2="116.84" y2="121.92" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$6" class="0">
+<segment>
+<pinref part="U1" gate="G$1" pin="IO16"/>
+<wire x1="77.47" y1="119.38" x2="106.68" y2="119.38" width="0.1524" layer="91"/>
+<pinref part="STEPPER" gate="G$1" pin="STEP"/>
+<wire x1="106.68" y1="119.38" x2="106.68" y2="109.22" width="0.1524" layer="91"/>
+<wire x1="106.68" y1="109.22" x2="116.84" y2="109.22" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$7" class="0">
+<segment>
+<pinref part="U1" gate="G$1" pin="IO13"/>
+<wire x1="36.83" y1="121.92" x2="17.78" y2="121.92" width="0.1524" layer="91"/>
+<wire x1="17.78" y1="121.92" x2="17.78" y2="99.06" width="0.1524" layer="91"/>
+<wire x1="17.78" y1="99.06" x2="111.76" y2="99.06" width="0.1524" layer="91"/>
+<pinref part="STEPPER" gate="G$1" pin="DIR"/>
+<wire x1="111.76" y1="99.06" x2="116.84" y2="99.06" width="0.1524" layer="91"/>
+<wire x1="116.84" y1="99.06" x2="116.84" y2="106.68" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$8" class="0">
+<segment>
+<pinref part="STEPPER" gate="G$1" pin="1B"/>
+<pinref part="MTR_CONN" gate="A" pin="6"/>
+<wire x1="152.4" y1="116.84" x2="187.96" y2="116.84" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$9" class="0">
+<segment>
+<pinref part="MTR_CONN" gate="A" pin="5"/>
+<pinref part="STEPPER" gate="G$1" pin="1A"/>
+<wire x1="187.96" y1="119.38" x2="152.4" y2="119.38" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$10" class="0">
+<segment>
+<pinref part="STEPPER" gate="G$1" pin="2A"/>
+<pinref part="MTR_CONN" gate="A" pin="4"/>
+<wire x1="152.4" y1="121.92" x2="187.96" y2="121.92" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$11" class="0">
+<segment>
+<pinref part="MTR_CONN" gate="A" pin="3"/>
+<pinref part="STEPPER" gate="G$1" pin="2B"/>
+<wire x1="187.96" y1="124.46" x2="152.4" y2="124.46" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
