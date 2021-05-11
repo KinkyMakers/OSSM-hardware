@@ -5480,10 +5480,10 @@ Source: AVX .. aphvc.pdf</description>
 <net name="N$6" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="IO16"/>
-<wire x1="77.47" y1="119.38" x2="106.68" y2="119.38" width="0.1524" layer="91"/>
+<wire x1="77.47" y1="119.38" x2="91.44" y2="119.38" width="0.1524" layer="91"/>
 <pinref part="STEPPER" gate="G$1" pin="STEP"/>
-<wire x1="106.68" y1="119.38" x2="106.68" y2="109.22" width="0.1524" layer="91"/>
-<wire x1="106.68" y1="109.22" x2="116.84" y2="109.22" width="0.1524" layer="91"/>
+<wire x1="91.44" y1="119.38" x2="91.44" y2="109.22" width="0.1524" layer="91"/>
+<wire x1="91.44" y1="109.22" x2="116.84" y2="109.22" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$7" class="0">
@@ -5553,9 +5553,9 @@ Source: AVX .. aphvc.pdf</description>
 <label x="22.86" y="142.24" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="MTR_CONN" gate="A" pin="1"/>
-<wire x1="187.96" y1="129.54" x2="172.72" y2="129.54" width="0.1524" layer="91"/>
-<label x="172.72" y="129.54" size="1.778" layer="95"/>
+<pinref part="STEPPER" gate="G$1" pin="!SLEEP/CLK"/>
+<wire x1="116.84" y1="114.3" x2="104.14" y2="114.3" width="0.1524" layer="91"/>
+<label x="104.14" y="114.3" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="IO32" class="0">
@@ -5565,9 +5565,9 @@ Source: AVX .. aphvc.pdf</description>
 <label x="22.86" y="144.78" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="MTR_CONN" gate="A" pin="2"/>
-<wire x1="187.96" y1="127" x2="172.72" y2="127" width="0.1524" layer="91"/>
-<label x="172.72" y="127" size="1.778" layer="95"/>
+<pinref part="STEPPER" gate="G$1" pin="!RESET/SDO/CFG0"/>
+<wire x1="116.84" y1="116.84" x2="104.14" y2="116.84" width="0.1524" layer="91"/>
+<label x="104.14" y="116.84" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$8" class="0">
