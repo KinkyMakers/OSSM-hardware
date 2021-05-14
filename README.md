@@ -23,3 +23,9 @@ It is driven by a Nema23 motor of **your** choosing, although we reccomend small
 
 ![Basic overview of the OSSM mechanical design](https://kinkymakers.com/wp-content/uploads/2020/09/F_Machine_Base_-_Sept_21_2020_release_Render_2020-Sep-22_03-14-38AM-000_CustomizedView27283846607-e1600747915630-edited-3.png "OSSM basic render")
 
+### Wiring Notes
+
+This should be a good start for the wiring of your OSSM, however depending on your hardware mix settings or wiring may be different. 
+
+![wiring notes](https://raw.githubusercontent.com/KinkyMakers/OSSM-hardware/master/Hardware/wiring%20notes.png)
+
