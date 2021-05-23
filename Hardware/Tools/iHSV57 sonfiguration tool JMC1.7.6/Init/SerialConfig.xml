@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<SerialConfig>
+  <comboBoxBaudRate>57600</comboBoxBaudRate>
+  <comboBoxStop>1</comboBoxStop>
+  <comboBoxDataBit>8</comboBoxDataBit>
+  <comboBoxParity>Even</comboBoxParity>
+  <checkBoxMachineType>True</checkBoxMachineType>
+  <comboBoxMachineType>低压伺服</comboBoxMachineType>
+  <comboBoxCom>COM7</comboBoxCom>
+  <numericUpDown1>1</numericUpDown1>
+</SerialConfig>

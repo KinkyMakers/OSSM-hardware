@@ -1,0 +1,764 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<WarningConfig Number="81">
+  <AL.051>
+    <Alarm_code_>AL.051</Alarm_code_>
+    <Alarm_Content_>EEPROM  parameter abnormal</Alarm_Content_>
+    <Alarm_reason>servo unit EEPROM data abnormal</Alarm_reason>
+    <Fault_alarm_checking_>Check connection</Fault_alarm_checking_>
+    <Disposal_measures>Correct connection，reconnect
+power, If always appear, then
+change a drive</Disposal_measures>
+  </AL.051>
+  <AL.052>
+    <Alarm_code_>AL.052</Alarm_code_>
+    <Alarm_Content_>Programmable Logic configuration fault</Alarm_Content_>
+    <Alarm_reason> Master control MCU power-on
+initialization exception, Serial port
+baud rate setting is too high</Alarm_reason>
+    <Fault_alarm_checking_>1、Check the connection 2、Check the baud rate parameter P00-21 of serial port communication</Fault_alarm_checking_>
+    <Disposal_measures>Reduce the baud rate of Serial
+Communication, If always appear,
+then change a drive</Disposal_measures>
+  </AL.052>
+  <AL.053>
+    <Alarm_code_>AL.053</Alarm_code_>
+    <Alarm_Content_>Initialization Failed</Alarm_Content_>
+    <Alarm_reason> Master control MCU power-on
+initialization failed</Alarm_reason>
+    <Fault_alarm_checking_>check connections
+reconnect power</Fault_alarm_checking_>
+    <Disposal_measures>If always appear, then change a
+drive</Disposal_measures>
+  </AL.053>
+  <AL.054>
+    <Alarm_code_>AL.054</Alarm_code_>
+    <Alarm_Content_>System abnormal</Alarm_Content_>
+    <Alarm_reason>Master control MCU operation
+abnormal</Alarm_reason>
+    <Fault_alarm_checking_>check connections
+reconnect power</Fault_alarm_checking_>
+    <Disposal_measures>If always appear, then change a
+drive</Disposal_measures>
+  </AL.054>
+  <AL.060>
+    <Alarm_code_>AL.060</Alarm_code_>
+    <Alarm_Content_> Select the wrong product model</Alarm_Content_>
+    <Alarm_reason>Product parameter setting does not
+match the actual hardware</Alarm_reason>
+    <Fault_alarm_checking_>Check product parameter setting and hardware type for motor rated current greater than drive output current</Fault_alarm_checking_>
+    <Disposal_measures>correct product settings , if it always
+appears, Contact the manufacturer</Disposal_measures>
+  </AL.060>
+  <AL.061>
+    <Alarm_code_>AL.061</Alarm_code_>
+    <Alarm_Content_>Product matching fault</Alarm_Content_>
+    <Alarm_reason>Servo unit and servo motor type mismatch</Alarm_reason>
+    <Fault_alarm_checking_>Check whether the servo supports the motor.Check 6</Fault_alarm_checking_>
+    <Disposal_measures>Set product parameters correctly
+
+If it always appears, contact the manufacturer.
+</Disposal_measures>
+  </AL.061>
+  <AL.062>
+    <Alarm_code_>AL.062</Alarm_code_>
+    <Alarm_Content_>Parameter storage fault</Alarm_Content_>
+    <Alarm_reason>Reason 9</Alarm_reason>
+    <Fault_alarm_checking_>Check9</Fault_alarm_checking_>
+    <Disposal_measures>
+
+Disposal 9</Disposal_measures>
+  </AL.062>
+  <AL.063>
+    <Alarm_code_>AL.063</Alarm_code_>
+    <Alarm_Content_>over current checkout</Alarm_Content_>
+    <Alarm_reason>The current of servo power module is too large.</Alarm_reason>
+    <Fault_alarm_checking_>Is there a short circuit in U, V and W wiring?
+
+Is there a short circuit between B1 and B3?
+</Fault_alarm_checking_>
+    <Disposal_measures>wiring Correctly
+If it always appears, replace the driver.
+</Disposal_measures>
+  </AL.063>
+  <AL.064>
+    <Alarm_code_>AL.064</Alarm_code_>
+    <Alarm_Content_>  Servo power on ，Self-Test find out the output short circuit fault</Alarm_Content_>
+    <Alarm_reason>Reason 9</Alarm_reason>
+    <Fault_alarm_checking_>Check9</Fault_alarm_checking_>
+    <Disposal_measures>
+Disposal 9</Disposal_measures>
+  </AL.064>
+  <AL.065>
+    <Alarm_code_>AL.065</Alarm_code_>
+    <Alarm_Content_> built-in Fan stop of  servo unit</Alarm_Content_>
+    <Alarm_reason>Reason 10</Alarm_reason>
+    <Fault_alarm_checking_>Check10</Fault_alarm_checking_>
+    <Disposal_measures>
+
+Disposal 10</Disposal_measures>
+  </AL.065>
+  <AL.066>
+    <Alarm_code_>AL.066</Alarm_code_>
+    <Alarm_Content_> control power in low voltage of servo unit</Alarm_Content_>
+    <Alarm_reason>Control power supply L, N power supply voltage is too low.</Alarm_reason>
+    <Fault_alarm_checking_>Check wiring is correct.
+
+Measure L, N voltage whether is below 140VAC
+</Fault_alarm_checking_>
+    <Disposal_measures>wiring Correctly
+If it always appears, replace the driver.
+</Disposal_measures>
+  </AL.066>
+  <AL.070>
+    <Alarm_code_>AL.070</Alarm_code_>
+    <Alarm_Content_>AD Sample fault1</Alarm_Content_>
+    <Alarm_reason>Reason 12</Alarm_reason>
+    <Fault_alarm_checking_>Check12</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 12</Disposal_measures>
+  </AL.070>
+  <AL.071>
+    <Alarm_code_>AL.071</Alarm_code_>
+    <Alarm_Content_>Current sample fault</Alarm_Content_>
+    <Alarm_reason>Abnormal sampling data for current sensor</Alarm_reason>
+    <Fault_alarm_checking_>
+Is the wiring correct?</Fault_alarm_checking_>
+    <Disposal_measures>wiring Correctly
+If it always appears, replace the driver.
+</Disposal_measures>
+  </AL.071>
+  <AL.100>
+    <Alarm_code_>AL.100</Alarm_code_>
+    <Alarm_Content_> Paramets combination abnormal</Alarm_Content_>
+    <Alarm_reason>
+Parameter setting error</Alarm_reason>
+    <Fault_alarm_checking_>Check the set (P03-07) parameters.</Fault_alarm_checking_>
+    <Disposal_measures>Set parameters correctly
+
+If it always appears, please initialize the parameters.
+</Disposal_measures>
+  </AL.100>
+  <AL.101>
+    <Alarm_code_>AL.101</Alarm_code_>
+    <Alarm_Content_>AI Setting fault</Alarm_Content_>
+    <Alarm_reason>Reason 15</Alarm_reason>
+    <Fault_alarm_checking_>Check15</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 15</Disposal_measures>
+  </AL.101>
+  <AL.102>
+    <Alarm_code_>AL.102</Alarm_code_>
+    <Alarm_Content_>DI distributing fault</Alarm_Content_>
+    <Alarm_reason>
+At least 2 input ports have the same choice of functions.</Alarm_reason>
+    <Fault_alarm_checking_>Check port input function selection parameters</Fault_alarm_checking_>
+    <Disposal_measures>Set parameters correctly
+
+Drive to power again</Disposal_measures>
+  </AL.102>
+  <AL.103>
+    <Alarm_code_>AL.103</Alarm_code_>
+    <Alarm_Content_>DO distributing fault</Alarm_Content_>
+    <Alarm_reason>
+At least 2 output ports have the same choice of functions.</Alarm_reason>
+    <Fault_alarm_checking_>Check port output function selection parameters</Fault_alarm_checking_>
+    <Disposal_measures>Set parameters correctly
+
+Drive to power again
+</Disposal_measures>
+  </AL.103>
+  <AL.105>
+    <Alarm_code_>AL.105</Alarm_code_>
+    <Alarm_Content_>Electronic gear set error</Alarm_Content_>
+    <Alarm_reason>
+Electronic gear ratio setting error or biaxial sysnchronization output pulse set too small.</Alarm_reason>
+    <Fault_alarm_checking_>Check the electronic gear ratio setting parameters. P03-10, P03-11, or check the number of feedback loops of the rotating motor inbiaxial sysnchronization: P03-52 must be greater than 128.</Fault_alarm_checking_>
+    <Disposal_measures>Set the electronic gear ratio correctly or correctly set the number of feedback pulses in the rotation of the biaxial sysnchronization motor.</Disposal_measures>
+  </AL.105>
+  <AL.106>
+    <Alarm_code_>AL.106</Alarm_code_>
+    <Alarm_Content_> Divided pulse output Setting abnormal</Alarm_Content_>
+    <Alarm_reason>The frequency pulse output parameter setting is out of range.</Alarm_reason>
+    <Fault_alarm_checking_>
+Check the frequency pulse output setting parameters.
+P03-22，P03-23，P03-25
+</Fault_alarm_checking_>
+    <Disposal_measures>Set the frequency pulse output parameters correctly.
+
+Incremental encoder P03-22 &lt; P03-23
+
+Bus encoder P03-25&lt;65535
+
+Drive to power again
+</Disposal_measures>
+  </AL.106>
+  <AL.110>
+    <Alarm_code_>AL.110</Alarm_code_>
+    <Alarm_Content_> Need to power-on again after the parameter setting</Alarm_Content_>
+    <Alarm_reason>After the servo parameters are set, it is necessary to power up again.</Alarm_reason>
+    <Fault_alarm_checking_>Repower the drive</Fault_alarm_checking_>
+    <Disposal_measures>Repower the drive</Disposal_measures>
+  </AL.110>
+  <AL.120>
+    <Alarm_code_>AL.120</Alarm_code_>
+    <Alarm_Content_> Servo ON Instruction invalid alarm</Alarm_Content_>
+    <Alarm_reason>Servo ON instruction performs auxiliary functions.
+
+R, S, T voltage port is not powered.</Alarm_reason>
+    <Fault_alarm_checking_>Check wiring and input voltage</Fault_alarm_checking_>
+    <Disposal_measures>
+Check the wiring
+
+Make the drive repower
+</Disposal_measures>
+  </AL.120>
+  <AL.400>
+    <Alarm_code_>AL.400</Alarm_code_>
+    <Alarm_Content_>power line lacks of Phase</Alarm_Content_>
+    <Alarm_reason> Three phase power supply lacking phase of the driver's R, S and T</Alarm_reason>
+    <Fault_alarm_checking_>
+Check the power cable connected to the drive.</Fault_alarm_checking_>
+    <Disposal_measures>Reconnect the power cord according to the wiring mode of the instruction manual.</Disposal_measures>
+  </AL.400>
+  <AL.401>
+    <Alarm_code_>AL.401</Alarm_code_>
+    <Alarm_Content_> voltage is lower</Alarm_Content_>
+    <Alarm_reason>The main circuit input voltage is lower than the rated voltage or no input voltage.</Alarm_reason>
+    <Fault_alarm_checking_> Check whether the main circuit input R, S, T wiring is correct, and the volt of  voltage value </Fault_alarm_checking_>
+    <Disposal_measures>
+Ensure proper wiring, use proper voltage source or series voltage stabilizer.</Disposal_measures>
+  </AL.401>
+  <AL.402>
+    <Alarm_code_>AL.402</Alarm_code_>
+    <Alarm_Content_>Over voltage </Alarm_Content_>
+    <Alarm_reason>
+1. The main circuit input voltage is higher than the rated voltage value.
+
+2, drive hardware fault
+
+3. No regeneration resistor or the use the wrong regeneration resistor </Alarm_reason>
+    <Fault_alarm_checking_>
+1. Use the voltmeter to test whether the input voltage of the main circuit is correct.
+
+2, when the input voltage is correct, it still has overvoltage alarm.
+
+3. Confirm that P00-30 is set to 0 or 1.</Fault_alarm_checking_>
+    <Disposal_measures>
+1. Use the correct voltage source or series voltage stabilizer.
+
+2, please send it back to the dealer or the original factory.
+
+3. Correct setting and external regeneration resistance.
+</Disposal_measures>
+  </AL.402>
+  <AL.410>
+    <Alarm_code_>AL.410</Alarm_code_>
+    <Alarm_Content_>Overload(instantaneous Maximum load)</Alarm_Content_>
+    <Alarm_reason>
+1. When the motor starts, the machine is stuck.
+
+2,There is problem with drive hardware
+</Alarm_reason>
+    <Fault_alarm_checking_>
+
+1, Check whether the mechanical connection is stuck.
+
+2, Confirm that the normal part of the machine is still on the alert.
+</Fault_alarm_checking_>
+    <Disposal_measures>
+1, Adjust the mechanical structure.
+
+2, Please send it back to the dealer or the original factory.
+</Disposal_measures>
+  </AL.410>
+  <AL.411>
+    <Alarm_code_>AL.411</Alarm_code_>
+    <Alarm_Content_>Drive overload</Alarm_Content_>
+    <Alarm_reason>Reason 26</Alarm_reason>
+    <Fault_alarm_checking_>Check26</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 26</Disposal_measures>
+  </AL.411>
+  <AL.412>
+    <Alarm_code_>AL.412</Alarm_code_>
+    <Alarm_Content_>Motor overload（Continuous maximum load）</Alarm_Content_>
+    <Alarm_reason>
+
+1. Continuous use when it exceeds the driver's  rated load 
+2. Improper setting of control system parameters.
+
+3, motor wiring error
+</Alarm_reason>
+    <Fault_alarm_checking_>
+
+1, can be monitored through the monitoring mode d13.oL..
+
+2.1, whether the mechanical system is installed.
+
+2.2. The acceleration setting constant is too fast.
+
+2.3. Is the gain class parameter set correctly?
+
+3. Check the wiring of U, V and W.
+</Fault_alarm_checking_>
+    <Disposal_measures>
+
+1, Change the motor or reduce the load.
+
+2.1. Adjust the gain of control loop.
+
+2.2, The setting time of acceleration and deceleration slows down.
+
+3.Wiring correctly
+</Disposal_measures>
+  </AL.412>
+  <AL.420>
+    <Alarm_code_>AL.420</Alarm_code_>
+    <Alarm_Content_>Over speed</Alarm_Content_>
+    <Alarm_reason>1, the input speed command is too high.
+
+2. Incorrect setting of over speed parameters.</Alarm_reason>
+    <Fault_alarm_checking_>
+
+
+1, use signal detector to check whether the input signal is normal.
+
+2. Check whether the setting of P04-05(overspeed alarm value)   is reasonable .</Fault_alarm_checking_>
+    <Disposal_measures>1, adjust the frequency of input signal.
+
+2. Set P04-05 correctly (overspeed alarm value).
+</Disposal_measures>
+  </AL.420>
+  <AL.421>
+    <Alarm_code_>AL.421</Alarm_code_>
+    <Alarm_Content_>Lose Control check out</Alarm_Content_>
+    <Alarm_reason>1, motor power line U, V, W wiring error.
+
+2, the motor parameters are not set correctly.
+</Alarm_reason>
+    <Fault_alarm_checking_>1. Check wiring.
+
+2, check the P00-05; and whether the encoder parameters are set correctly.
+</Fault_alarm_checking_>
+    <Disposal_measures>1. Correct wiring
+
+2. Set parameters correctly.
+</Disposal_measures>
+  </AL.421>
+  <AL.422>
+    <Alarm_code_>AL.422</Alarm_code_>
+    <Alarm_Content_>runaway fault</Alarm_Content_>
+    <Alarm_reason>Reason 30</Alarm_reason>
+    <Fault_alarm_checking_>Check30</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 30</Disposal_measures>
+  </AL.422>
+  <AL.425>
+    <Alarm_code_>AL.425</Alarm_code_>
+    <Alarm_Content_>AI collect sample over voltage</Alarm_Content_>
+    <Alarm_reason>Reason 31</Alarm_reason>
+    <Fault_alarm_checking_>Check31</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 31</Disposal_measures>
+  </AL.425>
+  <AL.430>
+    <Alarm_code_>AL.430</Alarm_code_>
+    <Alarm_Content_>Regeneration of Abnormal</Alarm_Content_>
+    <Alarm_reason>1. Wrong selection of regenerative resistor or no external regeneration resistor.
+
+2, parameter setting error.</Alarm_reason>
+    <Fault_alarm_checking_>
+1. Check the connection status of regenerative resistor.
+
+2, please confirm P00-30, P00-31, P00-32 parameter settings.
+</Fault_alarm_checking_>
+    <Disposal_measures>1, if the connection is normal, please send the driver back to the factory.
+
+2. Set parameter values correctly.
+</Disposal_measures>
+  </AL.430>
+  <AL.431>
+    <Alarm_code_>AL.431</Alarm_code_>
+    <Alarm_Content_>Regeneration of overload</Alarm_Content_>
+    <Alarm_reason>Regenerative resistor selection error or no external regeneration resistor.</Alarm_reason>
+    <Fault_alarm_checking_>Check the connection status of regenerative resistors and the resistance of regenerative resistors and whether the power is suitable.</Fault_alarm_checking_>
+    <Disposal_measures>Choose the right regeneration resistor.</Disposal_measures>
+  </AL.431>
+  <AL.432>
+    <Alarm_code_>AL.432</Alarm_code_>
+    <Alarm_Content_>Regeneration of Short circuit Open circuit</Alarm_Content_>
+    <Alarm_reason>1. Regeneration short circuit
+
+2, regeneration open circuit</Alarm_reason>
+    <Fault_alarm_checking_>1, check whether there is a short circuit on the B1/B3 port.
+
+2, please confirm P00-30, P00-31, P00-32 parameter settings.
+</Fault_alarm_checking_>
+    <Disposal_measures>1. If there is no short circuit in B1/B3, but it still be in alarm. Please send the driver back to the factory.
+
+2. Set parameter values correctly.</Disposal_measures>
+  </AL.432>
+  <AL.435>
+    <Alarm_code_>AL.435</Alarm_code_>
+    <Alarm_Content_> Stroke current Limits overload resistance</Alarm_Content_>
+    <Alarm_reason>Reason 35</Alarm_reason>
+    <Fault_alarm_checking_>Check35</Fault_alarm_checking_>
+    <Disposal_measures>Disposal35</Disposal_measures>
+  </AL.435>
+  <AL.436>
+    <Alarm_code_>AL.436</Alarm_code_>
+    <Alarm_Content_>DB overload</Alarm_Content_>
+    <Alarm_reason>Reason 36</Alarm_reason>
+    <Fault_alarm_checking_>Check36</Fault_alarm_checking_>
+    <Disposal_measures>Disposal36</Disposal_measures>
+  </AL.436>
+  <AL.440>
+    <Alarm_code_>AL.440</Alarm_code_>
+    <Alarm_Content_>Radiator overheat</Alarm_Content_>
+    <Alarm_reason>The internal temperature of the actuator is higher than 95 C.</Alarm_reason>
+    <Fault_alarm_checking_>Check whether the heat dissipation condition of the driver is good.</Fault_alarm_checking_>
+    <Disposal_measures>Improve the heat dissipation condition of the driver. If the alarm occurs again, please send the driver back to the original plant.</Disposal_measures>
+  </AL.440>
+  <AL.441>
+    <Alarm_code_>AL.441</Alarm_code_>
+    <Alarm_Content_>Motor overheat </Alarm_Content_>
+    <Alarm_reason>Reason 38</Alarm_reason>
+    <Fault_alarm_checking_>Check38</Fault_alarm_checking_>
+    <Disposal_measures>Disposal38</Disposal_measures>
+  </AL.441>
+  <AL.500>
+    <Alarm_code_>AL.500</Alarm_code_>
+    <Alarm_Content_>  division pulse outputs over speed</Alarm_Content_>
+    <Alarm_reason>Reason 39</Alarm_reason>
+    <Fault_alarm_checking_>Check39</Fault_alarm_checking_>
+    <Disposal_measures>Disposal39</Disposal_measures>
+  </AL.500>
+  <AL.501>
+    <Alarm_code_>AL.501</Alarm_code_>
+    <Alarm_Content_>Position deviation is too large</Alarm_Content_>
+    <Alarm_reason>1. position deviation is too large, setting parameter is too small.
+
+2. Gain is set too small.
+
+3. The internal torque limit is set too small.
+
+4, external load is too large.
+</Alarm_reason>
+    <Fault_alarm_checking_>
+1, confirm the setting of P03-15 (location deviation too large) parameter setting.
+
+2. Confirm whether the gain parameter is reasonable.
+
+3. Confirm the internal torque limiting amplitude.
+
+4. Check external loads.
+</Fault_alarm_checking_>
+    <Disposal_measures>1, increase the setting value of P03-15 (excessive location deviation).
+
+2, adjust the gain parameters correctly.
+
+3. Re adjust the internal torque limit correctly.
+
+4, reduce load or replace high-power motor.
+</Disposal_measures>
+  </AL.501>
+  <AL.502>
+    <Alarm_code_>AL.502</Alarm_code_>
+    <Alarm_Content_>The error of  Full closed loop encoder position and Motor position is too large</Alarm_Content_>
+    <Alarm_reason>Reason 41</Alarm_reason>
+    <Fault_alarm_checking_>Check41</Fault_alarm_checking_>
+    <Disposal_measures>Disposal41</Disposal_measures>
+  </AL.502>
+  <AL.505>
+    <Alarm_code_>AL.505</Alarm_code_>
+    <Alarm_Content_>Input pulse of pulse command is abnormal</Alarm_Content_>
+    <Alarm_reason>The pulse command frequency is higher than the rated input frequency.</Alarm_reason>
+    <Fault_alarm_checking_>Using pulse frequency meter to check whether the input frequency is higher than the rated input frequency.</Fault_alarm_checking_>
+    <Disposal_measures>Set the input pulse frequency correctly.</Disposal_measures>
+  </AL.505>
+  <AL.510>
+    <Alarm_code_>AL.510</Alarm_code_>
+    <Alarm_Content_>龙门同动偏差过大 Inertia identification failure fault</Alarm_Content_>
+    <Alarm_reason>Reason 43</Alarm_reason>
+    <Fault_alarm_checking_>Check43</Fault_alarm_checking_>
+    <Disposal_measures>Disposal43</Disposal_measures>
+  </AL.510>
+  <AL.550>
+    <Alarm_code_>AL.550</Alarm_code_>
+    <Alarm_Content_> Inertia identification failure </Alarm_Content_>
+    <Alarm_reason>Reason 44</Alarm_reason>
+    <Fault_alarm_checking_>Check44</Fault_alarm_checking_>
+    <Disposal_measures>Disposal44</Disposal_measures>
+  </AL.550>
+  <AL.551>
+    <Alarm_code_>AL.551</Alarm_code_>
+    <Alarm_Content_>  back to origin Point timeout </Alarm_Content_>
+    <Alarm_reason>Time of running back to origin is overtime</Alarm_reason>
+    <Fault_alarm_checking_> Confirm whether the parameter P03-68 (the longest time limit of search origin) is reasonable</Fault_alarm_checking_>
+    <Disposal_measures>Set P03-68 correctly</Disposal_measures>
+  </AL.551>
+  <AL.552>
+    <Alarm_code_>AL.552</Alarm_code_>
+    <Alarm_Content_> Angle Identification failure </Alarm_Content_>
+    <Alarm_reason>Reason 46</Alarm_reason>
+    <Fault_alarm_checking_>Check46</Fault_alarm_checking_>
+    <Disposal_measures>Disposal46</Disposal_measures>
+  </AL.552>
+  <AL.600>
+    <Alarm_code_>AL.600</Alarm_code_>
+    <Alarm_Content_>Encoder output power short circuit </Alarm_Content_>
+    <Alarm_reason>
+Encoder power wiring error</Alarm_reason>
+    <Fault_alarm_checking_>Check whether encoder power +5V and GND are reversed.</Fault_alarm_checking_>
+    <Disposal_measures>wiring Correctly</Disposal_measures>
+  </AL.600>
+  <AL.610>
+    <Alarm_code_>AL.610</Alarm_code_>
+    <Alarm_Content_>Incremental encoder gets out of line</Alarm_Content_>
+    <Alarm_reason>  Abnormal signalHallU, HallV, HallW of incremental encoder</Alarm_reason>
+    <Fault_alarm_checking_>
+
+Check encoder wiring</Fault_alarm_checking_>
+    <Disposal_measures>wiring Correctly</Disposal_measures>
+  </AL.610>
+  <AL.611>
+    <Alarm_code_>AL.611</Alarm_code_>
+    <Alarm_Content_>Incremental encoder Z signal loss</Alarm_Content_>
+    <Alarm_reason>Reason 49</Alarm_reason>
+    <Fault_alarm_checking_>Check49</Fault_alarm_checking_>
+    <Disposal_measures>Disposal49</Disposal_measures>
+  </AL.611>
+  <AL.620>
+    <Alarm_code_>AL.620</Alarm_code_>
+    <Alarm_Content_>Bus type encoder is disconnected</Alarm_Content_>
+    <Alarm_reason>Communication failure of bus encoder</Alarm_reason>
+    <Fault_alarm_checking_>Check encoder wiring</Fault_alarm_checking_>
+    <Disposal_measures>wiring Correctly</Disposal_measures>
+  </AL.620>
+  <AL.621>
+    <Alarm_code_>AL.621</Alarm_code_>
+    <Alarm_Content_> Read and write motor encoder EEPROM parameter abnormal</Alarm_Content_>
+    <Alarm_reason>Encoder read and write abnormal</Alarm_reason>
+    <Fault_alarm_checking_>
+
+Check encoder wiring</Fault_alarm_checking_>
+    <Disposal_measures>wiring Correctly</Disposal_measures>
+  </AL.621>
+  <AL.622>
+    <Alarm_code_>AL.622</Alarm_code_>
+    <Alarm_Content_>motor encoder EEPROM data parity error</Alarm_Content_>
+    <Alarm_reason>Reason 52</Alarm_reason>
+    <Fault_alarm_checking_>Check52</Fault_alarm_checking_>
+    <Disposal_measures>Disposal52</Disposal_measures>
+  </AL.622>
+  <AL.640>
+    <Alarm_code_>AL.640</Alarm_code_>
+    <Alarm_Content_>Bus type encoder overspeed</Alarm_Content_>
+    <Alarm_reason>Bus encoder speed exceeds 6000rpm</Alarm_reason>
+    <Fault_alarm_checking_>Check encoder wiring
+Confirm the correct connection of the encoder shields.
+</Fault_alarm_checking_>
+    <Disposal_measures>Speed down
+If the connection is normal, please send the drive back to the factory.
+</Disposal_measures>
+  </AL.640>
+  <AL.641>
+    <Alarm_code_>AL.641</Alarm_code_>
+    <Alarm_Content_>Bus type encoder overhea</Alarm_Content_>
+    <Alarm_reason>Reason 54</Alarm_reason>
+    <Fault_alarm_checking_>Check54</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 54</Disposal_measures>
+  </AL.641>
+  <AL.642>
+    <Alarm_code_>AL.642</Alarm_code_>
+    <Alarm_Content_>Bus type encoder Battery low voltage alarm</Alarm_Content_>
+    <Alarm_reason>When the bus encoder is set to multi cycle absolute value, the external battery voltage is low.</Alarm_reason>
+    <Fault_alarm_checking_>Check the external battery voltage of the encoder, confirm that it is higher than 3.0V.</Fault_alarm_checking_>
+    <Disposal_measures>Replace the battery</Disposal_measures>
+  </AL.642>
+  <AL.643>
+    <Alarm_code_>AL.643</Alarm_code_>
+    <Alarm_Content_>Bus type encoder Battery low voltage fault</Alarm_Content_>
+    <Alarm_reason>When the bus encoder is set to multi cycle absolute value, the external battery voltage is low.</Alarm_reason>
+    <Fault_alarm_checking_>Check the external battery voltage of the encoder, confirm that it is higher than 3.1V.</Fault_alarm_checking_>
+    <Disposal_measures>Replace the battery</Disposal_measures>
+  </AL.643>
+  <AL.644>
+    <Alarm_code_>AL.644</Alarm_code_>
+    <Alarm_Content_>Bus encoder multi-turn fault</Alarm_Content_>
+    <Alarm_reason>Reason 57</Alarm_reason>
+    <Fault_alarm_checking_>Check 57</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 57</Disposal_measures>
+  </AL.644>
+  <AL.645>
+    <Alarm_code_>AL.645</Alarm_code_>
+    <Alarm_Content_>Bus encoder multi-loop overflow fault</Alarm_Content_>
+    <Alarm_reason>The number of revolving circles of bus encoder is out of range.</Alarm_reason>
+    <Fault_alarm_checking_>Whether the P00-09 setting is 1, and can not single direction.</Fault_alarm_checking_>
+    <Disposal_measures>
+Clearing multiple loop values with instruction AF_En1</Disposal_measures>
+  </AL.645>
+  <AL.646>
+    <Alarm_code_>AL.646</Alarm_code_>
+    <Alarm_Content_>Bus encoder communication error 1</Alarm_Content_>
+    <Alarm_reason>Reason 59</Alarm_reason>
+    <Fault_alarm_checking_>Check59</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 59</Disposal_measures>
+  </AL.646>
+  <AL.647>
+    <Alarm_code_>AL.647</Alarm_code_>
+    <Alarm_Content_>Bus encoder count error 2</Alarm_Content_>
+    <Alarm_reason>The deviation of the installation position of the split encoder is too large.</Alarm_reason>
+    <Fault_alarm_checking_>Check encoder</Fault_alarm_checking_>
+    <Disposal_measures>Install the encoder Correcttly</Disposal_measures>
+  </AL.647>
+  <AL.648>
+    <Alarm_code_>AL.648</Alarm_code_>
+    <Alarm_Content_>Bus encoder count error 3</Alarm_Content_>
+    <Alarm_reason>Reason 61</Alarm_reason>
+    <Fault_alarm_checking_>Check 61</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 61</Disposal_measures>
+  </AL.648>
+  <AL.649>
+    <Alarm_code_>AL.649</Alarm_code_>
+    <Alarm_Content_>Bus encoder count error 4</Alarm_Content_>
+    <Alarm_reason>Reason 62</Alarm_reason>
+    <Fault_alarm_checking_>Check 62</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 62</Disposal_measures>
+  </AL.649>
+  <AL.650>
+    <Alarm_code_>AL.650</Alarm_code_>
+    <Alarm_Content_> Bus encoder count error 5</Alarm_Content_>
+    <Alarm_reason>Reason 63</Alarm_reason>
+    <Fault_alarm_checking_>Check 63</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 63</Disposal_measures>
+  </AL.650>
+  <AL.651>
+    <Alarm_code_>AL.651</Alarm_code_>
+    <Alarm_Content_> Bus encoder count error 6</Alarm_Content_>
+    <Alarm_reason>Reason 64</Alarm_reason>
+    <Fault_alarm_checking_>Check 64</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 64</Disposal_measures>
+  </AL.651>
+  <AL.652>
+    <Alarm_code_>AL.652</Alarm_code_>
+    <Alarm_Content_>encoder multi-turn Multiple faults</Alarm_Content_>
+    <Alarm_reason>Reason 65</Alarm_reason>
+    <Fault_alarm_checking_>Check 65</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 65</Disposal_measures>
+  </AL.652>
+  <AL.900>
+    <Alarm_code_>AL.900</Alarm_code_>
+    <Alarm_Content_>position deviation is too large</Alarm_Content_>
+    <Alarm_reason>Reason 66</Alarm_reason>
+    <Fault_alarm_checking_>Check 66</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 66</Disposal_measures>
+  </AL.900>
+  <AL.901>
+    <Alarm_code_>AL.901</Alarm_code_>
+    <Alarm_Content_>When servo ON, Position deviation is too large</Alarm_Content_>
+    <Alarm_reason>Reason 67</Alarm_reason>
+    <Fault_alarm_checking_>Check 67</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 67</Disposal_measures>
+  </AL.901>
+  <AL.910>
+    <Alarm_code_>AL.910</Alarm_code_>
+    <Alarm_Content_>Motor overload</Alarm_Content_>
+    <Alarm_reason>Reason 68</Alarm_reason>
+    <Fault_alarm_checking_>Check 68</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 68</Disposal_measures>
+  </AL.910>
+  <AL.912>
+    <Alarm_code_>AL.912</Alarm_code_>
+    <Alarm_Content_>Drive overload</Alarm_Content_>
+    <Alarm_reason>Reason 69</Alarm_reason>
+    <Fault_alarm_checking_>Check 69</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 69</Disposal_measures>
+  </AL.912>
+  <AL.920>
+    <Alarm_code_>AL.920</Alarm_code_>
+    <Alarm_Content_>Regeneration of overload</Alarm_Content_>
+    <Alarm_reason>Reason 70</Alarm_reason>
+    <Fault_alarm_checking_>Check 70</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 70</Disposal_measures>
+  </AL.920>
+  <AL.921>
+    <Alarm_code_>AL.921</Alarm_code_>
+    <Alarm_Content_>DB overload</Alarm_Content_>
+    <Alarm_reason>Reason 71</Alarm_reason>
+    <Fault_alarm_checking_>Check 71</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 71</Disposal_measures>
+  </AL.921>
+  <AL.925>
+    <Alarm_code_>AL.925</Alarm_code_>
+    <Alarm_Content_>External regeneration bleeder resistor is too small</Alarm_Content_>
+    <Alarm_reason>Reason 72</Alarm_reason>
+    <Fault_alarm_checking_>Check 72</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 72</Disposal_measures>
+  </AL.925>
+  <AL.930>
+    <Alarm_code_>AL.930</Alarm_code_>
+    <Alarm_Content_>Absolute encoder’s battery Fault</Alarm_Content_>
+    <Alarm_reason>Reason 73</Alarm_reason>
+    <Fault_alarm_checking_>Check 73</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 73</Disposal_measures>
+  </AL.930>
+  <AL.941>
+    <Alarm_code_>AL.941</Alarm_code_>
+    <Alarm_Content_> Need to power-on again after Parameters changing</Alarm_Content_>
+    <Alarm_reason>Reason 74</Alarm_reason>
+    <Fault_alarm_checking_>Check 74</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 74</Disposal_measures>
+  </AL.941>
+  <AL.942>
+    <Alarm_code_>AL.942</Alarm_code_>
+    <Alarm_Content_>Write EEPROM frequent warnings</Alarm_Content_>
+    <Alarm_reason>Reason 75</Alarm_reason>
+    <Fault_alarm_checking_>Check 75</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 75</Disposal_measures>
+  </AL.942>
+  <AL.943>
+    <Alarm_code_>AL.943</Alarm_code_>
+    <Alarm_Content_> serial communication abnormal</Alarm_Content_>
+    <Alarm_reason>Serial communication interference
+
+Serial port baud rate set too high
+</Alarm_reason>
+    <Fault_alarm_checking_>Check the wiring
+
+Check the baud rate parameter P00-21 of serial port communication</Fault_alarm_checking_>
+    <Disposal_measures>Adding filter on wire 
+Reduce the baud rate of serial communication
+</Disposal_measures>
+  </AL.943>
+  <AL.950>
+    <Alarm_code_>AL.950</Alarm_code_>
+    <Alarm_Content_> Over run Warning</Alarm_Content_>
+    <Alarm_reason>Reason77</Alarm_reason>
+    <Fault_alarm_checking_>Check 77</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 77</Disposal_measures>
+  </AL.950>
+  <AL.951>
+    <Alarm_code_>AL.951</Alarm_code_>
+    <Alarm_Content_>Absolute encoder angle initialization warning</Alarm_Content_>
+    <Alarm_reason>Reason78</Alarm_reason>
+    <Fault_alarm_checking_>Check 78</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 78</Disposal_measures>
+  </AL.951>
+  <AL.971>
+    <Alarm_code_>AL.971</Alarm_code_>
+    <Alarm_Content_>Under voltage warning</Alarm_Content_>
+    <Alarm_reason>Reason79</Alarm_reason>
+    <Fault_alarm_checking_>Check 79</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 79</Disposal_measures>
+  </AL.971>
+  <AL.990>
+    <Alarm_code_>AL.990</Alarm_code_>
+    <Alarm_Content_>Radiator overheat warning</Alarm_Content_>
+    <Alarm_reason>Reason80</Alarm_reason>
+    <Fault_alarm_checking_>Check 80</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 80</Disposal_measures>
+  </AL.990>
+  <AL.991>
+    <Alarm_code_>AL.991</Alarm_code_>
+    <Alarm_Content_>Input phase loss warning</Alarm_Content_>
+    <Alarm_reason>Reason81</Alarm_reason>
+    <Fault_alarm_checking_>Check 81</Fault_alarm_checking_>
+    <Disposal_measures>Disposal 81</Disposal_measures>
+  </AL.991>
+</WarningConfig>
