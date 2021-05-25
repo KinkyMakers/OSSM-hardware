@@ -26,6 +26,7 @@ TaskHandle_t motionTask;
 // Parameters you may need to change for your specific implementation
 const int MOTOR_STEP_PIN = 27;
 const int MOTOR_DIRECTION_PIN = 25;
+const int MOTOR_ENABLE_PIN = 22;
 const int WIFI_CONTROL_TOGGLE_PIN = 26;
 const int STROKE_POT_PIN = 32;
 const int SPEED_POT_PIN = 33;
@@ -59,6 +60,7 @@ void setup()
 
   WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
   // put your setup code here, to run once:
+  pinMode(MOTOR_ENABLE_PIN, OUTPUT);
   pinMode(TRIGGER_PIN, INPUT_PULLUP);
   pinMode(WIFI_CONTROL_TOGGLE_PIN, INPUT_PULLDOWN);
   pinMode(STROKE_POT_PIN, INPUT);
@@ -117,6 +119,12 @@ void getInputTaskcode(void *pvParameters)
     Serial.println(digitalRead(WIFI_CONTROL_TOGGLE_PIN));
     if (digitalRead(WIFI_CONTROL_TOGGLE_PIN) == HIGH)
     {
+      Serial.print("speedPercentage: ");
+      Serial.print(speedPercentage);
+      Serial.print(" strokePercentage: ");
+      Serial.print(strokePercentage);
+      Serial.print(" distance to target: ");
+      Serial.print(stepper.getDistanceToTargetSigned());
       if (wifiControlEnable == false)
       {
         //this is a transition to WiFi, we should tell the server it has control
@@ -127,13 +135,6 @@ void getInputTaskcode(void *pvParameters)
     }
     else
     {
-      Serial.print("speedPercentage: ");
-      Serial.print(speedPercentage);
-      Serial.print(" strokePercentage: ");
-      Serial.print(strokePercentage);
-      Serial.print(" distance to target: ");
-      Serial.print(stepper.getDistanceToTargetSigned());
-
       if (wifiControlEnable == true)
       {
         //this is a transition to local control, we should tell the server it cannot control
@@ -145,11 +146,12 @@ void getInputTaskcode(void *pvParameters)
     }
 
     //We should scale these values with initialized settings not hard coded values!
-    if (speedPercentage>1){
-    //deceleration needs work
-    stepper.setSpeedInMillimetersPerSecond(MAX_SPEED_MM_PER_SECOND * speedPercentage / 100.0);
-    stepper.setAccelerationInMillimetersPerSecondPerSecond(MAX_SPEED_MM_PER_SECOND * speedPercentage * speedPercentage / 80.0);
-    stepper.setDecelerationInMillimetersPerSecondPerSecond(MAX_SPEED_MM_PER_SECOND * speedPercentage * speedPercentage / 80.0);
+    if (speedPercentage > 1)
+    {
+      stepper.setSpeedInMillimetersPerSecond(MAX_SPEED_MM_PER_SECOND * speedPercentage / 100.0);
+      stepper.setAccelerationInMillimetersPerSecondPerSecond(MAX_SPEED_MM_PER_SECOND * speedPercentage * speedPercentage / 80.0);
+      //We do not set deceleration value here because setting a low decel when going from high to low speed
+      //causes the motor to travel a long distance before slowing. We should only change decel at rest
     }
     vTaskDelay(100); //let other code run!
   }
@@ -160,23 +162,23 @@ void motionTaskcode(void *pvParameters)
   {
     while ((stepper.getDistanceToTargetSigned() != 0) || (strokePercentage < 1) || (speedPercentage < 1))
     {
-      Serial.print("waiting to go to out stroke ");
       vTaskDelay(5); //wait for motion to complete and requested stroke more than zero
     }
     targetPosition = (strokePercentage / 100.0) * strokeLength;
     // Serial.printf("Moving stepper to position %ld \n", targetPosition);
     vTaskDelay(1);
+    stepper.setDecelerationInMillimetersPerSecondPerSecond(MAX_SPEED_MM_PER_SECOND * speedPercentage * speedPercentage / 80.0);
     stepper.setTargetPositionInMillimeters(targetPosition);
     vTaskDelay(5);
 
     while ((stepper.getDistanceToTargetSigned() != 0) || (strokePercentage < 1) || (speedPercentage < 1))
     {
-      Serial.print("waiting to go to home ");
       vTaskDelay(5); //wait for motion to complete, since we are going back to zero, don't care about stroke value
     }
     targetPosition = 0;
-     Serial.printf("Moving stepper to position %ld \n", targetPosition);
+    // Serial.printf("Moving stepper to position %ld \n", targetPosition);
     vTaskDelay(1);
+    stepper.setDecelerationInMillimetersPerSecondPerSecond(MAX_SPEED_MM_PER_SECOND * speedPercentage * speedPercentage / 80.0);
     stepper.setTargetPositionInMillimeters(targetPosition);
     vTaskDelay(5);
   }
