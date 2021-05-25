@@ -4,21 +4,22 @@
 #include <ESP_FlexyStepper.h>
 
 #define TRIGGER_PIN 0 //this pin resets WiFi credentials if needed
-long strokePercentage = 0;
-long speedPercentage = 0;
-int previousDirection = 1;
+float strokePercentage = 0;
+float speedPercentage = 0;
+float targetPosition = 0;
+float deceleration;
 WiFiManager wm;
 
 // Speed settings - this will be changed by pot input or wifi settings
-const int DISTANCE_TO_TRAVEL_IN_STEPS = 2000;
-const int SPEED_IN_STEPS_PER_SECOND = 300;
-const int ACCELERATION_IN_STEPS_PER_SECOND = 800;
-const int DECELERATION_IN_STEPS_PER_SECOND = 800;
+const int DISTANCE_TO_TRAVEL_IN_MM = 2000;
+const int SPEED_IN_MM_PER_SECOND = 300;
+const int ACCELERATION_IN_MM_PER_SECOND = 800;
+const float MAX_SPEED_MM_PER_SECOND = 600;
 
 // create the stepper motor object
 ESP_FlexyStepper stepper;
 
-//Create tasks for http calls to server and task to handle planning the motion profile (this task is high level only and does not pulse the stepper!)
+//Create tasks for checking pot input or web server control, and task to handle planning the motion profile (this task is high level only and does not pulse the stepper!)
 TaskHandle_t getInputTask;
 TaskHandle_t motionTask;
 
@@ -28,21 +29,29 @@ const int MOTOR_DIRECTION_PIN = 25;
 const int WIFI_CONTROL_TOGGLE_PIN = 26;
 const int STROKE_POT_PIN = 32;
 const int SPEED_POT_PIN = 33;
+const float motorStepPerRevolution = 800;
+const float pulleyToothCount = 20;
+const float strokeLength = 150;
 
 const int EMERGENCY_STOP_PIN = 22; //define the IO pin the emergency stop switch is connected to
 const int LIMIT_SWITCH_PIN = 21;   //define the IO pin where the limit switches are connected to (switches in series in normally closed setup)
 char ossmId[20] = "OSSM1";         // this should be unique to your device. You will use this on the web portal to interact with your OSSM.
 //there is NO security other than knowing this name, make this unique to avoid collisions with other users
 
+float stepsPerMm = motorStepPerRevolution / (pulleyToothCount * 2); //GT2 belt has 2mm tooth pitch
+
 void setup()
 {
   Serial.begin(115200);
   Serial.println("\n Starting");
+
   stepper.connectToPins(MOTOR_STEP_PIN, MOTOR_DIRECTION_PIN);
+
+  stepper.setStepsPerMillimeter(stepsPerMm);
   // set the speed and acceleration rates for the stepper motor
-  stepper.setSpeedInStepsPerSecond(SPEED_IN_STEPS_PER_SECOND);
-  stepper.setAccelerationInStepsPerSecondPerSecond(ACCELERATION_IN_STEPS_PER_SECOND);
-  stepper.setDecelerationInStepsPerSecondPerSecond(DECELERATION_IN_STEPS_PER_SECOND);
+  stepper.setSpeedInStepsPerSecond(SPEED_IN_MM_PER_SECOND);
+  stepper.setAccelerationInMillimetersPerSecondPerSecond(ACCELERATION_IN_MM_PER_SECOND);
+  stepper.setDecelerationInStepsPerSecondPerSecond(ACCELERATION_IN_MM_PER_SECOND);
 
   // Not start the stepper instance as a service in the "background" as a separate task
   // and the OS of the ESP will take care of invoking the processMovement() task regularily so you can do whatever you want in the loop function
@@ -51,6 +60,13 @@ void setup()
   WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
   // put your setup code here, to run once:
   pinMode(TRIGGER_PIN, INPUT_PULLUP);
+  pinMode(WIFI_CONTROL_TOGGLE_PIN, INPUT_PULLDOWN);
+  pinMode(STROKE_POT_PIN, INPUT);
+  adcAttachPin(STROKE_POT_PIN);
+  pinMode(SPEED_POT_PIN, INPUT);
+  adcAttachPin(SPEED_POT_PIN);
+  analogReadResolution(12);
+  analogSetAttenuation(ADC_11db); //allows us to read almost full 3.3V range
 
   // This is here in case you want to change WiFi settings - pull IO low
   if (digitalRead(TRIGGER_PIN) == LOW)
@@ -98,6 +114,7 @@ void getInputTaskcode(void *pvParameters)
   bool wifiControlEnable = false;
   for (;;) //tasks should loop forever and not return - or will throw error in OS
   {
+    Serial.println(digitalRead(WIFI_CONTROL_TOGGLE_PIN));
     if (digitalRead(WIFI_CONTROL_TOGGLE_PIN) == HIGH)
     {
       if (wifiControlEnable == false)
@@ -110,20 +127,30 @@ void getInputTaskcode(void *pvParameters)
     }
     else
     {
-      if (wifiControlEnable == false)
+      Serial.print("speedPercentage: ");
+      Serial.print(speedPercentage);
+      Serial.print(" strokePercentage: ");
+      Serial.print(strokePercentage);
+      Serial.print(" distance to target: ");
+      Serial.print(stepper.getDistanceToTargetSigned());
+
+      if (wifiControlEnable == true)
       {
         //this is a transition to local control, we should tell the server it cannot control
         wifiControlEnable = false;
         setInternetControl(wifiControlEnable);
       }
-      speedPercentage = getAnalogAverage(SPEED_POT_PIN,50); //get average analog reading, function takes pin and # samples
-      strokePercentage = getAnalogAverage(STROKE_POT_PIN,50);
+      speedPercentage = getAnalogAverage(SPEED_POT_PIN, 50); //get average analog reading, function takes pin and # samples
+      strokePercentage = getAnalogAverage(STROKE_POT_PIN, 50);
     }
 
     //We should scale these values with initialized settings not hard coded values!
-    stepper.setSpeedInStepsPerSecond(600.0 * speedPercentage);
-    stepper.setAccelerationInStepsPerSecondPerSecond(30.0 * speedPercentage * speedPercentage);
-    stepper.setDecelerationInStepsPerSecondPerSecond(30.0 * speedPercentage * speedPercentage);
+    if (speedPercentage>1){
+    //deceleration needs work
+    stepper.setSpeedInMillimetersPerSecond(MAX_SPEED_MM_PER_SECOND * speedPercentage / 100.0);
+    stepper.setAccelerationInMillimetersPerSecondPerSecond(MAX_SPEED_MM_PER_SECOND * speedPercentage * speedPercentage / 80.0);
+    stepper.setDecelerationInMillimetersPerSecondPerSecond(MAX_SPEED_MM_PER_SECOND * speedPercentage * speedPercentage / 80.0);
+    }
     vTaskDelay(100); //let other code run!
   }
 }
@@ -131,20 +158,29 @@ void motionTaskcode(void *pvParameters)
 {
   for (;;) //tasks should loop forever and not return - or will throw error in OS
   {
-    if (stepper.getDistanceToTargetSigned() == 0)
+    while ((stepper.getDistanceToTargetSigned() != 0) || (strokePercentage < 1) || (speedPercentage < 1))
     {
-      vTaskDelay(1);
-      Serial.print("loop running on core ");
-      Serial.println(xPortGetCoreID());
-      previousDirection *= -1;
-      long relativeTargetPosition = strokePercentage * 30 * previousDirection;
-      Serial.printf("Moving stepper by %ld steps\n", relativeTargetPosition);
-      stepper.setTargetPositionRelativeInSteps(relativeTargetPosition);
+      Serial.print("waiting to go to out stroke ");
+      vTaskDelay(5); //wait for motion to complete and requested stroke more than zero
     }
+    targetPosition = (strokePercentage / 100.0) * strokeLength;
+    // Serial.printf("Moving stepper to position %ld \n", targetPosition);
+    vTaskDelay(1);
+    stepper.setTargetPositionInMillimeters(targetPosition);
+    vTaskDelay(5);
+
+    while ((stepper.getDistanceToTargetSigned() != 0) || (strokePercentage < 1) || (speedPercentage < 1))
+    {
+      Serial.print("waiting to go to home ");
+      vTaskDelay(5); //wait for motion to complete, since we are going back to zero, don't care about stroke value
+    }
+    targetPosition = 0;
+     Serial.printf("Moving stepper to position %ld \n", targetPosition);
+    vTaskDelay(1);
+    stepper.setTargetPositionInMillimeters(targetPosition);
     vTaskDelay(5);
   }
 }
-
 void loop()
 {
   vTaskDelete(NULL); //we don't want this loop to run (because it runs on core 0 where we have the critical FlexyStepper code)
@@ -154,12 +190,14 @@ float getAnalogAverage(int pinNumber, int samples)
 {
   float sum = 0;
   float average = 0;
-  for (int i = 0; i++; i < samples)
+  float percentage = 0;
+  for (int i = 0; i < samples; i++)
   {
     sum += analogRead(pinNumber);
   }
   average = sum / samples;
-  return average;
+  percentage = 100.0 * average / 4096.0; //12 bit resolution
+  return percentage;
 }
 
 bool setInternetControl(bool wifiControlEnable)
