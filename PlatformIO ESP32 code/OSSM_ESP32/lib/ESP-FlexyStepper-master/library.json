@@ -1,0 +1,24 @@
+{
+    "name": "ESP-FlexyStepper",
+    "description": "This library is used to control one or more stepper motors from an ESP32 device. It is based on the FlexyStepper library by S.Reifels but provides some additional functionality",
+    "keywords": "esp,stepper,stepper-motor,motor,control,motor-control,emergencystop,limitswitch,homing,motion,killswitch,speed,position",
+    "authors": {
+        "name": "Paul Kerspe",
+        "maintainer": true
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/pkerspe/ESP-FlexyStepper.git"
+    },
+    "version": "1.4.3",
+    "license": "MIT",
+    "frameworks": "arduino",
+    "platforms": [
+        "espressif32"
+    ],
+    "dependencies": [
+    ],
+    "examples": [
+        "[Ee]xamples/*/*.ino"
+    ]
+}
