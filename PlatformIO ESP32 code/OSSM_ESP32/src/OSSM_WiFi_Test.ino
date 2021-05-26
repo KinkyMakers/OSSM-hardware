@@ -1,274 +1,357 @@
-#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 #include <ArduinoJson.h>
-#include <HTTPClient.h>
 #include <ESP_FlexyStepper.h>
+#include <HTTPClient.h>
+#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 
-#define TRIGGER_PIN 0 //this pin resets WiFi credentials if needed
-float strokePercentage = 0;
-float speedPercentage = 0;
-float targetPosition = 0;
-float deceleration;
+// Wifi Manager
 WiFiManager wm;
-
-// Speed settings - this will be changed by pot input or wifi settings
-const int DISTANCE_TO_TRAVEL_IN_MM = 2000;
-const int SPEED_IN_MM_PER_SECOND = 300;
-const int ACCELERATION_IN_MM_PER_SECOND = 800;
-const float MAX_SPEED_MM_PER_SECOND = 600;
 
 // create the stepper motor object
 ESP_FlexyStepper stepper;
 
-//Create tasks for checking pot input or web server control, and task to handle planning the motion profile (this task is high level only and does not pulse the stepper!)
-TaskHandle_t getInputTask;
-TaskHandle_t motionTask;
+// Current command state
+volatile float strokePercentage = 0;
+volatile float speedPercentage = 0;
+volatile float deceleration = 0;
+
+// Create tasks for checking pot input or web server control, and task to handle
+// planning the motion profile (this task is high level only and does not pulse
+// the stepper!)
+TaskHandle_t getInputTask = nullptr;
+TaskHandle_t motionTask = nullptr;
 
 // Parameters you may need to change for your specific implementation
-const int MOTOR_STEP_PIN = 27;
-const int MOTOR_DIRECTION_PIN = 25;
-const int MOTOR_ENABLE_PIN = 22;
-const int WIFI_CONTROL_TOGGLE_PIN = 26;
-const int STROKE_POT_PIN = 32;
-const int SPEED_POT_PIN = 33;
+#define MOTOR_STEP_PIN 27
+#define MOTOR_DIRECTION_PIN 25
+#define MOTOR_ENABLE_PIN 22
+// controller knobs
+#define STROKE_POT_PIN 32
+#define SPEED_POT_PIN 33
+// this pin resets WiFi credentials if needed
+#define WIFI_RESET_PIN 0
+// this pin toggles between manual knob control and Web-based control
+#define WIFI_CONTROL_TOGGLE_PIN 26
+// define the IO pin the emergency stop switch is connected to
+#define EMERGENCY_STOP_PIN 22
+// define the IO pin where the limit switches are connected to (switches in
+// series in normally closed setup)
+#define LIMIT_SWITCH_PIN 21
+
+// limits and physical parameters
+const float maxSpeedMmPerSecond = 600;
 const float motorStepPerRevolution = 800;
 const float pulleyToothCount = 20;
-const float strokeLength = 150;
+const float maxStrokeLengthMm = 150;
+const float minimumCommandPercentage = 1.0f;
+// GT2 belt has 2mm tooth pitch
+const float beltPitchMm = 2;
 
-const int EMERGENCY_STOP_PIN = 22; //define the IO pin the emergency stop switch is connected to
-const int LIMIT_SWITCH_PIN = 21;   //define the IO pin where the limit switches are connected to (switches in series in normally closed setup)
-char ossmId[20] = "OSSM1";         // this should be unique to your device. You will use this on the web portal to interact with your OSSM.
-//there is NO security other than knowing this name, make this unique to avoid collisions with other users
+// Tuning parameters
+// affects acceleration in stepper trajectory
+const float accelerationScaling = 80.0f;
 
-float stepsPerMm = motorStepPerRevolution / (pulleyToothCount * 2); //GT2 belt has 2mm tooth pitch
+const char *ossmId =
+    "OSSM1"; // this should be unique to your device. You will use this on the
+             // web portal to interact with your OSSM.
+// there is NO security other than knowing this name, make this unique to avoid
+// collisions with other users
 
-void setup()
-{
+// Declarations
+// TODO: Document functions
+void getUserInputTask(void *pvParameters);
+void motionCommandTask(void *pvParameters);
+float getAnalogAverage(int pinNumber, int samples);
+bool setInternetControl(bool wifiControlEnable);
+bool getInternetSettings();
+
+
+void setup() {
   Serial.begin(115200);
+#ifdef DEBUG
   Serial.println("\n Starting");
+  delay(200);
+#endif
 
   stepper.connectToPins(MOTOR_STEP_PIN, MOTOR_DIRECTION_PIN);
 
+  float stepsPerMm =
+      motorStepPerRevolution /
+      (pulleyToothCount * beltPitchMm); // GT2 belt has 2mm tooth pitch
   stepper.setStepsPerMillimeter(stepsPerMm);
-  // set the speed and acceleration rates for the stepper motor
-  stepper.setSpeedInStepsPerSecond(SPEED_IN_MM_PER_SECOND);
-  stepper.setAccelerationInMillimetersPerSecondPerSecond(ACCELERATION_IN_MM_PER_SECOND);
-  stepper.setDecelerationInStepsPerSecondPerSecond(ACCELERATION_IN_MM_PER_SECOND);
-
-  // Not start the stepper instance as a service in the "background" as a separate task
-  // and the OS of the ESP will take care of invoking the processMovement() task regularily so you can do whatever you want in the loop function
-  stepper.startAsService(); // Kinky Makers - we have modified this function from default library to run on core 1 and suggest you don't run anything else on that core.
+  // initialize the speed and acceleration rates for the stepper motor. These
+  // will be overwritten by user controls. 100 values are placeholders
+  stepper.setSpeedInStepsPerSecond(100);
+  stepper.setAccelerationInMillimetersPerSecondPerSecond(100);
+  stepper.setDecelerationInStepsPerSecondPerSecond(100);
 
   WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
   // put your setup code here, to run once:
   pinMode(MOTOR_ENABLE_PIN, OUTPUT);
-  pinMode(TRIGGER_PIN, INPUT_PULLUP);
+  pinMode(WIFI_RESET_PIN, INPUT_PULLUP);
   pinMode(WIFI_CONTROL_TOGGLE_PIN, INPUT_PULLDOWN);
+
+  // Set analog pots (control knobs)
   pinMode(STROKE_POT_PIN, INPUT);
   adcAttachPin(STROKE_POT_PIN);
+
   pinMode(SPEED_POT_PIN, INPUT);
   adcAttachPin(SPEED_POT_PIN);
+
   analogReadResolution(12);
-  analogSetAttenuation(ADC_11db); //allows us to read almost full 3.3V range
+  analogSetAttenuation(ADC_11db); // allows us to read almost full 3.3V range
 
   // This is here in case you want to change WiFi settings - pull IO low
-  if (digitalRead(TRIGGER_PIN) == LOW)
-  {
-    //reset settings - for testing
+  if (digitalRead(WIFI_RESET_PIN) == LOW) {
+    // reset settings - for testing
     wm.resetSettings();
+#ifdef DEBUG
     Serial.println("settings reset");
+#endif
   }
 
-  //here we try to connect to WiFi or launch settings hotspot for you to enter WiFi credentials
-  if (!wm.autoConnect("OSSM-setup"))
-  {
+  // here we try to connect to WiFi or launch settings hotspot for you to enter
+  // WiFi credentials
+  if (!wm.autoConnect("OSSM-setup")) {
+    // TODO: Set Status LED to indicate failure
+#ifdef DEBUG
     Serial.println("failed to connect and hit timeout");
-  }
-  else
-  {
+#endif
+  } else {
+    // TODO: Set Status LED to indicate everything is ok!
+#ifdef DEBUG
     Serial.println("Connected!");
+#endif
   }
 
-  //Kick off the http and motion tasks - they begin executing as soon as they are created here! Do not change the priority of the task, or do so with caution.
-  //RTOS runs first in first out, so if there are no delays in your tasks they will prevent all other code from running on that core!
+  // Start the stepper instance as a service in the "background" as a separate
+  // task and the OS of the ESP will take care of invoking the processMovement()
+  // task regularly on core 1 so you can do whatever you want on core 0
+  stepper.startAsService(); // Kinky Makers - we have modified this function
+                            // from default library to run on core 1 and suggest
+                            // you don't run anything else on that core.
+
+  // Kick off the http and motion tasks - they begin executing as soon as they
+  // are created here! Do not change the priority of the task, or do so with
+  // caution. RTOS runs first in first out, so if there are no delays in your
+  // tasks they will prevent all other code from running on that core!
   xTaskCreatePinnedToCore(
-      getInputTaskcode, /* Task function. */
-      "getInputTask",   /* name of task. */
-      10000,            /* Stack size of task */
-      NULL,             /* parameter of the task */
-      1,                /* priority of the task */
-      &getInputTask,    /* Task handle to keep track of created task */
-      0);               /* pin task to core 0 */
+      getUserInputTask,   /* Task function. */
+      "getUserInputTask", /* name of task. */
+      10000,              /* Stack size of task */
+      NULL,               /* parameter of the task */
+      1,                  /* priority of the task */
+      &getInputTask,      /* Task handle to keep track of created task */
+      0);                 /* pin task to core 0 */
   delay(500);
   xTaskCreatePinnedToCore(
-      motionTaskcode, /* Task function. */
-      "motionTask",   /* name of task. */
-      10000,          /* Stack size of task */
-      NULL,           /* parameter of the task */
-      1,              /* priority of the task */
-      &motionTask,    /* Task handle to keep track of created task */
-      0);             /* pin task to core 0 */
+      motionCommandTask,   /* Task function. */
+      "motionCommandTask", /* name of task. */
+      10000,               /* Stack size of task */
+      NULL,                /* parameter of the task */
+      1,                   /* priority of the task */
+      &motionTask,         /* Task handle to keep track of created task */
+      0);                  /* pin task to core 0 */
+
   delay(500);
 }
 
-//Task to read settings from server - only need to check this when in WiFi control mode
-void getInputTaskcode(void *pvParameters)
-{
+void loop() {
+  vTaskDelete(NULL); // we don't want this loop to run (because it runs on core
+                     // 0 where we have the critical FlexyStepper code)
+}
+
+// Task to read settings from server - only need to check this when in WiFi
+// control mode
+void getUserInputTask(void *pvParameters) {
   bool wifiControlEnable = false;
-  for (;;) //tasks should loop forever and not return - or will throw error in OS
+  for (;;) // tasks should loop forever and not return - or will throw error in
+           // OS
   {
-    Serial.println(digitalRead(WIFI_CONTROL_TOGGLE_PIN));
-    if (digitalRead(WIFI_CONTROL_TOGGLE_PIN) == HIGH)
-    {
+
+#ifdef DEBUG
       Serial.print("speedPercentage: ");
       Serial.print(speedPercentage);
       Serial.print(" strokePercentage: ");
       Serial.print(strokePercentage);
       Serial.print(" distance to target: ");
-      Serial.print(stepper.getDistanceToTargetSigned());
-      if (wifiControlEnable == false)
-      {
-        //this is a transition to WiFi, we should tell the server it has control
+      Serial.println(stepper.getDistanceToTargetSigned());
+#endif
+
+    if (digitalRead(WIFI_CONTROL_TOGGLE_PIN) == HIGH) {
+      if (wifiControlEnable == false) {
+        // this is a transition to WiFi, we should tell the server it has
+        // control
         wifiControlEnable = true;
         setInternetControl(wifiControlEnable);
       }
-      getInternetSettings(); //we load speedPercentage and strokePercentage in this routine.
-    }
-    else
-    {
-      if (wifiControlEnable == true)
-      {
-        //this is a transition to local control, we should tell the server it cannot control
+      getInternetSettings(); // we load speedPercentage and strokePercentage in
+                             // this routine.
+    } else {
+      if (wifiControlEnable == true) {
+        // this is a transition to local control, we should tell the server it
+        // cannot control
         wifiControlEnable = false;
         setInternetControl(wifiControlEnable);
       }
-      speedPercentage = getAnalogAverage(SPEED_POT_PIN, 50); //get average analog reading, function takes pin and # samples
+      speedPercentage = getAnalogAverage(
+          SPEED_POT_PIN,
+          50); // get average analog reading, function takes pin and # samples
       strokePercentage = getAnalogAverage(STROKE_POT_PIN, 50);
     }
 
-    //We should scale these values with initialized settings not hard coded values!
-    if (speedPercentage > 1)
-    {
-      stepper.setSpeedInMillimetersPerSecond(MAX_SPEED_MM_PER_SECOND * speedPercentage / 100.0);
-      stepper.setAccelerationInMillimetersPerSecondPerSecond(MAX_SPEED_MM_PER_SECOND * speedPercentage * speedPercentage / 80.0);
-      //We do not set deceleration value here because setting a low decel when going from high to low speed
-      //causes the motor to travel a long distance before slowing. We should only change decel at rest
+    // We should scale these values with initialized settings not hard coded
+    // values!
+    if (speedPercentage > minimumCommandPercentage) {
+      stepper.setSpeedInMillimetersPerSecond(maxSpeedMmPerSecond *
+                                             speedPercentage / 100.0);
+      stepper.setAccelerationInMillimetersPerSecondPerSecond(
+          maxSpeedMmPerSecond * speedPercentage * speedPercentage / accelerationScaling);
+      // We do not set deceleration value here because setting a low decel when
+      // going from high to low speed causes the motor to travel a long distance
+      // before slowing. We should only change decel at rest
     }
-    vTaskDelay(100); //let other code run!
+    vTaskDelay(100); // let other code run!
   }
 }
-void motionTaskcode(void *pvParameters)
-{
-  for (;;) //tasks should loop forever and not return - or will throw error in OS
-  {
-    while ((stepper.getDistanceToTargetSigned() != 0) || (strokePercentage < 1) || (speedPercentage < 1))
-    {
-      vTaskDelay(5); //wait for motion to complete and requested stroke more than zero
-    }
-    targetPosition = (strokePercentage / 100.0) * strokeLength;
-    // Serial.printf("Moving stepper to position %ld \n", targetPosition);
-    vTaskDelay(1);
-    stepper.setDecelerationInMillimetersPerSecondPerSecond(MAX_SPEED_MM_PER_SECOND * speedPercentage * speedPercentage / 80.0);
-    stepper.setTargetPositionInMillimeters(targetPosition);
-    vTaskDelay(5);
 
-    while ((stepper.getDistanceToTargetSigned() != 0) || (strokePercentage < 1) || (speedPercentage < 1))
-    {
-      vTaskDelay(5); //wait for motion to complete, since we are going back to zero, don't care about stroke value
+void motionCommandTask(void *pvParameters) {
+
+  for (;;) // tasks should loop forever and not return - or will throw error in
+           // OS
+  {
+    // poll at 200Hz for when motion is complete
+    while ((stepper.getDistanceToTargetSigned() != 0) ||
+           (strokePercentage < minimumCommandPercentage) || (speedPercentage < minimumCommandPercentage)) {
+      vTaskDelay(5); // wait for motion to complete and requested stroke more than zero
+    }
+
+#ifdef DEBUG
+    Serial.printf("Moving stepper to position %ld \n", targetPosition);
+    vTaskDelay(1);
+#endif
+
+    float targetPosition = (strokePercentage / 100.0) * maxStrokeLengthMm;
+    stepper.setDecelerationInMillimetersPerSecondPerSecond(
+        maxSpeedMmPerSecond * speedPercentage * speedPercentage / accelerationScaling);
+    stepper.setTargetPositionInMillimeters(targetPosition);
+    vTaskDelay(1);
+
+    while ((stepper.getDistanceToTargetSigned() != 0) ||
+           (strokePercentage < minimumCommandPercentage) || (speedPercentage < minimumCommandPercentage)) {
+      vTaskDelay(5); // wait for motion to complete, since we are going back to
+                     // zero, don't care about stroke value
     }
     targetPosition = 0;
     // Serial.printf("Moving stepper to position %ld \n", targetPosition);
     vTaskDelay(1);
-    stepper.setDecelerationInMillimetersPerSecondPerSecond(MAX_SPEED_MM_PER_SECOND * speedPercentage * speedPercentage / 80.0);
+    stepper.setDecelerationInMillimetersPerSecondPerSecond(
+        maxSpeedMmPerSecond * speedPercentage * speedPercentage / accelerationScaling);
     stepper.setTargetPositionInMillimeters(targetPosition);
-    vTaskDelay(5);
+    vTaskDelay(1);
   }
 }
-void loop()
-{
-  vTaskDelete(NULL); //we don't want this loop to run (because it runs on core 0 where we have the critical FlexyStepper code)
-}
 
-float getAnalogAverage(int pinNumber, int samples)
-{
+
+float getAnalogAverage(int pinNumber, int samples) {
   float sum = 0;
   float average = 0;
   float percentage = 0;
-  for (int i = 0; i < samples; i++)
-  {
+  for (int i = 0; i < samples; i++) {
+    // TODO: Possibly use fancier filters?
     sum += analogRead(pinNumber);
   }
   average = sum / samples;
-  percentage = 100.0 * average / 4096.0; //12 bit resolution
+  // TODO: Might want to add a deadband
+  percentage = 100.0 * average / 4096.0; // 12 bit resolution
   return percentage;
 }
 
-bool setInternetControl(bool wifiControlEnable)
-{
-  //here we will SEND the WiFi control permission, and current speed and stroke to the remote server.
-  //The cloudfront redirect allows http connection with bubble backend hosted at app.researchanddesire.com
+bool setInternetControl(bool wifiControlEnable) {
+  // here we will SEND the WiFi control permission, and current speed and stroke
+  // to the remote server. The cloudfront redirect allows http connection with
+  // bubble backend hosted at app.researchanddesire.com
 
-  //String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/ossm-set-control"; //live server
-  String serverNameBubble = "http://d2oq8yqnezqh3r.cloudfront.net/ossm-set-control"; //this is version-test server
-  HTTPClient http;
-  http.begin(serverNameBubble);
-  http.addHeader("Content-Type", "application/json");
-
+  // String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/ossm-set-control"; //live server
+  String serverNameBubble = "http://d2oq8yqnezqh3r.cloudfront.net/ossm-set-control"; // this is version-test server
+                              
+  // Add values in the document to send to server                                 
   StaticJsonDocument<200> doc;
-  // Add values in the document to send to server
   doc["ossmId"] = ossmId;
   doc["wifiControlEnabled"] = wifiControlEnable;
   doc["stroke"] = strokePercentage;
   doc["speed"] = speedPercentage;
-
   String requestBody;
   serializeJson(doc, requestBody);
-  int httpResponseCode = http.POST(requestBody);
-  String payload = "{}";
-  payload = http.getString();
-  StaticJsonDocument<200> bubbleResponse;
 
-  deserializeJson(bubbleResponse, payload);
-
-  const char *status = bubbleResponse["status"]; // "success"
-
-  Serial.println(payload);
-  Serial.print("HTTP Response code: ");
-  Serial.println(httpResponseCode);
-  http.end();
-  return true;
-}
-
-bool getInternetSettings()
-{
-  //here we will request speed and stroke settings from the remote server. The cloudfront redirect allows http connection with bubble backend hosted at app.researchanddesire.com
-
-  //String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/ossm-get-settings"; //live server
-  String serverNameBubble = "http://d2oq8yqnezqh3r.cloudfront.net/ossm-get-settings"; //this is version-test server
+  // Http request
   HTTPClient http;
   http.begin(serverNameBubble);
   http.addHeader("Content-Type", "application/json");
-
-  StaticJsonDocument<200> doc;
-  // Add values in the document
-  doc["ossmId"] = ossmId;
-
-  String requestBody;
-  serializeJson(doc, requestBody);
+  // post and wait for response
   int httpResponseCode = http.POST(requestBody);
   String payload = "{}";
   payload = http.getString();
-  StaticJsonDocument<200> bubbleResponse;
+  http.end();
 
+  // deserialize JSON
+  StaticJsonDocument<200> bubbleResponse;
   deserializeJson(bubbleResponse, payload);
 
-  const char *status = bubbleResponse["status"]; // "success"
-  strokePercentage = bubbleResponse["response"]["stroke"];
-  speedPercentage = bubbleResponse["response"]["speed"];
+  // TODO: handle status response
+  // const char *status = bubbleResponse["status"]; // "success"
 
-  //debug info on the http payload
+#ifdef DEBUG
   Serial.println(payload);
   Serial.print("HTTP Response code: ");
   Serial.println(httpResponseCode);
+#endif
+
+  return true;
+}
+
+bool getInternetSettings() {
+  // here we will request speed and stroke settings from the remote server. The
+  // cloudfront redirect allows http connection with bubble backend hosted at
+  // app.researchanddesire.com
+
+  // String serverNameBubble =
+  // "http://d2g4f7zewm360.cloudfront.net/ossm-get-settings"; //live server
+  String serverNameBubble =
+      "http://d2oq8yqnezqh3r.cloudfront.net/ossm-get-settings"; // this is
+                                                                // version-test
+                                                                // server
+
+  // Add values in the document
+  StaticJsonDocument<200> doc;
+  doc["ossmId"] = ossmId;
+  String requestBody;
+  serializeJson(doc, requestBody);
+
+  // Http request
+  HTTPClient http;
+  http.begin(serverNameBubble);
+  http.addHeader("Content-Type", "application/json");
+  // post and wait for response
+  int httpResponseCode = http.POST(requestBody);
+  String payload = "{}";
+  payload = http.getString();
   http.end();
+
+  // deserialize JSON
+  StaticJsonDocument<200> bubbleResponse;
+  deserializeJson(bubbleResponse, payload);
+
+  // TODO: handle status response
+  // const char *status = bubbleResponse["status"]; // "success"
+  strokePercentage = bubbleResponse["response"]["stroke"];
+  speedPercentage = bubbleResponse["response"]["speed"];
+
+#ifdef DEBUG
+  // debug info on the http payload
+  Serial.println(payload);
+  Serial.print("HTTP Response code: ");
+  Serial.println(httpResponseCode);
+#endif
+
   return true;
 }
