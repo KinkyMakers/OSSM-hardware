@@ -17,6 +17,7 @@ volatile float deceleration = 0;
 // Create tasks for checking pot input or web server control, and task to handle
 // planning the motion profile (this task is high level only and does not pulse
 // the stepper!)
+TaskHandle_t wifiTask = nullptr;
 TaskHandle_t getInputTask = nullptr;
 TaskHandle_t motionTask = nullptr;
 
@@ -37,9 +38,11 @@ TaskHandle_t motionTask = nullptr;
 // series in normally closed setup)
 #define LIMIT_SWITCH_PIN 21
 
+#define DEBUG
+
 // limits and physical parameters
-const float maxSpeedMmPerSecond = 600;
-const float motorStepPerRevolution = 800;
+const float maxSpeedMmPerSecond = 1000;
+const float motorStepPerRevolution = 1600;
 const float pulleyToothCount = 20;
 const float maxStrokeLengthMm = 150;
 const float minimumCommandPercentage = 1.0f;
@@ -64,8 +67,8 @@ float getAnalogAverage(int pinNumber, int samples);
 bool setInternetControl(bool wifiControlEnable);
 bool getInternetSettings();
 
-
-void setup() {
+void setup()
+{
   Serial.begin(115200);
 #ifdef DEBUG
   Serial.println("\n Starting");
@@ -101,25 +104,12 @@ void setup() {
   analogSetAttenuation(ADC_11db); // allows us to read almost full 3.3V range
 
   // This is here in case you want to change WiFi settings - pull IO low
-  if (digitalRead(WIFI_RESET_PIN) == LOW) {
+  if (digitalRead(WIFI_RESET_PIN) == LOW)
+  {
     // reset settings - for testing
     wm.resetSettings();
 #ifdef DEBUG
     Serial.println("settings reset");
-#endif
-  }
-
-  // here we try to connect to WiFi or launch settings hotspot for you to enter
-  // WiFi credentials
-  if (!wm.autoConnect("OSSM-setup")) {
-    // TODO: Set Status LED to indicate failure
-#ifdef DEBUG
-    Serial.println("failed to connect and hit timeout");
-#endif
-  } else {
-    // TODO: Set Status LED to indicate everything is ok!
-#ifdef DEBUG
-    Serial.println("Connected!");
 #endif
   }
 
@@ -134,6 +124,15 @@ void setup() {
   // are created here! Do not change the priority of the task, or do so with
   // caution. RTOS runs first in first out, so if there are no delays in your
   // tasks they will prevent all other code from running on that core!
+  xTaskCreatePinnedToCore(
+      wifiConnectionTask,   /* Task function. */
+      "wifiConnectionTask", /* name of task. */
+      10000,                /* Stack size of task */
+      NULL,                 /* parameter of the task */
+      1,                    /* priority of the task */
+      &wifiTask,            /* Task handle to keep track of created task */
+      0);                   /* pin task to core 0 */
+  delay(500);
   xTaskCreatePinnedToCore(
       getUserInputTask,   /* Task function. */
       "getUserInputTask", /* name of task. */
@@ -155,30 +154,67 @@ void setup() {
   delay(500);
 }
 
-void loop() {
+void loop()
+{
   vTaskDelete(NULL); // we don't want this loop to run (because it runs on core
                      // 0 where we have the critical FlexyStepper code)
 }
 
+void wifiConnectionTask(void *pvParameters)
+{
+  wm.setConfigPortalTimeout(1);
+  wm.setConfigPortalBlocking(false);
+  // here we try to connect to WiFi or launch settings hotspot for you to enter
+  // WiFi credentials
+  if (!wm.autoConnect("OSSM-setup"))
+  {
+    // TODO: Set Status LED to indicate failure
+#ifdef DEBUG
+    Serial.println("failed to connect and hit timeout");
+#endif
+  }
+  else
+  {
+    // TODO: Set Status LED to indicate everything is ok!
+#ifdef DEBUG
+    Serial.println("Connected!");
+#endif
+  }
+  for (;;)
+  {
+    wm.process();
+    vTaskDelay(1);
+
+    //delete this task once connected!
+    if (WiFi.status() == WL_CONNECTED)
+      {
+        vTaskDelete(NULL);
+      }
+  }
+}
+
 // Task to read settings from server - only need to check this when in WiFi
 // control mode
-void getUserInputTask(void *pvParameters) {
+void getUserInputTask(void *pvParameters)
+{
   bool wifiControlEnable = false;
   for (;;) // tasks should loop forever and not return - or will throw error in
            // OS
   {
 
 #ifdef DEBUG
-      Serial.print("speedPercentage: ");
-      Serial.print(speedPercentage);
-      Serial.print(" strokePercentage: ");
-      Serial.print(strokePercentage);
-      Serial.print(" distance to target: ");
-      Serial.println(stepper.getDistanceToTargetSigned());
+    Serial.print("speedPercentage: ");
+    Serial.print(speedPercentage);
+    Serial.print(" strokePercentage: ");
+    Serial.print(strokePercentage);
+    Serial.print(" distance to target: ");
+    Serial.println(stepper.getDistanceToTargetSigned());
 #endif
 
-    if (digitalRead(WIFI_CONTROL_TOGGLE_PIN) == HIGH) {
-      if (wifiControlEnable == false) {
+    if (digitalRead(WIFI_CONTROL_TOGGLE_PIN) == HIGH) // TODO: check if wifi available and handle gracefully
+    {
+      if (wifiControlEnable == false)
+      {
         // this is a transition to WiFi, we should tell the server it has
         // control
         wifiControlEnable = true;
@@ -186,8 +222,11 @@ void getUserInputTask(void *pvParameters) {
       }
       getInternetSettings(); // we load speedPercentage and strokePercentage in
                              // this routine.
-    } else {
-      if (wifiControlEnable == true) {
+    }
+    else
+    {
+      if (wifiControlEnable == true)
+      {
         // this is a transition to local control, we should tell the server it
         // cannot control
         wifiControlEnable = false;
@@ -201,7 +240,8 @@ void getUserInputTask(void *pvParameters) {
 
     // We should scale these values with initialized settings not hard coded
     // values!
-    if (speedPercentage > minimumCommandPercentage) {
+    if (speedPercentage > minimumCommandPercentage)
+    {
       stepper.setSpeedInMillimetersPerSecond(maxSpeedMmPerSecond *
                                              speedPercentage / 100.0);
       stepper.setAccelerationInMillimetersPerSecondPerSecond(
@@ -214,30 +254,32 @@ void getUserInputTask(void *pvParameters) {
   }
 }
 
-void motionCommandTask(void *pvParameters) {
+void motionCommandTask(void *pvParameters)
+{
 
   for (;;) // tasks should loop forever and not return - or will throw error in
            // OS
   {
     // poll at 200Hz for when motion is complete
     while ((stepper.getDistanceToTargetSigned() != 0) ||
-           (strokePercentage < minimumCommandPercentage) || (speedPercentage < minimumCommandPercentage)) {
+           (strokePercentage < minimumCommandPercentage) || (speedPercentage < minimumCommandPercentage))
+    {
       vTaskDelay(5); // wait for motion to complete and requested stroke more than zero
     }
 
+    float targetPosition = (strokePercentage / 100.0) * maxStrokeLengthMm;
 #ifdef DEBUG
     Serial.printf("Moving stepper to position %ld \n", targetPosition);
     vTaskDelay(1);
 #endif
-
-    float targetPosition = (strokePercentage / 100.0) * maxStrokeLengthMm;
     stepper.setDecelerationInMillimetersPerSecondPerSecond(
         maxSpeedMmPerSecond * speedPercentage * speedPercentage / accelerationScaling);
     stepper.setTargetPositionInMillimeters(targetPosition);
     vTaskDelay(1);
 
     while ((stepper.getDistanceToTargetSigned() != 0) ||
-           (strokePercentage < minimumCommandPercentage) || (speedPercentage < minimumCommandPercentage)) {
+           (strokePercentage < minimumCommandPercentage) || (speedPercentage < minimumCommandPercentage))
+    {
       vTaskDelay(5); // wait for motion to complete, since we are going back to
                      // zero, don't care about stroke value
     }
@@ -251,12 +293,13 @@ void motionCommandTask(void *pvParameters) {
   }
 }
 
-
-float getAnalogAverage(int pinNumber, int samples) {
+float getAnalogAverage(int pinNumber, int samples)
+{
   float sum = 0;
   float average = 0;
   float percentage = 0;
-  for (int i = 0; i < samples; i++) {
+  for (int i = 0; i < samples; i++)
+  {
     // TODO: Possibly use fancier filters?
     sum += analogRead(pinNumber);
   }
@@ -266,15 +309,16 @@ float getAnalogAverage(int pinNumber, int samples) {
   return percentage;
 }
 
-bool setInternetControl(bool wifiControlEnable) {
+bool setInternetControl(bool wifiControlEnable)
+{
   // here we will SEND the WiFi control permission, and current speed and stroke
   // to the remote server. The cloudfront redirect allows http connection with
   // bubble backend hosted at app.researchanddesire.com
 
   // String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/ossm-set-control"; //live server
   String serverNameBubble = "http://d2oq8yqnezqh3r.cloudfront.net/ossm-set-control"; // this is version-test server
-                              
-  // Add values in the document to send to server                                 
+
+  // Add values in the document to send to server
   StaticJsonDocument<200> doc;
   doc["ossmId"] = ossmId;
   doc["wifiControlEnabled"] = wifiControlEnable;
@@ -309,7 +353,8 @@ bool setInternetControl(bool wifiControlEnable) {
   return true;
 }
 
-bool getInternetSettings() {
+bool getInternetSettings()
+{
   // here we will request speed and stroke settings from the remote server. The
   // cloudfront redirect allows http connection with bubble backend hosted at
   // app.researchanddesire.com
