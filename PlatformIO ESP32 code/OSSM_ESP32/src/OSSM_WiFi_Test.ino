@@ -20,6 +20,7 @@ volatile float deceleration = 0;
 TaskHandle_t wifiTask = nullptr;
 TaskHandle_t getInputTask = nullptr;
 TaskHandle_t motionTask = nullptr;
+TaskHandle_t estopTask = nullptr;
 
 // Parameters you may need to change for your specific implementation
 #define MOTOR_STEP_PIN 27
@@ -33,7 +34,7 @@ TaskHandle_t motionTask = nullptr;
 // this pin toggles between manual knob control and Web-based control
 #define WIFI_CONTROL_TOGGLE_PIN 26
 // define the IO pin the emergency stop switch is connected to
-#define EMERGENCY_STOP_PIN 22
+#define EMERGENCY_STOP_PIN 19
 // define the IO pin where the limit switches are connected to (switches in
 // series in normally closed setup)
 #define LIMIT_SWITCH_PIN 21
@@ -53,9 +54,8 @@ const float beltPitchMm = 2;
 // affects acceleration in stepper trajectory
 const float accelerationScaling = 80.0f;
 
-const char *ossmId =
-    "OSSM1"; // this should be unique to your device. You will use this on the
-             // web portal to interact with your OSSM.
+const char *ossmId = "OSSM1"; // this should be unique to your device. You will use this on the
+                              // web portal to interact with your OSSM.
 // there is NO security other than knowing this name, make this unique to avoid
 // collisions with other users
 
@@ -66,6 +66,22 @@ void motionCommandTask(void *pvParameters);
 float getAnalogAverage(int pinNumber, int samples);
 bool setInternetControl(bool wifiControlEnable);
 bool getInternetSettings();
+
+bool emergencySwitchTriggered = 0;
+
+/**
+ * the iterrupt service routine (ISR) for the emergency swtich
+ * this gets called on a rising edge on the IO Pin the emergency switch is connected
+ * it only sets the emergencySwitchTriggered flag and then returns. 
+ * The actual emergency stop will than be handled in the loop function
+ */
+void ICACHE_RAM_ATTR emergencySwitchHandler()
+{
+  emergencySwitchTriggered = 1;
+  vTaskSuspend(motionTask);
+  vTaskSuspend(getInputTask);
+  stepper.emergencyStop();
+}
 
 void setup()
 {
@@ -92,7 +108,11 @@ void setup()
   pinMode(MOTOR_ENABLE_PIN, OUTPUT);
   pinMode(WIFI_RESET_PIN, INPUT_PULLUP);
   pinMode(WIFI_CONTROL_TOGGLE_PIN, INPUT_PULLDOWN);
-
+  //set the pin for the emegrenxy witch to input with inernal pullup
+  //the emergency switch is connected in a Active Low configuraiton in this example, meaning the switch connects the input to ground when closed
+  pinMode(EMERGENCY_STOP_PIN, INPUT_PULLUP);
+  //attach an interrupt to the IO pin of the switch and specify the handler function
+  attachInterrupt(digitalPinToInterrupt(EMERGENCY_STOP_PIN), emergencySwitchHandler, RISING);
   // Set analog pots (control knobs)
   pinMode(STROKE_POT_PIN, INPUT);
   adcAttachPin(STROKE_POT_PIN);
@@ -152,12 +172,40 @@ void setup()
       0);                  /* pin task to core 0 */
 
   delay(500);
+  xTaskCreatePinnedToCore(
+      estopResetTask,   /* Task function. */
+      "estopResetTask", /* name of task. */
+      10000,            /* Stack size of task */
+      NULL,             /* parameter of the task */
+      1,                /* priority of the task */
+      &estopTask,       /* Task handle to keep track of created task */
+      0);               /* pin task to core 0 */
+
+  delay(500);
 }
 
 void loop()
 {
   vTaskDelete(NULL); // we don't want this loop to run (because it runs on core
                      // 0 where we have the critical FlexyStepper code)
+}
+
+void estopResetTask(void *pvParameters)
+{
+  for (;;)
+  {
+    if (emergencySwitchTriggered == 1)
+    {
+      while ((getAnalogAverage(SPEED_POT_PIN, 50) + getAnalogAverage(STROKE_POT_PIN, 50)) > 2)
+      {
+        vTaskDelay(1);
+      }
+      emergencySwitchTriggered = 0;
+      vTaskResume(motionTask);
+      vTaskResume(getInputTask);
+    }
+    vTaskDelay(100);
+  }
 }
 
 void wifiConnectionTask(void *pvParameters)
@@ -187,9 +235,9 @@ void wifiConnectionTask(void *pvParameters)
 
     //delete this task once connected!
     if (WiFi.status() == WL_CONNECTED)
-      {
-        vTaskDelete(NULL);
-      }
+    {
+      vTaskDelete(NULL);
+    }
   }
 }
 
@@ -232,9 +280,7 @@ void getUserInputTask(void *pvParameters)
         wifiControlEnable = false;
         setInternetControl(wifiControlEnable);
       }
-      speedPercentage = getAnalogAverage(
-          SPEED_POT_PIN,
-          50); // get average analog reading, function takes pin and # samples
+      speedPercentage = getAnalogAverage(SPEED_POT_PIN, 50); // get average analog reading, function takes pin and # samples
       strokePercentage = getAnalogAverage(STROKE_POT_PIN, 50);
     }
 
@@ -315,8 +361,8 @@ bool setInternetControl(bool wifiControlEnable)
   // to the remote server. The cloudfront redirect allows http connection with
   // bubble backend hosted at app.researchanddesire.com
 
-  // String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/ossm-set-control"; //live server
-  String serverNameBubble = "http://d2oq8yqnezqh3r.cloudfront.net/ossm-set-control"; // this is version-test server
+  String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/ossm-set-control"; //live server
+  // String serverNameBubble = "http://d2oq8yqnezqh3r.cloudfront.net/ossm-set-control"; // this is version-test server
 
   // Add values in the document to send to server
   StaticJsonDocument<200> doc;
