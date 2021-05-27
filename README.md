@@ -16,6 +16,7 @@ There are a few hardware flavours to choose from, we've included user modified v
 
 ### Software
 We recommend using the ESP32 microcontroller. This code is still arduino IDE compatible but offers many times better performance and a nice internet dashboard you can use!
+Control your OSSM at app.researchanddesire.com/ossm !
 
 ### Eagle PCB
 Simple PCB to power an ESP32 (wifi enabled microcontroller) from 24V and breakout the pins for the OSSM control
