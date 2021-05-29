@@ -34,7 +34,7 @@ TaskHandle_t estopTask = nullptr;
 // this pin toggles between manual knob control and Web-based control
 #define WIFI_CONTROL_TOGGLE_PIN 26
 // define the IO pin the emergency stop switch is connected to
-#define EMERGENCY_STOP_PIN 19
+#define STOP_PIN 19
 // define the IO pin where the limit switches are connected to (switches in
 // series in normally closed setup)
 #define LIMIT_SWITCH_PIN 21
@@ -67,17 +67,17 @@ float getAnalogAverage(int pinNumber, int samples);
 bool setInternetControl(bool wifiControlEnable);
 bool getInternetSettings();
 
-bool emergencySwitchTriggered = 0;
+bool stopSwitchTriggered = 0;
 
 /**
  * the iterrupt service routine (ISR) for the emergency swtich
  * this gets called on a rising edge on the IO Pin the emergency switch is connected
- * it only sets the emergencySwitchTriggered flag and then returns. 
+ * it only sets the stopSwitchTriggered flag and then returns. 
  * The actual emergency stop will than be handled in the loop function
  */
-void ICACHE_RAM_ATTR emergencySwitchHandler()
+void ICACHE_RAM_ATTR stopSwitchHandler()
 {
-  emergencySwitchTriggered = 1;
+  stopSwitchTriggered = 1;
   vTaskSuspend(motionTask);
   vTaskSuspend(getInputTask);
   stepper.emergencyStop();
@@ -110,9 +110,9 @@ void setup()
   pinMode(WIFI_CONTROL_TOGGLE_PIN, INPUT_PULLDOWN);
   //set the pin for the emegrenxy witch to input with inernal pullup
   //the emergency switch is connected in a Active Low configuraiton in this example, meaning the switch connects the input to ground when closed
-  pinMode(EMERGENCY_STOP_PIN, INPUT_PULLUP);
+  pinMode(STOP_PIN, INPUT_PULLUP);
   //attach an interrupt to the IO pin of the switch and specify the handler function
-  attachInterrupt(digitalPinToInterrupt(EMERGENCY_STOP_PIN), emergencySwitchHandler, RISING);
+  attachInterrupt(digitalPinToInterrupt(STOP_PIN), stopSwitchHandler, RISING);
   // Set analog pots (control knobs)
   pinMode(STROKE_POT_PIN, INPUT);
   adcAttachPin(STROKE_POT_PIN);
@@ -194,13 +194,13 @@ void estopResetTask(void *pvParameters)
 {
   for (;;)
   {
-    if (emergencySwitchTriggered == 1)
+    if (stopSwitchTriggered == 1)
     {
       while ((getAnalogAverage(SPEED_POT_PIN, 50) + getAnalogAverage(STROKE_POT_PIN, 50)) > 2)
       {
         vTaskDelay(1);
       }
-      emergencySwitchTriggered = 0;
+      stopSwitchTriggered = 0;
       vTaskResume(motionTask);
       vTaskResume(getInputTask);
     }
@@ -391,6 +391,9 @@ bool setInternetControl(bool wifiControlEnable)
   // const char *status = bubbleResponse["status"]; // "success"
 
 #ifdef DEBUG
+  Serial.print("Setting Wifi Control: ");
+  Serial.println(wifiControlEnable);
+  Serial.println(requestBody);
   Serial.println(payload);
   Serial.print("HTTP Response code: ");
   Serial.println(httpResponseCode);
@@ -405,10 +408,8 @@ bool getInternetSettings()
   // cloudfront redirect allows http connection with bubble backend hosted at
   // app.researchanddesire.com
 
-  // String serverNameBubble =
-  // "http://d2g4f7zewm360.cloudfront.net/ossm-get-settings"; //live server
-  String serverNameBubble =
-      "http://d2oq8yqnezqh3r.cloudfront.net/ossm-get-settings"; // this is
+  String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/ossm-get-settings"; //live server
+  // String serverNameBubble = "http://d2oq8yqnezqh3r.cloudfront.net/ossm-get-settings"; // this is
                                                                 // version-test
                                                                 // server
 
