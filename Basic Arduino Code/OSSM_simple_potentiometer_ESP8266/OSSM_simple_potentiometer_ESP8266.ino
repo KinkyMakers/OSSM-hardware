@@ -16,7 +16,7 @@ String myString;
 int speed;
 
 const int analogSpeedPin = A0;//connect your potentiometer for speed here
-const int analogStrokePin = A1;//connect your potentiometer for stroke length here
+//const int analogStrokePin = A1;//connect your potentiometer for stroke length here
 
 //you will need to change these parameters based on your stroke length, stepper capability, and step resolution
 //if stepper is skipping while moving, lower max speed
@@ -43,12 +43,12 @@ void setup()
   // Change these to suit your stepper if you want
   analogSpeed = analogRead(analogSpeedPin);
   speedValue = map(analogSpeed, 0, 1023, speedMin, speedLimit);
-  analogStroke = analogRead(analogStrokePin);
+//  analogStroke = analogRead(analogStrokePin);
   strokeValue = map(analogSpeed, 0, 1023, strokeMin, strokeLimit);
 
   stepper.setMaxSpeed(8000);
-  stepper.setAcceleration(3.0 * speedValue);
-  stepper.moveTo(1600);
+  stepper.setAcceleration(3000);
+  stepper.moveTo(10000);
 }
 
 void loop()
@@ -66,15 +66,7 @@ void loop()
   stepper.run();
   stepper.run();
   stepper.run();
-  //updateSpeedAnalog();
-  if (stepper.distanceToGo() == 0) {
-    updateSpeedAnalog();
-    stepper.moveTo(0);
-  }
-  if (stepper.distanceToGo() == 0) {
-    updateSpeedAnalog();
-    stepper.moveTo(strokeValue);
-  }
+
 
 }
 
@@ -98,7 +90,7 @@ void updateSpeedSerial() {
 void updateSpeedAnalog() {
   analogSpeed = analogRead(analogSpeedPin);
   speedValue = map(analogSpeed, 0, 1023, speedMin, speedLimit);
-  analogStroke = analogRead(analogStrokePin);
+//  analogStroke = analogRead(analogStrokePin);
   strokeValue = map(analogStroke, 0, 1023, strokeMin, strokeLimit);
   stepper.setMaxSpeed(speedValue);
   stepper.setAcceleration(speedValue * 60);

@@ -59,24 +59,25 @@ void setup() {
   digitalWrite(RESET, HIGH);
 
   Serial.begin(9600);
-  updateSpeedSerial();
-  stepper.runToNewPosition(strokeValue);
+    stepper.setMaxSpeed(8000);
+  stepper.setAcceleration(3000);
+  stepper.moveTo(10000);
+  //updateSpeedSerial();
+  //stepper.runToNewPosition(strokeValue);
 
 }
 
 void loop()
-{
-  // If at the end of travel go to the other end
-  Serial.print(speedValue);
-  Serial.print("  Library Speed: ");
-  Serial.print(stepper.speed());
-  Serial.print("  entered stroke: ");
-  Serial.println(stroke);
-
-  updateSpeedSerial();
-  stepper.runToNewPosition(0);
-  updateSpeedSerial();
-  stepper.runToNewPosition(strokeValue);
+{  stepper.run();
+  stepper.run();
+  stepper.run();
+  stepper.run();
+  stepper.run();
+  stepper.run();
+  stepper.run();
+  stepper.run();
+  stepper.run();
+  stepper.run();
 
 
 }
