@@ -34,8 +34,8 @@
 <layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="yes"/>
 <layer number="25" name="tNames" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="26" name="bNames" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="27" name="tValues" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="28" name="bValues" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="27" name="tValues" color="7" fill="1" visible="no" active="yes"/>
+<layer number="28" name="bValues" color="7" fill="1" visible="no" active="yes"/>
 <layer number="29" name="tStop" color="7" fill="3" visible="no" active="yes"/>
 <layer number="30" name="bStop" color="7" fill="6" visible="no" active="yes"/>
 <layer number="31" name="tCream" color="7" fill="4" visible="no" active="yes"/>
@@ -46,19 +46,19 @@
 <layer number="36" name="bGlue" color="7" fill="5" visible="no" active="yes"/>
 <layer number="37" name="tTest" color="7" fill="1" visible="no" active="yes"/>
 <layer number="38" name="bTest" color="7" fill="1" visible="no" active="yes"/>
-<layer number="39" name="tKeepout" color="4" fill="11" visible="yes" active="yes"/>
+<layer number="39" name="tKeepout" color="4" fill="11" visible="no" active="yes"/>
 <layer number="40" name="bKeepout" color="1" fill="11" visible="yes" active="yes"/>
-<layer number="41" name="tRestrict" color="4" fill="10" visible="yes" active="yes"/>
+<layer number="41" name="tRestrict" color="4" fill="10" visible="no" active="yes"/>
 <layer number="42" name="bRestrict" color="1" fill="10" visible="yes" active="yes"/>
-<layer number="43" name="vRestrict" color="2" fill="10" visible="yes" active="yes"/>
+<layer number="43" name="vRestrict" color="2" fill="10" visible="no" active="yes"/>
 <layer number="44" name="Drills" color="7" fill="1" visible="no" active="yes"/>
-<layer number="45" name="Holes" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="45" name="Holes" color="7" fill="1" visible="no" active="yes"/>
 <layer number="46" name="Milling" color="3" fill="1" visible="no" active="yes"/>
 <layer number="47" name="Measures" color="7" fill="1" visible="no" active="yes"/>
-<layer number="48" name="Document" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="49" name="Reference" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="48" name="Document" color="7" fill="1" visible="no" active="yes"/>
+<layer number="49" name="Reference" color="7" fill="1" visible="no" active="yes"/>
 <layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
-<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="no" active="yes"/>
 <layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="53" name="tGND_GNDA" color="7" fill="1" visible="no" active="no"/>
 <layer number="54" name="bGND_GNDA" color="7" fill="1" visible="no" active="no"/>
@@ -79,98 +79,98 @@
 <layer number="97" name="Info" color="7" fill="1" visible="no" active="no"/>
 <layer number="98" name="Guide" color="6" fill="1" visible="no" active="no"/>
 <layer number="99" name="SpiceOrder" color="7" fill="1" visible="no" active="no"/>
-<layer number="100" name="Muster" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="101" name="Patch_Top" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="102" name="Vscore" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="103" name="tMap" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="104" name="Name" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="105" name="tPlate" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="106" name="bPlate" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="107" name="Crop" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="108" name="tplace-old" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="109" name="ref-old" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="110" name="fp0" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="111" name="LPC17xx" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="112" name="tSilk" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="113" name="IDFDebug" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="114" name="Badge_Outline" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="115" name="ReferenceISLANDS" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="116" name="Patch_BOT" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="117" name="PM_Ref" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="118" name="Rect_Pads" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="119" name="PF_Ref" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="120" name="WFL_Ref" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="121" name="_tsilk" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="122" name="_bsilk" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="123" name="tTestmark" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="124" name="bTestmark" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="125" name="_tNames" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="126" name="_bNames" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="127" name="_tValues" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="128" name="_bValues" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="129" name="Mask" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="130" name="SMDSTROOK" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="131" name="tAdjust" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="132" name="bAdjust" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="133" name="bottom_silk" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="134" name="silk_top" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="135" name="silk_bottom" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="136" name="silktop" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="137" name="silkbottom" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="138" name="_baDocu" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="139" name="tNames2" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="144" name="Drill_legend" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="145" name="DrillLegend_01-16" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="146" name="DrillLegend_01-20" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="150" name="Notes" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="151" name="HeatSink" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="152" name="_bDocu" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="153" name="FabDoc1" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="154" name="FabDoc2" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="155" name="FabDoc3" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="166" name="AntennaArea" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="168" name="4mmHeightArea" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="199" name="Contour" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="200" name="200bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="201" name="201bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="202" name="202bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="203" name="203bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="204" name="204bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="205" name="205bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="206" name="206bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="207" name="207bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="208" name="208bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="209" name="209bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="210" name="210bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="211" name="211bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="212" name="212bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="213" name="213bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="214" name="214bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="215" name="215bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="216" name="216bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="217" name="217bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="218" name="218bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="219" name="219bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="220" name="220bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="221" name="221bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="222" name="222bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="223" name="223bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="224" name="224bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="225" name="225bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="226" name="226bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="227" name="227bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="228" name="228bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="229" name="229bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="230" name="230bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="231" name="231bmp" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="232" name="Eagle3D_PG2" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="233" name="Eagle3D_PG3" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="248" name="Housing" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="249" name="Edge" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="250" name="Descript" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="251" name="SMDround" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="254" name="cooling" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="255" name="routoute" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="100" name="Muster" color="7" fill="1" visible="no" active="yes"/>
+<layer number="101" name="Patch_Top" color="7" fill="1" visible="no" active="yes"/>
+<layer number="102" name="Vscore" color="7" fill="1" visible="no" active="yes"/>
+<layer number="103" name="tMap" color="7" fill="1" visible="no" active="yes"/>
+<layer number="104" name="Name" color="7" fill="1" visible="no" active="yes"/>
+<layer number="105" name="tPlate" color="7" fill="1" visible="no" active="yes"/>
+<layer number="106" name="bPlate" color="7" fill="1" visible="no" active="yes"/>
+<layer number="107" name="Crop" color="7" fill="1" visible="no" active="yes"/>
+<layer number="108" name="tplace-old" color="7" fill="1" visible="no" active="yes"/>
+<layer number="109" name="ref-old" color="7" fill="1" visible="no" active="yes"/>
+<layer number="110" name="fp0" color="7" fill="1" visible="no" active="yes"/>
+<layer number="111" name="LPC17xx" color="7" fill="1" visible="no" active="yes"/>
+<layer number="112" name="tSilk" color="7" fill="1" visible="no" active="yes"/>
+<layer number="113" name="IDFDebug" color="7" fill="1" visible="no" active="yes"/>
+<layer number="114" name="Badge_Outline" color="7" fill="1" visible="no" active="yes"/>
+<layer number="115" name="ReferenceISLANDS" color="7" fill="1" visible="no" active="yes"/>
+<layer number="116" name="Patch_BOT" color="7" fill="1" visible="no" active="yes"/>
+<layer number="117" name="PM_Ref" color="7" fill="1" visible="no" active="yes"/>
+<layer number="118" name="Rect_Pads" color="7" fill="1" visible="no" active="yes"/>
+<layer number="119" name="PF_Ref" color="7" fill="1" visible="no" active="yes"/>
+<layer number="120" name="WFL_Ref" color="7" fill="1" visible="no" active="yes"/>
+<layer number="121" name="_tsilk" color="7" fill="1" visible="no" active="yes"/>
+<layer number="122" name="_bsilk" color="7" fill="1" visible="no" active="yes"/>
+<layer number="123" name="tTestmark" color="7" fill="1" visible="no" active="yes"/>
+<layer number="124" name="bTestmark" color="7" fill="1" visible="no" active="yes"/>
+<layer number="125" name="_tNames" color="7" fill="1" visible="no" active="yes"/>
+<layer number="126" name="_bNames" color="7" fill="1" visible="no" active="yes"/>
+<layer number="127" name="_tValues" color="7" fill="1" visible="no" active="yes"/>
+<layer number="128" name="_bValues" color="7" fill="1" visible="no" active="yes"/>
+<layer number="129" name="Mask" color="7" fill="1" visible="no" active="yes"/>
+<layer number="130" name="SMDSTROOK" color="7" fill="1" visible="no" active="yes"/>
+<layer number="131" name="tAdjust" color="7" fill="1" visible="no" active="yes"/>
+<layer number="132" name="bAdjust" color="7" fill="1" visible="no" active="yes"/>
+<layer number="133" name="bottom_silk" color="7" fill="1" visible="no" active="yes"/>
+<layer number="134" name="silk_top" color="7" fill="1" visible="no" active="yes"/>
+<layer number="135" name="silk_bottom" color="7" fill="1" visible="no" active="yes"/>
+<layer number="136" name="silktop" color="7" fill="1" visible="no" active="yes"/>
+<layer number="137" name="silkbottom" color="7" fill="1" visible="no" active="yes"/>
+<layer number="138" name="_baDocu" color="7" fill="1" visible="no" active="yes"/>
+<layer number="139" name="tNames2" color="7" fill="1" visible="no" active="yes"/>
+<layer number="144" name="Drill_legend" color="7" fill="1" visible="no" active="yes"/>
+<layer number="145" name="DrillLegend_01-16" color="7" fill="1" visible="no" active="yes"/>
+<layer number="146" name="DrillLegend_01-20" color="7" fill="1" visible="no" active="yes"/>
+<layer number="150" name="Notes" color="7" fill="1" visible="no" active="yes"/>
+<layer number="151" name="HeatSink" color="7" fill="1" visible="no" active="yes"/>
+<layer number="152" name="_bDocu" color="7" fill="1" visible="no" active="yes"/>
+<layer number="153" name="FabDoc1" color="7" fill="1" visible="no" active="yes"/>
+<layer number="154" name="FabDoc2" color="7" fill="1" visible="no" active="yes"/>
+<layer number="155" name="FabDoc3" color="7" fill="1" visible="no" active="yes"/>
+<layer number="166" name="AntennaArea" color="7" fill="1" visible="no" active="yes"/>
+<layer number="168" name="4mmHeightArea" color="7" fill="1" visible="no" active="yes"/>
+<layer number="199" name="Contour" color="7" fill="1" visible="no" active="yes"/>
+<layer number="200" name="200bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="201" name="201bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="202" name="202bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="203" name="203bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="204" name="204bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="205" name="205bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="206" name="206bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="207" name="207bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="208" name="208bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="209" name="209bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="210" name="210bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="211" name="211bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="212" name="212bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="213" name="213bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="214" name="214bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="215" name="215bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="216" name="216bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="217" name="217bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="218" name="218bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="219" name="219bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="220" name="220bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="221" name="221bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="222" name="222bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="223" name="223bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="224" name="224bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="225" name="225bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="226" name="226bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="227" name="227bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="228" name="228bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="229" name="229bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="230" name="230bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="231" name="231bmp" color="7" fill="1" visible="no" active="yes"/>
+<layer number="232" name="Eagle3D_PG2" color="7" fill="1" visible="no" active="yes"/>
+<layer number="233" name="Eagle3D_PG3" color="7" fill="1" visible="no" active="yes"/>
+<layer number="248" name="Housing" color="7" fill="1" visible="no" active="yes"/>
+<layer number="249" name="Edge" color="7" fill="1" visible="no" active="yes"/>
+<layer number="250" name="Descript" color="7" fill="1" visible="no" active="yes"/>
+<layer number="251" name="SMDround" color="7" fill="1" visible="no" active="yes"/>
+<layer number="254" name="cooling" color="7" fill="1" visible="no" active="yes"/>
+<layer number="255" name="routoute" color="7" fill="1" visible="no" active="yes"/>
 </layers>
 <board>
 <fusionsync huburn="a.cGVyc29uYWw6dWUyYzQ4Yzk0" projecturn="a.cGVyc29uYWw6dWUyODJhZTcyIzIwMTkxMDAxMjIxMDYwMzgx" f3durn="urn:adsk.wipprod:dm.lineage:1fqrZAinQcCWnb5WX0o0Jg" pcbguid="" lastpulledtime="" lastsyncedchangeguid="" latestrevisionid="936eb7c4-54d2-4e20-9cf5-19f87d9b7519" lastsyncedrevisionid="936eb7c4-54d2-4e20-9cf5-19f87d9b7519" lastboardhashguid="c1262d79-7258-d3c1-be9d-ffa79a74015f" lastpushedtime="2021-04-05T14:20:12Z" linktopcb3d="true"/>
@@ -203,7 +203,7 @@
 <hole x="119.92" y="43.07" drill="4"/>
 <hole x="5.92" y="45.07" drill="4"/>
 <text x="11" y="45" size="2.54" layer="21">Be  OSSM</text>
-<text x="10" y="42" size="1.778" layer="25">KinkyMakers.com</text>
+<text x="10.328" y="42.047" size="1.778" layer="25">KinkyMakers.com</text>
 <text x="83" y="40" size="1.778" layer="25" rot="R90">24V</text>
 <wire x1="113.487140625" y1="66.61071875" x2="109.88733125" y2="66.61071875" width="1" layer="122"/>
 <wire x1="109.88733125" y1="66.61071875" x2="109.8871" y2="52.68573125" width="1" layer="122"/>
@@ -239,6 +239,49 @@
 <wire x1="111.968290625" y1="34.1882" x2="116.53605" y2="38.75595" width="1" layer="122" curve="90"/>
 <wire x1="116.53605" y1="38.75595" x2="116.53605" y2="65.52565" width="1" layer="122"/>
 <wire x1="116.53605" y1="65.52565" x2="111.968290625" y2="70.093409375" width="1" layer="122" curve="90"/>
+<wire x1="113.231140625" y1="67.12971875" x2="109.63133125" y2="67.12971875" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="109.63133125" y1="67.12971875" x2="109.6311" y2="53.20473125" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="109.6311" y1="53.20473125" x2="96.13151875" y2="67.130559375" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="96.13151875" y1="67.130559375" x2="91.6831" y2="67.10721875" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="91.6831" y1="67.10721875" x2="97.87775" y2="60.49256875" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="97.87775" y1="60.49256875" x2="95.953190625" y2="60.49256875" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="95.953190625" y1="60.49256875" x2="91.06971875" y2="48.151659375" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="91.06971875" y1="48.151659375" x2="85.950609375" y2="60.47006875" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="85.950609375" y1="60.47006875" x2="83.17273125" y2="60.47006875" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="83.17273125" y1="60.47006875" x2="83.17273125" y2="44.900890625" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="83.17273125" y1="44.900890625" x2="85.10763125" y2="44.900890625" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="85.10763125" y1="44.900890625" x2="84.98521875" y2="58.32703125" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="84.98521875" y1="58.32703125" x2="90.543959375" y2="44.923390625" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="90.543959375" y1="44.923390625" x2="91.47506875" y2="44.89806875" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="91.47506875" y1="44.89806875" x2="97.030340625" y2="58.31028125" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="97.030340625" y1="58.31028125" x2="96.919509375" y2="44.903959375" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="96.919509375" y1="44.903959375" x2="97.706890625" y2="44.8784" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="97.706890625" y1="44.8784" x2="90.57603125" y2="37.74626875" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="90.57603125" y1="37.74626875" x2="95.30233125" y2="37.74626875" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="95.30233125" y1="37.74626875" x2="109.627459375" y2="51.152059375" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="109.627459375" y1="51.152059375" x2="109.627459375" y2="37.74626875" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="109.627459375" y1="37.74626875" x2="113.231140625" y2="37.74626875" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="113.231140625" y1="37.74626875" x2="113.231140625" y2="67.12971875" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="98.8544" y1="46.02868125" x2="98.8544" y2="59.44276875" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="98.8544" y1="59.44276875" x2="105.351740625" y2="52.51705" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="105.351740625" y1="52.51705" x2="98.8544" y2="46.02868125" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="111.712290625" y1="70.612409375" x2="85.14106875" y2="70.612409375" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="85.14106875" y1="70.612409375" x2="80.573309375" y2="66.04465" width="1" layer="26" curve="90" grouprefs="KMLOGO"/>
+<wire x1="80.573309375" y1="66.04465" x2="80.573309375" y2="39.27495" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="80.573309375" y1="39.27495" x2="85.14106875" y2="34.7072" width="1" layer="26" curve="90" grouprefs="KMLOGO"/>
+<wire x1="85.14106875" y1="34.7072" x2="111.712290625" y2="34.7072" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="111.712290625" y1="34.7072" x2="116.28005" y2="39.27495" width="1" layer="26" curve="90" grouprefs="KMLOGO"/>
+<wire x1="116.28005" y1="39.27495" x2="116.28005" y2="66.04465" width="1" layer="26" grouprefs="KMLOGO"/>
+<wire x1="116.28005" y1="66.04465" x2="111.712290625" y2="70.612409375" width="1" layer="26" curve="90" grouprefs="KMLOGO"/>
+<text x="5.323" y="29.693" size="1.778" layer="25">+</text>
+<text x="-0.436" y="30.217" size="1.778" layer="25">-</text>
+<text x="13.089" y="70.827" size="1.778" layer="25" rot="R90">5v</text>
+<text x="41.273" y="28.296" size="1.778" layer="25" rot="R90">24v</text>
+<text x="44.153" y="27.597" size="1.778" layer="25" rot="R90">GND</text>
+<text x="69.196" y="48.295" size="1.778" layer="25" rot="R90">GND</text>
+<text x="84.553" y="48.208" size="1.778" layer="25" rot="R90">GND</text>
+<text x="48.69" y="53.36" size="1.778" layer="25" rot="R90">GND</text>
+<text x="46.858" y="29.257" size="1.778" layer="25" rot="R90">5v</text>
 </plain>
 <libraries>
 <library name="$DT-TRAINER">
@@ -1758,6 +1801,9 @@ design rules under a new name.</description>
 <param name="cfChangeDir" value="25"/>
 </pass>
 </autorouter>
+<groups>
+<board_group name="KMLOGO"/>
+</groups>
 <elements>
 <element name="U1" library="$DT-TRAINER" package="LOLIN32_PRODUCTION" value="LOLIN32_PRODUCTION" x="-1.27" y="76.2" smashed="yes" rot="R270"/>
 <element name="GND_CONN" library="@DT-TRAINER" library_urn="urn:adsk.eagle:library:19991785" package="CONN_1792902_PXC" value="1792902" x="86.36" y="72.39" smashed="yes" rot="R180">
@@ -1857,13 +1903,13 @@ design rules under a new name.</description>
 <attribute name="PACKAGE" value="None" x="77.47" y="53.34" size="1.778" layer="27" rot="R270" display="off"/>
 <attribute name="PRICE" value="None" x="77.47" y="53.34" size="1.778" layer="27" rot="R270" display="off"/>
 </element>
-<element name="J1" library="PJ-037AH" package="CUI_PJ-037AH" value="PJ-037AH" x="0" y="34.83" smashed="yes">
-<attribute name="MANUFACTURER" value="CUI Devices" x="0" y="34.83" size="1.778" layer="27" display="off"/>
-<attribute name="MAXIMUM_PACKAGE_HEIGHT" value="11.2 mm" x="0" y="34.83" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="-0.5" y="39.83" size="1.27" layer="25"/>
-<attribute name="PARTREV" value="1.05" x="0" y="34.83" size="1.778" layer="27" display="off"/>
-<attribute name="STANDARD" value="Manufacturer Recommendations" x="0" y="34.83" size="1.778" layer="27" display="off"/>
-<attribute name="VALUE" x="-0.5" y="29.83" size="1.27" layer="27" align="top-left"/>
+<element name="J1" library="PJ-037AH" package="CUI_PJ-037AH" value="PJ-037AH" x="7.417" y="33.289" smashed="yes" rot="R180">
+<attribute name="MANUFACTURER" value="CUI Devices" x="7.417" y="33.289" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="MAXIMUM_PACKAGE_HEIGHT" value="11.2 mm" x="7.417" y="33.289" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="NAME" x="7.044" y="26.892" size="1.27" layer="25" rot="R180"/>
+<attribute name="PARTREV" value="1.05" x="7.417" y="33.289" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="STANDARD" value="Manufacturer Recommendations" x="7.417" y="33.289" size="1.778" layer="27" rot="R180" display="off"/>
+<attribute name="VALUE" x="7.917" y="38.289" size="1.27" layer="27" rot="R180" align="top-left"/>
 </element>
 <element name="PS1" library="R-78E5.0-0.5" package="CONV_R-78E5.0-0.5" value="R-78E5.0-0.5" x="43.18" y="36.83" smashed="yes">
 <attribute name="DESCRIPTION" value=" Switching regulator module - DC/DC converter . Single Output. 7.0V to 28.0V input voltage range and 5 V output voltage range " x="43.18" y="36.83" size="1.778" layer="27" display="off"/>
@@ -1928,7 +1974,6 @@ design rules under a new name.</description>
 <wire x1="43.2816" y1="45.72" x2="43.2816" y2="46.99" width="0.1524" layer="16"/>
 <wire x1="43.2816" y1="35" x2="43.2816" y2="34.5948" width="0.1524" layer="16"/>
 <wire x1="43.2816" y1="34.5948" x2="43.18" y2="34.58" width="0.1524" layer="16"/>
-<wire x1="5.9436" y1="34.8808" x2="6" y2="34.83" width="0.1524" layer="1"/>
 <wire x1="4.572" y1="51.9684" x2="4.52" y2="52.07" width="0.1524" layer="1"/>
 <wire x1="47.7012" y1="51.9684" x2="47.7" y2="52.07" width="0.1524" layer="16"/>
 <contactref element="STEPPER" pad="9"/>
@@ -1937,8 +1982,8 @@ design rules under a new name.</description>
 <wire x1="83.8708" y1="46.99" x2="83.82" y2="46.99" width="0.1524" layer="16"/>
 <wire x1="68.58" y1="47.6063875" x2="68.58" y2="46.99" width="2.54" layer="1"/>
 <wire x1="68.58" y1="47.6063875" x2="71.4210125" y2="50.4474" width="2.54" layer="1"/>
-<wire x1="6" y1="34.83" x2="8.54" y2="37.37" width="2.54" layer="16"/>
-<wire x1="8.54" y1="37.37" x2="41" y2="37.37" width="2.54" layer="16"/>
+<wire x1="1.417" y1="33.289" x2="4.27178125" y2="37.37" width="2.54" layer="16"/>
+<wire x1="4.27178125" y1="37.37" x2="41" y2="37.37" width="2.54" layer="16"/>
 <wire x1="41" y1="37.37" x2="43.2816" y2="37.37" width="2.54" layer="16"/>
 <wire x1="68.58" y1="46.99" x2="44.5516" y2="46.99" width="2.54" layer="16"/>
 <contactref element="C1" pad="1"/>
@@ -2074,14 +2119,9 @@ design rules under a new name.</description>
 <contactref element="J1" pad="1"/>
 <contactref element="PS1" pad="1"/>
 <contactref element="STEPPER" pad="16"/>
-<wire x1="0" y1="34.7284" x2="2.4384" y2="32.29" width="0.1524" layer="16"/>
-<wire x1="0" y1="34.7284" x2="0" y2="34.83" width="0.1524" layer="16"/>
 <wire x1="85.2424" y1="46.99" x2="86.36" y2="46.99" width="0.1524" layer="16"/>
 <wire x1="40.6908" y1="34.4424" x2="40.7416" y2="34.3916" width="0.1524" layer="16"/>
 <wire x1="40.6908" y1="34.4424" x2="40.64" y2="34.58" width="0.1524" layer="16"/>
-<wire x1="8.05516875" y1="30.1576" x2="12.06716875" y2="34.1696" width="2.54" layer="16"/>
-<wire x1="12.06716875" y1="34.1696" x2="40.64" y2="34.1696" width="2.54" layer="16"/>
-<wire x1="3.6724" y1="30.1576" x2="8.05516875" y2="30.1576" width="2.54" layer="16"/>
 <wire x1="86.0074" y1="46.08394375" x2="82.18605625" y2="42.2626" width="2.54" layer="16"/>
 <wire x1="86.0074" y1="46.08394375" x2="86.0074" y2="46.6374" width="2.54" layer="16"/>
 <wire x1="86.0074" y1="46.6374" x2="86.36" y2="46.99" width="2.54" layer="16"/>
@@ -2095,12 +2135,13 @@ design rules under a new name.</description>
 <wire x1="41.91" y1="30.21" x2="49.26" y2="30.21" width="2.54" layer="16"/>
 <wire x1="49.26" y1="30.21" x2="60.98120625" y2="41.93120625" width="2.54" layer="16"/>
 <wire x1="60.98120625" y1="41.93120625" x2="60.98120625" y2="42.2626" width="2.54" layer="16"/>
-<wire x1="0" y1="34.83" x2="0" y2="33.83" width="2.54" layer="16"/>
-<wire x1="0" y1="33.83" x2="3.6724" y2="30.1576" width="2.54" layer="16"/>
 <wire x1="40.64" y1="34.58" x2="40.64" y2="34.1696" width="2.54" layer="16"/>
 <contactref element="MTR_CONN" pad="2"/>
 <wire x1="81.3562" y1="33.02" x2="81.3562" y2="39.6188" width="2.54" layer="16"/>
 <wire x1="81.3562" y1="39.6188" x2="84" y2="42.2626" width="2.54" layer="16"/>
+<wire x1="40.64" y1="34.58" x2="39.8135" y2="33.7535" width="2.54" layer="16"/>
+<wire x1="40.64" y1="34.58" x2="39.349" y2="33.289" width="2.54" layer="16"/>
+<wire x1="39.349" y1="33.289" x2="7.417" y2="33.289" width="2.54" layer="16"/>
 </signal>
 <signal name="N$1">
 <contactref element="PS1" pad="3"/>
@@ -2322,6 +2363,11 @@ will not be understood (or retained) with this version.
 Since Version 8.3, EAGLE supports the association of 3D packages
 with devices in libraries, schematics, and board files. Those 3D
 packages will not be understood (or retained) with this version.
+</note>
+<note version="9.5" severity="warning">
+Since Version 9.5, EAGLE supports persistent groups with
+schematics, and board files. Those persistent groups
+will not be understood (or retained) with this version.
 </note>
 </compatibility>
 </eagle>

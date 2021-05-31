@@ -5507,13 +5507,6 @@ Source: AVX .. aphvc.pdf</description>
 <wire x1="116.84" y1="99.06" x2="116.84" y2="106.68" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$11" class="0">
-<segment>
-<pinref part="MTR_CONN" gate="A" pin="3"/>
-<pinref part="STEPPER" gate="G$1" pin="2B"/>
-<wire x1="187.96" y1="124.46" x2="152.4" y2="124.46" width="0.1524" layer="91"/>
-</segment>
-</net>
 <net name="N$12" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="IO12"/>
@@ -5582,31 +5575,30 @@ Source: AVX .. aphvc.pdf</description>
 </net>
 <net name="N$8" class="0">
 <segment>
-<pinref part="STEPPER" gate="G$1" pin="1A"/>
-<wire x1="152.4" y1="119.38" x2="167.64" y2="119.38" width="0.1524" layer="91"/>
-<wire x1="167.64" y1="119.38" x2="167.64" y2="116.84" width="0.1524" layer="91"/>
+<pinref part="STEPPER" gate="G$1" pin="1B"/>
 <pinref part="MTR_CONN" gate="A" pin="6"/>
-<wire x1="167.64" y1="116.84" x2="187.96" y2="116.84" width="0.1524" layer="91"/>
+<wire x1="152.4" y1="116.84" x2="187.96" y2="116.84" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$9" class="0">
 <segment>
-<pinref part="STEPPER" gate="G$1" pin="2A"/>
-<wire x1="152.4" y1="121.92" x2="170.18" y2="121.92" width="0.1524" layer="91"/>
-<wire x1="170.18" y1="121.92" x2="170.18" y2="119.38" width="0.1524" layer="91"/>
+<pinref part="STEPPER" gate="G$1" pin="1A"/>
 <pinref part="MTR_CONN" gate="A" pin="5"/>
-<wire x1="170.18" y1="119.38" x2="187.96" y2="119.38" width="0.1524" layer="91"/>
+<wire x1="152.4" y1="119.38" x2="187.96" y2="119.38" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$10" class="0">
 <segment>
-<wire x1="177.8" y1="114.3" x2="177.8" y2="121.92" width="0.1524" layer="91"/>
+<pinref part="STEPPER" gate="G$1" pin="2A"/>
 <pinref part="MTR_CONN" gate="A" pin="4"/>
-<wire x1="177.8" y1="121.92" x2="187.96" y2="121.92" width="0.1524" layer="91"/>
-<pinref part="STEPPER" gate="G$1" pin="1B"/>
-<wire x1="152.4" y1="116.84" x2="165.1" y2="116.84" width="0.1524" layer="91"/>
-<wire x1="165.1" y1="116.84" x2="165.1" y2="114.3" width="0.1524" layer="91"/>
-<wire x1="165.1" y1="114.3" x2="177.8" y2="114.3" width="0.1524" layer="91"/>
+<wire x1="152.4" y1="121.92" x2="187.96" y2="121.92" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$11" class="0">
+<segment>
+<pinref part="STEPPER" gate="G$1" pin="2B"/>
+<pinref part="MTR_CONN" gate="A" pin="3"/>
+<wire x1="152.4" y1="124.46" x2="187.96" y2="124.46" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>

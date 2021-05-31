@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<WarningConfig Number="79">
+<Register1>
+<bit0 Code = "AL.053"></bit0>
+<bit1 Code = "AL.051"></bit1>
+<bit2 Code = "AL.052"></bit2>
+<bit3 Code = "AL.432"></bit3>
+<bit4 Code = "AL.120"></bit4>
+<bit5 Code = "AL.071"></bit5>
+<bit6 Code = "AL.421"></bit6>
+<bit7 Code = "AL.102"></bit7>
+<bit8 Code = "AL.621"></bit8>
+<bit9 Code = "AL.060"></bit9>
+<bit10 Code = "AL.110"></bit10>
+<bit11 Code = "AL.105"></bit11>
+<bit12 Code = "AL.106"></bit12>
+<bit13 Code = "AL.501"></bit13>
+<bit14 Code = "AL.000"></bit14>
+<bit15 Code = "AL.000"></bit15>
+</Register1>
+<Register2>
+<bit0 Code = "AL.500"></bit0>
+<bit1 Code = "AL.610"></bit1>
+<bit2 Code = "AL.640"></bit2>
+<bit3 Code = "AL.646"></bit3>
+<bit4 Code = "AL.652"></bit4>
+<bit5 Code = "AL.000"></bit5>
+<bit6 Code = "AL.643"></bit6>
+<bit7 Code = "AL.644"></bit7>
+<bit8 Code = "AL.645"></bit8>
+<bit9 Code = "AL.647"></bit9>
+<bit10 Code = "AL.620"></bit10>
+<bit11 Code = "AL.648"></bit11>
+<bit12 Code = "AL.649"></bit12>
+<bit13 Code = "AL.641"></bit13>
+<bit14 Code = "AL.650"></bit14>
+<bit15 Code = "AL.651"></bit15>
+</Register2>
+<Register3>
+<bit0 Code = "AL.065"></bit0>
+<bit1 Code = "AL.066"></bit1>
+<bit2 Code = "AL.400"></bit2>
+<bit3 Code = "AL.054"></bit3>
+<bit4 Code = "AL.440"></bit4>
+<bit5 Code = "AL.402"></bit5>
+<bit6 Code = "AL.401"></bit6>
+<bit7 Code = "AL.999"></bit7>
+<bit8 Code = "AL.063"></bit8>
+<bit9 Code = "AL.600"></bit9>
+<bit10 Code = "AL.421"></bit10>
+<bit11 Code = "AL.420"></bit11>
+<bit12 Code = "AL.505"></bit12>
+<bit13 Code = "AL.430"></bit13>
+<bit14 Code = "AL.431"></bit14>
+<bit15 Code = "保留"></bit15>
+</Register3>
+<Register4>
+<bit0 Code = "AL.410"></bit0>
+<bit1 Code = "AL.000"></bit1>
+<bit2 Code = "AL.000"></bit2>
+<bit3 Code = "AL.000"></bit3>
+<bit4 Code = "AL.000"></bit4>
+<bit5 Code = "AL.000"></bit5>
+<bit6 Code = "AL.000"></bit6>
+<bit7 Code = "AL.000"></bit7>
+<bit8 Code = "AL.000"></bit8>
+<bit9 Code = "AL.000"></bit9>
+<bit10 Code = "AL.000"></bit10>
+<bit11 Code = "AL.000"></bit11>
+<bit12 Code = "AL.000"></bit12>
+<bit13 Code = "AL.000"></bit13>
+<bit14 Code = "AL.000"></bit14>
+<bit15 Code = "AL.000"></bit15>
+</Register4>
+<Register5>
+ <bit0 Code = "AL.440"></bit0>
+<bit1 Code = "AL.510"></bit1>
+<bit2 Code = "AL.551"></bit2>
+<bit3 Code = "AL.100"></bit3>
+<bit4 Code = "AL.000"></bit4>
+<bit5 Code = "AL.000"></bit5>
+<bit6 Code = "AL.000"></bit6>
+<bit7 Code = "AL.000"></bit7>
+<bit8 Code = "AL.000"></bit8>
+<bit9 Code = "AL.000"></bit9>
+<bit10 Code = "AL.000"></bit10>
+<bit11 Code = "AL.000"></bit11>
+<bit12 Code = "AL.000"></bit12>
+<bit13 Code = "AL.000"></bit13>
+<bit14 Code = "AL.000"></bit14>
+<bit15 Code = "AL.000"></bit15>
+</Register5>
+<Register6>
+ <bit0 Code = "AL.000"></bit0>
+<bit1 Code = "AL.000"></bit1>
+<bit2 Code = "AL.001"></bit2>
+<bit3 Code = "AL.000"></bit3>
+<bit4 Code = "AL.000"></bit4>
+<bit5 Code = "AL.000"></bit5>
+<bit6 Code = "AL.000"></bit6>
+<bit7 Code = "AL.000"></bit7>
+<bit8 Code = "AL.941"></bit8>
+<bit9 Code = "AL.000"></bit9>
+<bit10 Code = "AL.000"></bit10>
+<bit11 Code = "AL.000"></bit11>
+<bit12 Code = "AL.000"></bit12>
+<bit13 Code = "AL.000"></bit13>
+<bit14 Code = "AL.000"></bit14>
+<bit15 Code = "AL.000"></bit15>
+</Register6>
+<Register7>
+ <bit0 Code = "AL.440"></bit0>
+<bit1 Code = "AL.510"></bit1>
+<bit2 Code = "AL.551"></bit2>
+<bit3 Code = "AL.100"></bit3>
+<bit4 Code = "AL.000"></bit4>
+<bit5 Code = "AL.000"></bit5>
+<bit6 Code = "AL.000"></bit6>
+<bit7 Code = "AL.000"></bit7>
+<bit8 Code = "AL.000"></bit8>
+<bit9 Code = "AL.000"></bit9>
+<bit10 Code = "AL.000"></bit10>
+<bit11 Code = "AL.000"></bit11>
+<bit12 Code = "AL.000"></bit12>
+<bit13 Code = "AL.000"></bit13>
+<bit14 Code = "AL.000"></bit14>
+<bit15 Code = "AL.000"></bit15>
+</Register7>
+</WarningConfig>

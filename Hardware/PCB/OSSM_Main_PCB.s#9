@@ -787,6 +787,73 @@ DIN A4, landscape with location and doc. field</description>
 </deviceset>
 </devicesets>
 </library>
+<library name="SS24FL">
+<packages>
+<package name="SODFL3617X108N">
+<wire x1="1.5" y1="-0.975" x2="-0.6" y2="-0.975" width="0.127" layer="51"/>
+<wire x1="-0.6" y1="-0.975" x2="-1.5" y2="-0.975" width="0.127" layer="51"/>
+<wire x1="-1.5" y1="0.975" x2="-1.5" y2="-0.975" width="0.127" layer="51"/>
+<wire x1="-1.38" y1="0.975" x2="1.38" y2="0.975" width="0.127" layer="21"/>
+<wire x1="1.5" y1="-0.975" x2="1.5" y2="0.975" width="0.127" layer="51"/>
+<circle x="-2.605" y="0" radius="0.1" width="0.2" layer="21"/>
+<circle x="-2.605" y="0" radius="0.1" width="0.2" layer="51"/>
+<wire x1="-2.405" y1="1.225" x2="-2.405" y2="-1.225" width="0.05" layer="39"/>
+<wire x1="-2.405" y1="1.225" x2="2.405" y2="1.225" width="0.05" layer="39"/>
+<wire x1="2.405" y1="-1.225" x2="2.405" y2="1.225" width="0.05" layer="39"/>
+<wire x1="2.405" y1="-1.225" x2="-2.405" y2="-1.225" width="0.05" layer="39"/>
+<text x="-2.54" y="1.397" size="1.27" layer="25">&gt;NAME</text>
+<text x="-2.54" y="-2.54" size="1.27" layer="27">&gt;VALUE</text>
+<wire x1="-1.5" y1="0.975" x2="-0.6" y2="0.975" width="0.127" layer="51"/>
+<wire x1="-0.6" y1="0.975" x2="1.5" y2="0.975" width="0.127" layer="51"/>
+<wire x1="-1.38" y1="-0.975" x2="1.38" y2="-0.975" width="0.127" layer="21"/>
+<wire x1="-0.6" y1="0.975" x2="-0.6" y2="-0.975" width="0.127" layer="51"/>
+<smd name="C" x="-1.53" y="0" dx="1.25" dy="1.16" layer="1" roundness="25"/>
+<smd name="A" x="1.53" y="0" dx="1.25" dy="1.16" layer="1" roundness="25"/>
+</package>
+</packages>
+<symbols>
+<symbol name="SS24FL">
+<text x="-5.08" y="2.54" size="1.778" layer="95">&gt;NAME</text>
+<text x="-5.08" y="-3.81" size="1.778" layer="96">&gt;VALUE</text>
+<wire x1="-1.27" y1="-1.27" x2="1.27" y2="0" width="0.254" layer="94"/>
+<wire x1="1.27" y1="0" x2="-1.27" y2="1.27" width="0.254" layer="94"/>
+<wire x1="1.27" y1="1.27" x2="1.27" y2="0" width="0.254" layer="94"/>
+<wire x1="-1.27" y1="1.27" x2="-1.27" y2="0" width="0.254" layer="94"/>
+<wire x1="-1.27" y1="0" x2="-1.27" y2="-1.27" width="0.254" layer="94"/>
+<wire x1="1.27" y1="0" x2="1.27" y2="-1.27" width="0.254" layer="94"/>
+<wire x1="-2.54" y1="0" x2="-1.27" y2="0" width="0.254" layer="94"/>
+<wire x1="1.27" y1="0" x2="2.54" y2="0" width="0.254" layer="94"/>
+<pin name="C" x="5.08" y="0" visible="off" length="short" direction="pas" rot="R180"/>
+<pin name="A" x="-5.08" y="0" visible="off" length="short" direction="pas"/>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="SS24FL" prefix="D">
+<description>Diode Schottky Barrier Rectifier 30V 1A 2-Pin SOD-123F T/R </description>
+<gates>
+<gate name="G$1" symbol="SS24FL" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="SODFL3617X108N">
+<connects>
+<connect gate="G$1" pin="A" pad="A"/>
+<connect gate="G$1" pin="C" pad="C"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="DESCRIPTION" value=" Diode Schottky 40V 2A Surface Mount SOD-123F "/>
+<attribute name="DIGI-KEY_PART_NUMBER" value="SS24FLCT-ND"/>
+<attribute name="MF" value="ON Semiconductor"/>
+<attribute name="MP" value="SS24FL"/>
+<attribute name="PACKAGE" value="SOD-123 FL-2 ON Semiconductor"/>
+<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/SS24FL/?ref=eda"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -807,6 +874,7 @@ DIN A4, landscape with location and doc. field</description>
 <part name="STEPPER" library="A4988_STEPPER_MOTOR_DRIVER_CARRIER" deviceset="A4988_STEPPER_MOTOR_DRIVER_CARRIER" device=""/>
 <part name="J1" library="PJ-037AH" deviceset="PJ-037AH" device=""/>
 <part name="PS1" library="R-78E5.0-0.5" deviceset="R-78E5.0-0.5" device=""/>
+<part name="D1" library="SS24FL" deviceset="SS24FL" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -848,6 +916,10 @@ DIN A4, landscape with location and doc. field</description>
 <instance part="PS1" gate="G$1" x="193.04" y="157.48" smashed="yes">
 <attribute name="NAME" x="182.8761" y="163.8379" size="1.77938125" layer="95"/>
 <attribute name="VALUE" x="182.8786" y="149.8573" size="1.77848125" layer="96"/>
+</instance>
+<instance part="D1" gate="G$1" x="228.6" y="160.02" smashed="yes">
+<attribute name="NAME" x="223.52" y="162.56" size="1.778" layer="95"/>
+<attribute name="VALUE" x="223.52" y="156.21" size="1.778" layer="96"/>
 </instance>
 </instances>
 <busses>
@@ -977,12 +1049,23 @@ DIN A4, landscape with location and doc. field</description>
 <label x="172.72" y="167.64" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="5V" class="0">
+<net name="N$1" class="0">
 <segment>
 <pinref part="PS1" gate="G$1" pin="+VOUT"/>
-<wire x1="208.28" y1="160.02" x2="215.9" y2="160.02" width="0.1524" layer="91"/>
-<wire x1="215.9" y1="160.02" x2="215.9" y2="167.64" width="0.1524" layer="91"/>
-<label x="215.9" y="167.64" size="1.778" layer="95"/>
+<pinref part="D1" gate="G$1" pin="A"/>
+<wire x1="208.28" y1="160.02" x2="223.52" y2="160.02" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="5V" class="0">
+<segment>
+<pinref part="D1" gate="G$1" pin="C"/>
+<wire x1="233.68" y1="160.02" x2="243.84" y2="160.02" width="0.1524" layer="91"/>
+<label x="243.84" y="160.02" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="5V"/>
+<wire x1="36.83" y1="119.38" x2="27.94" y2="119.38" width="0.1524" layer="91"/>
+<label x="27.94" y="119.38" size="1.778" layer="95"/>
 </segment>
 </net>
 </nets>

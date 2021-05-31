@@ -1,0 +1,399 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<MontorConfig>
+  <MontorSequence0>
+    <Display_serial_number>d00.C.PU
+</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Position command pulse summation / given pulse of gantry motor</Show_items>
+    <Unit>Command unit</Unit>
+    <Correspondence_address>0x0834</Correspondence_address>
+    <Description>。This parameter can monitor the number of pulses sent by the user to the servo drive to confirm whether it will  be lose pulse 
+Unit: When using an absolute value motor, each circle is calculated as 131072 bit. Using the incremental encoder motor, each circle is calculated according to the number of encoder lines * 4.</Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>true</High_16-bit_byte>
+  </MontorSequence0>
+  <MontorSequence1>
+    <Display_serial_number>d01.F.PU
+</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items> Position feedback pulse total is high 16-bit / gantry motor feedback pulse total is high 16-bit</Show_items>
+    <Unit>Command unit</Unit>
+    <Correspondence_address>0x0836</Correspondence_address>
+    <Description>。This parameter can monitor the number of pulses sent by the user to the servo drive to confirm whether it will be lose pulse.
+Unit: When using an absolute value motor, each circle is calculated as 131072 bit. Using the incremental encoder motor, each circle is calculated according to the number of encoder lines *6.</Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>true</High_16-bit_byte>
+  </MontorSequence1>
+  <MontorSequence2>
+    <Display_serial_number>d02.E.PU
+</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Position deviation pulse high 16-bit / gantry deviation pulse high 16-bit</Show_items>
+    <Unit>Command unit</Unit>
+    <Correspondence_address>0x0838</Correspondence_address>
+    <Description>。This parameter can monitor the number of pulses sent by the user to the servo drive to confirm whether it will be lose pulse.
+Unit: When using an absolute value motor, each circle is calculated as 131072 bit. Using the incremental encoder motor, each circle is calculated according to the number of encoder lines * 8.</Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>true</High_16-bit_byte>
+  </MontorSequence2>
+  <MontorSequence3>
+    <Display_serial_number>d03.C.PE</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Position given pulse sum, encoder unit</Show_items>
+    <Unit>Number of pulses</Unit>
+    <Correspondence_address>0x083A</Correspondence_address>
+    <Description>
+    </Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>true</High_16-bit_byte>
+  </MontorSequence3>
+  <MontorSequence4>
+    <Display_serial_number>d04.F.PE</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Position feedback pulse sum, encoder unit</Show_items>
+    <Unit>Number of pulses</Unit>
+    <Correspondence_address>0x083C</Correspondence_address>
+    <Description>
+    </Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>true</High_16-bit_byte>
+  </MontorSequence4>
+  <MontorSequence5>
+    <Display_serial_number>d05.E.PE</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Position deviation pulse number, encoder unit</Show_items>
+    <Unit>Number of pulses</Unit>
+    <Correspondence_address>0x083E</Correspondence_address>
+    <Description>
+    </Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>true</High_16-bit_byte>
+  </MontorSequence5>
+  <MontorSequence6>
+    <Display_serial_number>d06.C.Fr</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Pulse command input frequency</Show_items>
+    <Unit>KHz</Unit>
+    <Correspondence_address>0x0840</Correspondence_address>
+    <Description>This parameter monitors the input frequency of the external pulse command</Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>1</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence6>
+  <MontorSequence7>
+    <Display_serial_number>d07.C.SP</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Speed Control Command</Show_items>
+    <Unit>rpm</Unit>
+    <Correspondence_address>0x0841</Correspondence_address>
+    <Description>
+    </Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence7>
+  <MontorSequence8>
+    <Display_serial_number>d08.F.SP</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Motor speed</Show_items>
+    <Unit>rpm</Unit>
+    <Correspondence_address>0x0842</Correspondence_address>
+    <Description>This parameter can monitor the speed of servo motor during operation</Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence8>
+  <MontorSequence9>
+    <Display_serial_number>d09.C.tQ</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Torque command</Show_items>
+    <Unit>％</Unit>
+    <Correspondence_address>0x0843</Correspondence_address>
+    <Description>This parameter can monitor the torque of servo motor during operation</Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>1</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence9>
+  <MontorSequence10>
+    <Display_serial_number>d10.F.tQ</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Torque feedback</Show_items>
+    <Unit>％</Unit>
+    <Correspondence_address>0x0844</Correspondence_address>
+    <Description>This parameter can monitor the torque of servo motor feedback during operation</Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>1</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence10>
+  <MontorSequence11>
+    <Display_serial_number>d11.AG.L</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Average torque</Show_items>
+    <Unit>％</Unit>
+    <Correspondence_address>0x0845</Correspondence_address>
+    <Description>This parameter can monitor the average torque of the servo motor in the past 10 seconds</Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence11>
+  <MontorSequence12>
+    <Display_serial_number>d12.PE.L</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Peak torque</Show_items>
+    <Unit>％</Unit>
+    <Correspondence_address>0x0846</Correspondence_address>
+    <Description>This parameter can monitor the peak torque of the servo motor after it is powered</Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>1</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence12>
+  <MontorSequence13>
+    <Display_serial_number>d13.oL</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Overload load rate</Show_items>
+    <Unit>％</Unit>
+    <Correspondence_address>0x0847</Correspondence_address>
+    <Description>This parameter can monitor the load occupancy rate of the servo motor in the past 10 seconds</Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence13>
+  <MontorSequence14>
+    <Display_serial_number>d14.rG</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Regeneration load rate</Show_items>
+    <Unit>％</Unit>
+    <Correspondence_address>0x0848</Correspondence_address>
+    <Description>This parameter can monitor the load rate of the regenerative resistor</Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence14>
+  <MontorSequence15>
+    <Display_serial_number>d15</Display_serial_number>
+    <Monitoring_value>
+    </Monitoring_value>
+    <Show_items>
+    </Show_items>
+    <Unit>
+    </Unit>
+    <Correspondence_address>
+    </Correspondence_address>
+    <Description>
+    </Description>
+    <Symbol>
+    </Symbol>
+    <Decimal_places>
+    </Decimal_places>
+    <High_16-bit_byte>
+    </High_16-bit_byte>
+  </MontorSequence15>
+  <MontorSequence16>
+    <Display_serial_number>d16.I.Io</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Enter IO status</Show_items>
+    <Unit>binary system</Unit>
+    <Correspondence_address>0x0849</Correspondence_address>
+    <Description>This parameter monitors the input port state of CN1. The upper vertical bar represents the high level(optical coupling off), and the lower vertical bar represents the low electric flat light coupling). Corresponding to the input port corresponds to the operating panel from right to left 8 vertical bars corresponding to DI1-DI 8 respectively
+ </Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence16>
+  <MontorSequence17>
+    <Display_serial_number>d15</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>
+    </Show_items>
+    <Unit>
+    </Unit>
+    <Correspondence_address>
+    </Correspondence_address>
+    <Description>
+    </Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence17>
+  <MontorSequence18>
+    <Display_serial_number>d17.O.Io</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Output IO state</Show_items>
+    <Unit>binary system</Unit>
+    <Correspondence_address>0x084A</Correspondence_address>
+    <Description>This parameter monitors the output port state of CN1. The upper vertical bar represents the optical coupling, the lower vertical bar represents the optical coupling cut-off, and the corresponding relationship with the output port is that the operating panel corresponds to the DO1-DO5 from the right to the left 5 vertical bars respectively.</Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence18>
+  <MontorSequence19>
+    <Display_serial_number>d18.AnG</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Motor mechanical angle</Show_items>
+    <Unit>0.1°</Unit>
+    <Correspondence_address>0x084B</Correspondence_address>
+    <Description>This parameter can monitor the mechanical angle of the motor and rotate 1 circle to 360 degrees.</Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>1</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence19>
+  <MontorSequence20>
+    <Display_serial_number>d19.HAL</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Motor UVW phase sequence</Show_items>
+    <Unit>
+    </Unit>
+    <Correspondence_address>0x084C</Correspondence_address>
+    <Description>This parameter can monitor the phase sequence position of the incremental encoder motor</Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence20>
+  <MontorSequence21>
+    <Display_serial_number>d20.ASS</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>single circle value of absolute value encoder </Show_items>
+    <Unit>0-0xFFFF</Unit>
+    <Correspondence_address>0x084D</Correspondence_address>
+    <Description>This parameter can monitor the feedback value of the absolute encoder. The rotation circle is 0xFFFF.</Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence21>
+  <MontorSequence22>
+    <Display_serial_number>d21.ASH</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items> multi-loop value of absolute value encoder</Show_items>
+    <Unit>
+    </Unit>
+    <Correspondence_address>0x084E</Correspondence_address>
+    <Description>This parameter can monitor the turn number of loops of the multi-loop absolute encoder motor</Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence22>
+  <MontorSequence23>
+    <Display_serial_number>d22.j-L</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Inertial ratio</Show_items>
+    <Unit>％</Unit>
+    <Correspondence_address>0x084F</Correspondence_address>
+    <Description>This parameter can monitor the real-time inertia of the load carried by the motor</Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence23>
+  <MontorSequence24>
+    <Display_serial_number>d23.dcp</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Main loop voltage(DC value)</Show_items>
+    <Unit>V</Unit>
+    <Correspondence_address>0x0850</Correspondence_address>
+    <Description>This parameter monitors the voltage value of the main loop</Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence24>
+  <MontorSequence25>
+    <Display_serial_number>d24.Ath</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Drive Temperature</Show_items>
+    <Unit>centigrade</Unit>
+    <Correspondence_address>0x0851</Correspondence_address>
+    <Description>This parameter monitors drive temperature</Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence25>
+  <MontorSequence26>
+    <Display_serial_number>d25.tiE_H</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Cumulative running time</Show_items>
+    <Unit>Second</Unit>
+    <Correspondence_address>0x0852</Correspondence_address>
+    <Description>This parameter monitors drive running time . Unit:  seconds</Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>1</Decimal_places>
+    <High_16-bit_byte>true</High_16-bit_byte>
+  </MontorSequence26>
+  <MontorSequence27>
+    <Display_serial_number>d26.1.Fr</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Resonance frequency 1</Show_items>
+    <Unit>Hz</Unit>
+    <Correspondence_address>0x0854</Correspondence_address>
+    <Description>This parameter can monitor resonance frequency 1</Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence27>
+  <MontorSequence28>
+    <Display_serial_number>d27</Display_serial_number>
+    <Monitoring_value>
+    </Monitoring_value>
+    <Show_items>
+    </Show_items>
+    <Unit>
+    </Unit>
+    <Correspondence_address>0x0855</Correspondence_address>
+    <Description>
+    </Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence28>
+  <MontorSequence29>
+    <Display_serial_number>d28.2.Fr</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Resonance frequency 2</Show_items>
+    <Unit>Hz</Unit>
+    <Correspondence_address>0x0856</Correspondence_address>
+    <Description>This parameter can monitor resonance frequency 2</Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence29>
+  <MontorSequence30>
+    <Display_serial_number>d29</Display_serial_number>
+    <Monitoring_value>
+    </Monitoring_value>
+    <Show_items>
+    </Show_items>
+    <Unit>
+    </Unit>
+    <Correspondence_address>0x0857</Correspondence_address>
+    <Description>
+    </Description>
+    <Symbol>FALSE</Symbol>
+    <Decimal_places>0</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence30>
+  <MontorSequence31>
+    <Display_serial_number>d30.Ai1</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Simulation command 1 input voltage （V_REF）</Show_items>
+    <Unit>0.01V</Unit>
+    <Correspondence_address>0x0858</Correspondence_address>
+    <Description>This parameter can monitor the analog instruction(V-REF)input voltage value of the speed ring </Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>2</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence31>
+  <MontorSequence32>
+    <Display_serial_number>d31.Ai2</Display_serial_number>
+    <Monitoring_value>0</Monitoring_value>
+    <Show_items>Simulation command 2 input voltage （T_REF）</Show_items>
+    <Unit>0.01V</Unit>
+    <Correspondence_address>0x0859</Correspondence_address>
+    <Description>This parameter can monitor the analog instruction(T-REF) input voltage value of the torque ring.</Description>
+    <Symbol>TRUE</Symbol>
+    <Decimal_places>2</Decimal_places>
+    <High_16-bit_byte>false</High_16-bit_byte>
+  </MontorSequence32>
+</MontorConfig>

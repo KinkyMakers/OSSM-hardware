@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ParameterConfig MachineType="4D413D3D">
+  <P00>
+    <P00-00 Value="4D6A41774D413D3D" />
+    <P00-01 Value="4D413D3D" />
+    <P00-02 Value="4D413D3D" />
+    <P00-03 Value="4D413D3D" />
+    <P00-04 Value="4D413D3D" />
+    <P00-05 Value="4D413D3D" />
+    <P00-10 Value="4D413D3D" />
+    <P00-11 Value="4D413D3D" />
+    <P00-12 Value="4D413D3D" />
+    <P00-13 Value="4D413D3D" />
+    <P00-14 Value="4D413D3D" />
+    <P00-15 Value="4D413D3D" />
+    <P00-16 Value="4D413D3D" />
+    <P00-17 Value="4D413D3D" />
+    <P00-21 Value="4D413D3D" />
+    <P00-42 Value="4D544D77" />
+  </P00>
+  <P01>
+    <P01-00 Value="4D413D3D" />
+    <P01-01 Value="4D413D3D" />
+    <P01-02 Value="4D673D3D" />
+    <P01-03 Value="4D544D3D" />
+    <P01-04 Value="4D773D3D" />
+  </P01>
+  <P02>
+    <P02-00 Value="4E4467754D413D3D" />
+    <P02-01 Value="4E5463754D413D3D" />
+    <P02-03 Value="4D7A413D" />
+    <P02-04 Value="4D433431" />
+    <P02-10 Value="4D6A633D" />
+    <P02-11 Value="4D54413D" />
+    <P02-12 Value="4D544177" />
+    <P02-13 Value="4D6A633D" />
+    <P02-14 Value="4D5441774D413D3D" />
+    <P02-15 Value="4D544177" />
+    <P02-19 Value="4D413D3D" />
+    <P02-20 Value="4D433434" />
+    <P02-30 Value="4E773D3D" />
+    <P02-31 Value="4F444177" />
+    <P02-32 Value="4D544177" />
+    <P02-33 Value="4D54413D" />
+    <P02-34 Value="4D54413D" />
+  </P02>
+  <P03>
+    <P03-06 Value="4D544177" />
+    <P03-15 Value="4D7A41774D44413D" />
+    <P03-46 Value="4D6A41774D413D3D" />
+    <P03-68 Value="4D413D3D" />
+  </P03>
+  <P04>
+    <P04-02 Value="4D413D3D" />
+    <P04-16 Value="4D413D3D" />
+    <P04-17 Value="4E544177" />
+    <P04-20 Value="4E54413D" />
+    <P04-23 Value="4D7A4177" />
+    <P04-29 Value="4D7A4177" />
+    <P04-30 Value="4E54413D" />
+    <P04-31 Value="4F544D77" />
+    <P04-32 Value="4F444977" />
+    <P04-33 Value="4F413D3D" />
+    <P04-34 Value="4F413D3D" />
+    <P04-35 Value="4E513D3D" />
+    <P04-36 Value="4D773D3D" />
+    <P04-37 Value="4D544177" />
+    <P04-38 Value="4D7A4177" />
+    <P04-40 Value="4E513D3D" />
+    <P04-41 Value="4E54413D" />
+  </P04>
+  <P05>
+    <P05-10 Value="4D6A41774C6A413D" />
+    <P05-11 Value="4C5449774D433477" />
+    <P05-12 Value="4D5441774C6A413D" />
+    <P05-13 Value="4C5445774D433477" />
+  </P05>
+  <P06>
+    <P06-00 Value="4D413D3D" />
+  </P06>
+  <P08>
+    <P08-19 Value="4D413D3D" />
+    <P08-20 Value="4D433434" />
+    <P08-25 Value="4D413D3D" />
+    <P08-26 Value="4D433434" />
+  </P08>
+</ParameterConfig>

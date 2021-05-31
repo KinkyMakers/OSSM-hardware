@@ -5330,6 +5330,11 @@ Source: AVX .. aphvc.pdf</description>
 <wire x1="208.28" y1="154.94" x2="218.44" y2="154.94" width="0.1524" layer="91"/>
 <label x="213.36" y="154.94" size="1.778" layer="95"/>
 </segment>
+<segment>
+<pinref part="MTR_CONN" gate="A" pin="1"/>
+<wire x1="187.96" y1="129.54" x2="177.8" y2="129.54" width="0.1524" layer="91"/>
+<label x="177.8" y="129.54" size="1.778" layer="95"/>
+</segment>
 </net>
 <net name="3_3V" class="0">
 <segment>
