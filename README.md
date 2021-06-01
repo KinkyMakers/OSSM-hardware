@@ -31,5 +31,5 @@ It is driven by a Nema23 motor of **your** choosing, although we reccomend small
 
 This should be a good start for the wiring of your OSSM, however depending on your hardware mix settings or wiring may be different. 
 
-![wiring notes](https://raw.githubusercontent.com/KinkyMakers/OSSM-hardware/master/Hardware/wiring%20notes.png)
+![wiring notes](https://raw.githubusercontent.com/KinkyMakers/OSSM-hardware/master/Hardware/PCB/wiring%20notes.png)
 
