@@ -14,6 +14,8 @@ This project aims to help people curious about sex machines explore their intere
 ## Getting Started
 There are a few hardware flavours to choose from, we've included user modified versions in case that fits your use case better!
 
+Join our Discord to be part of the discussion and get help with your build. https://discord.gg/MmpT9xE
+
 ### Software
 We recommend using the ESP32 microcontroller. This code is still arduino IDE compatible but offers many times better performance and a nice internet dashboard you can use!
 Control your OSSM at app.researchanddesire.com/ossm !
