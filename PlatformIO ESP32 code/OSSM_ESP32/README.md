@@ -11,6 +11,7 @@ Use the tutorial below to install the ESP32 board into your Arduino IDE so you'r
 
 [Setting up ESP32 on Arduino IDE](https://randomnerdtutorials.com/installing-the-esp32-board-in-arduino-ide-windows-instructions/)
 
+If you aren't sure what ESP board to select in Arduino IDE, choose "ESP32 Dev Module" - it works on all ESP32 I have tested so far.
 
 
 
