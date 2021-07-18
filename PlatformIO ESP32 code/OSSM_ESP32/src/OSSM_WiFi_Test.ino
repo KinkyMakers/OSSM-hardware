@@ -33,6 +33,12 @@ TaskHandle_t estopTask = nullptr;
 #define WIFI_RESET_PIN 0
 // this pin toggles between manual knob control and Web-based control
 #define WIFI_CONTROL_TOGGLE_PIN 26
+
+//#define WIFI_CONTROL_DEFAULT INPUT_PULLDOWN // uncomment for analog pots as default
+#define WIFI_CONTROL_DEFAULT INPUT_PULLUP // uncomment for WiFi control as default
+//Pull pin 26 low if you want to switch to analog pot control
+
+
 // define the IO pin the emergency stop switch is connected to
 #define STOP_PIN 19
 // define the IO pin where the limit switches are connected to (switches in
@@ -107,7 +113,7 @@ void setup()
   // put your setup code here, to run once:
   pinMode(MOTOR_ENABLE_PIN, OUTPUT);
   pinMode(WIFI_RESET_PIN, INPUT_PULLUP);
-  pinMode(WIFI_CONTROL_TOGGLE_PIN, INPUT_PULLDOWN);
+  pinMode(WIFI_CONTROL_TOGGLE_PIN, WIFI_CONTROL_DEFAULT);
   //set the pin for the emegrenxy witch to input with inernal pullup
   //the emergency switch is connected in a Active Low configuraiton in this example, meaning the switch connects the input to ground when closed
   pinMode(STOP_PIN, INPUT_PULLUP);
@@ -152,7 +158,7 @@ void setup()
       1,                    /* priority of the task */
       &wifiTask,            /* Task handle to keep track of created task */
       0);                   /* pin task to core 0 */
-  delay(500);
+  delay(5000);
   xTaskCreatePinnedToCore(
       getUserInputTask,   /* Task function. */
       "getUserInputTask", /* name of task. */
