@@ -31,7 +31,7 @@ It is driven by a Nema23 motor of **your** choosing, although we reccomend small
 
 <img src="https://user-images.githubusercontent.com/43324815/127772517-60358355-d0c8-42af-995c-cf83fd16199f.png" width="400" height="400">
 
-### Bill Of Materials
+## Bill Of Materials
 
 We are calling this the reference build, when deviating from it please check compatability with existing BOM
 
@@ -60,15 +60,15 @@ We are calling this the reference build, when deviating from it please check com
   - To start working on the project, something like this [Adafruit board](https://www.adafruit.com/product/3405) is an excellent place to start.
   - Accessories required for prototyping include [Breadboard](https://www.amazon.ca/Breadboard-Solderless-Prototype-Distribution-Connecting/dp/B01EV6LJ7G/ref=sr_1_5?dchild=1&keywords=breadboard&qid=1627823170&sr=8-5) and [Dupont Jumpers](https://www.amazon.ca/120pcs-Multicolored-Breadboard-Arduino-raspberry/dp/B01LZF1ZSZ/ref=sr_1_5?dchild=1&keywords=dupont+jumper&qid=1627823220&sr=8-5)
 
-### Wiring Notes
+## Wiring Notes
 
 This should be a good start for the wiring of your OSSM! However, depending on your hardware mix settings or wiring may be different 
 
-## Servo Wiring ##
+### Servo Wiring
 
 ![image](https://user-images.githubusercontent.com/43324815/127773668-ebfa57bf-29da-4c6b-8785-8ae0f1ffbf3b.png)
 
-## Stepper Wiring ##
+### Stepper Wiring 
 
 ![wiring notes](https://github.com/KinkyMakers/OSSM-hardware/blob/44ab7a5deafa7dd3d66d521bb368959db542c164/Hardware/PCB/wiring%20notes%20800.png)
 
