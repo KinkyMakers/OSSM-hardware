@@ -35,7 +35,9 @@ It is driven by a Nema23 motor of **your** choosing, although we reccomend small
 
 We are calling this the reference build, when deviating from it please check compatability with existing BOM
 
-- 3D Printed Parts
+- [3D Printed Parts](https://github.com/KinkyMakers/OSSM-hardware/tree/master/Hardware/Current%20OSSM)
+  -   This has recently had significant changes
+  -   Mounting options are still something that need to be worked on
 - NEMA23 Servo : [Amazon.ca](https://www.amazon.ca/Integrated-Servo-Motor-IHSV57-30-10-3000rpm/dp/B081CVJHC7) | [JMC](https://www.jmc-motor.com/product/953.html)
   - *Avoid the StepperOnline version until we can furter test*
   - search around for the best deal for you - have found occasionally better deals on Aliexpress
