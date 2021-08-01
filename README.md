@@ -64,5 +64,11 @@ We are calling this the reference build, when deviating from it please check com
 
 This should be a good start for the wiring of your OSSM! However, depending on your hardware mix settings or wiring may be different 
 
+## Servo Wiring ##
+
+![image](https://user-images.githubusercontent.com/43324815/127773668-ebfa57bf-29da-4c6b-8785-8ae0f1ffbf3b.png)
+
+## Stepper Wiring ##
+
 ![wiring notes](https://github.com/KinkyMakers/OSSM-hardware/blob/44ab7a5deafa7dd3d66d521bb368959db542c164/Hardware/PCB/wiring%20notes%20800.png)
 
