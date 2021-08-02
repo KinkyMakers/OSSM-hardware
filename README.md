@@ -16,6 +16,8 @@ Please note that this is a _work in progress_ and we have attempted to keep comp
 ## Getting Started
 There are a few hardware flavours to choose from, we've included user modified versions in case that fits your use case better!
 
+[Build Instructions](https://github.com/KinkyMakers/OSSM-hardware/blob/master/Assembly%20Notes/Assembly%20Instructions.pdf)
+
 Join our Discord to be part of the discussion and get help with your build. https://discord.gg/MmpT9xE
 
 ### Software
@@ -35,26 +37,26 @@ It is driven by a Nema23 motor of **your** choosing, although we reccomend small
 
 We are calling this the reference build, when deviating from it please check compatability with existing BOM
 
-- [3D Printed Parts](https://github.com/KinkyMakers/OSSM-hardware/tree/master/Hardware/Current%20OSSM)
-  -   This has recently had significant changes
-  -   Mounting options are still something that need to be worked on
-- NEMA23 Servo : [Amazon.ca](https://www.amazon.ca/Integrated-Servo-Motor-IHSV57-30-10-3000rpm/dp/B081CVJHC7) | [JMC](https://www.jmc-motor.com/product/953.html)
+1. **[3D Printed Parts](https://github.com/KinkyMakers/OSSM-hardware/tree/master/Hardware/Current%20OSSM)**
+  * This has recently had significant changes
+  * Mounting options are still something that need to be worked on
+2. **NEMA23 Servo** : [Amazon.ca](https://www.amazon.ca/Integrated-Servo-Motor-IHSV57-30-10-3000rpm/dp/B081CVJHC7) | [JMC](https://www.jmc-motor.com/product/953.html)
   - *Avoid the StepperOnline version until we can furter test*
   - search around for the best deal for you - have found occasionally better deals on Aliexpress
-- GT2 Pulley 8mm Bore 20 Tooth : [Amazon.ca](https://www.amazon.ca/Saiper-Timing-Aluminum-Synchronous-Printer/dp/B07MDH63GX/ref=sr_1_5?dchild=1&keywords=8mm+bore+gt2&qid=1627821975&sr=8-5)
-- GT2 Timing Belt : [Amazon.ca](https://www.amazon.ca/Printer-Timing-Teeth-Pulley-Wrench/dp/B08PKPK4D8/ref=sr_1_8?dchild=1&keywords=gt2+timing+belt&qid=1627821669&sr=8-8)
-  - Only the GT2 belt is needed from this kit, however it's often cheaper with the incorrect sized pulleys in a bundle
-- Bearings 5x11x4mm : [Amazon.ca](https://www.amazon.ca/gp/product/B07CVBW44R/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)
-- MGN12H Rail and bearing : [Amazon.ca](https://www.amazon.ca/Usongshine-guidage-lin%C3%A9aire-MGN12H-300mm/dp/B07XLL484J/ref=pd_sbs_201_1/139-0384147-0570541?_encoding=UTF8&pd_rd_i=B07XT8ZY9H&pd_rd_r=e7dc0ab7-e244-4a6c-ba42-59d7da76e03b&pd_rd_w=jhRlq&pd_rd_wg=zovAp&pf_rd_p=0ec96c83-1800-4e36-8486-44f5573a2612&pf_rd_r=YZGA61RD95B0E3H004ZA&refRID=YZGA61RD95B0E3H004ZA&th=1)
-  - Minimum 250mm in length
+3. **GT2 Pulley 8mm Bore 20 Tooth** : [Amazon.ca](https://www.amazon.ca/Saiper-Timing-Aluminum-Synchronous-Printer/dp/B07MDH63GX/ref=sr_1_5?dchild=1&keywords=8mm+bore+gt2&qid=1627821975&sr=8-5)
+4. **GT2 Timing Belt** : [Amazon.ca](https://www.amazon.ca/Printer-Timing-Teeth-Pulley-Wrench/dp/B08PKPK4D8/ref=sr_1_8?dchild=1&keywords=gt2+timing+belt&qid=1627821669&sr=8-8)
+* Only the GT2 belt is needed from this kit, however it's often cheaper with the incorrect sized pulleys in a bundle
+* Bearings 5x11x4mm : [Amazon.ca](https://www.amazon.ca/gp/product/B07CVBW44R/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)
+* MGN12H Rail and bearing : [Amazon.ca](https://www.amazon.ca/Usongshine-guidage-lin%C3%A9aire-MGN12H-300mm/dp/B07XLL484J/ref=pd_sbs_201_1/139-0384147-0570541?_encoding=UTF8&pd_rd_i=B07XT8ZY9H&pd_rd_r=e7dc0ab7-e244-4a6c-ba42-59d7da76e03b&pd_rd_w=jhRlq&pd_rd_wg=zovAp&pf_rd_p=0ec96c83-1800-4e36-8486-44f5573a2612&pf_rd_r=YZGA61RD95B0E3H004ZA&refRID=YZGA61RD95B0E3H004ZA&th=1)
+* Minimum 250mm in length
   - Must be MGN12**H** rail
-- Power Supply : [Amazon.ca](https://www.amazon.ca/Signcomplex-Adapter-Transformers-Switching-Adaptor/dp/B079BJS3F4/ref=sr_1_3_sspa?dchild=1&keywords=24v+2a&qid=1600747030&sr=8-3-spons&psc=1&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUExRk40ODRKMDlERlhZJmVuY3J5cHRlZElkPUEwMDQ1MDk1MVc0V1NUNlZMTUlMViZlbmNyeXB0ZWRBZElkPUEwODg0ODkyMlpNMVZKNjhQV0Y4RCZ3aWRnZXROYW1lPXNwX2F0ZiZhY3Rpb249Y2xpY2tSZWRpcmVjdCZkb05vdExvZ0NsaWNrPXRydWU=)
+5. **Power Supply** : [Amazon.ca](https://www.amazon.ca/Signcomplex-Adapter-Transformers-Switching-Adaptor/dp/B079BJS3F4/ref=sr_1_3_sspa?dchild=1&keywords=24v+2a&qid=1600747030&sr=8-3-spons&psc=1&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUExRk40ODRKMDlERlhZJmVuY3J5cHRlZElkPUEwMDQ1MDk1MVc0V1NUNlZMTUlMViZlbmNyeXB0ZWRBZElkPUEwODg0ODkyMlpNMVZKNjhQV0Y4RCZ3aWRnZXROYW1lPXNwX2F0ZiZhY3Rpb249Y2xpY2tSZWRpcmVjdCZkb05vdExvZ0NsaWNrPXRydWU=)
   - Recommended specifications; 24v 4A
   - Ensure the power supply is fully enclosed (like a laptop power supply)
   - Ensure the power supply has the correct approvals for your location
-- Metric Cap Screws : [Amazon.ca](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_12?dchild=1&keywords=metric+socket+head+cap+screw+kit&qid=1600747665&sr=8-12)
+6.** Metric Cap Screws** : [Amazon.ca](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_12?dchild=1&keywords=metric+socket+head+cap+screw+kit&qid=1600747665&sr=8-12)
   - A kit like this will provide what's needed, specific quantities TBD
-- ESP32 Development Board
+7. **ESP32 Development Board**
   - We do not currently have a best suggestion, most generic development boards are the same
   - An official OSSM reference PCB is working its way through testing - this will hopefully be available before end of year 2021 
   - To start working on the project, something like this [Adafruit board](https://www.adafruit.com/product/3405) is an excellent place to start.
