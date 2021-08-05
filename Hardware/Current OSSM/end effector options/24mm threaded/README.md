@@ -1,6 +1,6 @@
 # 24mm Threaded Option
 
-This option is three parts;
+This option is three parts:
 
 - Rail adapter ( 24mm linear rail adapter.step )
 - Jam Nut ( in the DoubleDouble file )
