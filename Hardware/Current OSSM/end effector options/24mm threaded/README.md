@@ -36,8 +36,15 @@ Use (2) M3x16mm cap head screws + nuts to attach the theaded adapter to the shaf
 2) Thread on DoubleDouble until it bottoms out (gently, no need to crank down)
 3) *optional* Back off the DoubleDouble if orientation of the pass-thru matters for your application
 4) Thread the Jam nut to the back of the DoubleDouble **hand tight only** keep going until hand tight
-5) ENJOY!
+5) ENJOY
 
 ![image](https://user-images.githubusercontent.com/43324815/128351379-b07a1bdc-8fa3-4c63-9ae6-2bdedfd7a6a4.png)
+
+## ÖSSM Plätten
+
+Installs the same as the DoubleDouble
+
+![image](https://user-images.githubusercontent.com/43324815/128354574-54bef443-735f-4c34-b7ab-b5d0c2d21bd3.png)
+
 
 
