@@ -2,9 +2,9 @@
 
 This option is three parts;
 
-- 24mm threaded rail adapter
-- 24mm threaded DoubleDouble
-- 24mm threaded Jam Nut
+- 24mm threaded rail adapter ( 24mm linear rail adapter.step )
+- 24mm threaded DoubleDouble ( double double to the moon 24mm v1.step )
+- 24mm threaded Jam Nut ( in the DoubleDouble file )
 
 
 ### Printing of the parts
