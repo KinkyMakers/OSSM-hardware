@@ -2,9 +2,11 @@
 
 This option is three parts;
 
-- 24mm threaded rail adapter ( 24mm linear rail adapter.step )
-- 24mm threaded DoubleDouble ( double double to the moon 24mm v1.step )
-- 24mm threaded Jam Nut ( in the DoubleDouble file )
+- Rail adapter ( 24mm linear rail adapter.step )
+- Jam Nut ( in the DoubleDouble file )
+- Your choice of end effector
+    - DoubleDouble ( double double to the moon 24mm v1.step )
+    - OSSM Tie down platten ( OSSM Tie Down and Suction Plate v2.step )
 
 
 ### Printing of the parts
