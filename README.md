@@ -16,7 +16,7 @@ Please note that this is a _work in progress_ and we have attempted to keep comp
 ## Getting Started
 There are a few hardware flavours to choose from, we've included user modified versions in case that fits your use case better!
 
-[Build Instructions](https://github.com/KinkyMakers/OSSM-hardware/blob/master/Documentation/Assembly%20Instructions.pdf)
+[Build Instructions](https://github.com/KinkyMakers/OSSM-hardware/blob/deace8c19d3b5cbcbe7b267b97f4940cbfc323b0/Documentation/Assembly%20Instructions.pdf)
 
 Join our Discord to be part of the discussion and get help with your build. https://discord.gg/MmpT9xE
 
