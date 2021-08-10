@@ -41,8 +41,9 @@ We are calling this the reference build, when deviating from it please check com
    - This has recently had significant changes
    - [Make sure to choose one of the options for the toy adapters](https://github.com/KinkyMakers/OSSM-hardware/tree/master/Hardware/Current%20OSSM/end%20effector%20options)
    - Mounting options are still something that need to be worked on
-2) **NEMA23 Servo** : [Amazon.ca](https://www.amazon.ca/Integrated-Servo-Motor-IHSV57-30-10-3000rpm/dp/B081CVJHC7) | [JMC](https://www.jmc-motor.com/product/953.html)
+2) **NEMA23 Servo with 8mm shaft** : [Amazon.ca](https://www.amazon.ca/Integrated-Servo-Motor-IHSV57-30-10-3000rpm/dp/B081CVJHC7) | [JMC](https://www.jmc-motor.com/product/953.html)
    - *Avoid the StepperOnline version until we can furter test*
+   - Make sure you get something with 8mm shaft max!
    - search around for the best deal for you - have found occasionally better deals on Aliexpress
 3) **GT2 Pulley 8mm Bore 20 Tooth** : [Amazon.ca](https://www.amazon.ca/Saiper-Timing-Aluminum-Synchronous-Printer/dp/B07MDH63GX/ref=sr_1_5?dchild=1&keywords=8mm+bore+gt2&qid=1627821975&sr=8-5)
 4) **GT2 Timing Belt** : [Amazon.ca](https://www.amazon.ca/Printer-Timing-Teeth-Pulley-Wrench/dp/B08PKPK4D8/ref=sr_1_8?dchild=1&keywords=gt2+timing+belt&qid=1627821669&sr=8-8)
