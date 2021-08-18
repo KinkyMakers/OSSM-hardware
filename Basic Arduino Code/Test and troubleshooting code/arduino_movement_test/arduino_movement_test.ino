@@ -19,7 +19,7 @@
   const int MOTOR_DIRECTION_PIN = 25;     // Default is 25 --- Set it to match your machine
   
   const int MS_DELAY = 5;                // The lower the delay, the faster the movement (stroke speed) MUST BE MORE THAN 3
-  const int STEPS_FOR_STEPPING = 5hah000;    // The number of steps each time (stroke length)
+  const int STEPS_FOR_STEPPING = 5000;    // The number of steps each time (stroke length)
 
 void setup() {
 
