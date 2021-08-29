@@ -2,12 +2,33 @@
 #include <ESP_FlexyStepper.h>
 #include <HTTPClient.h>
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
+#include <FastLED.h>
+#include <Wire.h>
+#include <Adafruit_SSD1306.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_I2CDevice.h>
 
 // Wifi Manager
 WiFiManager wm;
 
 // create the stepper motor object
 ESP_FlexyStepper stepper;
+
+#define BRIGHTNESS 170
+#define LED_TYPE WS2811
+#define COLOR_ORDER GRB
+#define LED_PIN 25
+#define NUM_LEDS 1
+CRGB leds[NUM_LEDS];
+#define I2C_SDA 21
+#define I2C_SCL 19
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+#define SCREEN_ADDRESS 0x3C
+#define OLED_RESET 0
+
+TwoWire I2CREMOTE = TwoWire(0);
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &I2CREMOTE, OLED_RESET);
 
 // Current command state
 volatile float strokePercentage = 0;
@@ -23,21 +44,20 @@ TaskHandle_t motionTask = nullptr;
 TaskHandle_t estopTask = nullptr;
 
 // Parameters you may need to change for your specific implementation
-#define MOTOR_STEP_PIN 27
-#define MOTOR_DIRECTION_PIN 25
-#define MOTOR_ENABLE_PIN 22
+#define MOTOR_STEP_PIN 14
+#define MOTOR_DIRECTION_PIN 27
+#define MOTOR_ENABLE_PIN 26
 // controller knobs
 #define STROKE_POT_PIN 32
 #define SPEED_POT_PIN 33
 // this pin resets WiFi credentials if needed
 #define WIFI_RESET_PIN 0
 // this pin toggles between manual knob control and Web-based control
-#define WIFI_CONTROL_TOGGLE_PIN 26
+#define WIFI_CONTROL_TOGGLE_PIN 22
 
 //#define WIFI_CONTROL_DEFAULT INPUT_PULLDOWN // uncomment for analog pots as default
 #define WIFI_CONTROL_DEFAULT INPUT_PULLUP // uncomment for WiFi control as default
 //Pull pin 26 low if you want to switch to analog pot control
-
 
 // define the IO pin the emergency stop switch is connected to
 #define STOP_PIN 19
@@ -96,6 +116,23 @@ void setup()
   Serial.println("\n Starting");
   delay(200);
 #endif
+  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.setBrightness(150);
+  setLedRainbow(leds);
+  FastLED.show();
+  I2CREMOTE.begin(I2C_SDA, I2C_SCL, 100000);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.display();
+  delay(2000); // Pause for 2 seconds
+
+  // Clear the buffer
+  display.clearDisplay();
+  display.setTextColor(WHITE); // Draw white text
+  display.setTextWrap(false);
+  display.setTextSize(1); // Normal 1:1 pixel scale
+  display.setCursor(0, 0);
+  display.print("HELLO");
+  display.display();
 
   stepper.connectToPins(MOTOR_STEP_PIN, MOTOR_DIRECTION_PIN);
 
@@ -416,8 +453,8 @@ bool getInternetSettings()
 
   String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/ossm-get-settings"; //live server
   // String serverNameBubble = "http://d2oq8yqnezqh3r.cloudfront.net/ossm-get-settings"; // this is
-                                                                // version-test
-                                                                // server
+  // version-test
+  // server
 
   // Add values in the document
   StaticJsonDocument<200> doc;
@@ -452,4 +489,17 @@ bool getInternetSettings()
 #endif
 
   return true;
+}
+
+void setLedRainbow(CRGB leds[])
+{
+  // int power = 250;
+
+  for (int hueShift = 0; hueShift < 350; hueShift++)
+  {
+    int gHue = hueShift % 255;
+    fill_rainbow(leds, NUM_LEDS, gHue, 25);
+    FastLED.show();
+    delay(4);
+  }
 }
