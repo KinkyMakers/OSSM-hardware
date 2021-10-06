@@ -59,9 +59,11 @@ We are calling this the reference build, when deviating from it please check com
    - Ensure the power supply has the correct approvals for your location
 8)**Metric Cap Screws** : [Amazon.ca](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_12?dchild=1&keywords=metric+socket+head+cap+screw+kit&qid=1600747665&sr=8-12)
    - A kit like this will provide what's needed, specific quantities TBD
-9) **ESP32 Development Board**
-   - We do not currently have a best suggestion, most generic development boards are the same
-   - An official OSSM reference PCB is working its way through testing - this will hopefully be available before end of year 2021 
+9) **ESP32 Development Board**  
+  
+   - [An official OSSM reference PCB](https://research-and-desire.myshopify.com/collections/all/products/ossm-reference-board) ~~is working its way through testing - this will hopefully be available before end of year 2021 ~~
+   - We do not currently have a best suggestion if you are not using a reference board, most generic development boards are the same
+   - We have found that the 3.3v boards may miss steps at high speed, so please use a level shifter as well. 
    - To start working on the project, something like this [Adafruit board](https://www.adafruit.com/product/3405) is an excellent place to start.
    - Accessories required for prototyping include [Breadboard](https://www.amazon.ca/Breadboard-Solderless-Prototype-Distribution-Connecting/dp/B01EV6LJ7G/ref=sr_1_5?dchild=1&keywords=breadboard&qid=1627823170&sr=8-5) and [Dupont Jumpers](https://www.amazon.ca/120pcs-Multicolored-Breadboard-Arduino-raspberry/dp/B01LZF1ZSZ/ref=sr_1_5?dchild=1&keywords=dupont+jumper&qid=1627823220&sr=8-5)
 
