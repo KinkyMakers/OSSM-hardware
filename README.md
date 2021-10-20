@@ -46,6 +46,7 @@ We are calling this the reference build, when deviating from it please check com
    - *Avoid the StepperOnline version until we can furter test*
    - Make sure you get something with 8mm shaft max!
    - search around for the best deal for you - have found occasionally better deals on Aliexpress
+   - [Force Calculator for OSSM](https://app.researchanddesire.com/ossm-calculator)
 3) **GT2 Pulley 8mm Bore 20 Tooth** : [Amazon.ca](https://www.amazon.ca/Saiper-Timing-Aluminum-Synchronous-Printer/dp/B07MDH63GX/ref=sr_1_5?dchild=1&keywords=8mm+bore+gt2&qid=1627821975&sr=8-5)
 4) **GT2 Timing Belt** : [Amazon.ca](https://www.amazon.ca/Printer-Timing-Teeth-Pulley-Wrench/dp/B08PKPK4D8/ref=sr_1_8?dchild=1&keywords=gt2+timing+belt&qid=1627821669&sr=8-8)
 * Only the GT2 belt is needed from this kit, however it's often cheaper with the incorrect sized pulleys in a bundle
