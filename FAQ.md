@@ -8,7 +8,7 @@ A: The OSSM is open you are not tied to a specific company and it does a lot mor
 
 ### Q: What parts do I need? 
 
-A: Head over to <URL> 
+A: Head over to https://github.com/KinkyMakers/OSSM-hardware/tree/master - the BOM is in the ReadMe
   
 ### Q: I've been reading about motors and now I'm really confused
   
