@@ -30,6 +30,37 @@ OLEDDisplayUi ui(&display);                                  // Constructs the U
 
 #include "ossm_ui.h"
 
+void encoder_update()
+{
+  encoder.tick();
+}
+void encoder_reset()
+{
+  encoder.setPosition(0);
+  ui.nextFrame();
+}
+
+float getEncoderPercentage()
+{
+  const int encoderFullScale = 36;
+  int position = encoder.getPosition();
+  float positionPercentage;
+  if (position < 0)
+  {
+    encoder.setPosition(0);
+    position = 0;
+  }
+  else if (position > encoderFullScale)
+  {
+    encoder.setPosition(encoderFullScale);
+    position = encoderFullScale;
+  }
+
+  positionPercentage = 1.0 * position / encoderFullScale;
+
+  return positionPercentage;
+}
+
 // Wifi Manager
 WiFiManager wm;
 
@@ -195,11 +226,19 @@ void setup()
 
   // Initialising the UI will init the display too.
   ui.init();
-  //ui.disableAutoTransition();
+  ui.disableAutoTransition();
 
   display.flipScreenVertically();
 
-  // int remainingTimeBudget = ui.update();
+  // Rotary Encoder Setup
+
+  pinMode(ENCODER_A, INPUT_PULLDOWN);
+  pinMode(ENCODER_B, INPUT_PULLDOWN);
+  pinMode(ENCODER_SWITCH, INPUT_PULLDOWN);
+
+  attachInterrupt(digitalPinToInterrupt(ENCODER_A), encoder_update, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_B), encoder_update, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoder_reset, RISING);
 
   // Start the stepper instance as a service in the "background" as a separate
   // task and the OS of the ESP will take care of invoking the processMovement()
@@ -261,25 +300,24 @@ void setup()
       0);               /* pin task to core 0 */
 
   delay(500);
-}
+} //Void Setup()
 
 void loop()
 {
 
   ui.update();
   //vTaskDelete(NULL); // we don't want this loop to run (because it runs on core
-                     // 0 where we have the critical FlexyStepper code)
+  // 0 where we have the critical FlexyStepper code)
 }
 
 void oledUpdateTask(void *pvParameters)
 {
-  
+
   for (;;)
   {
     //test
     vTaskDelay(10);
   }
-  
 }
 
 void estopResetTask(void *pvParameters)
@@ -373,7 +411,8 @@ void getUserInputTask(void *pvParameters)
         setInternetControl(wifiControlEnable);
       }
       speedPercentage = getAnalogAverage(SPEED_POT_PIN, 50); // get average analog reading, function takes pin and # samples
-      strokePercentage = getAnalogAverage(STROKE_POT_PIN, 50);
+      // strokePercentage = getAnalogAverage(STROKE_POT_PIN, 50);
+      strokePercentage = getEncoderPercentage();
     }
 
     // We should scale these values with initialized settings not hard coded

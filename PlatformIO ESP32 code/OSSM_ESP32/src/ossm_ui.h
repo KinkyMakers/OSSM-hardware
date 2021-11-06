@@ -20,7 +20,7 @@ void drawFrame1(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int1
 
   display->setTextAlignment(TEXT_ALIGN_LEFT);
   display->setFont(ArialMT_Plain_10);
-  display->drawString(10 + x, 10 + y, "Screen #1   ");
+  display->drawString(10 + x, 10 + y, "Stroke Percentage " + String((int)encoder.getPosition()) );
 
 
   
@@ -32,10 +32,8 @@ void drawFrame2(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int1
 
   display->setTextAlignment(TEXT_ALIGN_LEFT);
   display->setFont(ArialMT_Plain_10);
-  display->drawString(10 + x, 10 + y, "Screen #2   ");
+  display->drawString(10 + x, 10 + y, "Position");
 
-
-  
 
 }
 
