@@ -55,7 +55,7 @@ TaskHandle_t oledTask = nullptr;
 #define MOTOR_DIRECTION_PIN 25
 #define MOTOR_ENABLE_PIN 22
 // controller knobs
-#define STROKE_POT_PIN 32
+#define STROKE_POT_PIN 34
 #define SPEED_POT_PIN 33
 // this pin resets WiFi credentials if needed
 #define WIFI_RESET_PIN 0
@@ -170,7 +170,7 @@ void setup()
   // The ESP is capable of rendering 60fps in 80Mhz mode
   // but that won't give you much time for anything else
   // run it in 160Mhz mode or just set it to 30 fps
-  ui.setTargetFPS(30);
+  ui.setTargetFPS(5);
 
   // Customize the active and inactive symbol
   ui.setActiveSymbol(activeSymbol);
@@ -195,7 +195,7 @@ void setup()
 
   // Initialising the UI will init the display too.
   ui.init();
-  ui.disableAutoTransition();
+  //ui.disableAutoTransition();
 
   display.flipScreenVertically();
 
@@ -256,7 +256,7 @@ void setup()
       "oledUpdateTask", /* name of task. */
       10000,            /* Stack size of task */
       NULL,             /* parameter of the task */
-      1,                /* priority of the task */
+      2,                /* priority of the task */
       &oledTask,        /* Task handle to keep track of created task */
       0);               /* pin task to core 0 */
 
@@ -265,19 +265,20 @@ void setup()
 
 void loop()
 {
-  vTaskDelete(NULL); // we don't want this loop to run (because it runs on core
-                     // 0 where we have the critical FlexyStepper code)
+  //Serial.print("Task is running on: ");
+  //Serial.println(xPortGetCoreID());
+  int ui_updated = ui.update();
+  // TaskDelete(NULL); // we don't want this loop to run (because it runs on core
+  // 0 where we have the critical FlexyStepper code)
 }
 
 void oledUpdateTask(void *pvParameters)
 {
-  
+
   for (;;)
   {
-    int ui_updated = ui.update();
-    vTaskDelay(10);
+    //int ui_updated = ui.update();
   }
-  
 }
 
 void estopResetTask(void *pvParameters)
