@@ -4,6 +4,7 @@
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 #include <Wire.h>
 #include <Arduino.h>
+#include "FastLED.h"
 
 // OSSM Reference Remote
 // INCLUDES
@@ -81,10 +82,17 @@ TaskHandle_t motionTask = nullptr;
 TaskHandle_t estopTask = nullptr;
 TaskHandle_t oledTask = nullptr;
 
+#define BRIGHTNESS 170
+#define LED_TYPE WS2811
+#define COLOR_ORDER GRB
+#define LED_PIN 25
+#define NUM_LEDS 1
+CRGB leds[NUM_LEDS];
+
 // Parameters you may need to change for your specific implementation
-#define MOTOR_STEP_PIN 27
-#define MOTOR_DIRECTION_PIN 25
-#define MOTOR_ENABLE_PIN 22
+#define MOTOR_STEP_PIN 14
+#define MOTOR_DIRECTION_PIN 27
+#define MOTOR_ENABLE_PIN 26
 // controller knobs
 #define STROKE_POT_PIN 32
 #define SPEED_POT_PIN 34
@@ -154,7 +162,10 @@ void setup()
   Serial.println("\n Starting");
   delay(200);
 #endif
-
+  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.setBrightness(150);
+  setLedRainbow(leds);
+  FastLED.show();
   stepper.connectToPins(MOTOR_STEP_PIN, MOTOR_DIRECTION_PIN);
 
   float stepsPerMm =
@@ -577,4 +588,16 @@ bool getInternetSettings()
 #endif
 
   return true;
+}
+void setLedRainbow(CRGB leds[])
+{
+  // int power = 250;
+
+  for (int hueShift = 0; hueShift < 350; hueShift++)
+  {
+    int gHue = hueShift % 255;
+    fill_rainbow(leds, NUM_LEDS, gHue, 25);
+    FastLED.show();
+    delay(4);
+  }
 }
