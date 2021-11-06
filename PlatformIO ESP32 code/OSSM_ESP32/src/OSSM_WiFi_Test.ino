@@ -99,6 +99,7 @@ bool getInternetSettings();
 
 bool stopSwitchTriggered = 0;
 
+
 /**
  * the iterrupt service routine (ISR) for the emergency swtich
  * this gets called on a rising edge on the IO Pin the emergency switch is connected
