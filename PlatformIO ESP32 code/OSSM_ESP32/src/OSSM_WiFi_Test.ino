@@ -55,7 +55,7 @@ TaskHandle_t oledTask = nullptr;
 #define MOTOR_DIRECTION_PIN 25
 #define MOTOR_ENABLE_PIN 22
 // controller knobs
-#define STROKE_POT_PIN 34
+#define STROKE_POT_PIN A6
 #define SPEED_POT_PIN 33
 // this pin resets WiFi credentials if needed
 #define WIFI_RESET_PIN 0
@@ -195,7 +195,7 @@ void setup()
 
   // Initialising the UI will init the display too.
   ui.init();
-  //ui.disableAutoTransition();
+  ui.disableAutoTransition();
 
   display.flipScreenVertically();
 
@@ -265,20 +265,21 @@ void setup()
 
 void loop()
 {
-  //Serial.print("Task is running on: ");
-  //Serial.println(xPortGetCoreID());
-  int ui_updated = ui.update();
-  // TaskDelete(NULL); // we don't want this loop to run (because it runs on core
-  // 0 where we have the critical FlexyStepper code)
+
+  ui.update();
+  //vTaskDelete(NULL); // we don't want this loop to run (because it runs on core
+                     // 0 where we have the critical FlexyStepper code)
 }
 
 void oledUpdateTask(void *pvParameters)
 {
-
+  
   for (;;)
   {
-    //int ui_updated = ui.update();
+    //test
+    vTaskDelay(10);
   }
+  
 }
 
 void estopResetTask(void *pvParameters)
