@@ -2,6 +2,33 @@
 #include <ESP_FlexyStepper.h>
 #include <HTTPClient.h>
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
+#include <Wire.h>
+#include <Arduino.h>
+
+// OSSM Reference Remote
+// INCLUDES
+#include "SSD1306Wire.h"   // legacy include: `#include "SSD1306.h"`
+#include "OLEDDisplayUi.h" // Include the UI lib
+#include "images.h"        // Include custom images (for ui - this is the dots)
+#include <RotaryEncoder.h>
+
+// SETTINGS
+#define ENCODER_SWITCH 35
+#define ENCODER_A 18
+#define ENCODER_B 5
+#define REMOTE_SDA 21
+#define REMOTE_CLK 19
+#define REMOTE_ADDRESS 0x3c
+
+// CONSTRUCT THINGS
+// Encoder
+RotaryEncoder encoder(ENCODER_A, ENCODER_B, RotaryEncoder::LatchMode::TWO03);
+
+// Display
+SSD1306Wire display(REMOTE_ADDRESS, REMOTE_SDA, REMOTE_CLK); // ADDRESS, SDA, SCL  -  SDA and SCL usually populate automatically based on your board's pins_arduino.h e.g. https://github.com/esp8266/Arduino/blob/master/variants/nodemcu/pins_arduino.h
+OLEDDisplayUi ui(&display);                                  // Constructs the UI for the display
+
+#include "ossm_ui.h"
 
 // Wifi Manager
 WiFiManager wm;
@@ -21,6 +48,7 @@ TaskHandle_t wifiTask = nullptr;
 TaskHandle_t getInputTask = nullptr;
 TaskHandle_t motionTask = nullptr;
 TaskHandle_t estopTask = nullptr;
+TaskHandle_t oledTask = nullptr;
 
 // Parameters you may need to change for your specific implementation
 #define MOTOR_STEP_PIN 27
@@ -37,7 +65,6 @@ TaskHandle_t estopTask = nullptr;
 //#define WIFI_CONTROL_DEFAULT INPUT_PULLDOWN // uncomment for analog pots as default
 #define WIFI_CONTROL_DEFAULT INPUT_PULLUP // uncomment for WiFi control as default
 //Pull pin 26 low if you want to switch to analog pot control
-
 
 // define the IO pin the emergency stop switch is connected to
 #define STOP_PIN 19
@@ -139,6 +166,41 @@ void setup()
 #endif
   }
 
+  //OLED SETUP
+  // The ESP is capable of rendering 60fps in 80Mhz mode
+  // but that won't give you much time for anything else
+  // run it in 160Mhz mode or just set it to 30 fps
+  ui.setTargetFPS(30);
+
+  // Customize the active and inactive symbol
+  ui.setActiveSymbol(activeSymbol);
+  ui.setInactiveSymbol(inactiveSymbol);
+
+  // You can change this to
+  // TOP, LEFT, BOTTOM, RIGHT
+  ui.setIndicatorPosition(LEFT);
+
+  // Defines where the first frame is located in the bar.
+  ui.setIndicatorDirection(LEFT_RIGHT);
+
+  // You can change the transition that is used
+  // SLIDE_LEFT, SLIDE_RIGHT, SLIDE_UP, SLIDE_DOWN
+  ui.setFrameAnimation(SLIDE_LEFT);
+
+  // Add frames
+  ui.setFrames(frames, frameCount);
+
+  // Add overlays
+  ui.setOverlays(overlays, overlaysCount);
+
+  // Initialising the UI will init the display too.
+  ui.init();
+  ui.disableAutoTransition();
+
+  display.flipScreenVertically();
+
+  // int remainingTimeBudget = ui.update();
+
   // Start the stepper instance as a service in the "background" as a separate
   // task and the OS of the ESP will take care of invoking the processMovement()
   // task regularly on core 1 so you can do whatever you want on core 0
@@ -188,12 +250,34 @@ void setup()
       0);               /* pin task to core 0 */
 
   delay(500);
+
+  xTaskCreatePinnedToCore(
+      oledUpdateTask,   /* Task function. */
+      "oledUpdateTask", /* name of task. */
+      10000,            /* Stack size of task */
+      NULL,             /* parameter of the task */
+      1,                /* priority of the task */
+      &oledTask,        /* Task handle to keep track of created task */
+      0);               /* pin task to core 0 */
+
+  delay(500);
 }
 
 void loop()
 {
   vTaskDelete(NULL); // we don't want this loop to run (because it runs on core
                      // 0 where we have the critical FlexyStepper code)
+}
+
+void oledUpdateTask(void *pvParameters)
+{
+  
+  for (;;)
+  {
+    int ui_updated = ui.update();
+    vTaskDelay(10);
+  }
+  
 }
 
 void estopResetTask(void *pvParameters)
@@ -416,8 +500,8 @@ bool getInternetSettings()
 
   String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/ossm-get-settings"; //live server
   // String serverNameBubble = "http://d2oq8yqnezqh3r.cloudfront.net/ossm-get-settings"; // this is
-                                                                // version-test
-                                                                // server
+  // version-test
+  // server
 
   // Add values in the document
   StaticJsonDocument<200> doc;
