@@ -55,8 +55,8 @@ TaskHandle_t oledTask = nullptr;
 #define MOTOR_DIRECTION_PIN 25
 #define MOTOR_ENABLE_PIN 22
 // controller knobs
-#define STROKE_POT_PIN A6
-#define SPEED_POT_PIN 33
+#define STROKE_POT_PIN 32
+#define SPEED_POT_PIN 34
 // this pin resets WiFi credentials if needed
 #define WIFI_RESET_PIN 0
 // this pin toggles between manual knob control and Web-based control
@@ -195,7 +195,7 @@ void setup()
 
   // Initialising the UI will init the display too.
   ui.init();
-  ui.disableAutoTransition();
+  //ui.disableAutoTransition();
 
   display.flipScreenVertically();
 
