@@ -4,10 +4,17 @@
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 #include <FastLED.h>
 #include <Wire.h>
-#include <Adafruit_SSD1306.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_I2CDevice.h>
 #include <ESP32Servo.h>
+#include <Arduino.h>
+
+
+//OSSM REMOTE INCLUDES
+#include "SSD1306Wire.h" // legacy include: `#include "SSD1306.h"`
+#include "OLEDDisplayUi.h" // Include the UI lib
+#include "images.h" // Include custom images (for ui - this is the dots)
+#include <RotaryEncoder.h>
+
+
 
 // Wifi Manager
 WiFiManager wm;
@@ -23,16 +30,11 @@ ESP_FlexyStepper stepper;
 CRGB leds[NUM_LEDS];
 #define I2C_SDA 21
 #define I2C_SCL 19
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-#define SCREEN_ADDRESS 0x3C
-#define OLED_RESET 0
 #define RXD2 16
 #define TXD2 17
 int servo_output = 4;
 
-TwoWire I2CREMOTE = TwoWire(0);
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &I2CREMOTE, OLED_RESET);
+
 
 // Current command state
 volatile float strokePercentage = 0;
