@@ -57,7 +57,7 @@ float getEncoderPercentage()
     position = encoderFullScale;
   }
 
-  positionPercentage = 1.0 * position / encoderFullScale;
+  positionPercentage = 100.0 * position / encoderFullScale;
 
   return positionPercentage;
 }
@@ -99,10 +99,10 @@ CRGB leds[NUM_LEDS];
 // this pin resets WiFi credentials if needed
 #define WIFI_RESET_PIN 0
 // this pin toggles between manual knob control and Web-based control
-#define WIFI_CONTROL_TOGGLE_PIN 26
+#define WIFI_CONTROL_TOGGLE_PIN 22
 
-//#define WIFI_CONTROL_DEFAULT INPUT_PULLDOWN // uncomment for analog pots as default
-#define WIFI_CONTROL_DEFAULT INPUT_PULLUP // uncomment for WiFi control as default
+#define WIFI_CONTROL_DEFAULT INPUT_PULLDOWN // uncomment for analog pots as default
+//#define WIFI_CONTROL_DEFAULT INPUT_PULLUP // uncomment for WiFi control as default
 //Pull pin 26 low if you want to switch to analog pot control
 
 // define the IO pin the emergency stop switch is connected to
@@ -315,8 +315,8 @@ void setup()
 
 void loop()
 {
-
   ui.update();
+
   //vTaskDelete(NULL); // we don't want this loop to run (because it runs on core
   // 0 where we have the critical FlexyStepper code)
 }
@@ -326,6 +326,7 @@ void oledUpdateTask(void *pvParameters)
 
   for (;;)
   {
+    //ui.update();
     //test
     vTaskDelay(10);
   }
