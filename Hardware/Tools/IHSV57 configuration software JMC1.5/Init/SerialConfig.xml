@@ -6,6 +6,6 @@
   <comboBoxParity>Even</comboBoxParity>
   <checkBoxMachineType>True</checkBoxMachineType>
   <comboBoxMachineType>低压伺服</comboBoxMachineType>
-  <comboBoxCom>COM7</comboBoxCom>
+  <comboBoxCom>COM5</comboBoxCom>
   <numericUpDown1>1</numericUpDown1>
 </SerialConfig>

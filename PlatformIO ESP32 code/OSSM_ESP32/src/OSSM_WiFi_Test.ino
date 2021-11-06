@@ -7,6 +7,7 @@
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_I2CDevice.h>
+#include <ESP32Servo.h>
 
 // Wifi Manager
 WiFiManager wm;
@@ -26,6 +27,9 @@ CRGB leds[NUM_LEDS];
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 #define SCREEN_ADDRESS 0x3C
 #define OLED_RESET 0
+#define RXD2 16
+#define TXD2 17
+int servo_output = 4;
 
 TwoWire I2CREMOTE = TwoWire(0);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &I2CREMOTE, OLED_RESET);
@@ -68,10 +72,10 @@ TaskHandle_t estopTask = nullptr;
 #define DEBUG
 
 // limits and physical parameters
-const float maxSpeedMmPerSecond = 1000;
+const float maxSpeedMmPerSecond = 10000;
 const float motorStepPerRevolution = 1600;
 const float pulleyToothCount = 20;
-const float maxStrokeLengthMm = 150;
+const float maxStrokeLengthMm = 1500;
 const float minimumCommandPercentage = 1.0f;
 // GT2 belt has 2mm tooth pitch
 const float beltPitchMm = 2;
@@ -80,8 +84,8 @@ const float beltPitchMm = 2;
 // affects acceleration in stepper trajectory
 const float accelerationScaling = 80.0f;
 
-const char *ossmId = "OSSM1"; // this should be unique to your device. You will use this on the
-                              // web portal to interact with your OSSM.
+const char *ossmId = "OSSM123"; // this should be unique to your device. You will use this on the
+                                // web portal to interact with your OSSM.
 // there is NO security other than knowing this name, make this unique to avoid
 // collisions with other users
 
@@ -111,7 +115,26 @@ void ICACHE_RAM_ATTR stopSwitchHandler()
 
 void setup()
 {
-  Serial.begin(115200);
+  pinMode(5, INPUT_PULLDOWN);
+  pinMode(18, INPUT_PULLDOWN);
+  delay(10000);
+  
+
+  HardwareSerial Serial2(2);
+  Serial.begin(57600);
+  Serial2.begin(57600, SERIAL_8N1, 16, 17);
+
+  // while (true)
+  // {
+  //   if (Serial2.available())
+  //   {
+  //     Serial.print(char(Serial2.read()));
+  //   }
+  //   if (Serial.available())
+  //   {
+  //     Serial2.print(char(Serial.read()));
+  //   }
+  // }
 #ifdef DEBUG
   Serial.println("\n Starting");
   delay(200);
@@ -120,10 +143,10 @@ void setup()
   FastLED.setBrightness(150);
   setLedRainbow(leds);
   FastLED.show();
-  I2CREMOTE.begin(I2C_SDA, I2C_SCL, 100000);
+  I2CREMOTE.begin(I2C_SDA, I2C_SCL, 1000);
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.display();
-  delay(2000); // Pause for 2 seconds
+
 
   // Clear the buffer
   display.clearDisplay();
@@ -132,7 +155,8 @@ void setup()
   display.setTextSize(1); // Normal 1:1 pixel scale
   display.setCursor(0, 0);
   display.print("HELLO");
-  display.display();
+  display.display();  
+  delay(2000); // Pause for 2 seconds
 
   stepper.connectToPins(MOTOR_STEP_PIN, MOTOR_DIRECTION_PIN);
 
@@ -345,6 +369,14 @@ void getUserInputTask(void *pvParameters)
 
 void motionCommandTask(void *pvParameters)
 {
+  int pos = 0;
+  const int lowerHand = 0;
+  int raiseHand = 200;
+  Servo myservo;
+  myservo.setPeriodHertz(50);               // standard 50 hz servo
+  myservo.attach(servo_output, 1000, 2000); // attaches the servo on pin 18 to the servo object
+                                            // using default min/max of 1000us and 2000us
+  myservo.write(lowerHand);
 
   for (;;) // tasks should loop forever and not return - or will throw error in
            // OS
@@ -354,6 +386,12 @@ void motionCommandTask(void *pvParameters)
            (strokePercentage < minimumCommandPercentage) || (speedPercentage < minimumCommandPercentage))
     {
       vTaskDelay(5); // wait for motion to complete and requested stroke more than zero
+    }
+    for (pos = raiseHand; pos >= lowerHand; pos -= 1)
+    { // goes from 180 degrees to 0 degrees
+      // in steps of 1 degree
+      myservo.write(pos); // tell servo to go to position in variable 'pos'
+      delay(1);           // waits 15ms for the servo to reach the position
     }
 
     float targetPosition = (strokePercentage / 100.0) * maxStrokeLengthMm;
@@ -372,6 +410,13 @@ void motionCommandTask(void *pvParameters)
       vTaskDelay(5); // wait for motion to complete, since we are going back to
                      // zero, don't care about stroke value
     }
+    for (pos = lowerHand; pos <= raiseHand; pos += 1)
+    { // goes from 180 degrees to 0 degrees
+      // in steps of 1 degree
+      myservo.write(pos); // tell servo to go to position in variable 'pos'
+      delay(1);           // waits 15ms for the servo to reach the position
+    }
+
     targetPosition = 0;
     // Serial.printf("Moving stepper to position %ld \n", targetPosition);
     vTaskDelay(1);
