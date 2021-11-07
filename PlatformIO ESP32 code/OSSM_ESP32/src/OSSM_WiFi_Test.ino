@@ -6,6 +6,31 @@
 #include <Arduino.h>
 #include "FastLED.h"
 
+
+#define DEBUG // Comment out if you don't want to see debug info
+
+void Debug_Text(String debug_info){
+#ifdef DEBUG
+  Serial.println(debug_info);
+#endif
+}
+
+
+// OSSM Reference Board
+// INCLUDES
+
+//#define HOME_LIMIT_PIN 12
+
+// SETTINGS
+
+
+
+// CONSTRUCT THINGS
+
+bool HAS_NOT_HOMED = true;
+
+
+
 // OSSM Reference Remote
 // INCLUDES
 #include "SSD1306Wire.h"   // legacy include: `#include "SSD1306.h"`
@@ -109,15 +134,18 @@ CRGB leds[NUM_LEDS];
 #define STOP_PIN 19
 // define the IO pin where the limit switches are connected to (switches in
 // series in normally closed setup)
-#define LIMIT_SWITCH_PIN 21
+#define LIMIT_SWITCH_PIN 12 //If commented out, limit switch will not be used and toy must be extended at least as far as the "maxStrokeLengthMm"
 
-#define DEBUG
+
 
 // limits and physical parameters
 const float maxSpeedMmPerSecond = 1000;
-const float motorStepPerRevolution = 1600;
+const float motorStepPerRevolution = 800;
 const float pulleyToothCount = 20;
-const float maxStrokeLengthMm = 150;
+const float maxStrokeLengthMm = 150;          // This is in millimeters, and is what's used to define how much of your rail is usable.
+//                                            //  150mm on a 400mm rail is comfortable and will generally avoid smashing endstops
+//                                            //  This can be lowered if you want to reduce the maximum stroke
+const float minStrokeOffLimit = 6;            // Machine needs some room away from the limit switch to not tick every stroke @ 100% stroke
 const float minimumCommandPercentage = 1.0f;
 // GT2 belt has 2mm tooth pitch
 const float beltPitchMm = 2;
@@ -155,8 +183,15 @@ void ICACHE_RAM_ATTR stopSwitchHandler()
   stepper.emergencyStop();
 }
 
+
+
 void setup()
 {
+
+
+
+
+  
   Serial.begin(115200);
 #ifdef DEBUG
   Serial.println("\n Starting");
@@ -177,6 +212,8 @@ void setup()
   stepper.setSpeedInStepsPerSecond(100);
   stepper.setAccelerationInMillimetersPerSecondPerSecond(100);
   stepper.setDecelerationInStepsPerSecondPerSecond(100);
+  stepper.setLimitSwitchActive(LIMIT_SWITCH_PIN);
+
 
   WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
   // put your setup code here, to run once:
@@ -212,7 +249,7 @@ void setup()
   // The ESP is capable of rendering 60fps in 80Mhz mode
   // but that won't give you much time for anything else
   // run it in 160Mhz mode or just set it to 30 fps
-  ui.setTargetFPS(5);
+  ui.setTargetFPS(20);
 
   // Customize the active and inactive symbol
   ui.setActiveSymbol(activeSymbol);
@@ -227,7 +264,7 @@ void setup()
 
   // You can change the transition that is used
   // SLIDE_LEFT, SLIDE_RIGHT, SLIDE_UP, SLIDE_DOWN
-  ui.setFrameAnimation(SLIDE_LEFT);
+  // ui.setFrameAnimation(SLIDE_LEFT);
 
   // Add frames
   ui.setFrames(frames, frameCount);
@@ -241,6 +278,7 @@ void setup()
 
   display.flipScreenVertically();
 
+
   // Rotary Encoder Setup
 
   pinMode(ENCODER_A, INPUT_PULLDOWN);
@@ -250,6 +288,43 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(ENCODER_A), encoder_update, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ENCODER_B), encoder_update, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoder_reset, RISING);
+
+
+
+
+  if(HAS_NOT_HOMED == true){
+
+
+        #ifdef DEBUG
+          Serial.println("OSSM will now home");
+        #endif
+
+        stepper.moveToHomeInMillimeters(1,100,400,LIMIT_SWITCH_PIN);
+
+        #ifdef DEBUG
+          Serial.println("OSSM has homed, will now move out to max length");
+        #endif
+
+        stepper.moveToPositionInMillimeters((-1 * maxStrokeLengthMm) - minStrokeOffLimit);
+
+        #ifdef DEBUG
+          Serial.println("OSSM has moved out, will now set new home?");
+        #endif
+
+        stepper.setCurrentPositionAsHomeAndStop();
+
+        #ifdef DEBUG
+          Serial.println("OSSM should now be home and happy");
+        #endif
+
+
+        HAS_NOT_HOMED = false;
+      }
+
+
+  
+
+
 
   // Start the stepper instance as a service in the "background" as a separate
   // task and the OS of the ESP will take care of invoking the processMovement()
@@ -313,6 +388,7 @@ void setup()
   delay(500);
 } //Void Setup()
 
+
 void loop()
 {
   ui.update();
@@ -320,6 +396,10 @@ void loop()
   //vTaskDelete(NULL); // we don't want this loop to run (because it runs on core
   // 0 where we have the critical FlexyStepper code)
 }
+
+
+
+
 
 void oledUpdateTask(void *pvParameters)
 {
@@ -392,14 +472,19 @@ void getUserInputTask(void *pvParameters)
            // OS
   {
 
-#ifdef DEBUG
-    Serial.print("speedPercentage: ");
-    Serial.print(speedPercentage);
-    Serial.print(" strokePercentage: ");
-    Serial.print(strokePercentage);
-    Serial.print(" distance to target: ");
-    Serial.println(stepper.getDistanceToTargetSigned());
-#endif
+
+  Debug_Text("Speed: " + String(speedPercentage) + "\% Stroke: " + String(strokePercentage) + "\% Distance to target: " + String(stepper.getDistanceToTargetSigned()) + " steps?");
+
+    if (speedPercentage > 1){
+      stepper.releaseEmergencyStop();
+    }
+    else {
+      stepper.emergencyStop();
+        #ifdef DEBUG
+          Serial.println("FULL STOP CAPTAIN");
+        #endif
+    }
+
 
     if (digitalRead(WIFI_CONTROL_TOGGLE_PIN) == HIGH) // TODO: check if wifi available and handle gracefully
     {
@@ -541,6 +626,8 @@ bool setInternetControl(bool wifiControlEnable)
   Serial.print("HTTP Response code: ");
   Serial.println(httpResponseCode);
 #endif
+
+
 
   return true;
 }
