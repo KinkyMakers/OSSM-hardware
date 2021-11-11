@@ -7,6 +7,15 @@
 #include "FastLED.h"
 
 
+///////////////////////////////////////////
+////
+////
+////  To Debug or not to Debug
+////
+////
+///////////////////////////////////////////
+
+
 #define DEBUG // Comment out if you don't want to see debug info
 
 void Debug_Text(String debug_info){
@@ -16,10 +25,20 @@ void Debug_Text(String debug_info){
 }
 
 
+
+///////////////////////////////////////////
+////
+////
+////  Things specific to the OSSM Refernce Board & Remote
+////
+////
+///////////////////////////////////////////
+
+
+
 // OSSM Reference Board
 // INCLUDES
 
-//#define HOME_LIMIT_PIN 12
 
 // SETTINGS
 
@@ -50,11 +69,34 @@ bool HAS_NOT_HOMED = true;
 // Encoder
 RotaryEncoder encoder(ENCODER_A, ENCODER_B, RotaryEncoder::LatchMode::TWO03);
 
+
+
+///////////////////////////////////////////
+////
+////
+////  OLED UI Make Work Area
+////
+////
+///////////////////////////////////////////
+
+
 // Display
 SSD1306Wire display(REMOTE_ADDRESS, REMOTE_SDA, REMOTE_CLK); // ADDRESS, SDA, SCL  -  SDA and SCL usually populate automatically based on your board's pins_arduino.h e.g. https://github.com/esp8266/Arduino/blob/master/variants/nodemcu/pins_arduino.h
 OLEDDisplayUi ui(&display);                                  // Constructs the UI for the display
 
-#include "ossm_ui.h"
+#include "ossm_ui.h"  // Moved UI stuff out to so that this code isn't too cluttered
+
+
+
+
+///////////////////////////////////////////
+////
+////
+////  Encoder functions & scaling
+////
+////
+///////////////////////////////////////////
+
 
 void encoder_update()
 {
@@ -87,6 +129,19 @@ float getEncoderPercentage()
   return positionPercentage;
 }
 
+
+
+
+
+///////////////////////////////////////////
+////
+////
+////  WIFI Management
+////
+////
+///////////////////////////////////////////
+
+
 // Wifi Manager
 WiFiManager wm;
 
@@ -113,6 +168,20 @@ TaskHandle_t oledTask = nullptr;
 #define LED_PIN 25
 #define NUM_LEDS 1
 CRGB leds[NUM_LEDS];
+
+
+
+
+
+///////////////////////////////////////////
+////
+////
+////  SETUP Parameters
+////  These should be moved to an external file only for settings, or much higher up
+////  it should be immediately obvious where these are and easy for novices to modify
+////
+////
+///////////////////////////////////////////
 
 // Parameters you may need to change for your specific implementation
 #define MOTOR_STEP_PIN 14
@@ -185,13 +254,21 @@ void ICACHE_RAM_ATTR stopSwitchHandler()
 
 
 
+
+
+///////////////////////////////////////////
+////
+////
+////  VOID SETUP -- Here's where it's hiding
+////
+////
+///////////////////////////////////////////
+
+
+
 void setup()
 {
-
-
-
-
-  
+ 
   Serial.begin(115200);
 #ifdef DEBUG
   Serial.println("\n Starting");
@@ -244,6 +321,18 @@ void setup()
     Serial.println("settings reset");
 #endif
   }
+
+
+///////////////////////////////////////////
+////
+////
+//// Can all of this OLED stuff Move up way higher so we can have the screen on boot?
+////
+////
+///////////////////////////////////////////
+
+
+
 
   //OLED SETUP
   // The ESP is capable of rendering 60fps in 80Mhz mode
@@ -389,6 +478,18 @@ void setup()
 } //Void Setup()
 
 
+
+
+
+
+///////////////////////////////////////////
+////
+////
+////   VOID LOOP - Hides here
+////
+////
+///////////////////////////////////////////
+
 void loop()
 {
   ui.update();
@@ -397,6 +498,15 @@ void loop()
   // 0 where we have the critical FlexyStepper code)
 }
 
+
+
+///////////////////////////////////////////
+////
+////
+////  freeRTOS multitasking
+////
+////
+///////////////////////////////////////////
 
 
 
