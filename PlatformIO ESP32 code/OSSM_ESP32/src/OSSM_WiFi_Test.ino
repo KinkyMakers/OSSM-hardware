@@ -4,8 +4,11 @@
 #include <HTTPClient.h>
 #include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
 #include <Wire.h>
-
 #include "FastLED.h"
+
+// OSSM Reference Remote header files
+#include <RotaryEncoder.h>
+#include "OssmUi.h"
 
 ///////////////////////////////////////////
 ////
@@ -15,8 +18,8 @@
 ////
 ///////////////////////////////////////////
 
-// Uncomment out if you want to see debug info
-//#define DEBUG 
+// Uncomment the following line if you wish to print DEBUG info
+// #define DEBUG
 
 #ifdef DEBUG
 #define LogDebug(...) Serial.println(__VA_ARGS__)
@@ -29,29 +32,13 @@
 ///////////////////////////////////////////
 ////
 ////
-////  Things specific to the OSSM Refernce Board & Remote
+////  Things specific to the OSSM Reference Board & Remote
 ////
 ////
 ///////////////////////////////////////////
 
-// OSSM Reference Board
-// INCLUDES
-
 // SETTINGS
 
-// CONSTRUCT THINGS
-
-bool HAS_NOT_HOMED = true;
-
-// OSSM Reference Remote
-// INCLUDES
-#include <RotaryEncoder.h>
-
-#include "OLEDDisplayUi.h" // Include the UI lib
-#include "SSD1306Wire.h"   // legacy include: `#include "SSD1306.h"`
-#include "images.h"        // Include custom images (for ui - this is the dots)
-
-// SETTINGS
 #define ENCODER_SWITCH 35
 #define ENCODER_A 18
 #define ENCODER_B 5
@@ -60,25 +47,15 @@ bool HAS_NOT_HOMED = true;
 #define REMOTE_ADDRESS 0x3c
 
 // CONSTRUCT THINGS
-// Encoder
-RotaryEncoder encoder(ENCODER_A, ENCODER_B, RotaryEncoder::LatchMode::TWO03);
 
-///////////////////////////////////////////
-////
-////
-////  OLED UI Make Work Area
-////
-////
-///////////////////////////////////////////
+// Homing
+bool g_has_not_homed = true;
+
+// Encoder
+RotaryEncoder g_encoder(ENCODER_A, ENCODER_B, RotaryEncoder::LatchMode::TWO03);
 
 // Display
-SSD1306Wire display(REMOTE_ADDRESS, REMOTE_SDA,
-                    REMOTE_CLK); // ADDRESS, SDA, SCL  -  SDA and SCL usually populate
-                                 // automatically based on your board's pins_arduino.h e.g.
-                                 // https://github.com/esp8266/Arduino/blob/master/variants/nodemcu/pins_arduino.h
-OLEDDisplayUi ui(&display);      // Constructs the UI for the display
-
-#include "ossm_ui.h" // Moved UI stuff out to so that this code isn't too cluttered
+OssmUi g_ui(REMOTE_ADDRESS, REMOTE_SDA, REMOTE_CLK);
 
 ///////////////////////////////////////////
 ////
@@ -90,27 +67,27 @@ OLEDDisplayUi ui(&display);      // Constructs the UI for the display
 
 void encoder_update()
 {
-    encoder.tick();
+    g_encoder.tick();
 }
 void encoder_reset()
 {
-    encoder.setPosition(0);
-    ui.nextFrame();
+    g_encoder.setPosition(0);
+    g_ui.NextFrame();
 }
 
 float getEncoderPercentage()
 {
     const int encoderFullScale = 36;
-    int position = encoder.getPosition();
+    int position = g_encoder.getPosition();
     float positionPercentage;
     if (position < 0)
     {
-        encoder.setPosition(0);
+        g_encoder.setPosition(0);
         position = 0;
     }
     else if (position > encoderFullScale)
     {
-        encoder.setPosition(encoderFullScale);
+        g_encoder.setPosition(encoderFullScale);
         position = encoderFullScale;
     }
 
@@ -302,47 +279,8 @@ void setup()
         LogDebug("settings reset");
     }
 
-    ///////////////////////////////////////////
-    ////
-    ////
-    //// Can all of this OLED stuff Move up way higher so we can have the screen
-    /// on boot?
-    ////
-    ////
-    ///////////////////////////////////////////
-
     // OLED SETUP
-    // The ESP is capable of rendering 60fps in 80Mhz mode
-    // but that won't give you much time for anything else
-    // run it in 160Mhz mode or just set it to 30 fps
-    ui.setTargetFPS(20);
-
-    // Customize the active and inactive symbol
-    ui.setActiveSymbol(activeSymbol);
-    ui.setInactiveSymbol(inactiveSymbol);
-
-    // You can change this to
-    // TOP, LEFT, BOTTOM, RIGHT
-    ui.setIndicatorPosition(LEFT);
-
-    // Defines where the first frame is located in the bar.
-    ui.setIndicatorDirection(LEFT_RIGHT);
-
-    // You can change the transition that is used
-    // SLIDE_LEFT, SLIDE_RIGHT, SLIDE_UP, SLIDE_DOWN
-    // ui.setFrameAnimation(SLIDE_LEFT);
-
-    // Add frames
-    ui.setFrames(frames, frameCount);
-
-    // Add overlays
-    ui.setOverlays(overlays, overlaysCount);
-
-    // Initialising the UI will init the display too.
-    ui.init();
-    ui.disableAutoTransition();
-
-    display.flipScreenVertically();
+    g_ui.Setup();
 
     // Rotary Encoder Setup
 
@@ -354,7 +292,7 @@ void setup()
     attachInterrupt(digitalPinToInterrupt(ENCODER_B), encoder_update, CHANGE);
     attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoder_reset, RISING);
 
-    if (HAS_NOT_HOMED == true)
+    if (g_has_not_homed == true)
     {
         LogDebug("OSSM will now home");
         stepper.moveToHomeInMillimeters(1, 100, 400, LIMIT_SWITCH_PIN);
@@ -363,7 +301,7 @@ void setup()
         LogDebug("OSSM has moved out, will now set new home?");
         stepper.setCurrentPositionAsHomeAndStop();
         LogDebug("OSSM should now be home and happy");
-        HAS_NOT_HOMED = false;
+        g_has_not_homed = false;
     }
 
     // Start the stepper instance as a service in the "background" as a separate
@@ -433,7 +371,8 @@ void setup()
 
 void loop()
 {
-    ui.update();
+    g_ui.UpdateState(static_cast<int>(speedPercentage), static_cast<int>(g_encoder.getPosition()));
+    g_ui.UpdateScreen();
 
     // vTaskDelete(NULL); // we don't want this loop to run (because it runs on
     // core
@@ -657,8 +596,8 @@ bool setInternetControl(bool wifiControlEnable)
     // TODO: handle status response
     // const char *status = bubbleResponse["status"]; // "success"
 
-    LogDebugFormatted("Setting Wifi Control: %s\n%s\n%s\n", (wifiControlEnable ? "true" : "false"), requestBody,
-                      payload);
+    const char *wifiEnabledStr = (wifiControlEnable ? "true" : "false");
+    LogDebugFormatted("Setting Wifi Control: %s\n%s\n%s\n", wifiEnabledStr, requestBody.c_str(), payload.c_str());
     LogDebugFormatted("HTTP Response code: %d\n", httpResponseCode);
 
     return true;
