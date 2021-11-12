@@ -1,7 +1,7 @@
 # OSSM - Open Source Sex Machine
 OSSM (pronounced like "Awesome") is a user friendly every day sex machine for the people.
 
-This project aims to help people curious about sex machines explore their interest. A second objective is optionally learning how mechanics, electronics, physics and computing are involved in youe sexual pleasure.
+This project aims to help people curious about sex machines explore their interest. A second objective is optionally learning how mechanics, electronics, physics and computing are involved in your sexual pleasure.
 
 Please note that this is a _work in progress_ and we have attempted to keep compatibility with the current BOM going forward, but it's not guaranteed.
 
