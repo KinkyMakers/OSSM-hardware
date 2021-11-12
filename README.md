@@ -32,7 +32,7 @@ Simple PCB to power an ESP32 (wifi enabled microcontroller) from 24V and breakou
 The OSSM use a compact belt design with components that have become widely available due to 3D printing popularity.
 It is driven by a Nema23 motor of **your** choosing, although we reccomend small integrated closed loop steppers for their cost to performance ratio.
 
-<img src="https://github.com/KinkyMakers/OSSM-hardware/blob/5cbd1378f6389e5d8ece273931e7b261c27d1871/Documentation/OSSM%20mechanical%20overview.png" width="944" height="300">
+<img src="https://github.com/KinkyMakers/OSSM-hardware/blob/5cbd1378f6389e5d8ece273931e7b261c27d1871/Documentation/OSSM%20mechanical%20overview.png" width="750" >
 
 ## Bill Of Materials
 
