@@ -7,7 +7,7 @@
 #include "FastLED.h"
 
 // OSSM Reference Remote header files
-#include <RotaryEncoder.h>
+#include <Encoder.h>
 #include "OssmUi.h"
 
 ///////////////////////////////////////////
@@ -49,10 +49,10 @@
 // CONSTRUCT THINGS
 
 // Homing
-bool g_has_not_homed = true;
+volatile bool g_has_not_homed = true;
 
 // Encoder
-RotaryEncoder g_encoder(ENCODER_A, ENCODER_B, RotaryEncoder::LatchMode::TWO03);
+Encoder g_encoder(ENCODER_A, ENCODER_B);
 
 // Display
 OssmUi g_ui(REMOTE_ADDRESS, REMOTE_SDA, REMOTE_CLK);
@@ -65,29 +65,26 @@ OssmUi g_ui(REMOTE_ADDRESS, REMOTE_SDA, REMOTE_CLK);
 ////
 ///////////////////////////////////////////
 
-void encoder_update()
+IRAM_ATTR void encoderPushButton()
 {
-    g_encoder.tick();
-}
-void encoder_reset()
-{
-    g_encoder.setPosition(0);
+    // TODO: Toggle position mode
+    g_encoder.write(0);
     g_ui.NextFrame();
 }
 
 float getEncoderPercentage()
 {
     const int encoderFullScale = 36;
-    int position = g_encoder.getPosition();
+    int position = g_encoder.read();
     float positionPercentage;
     if (position < 0)
     {
-        g_encoder.setPosition(0);
+        g_encoder.write(0);
         position = 0;
     }
     else if (position > encoderFullScale)
     {
-        g_encoder.setPosition(encoderFullScale);
+        g_encoder.write(encoderFullScale);
         position = encoderFullScale;
     }
 
@@ -284,15 +281,9 @@ void setup()
     g_ui.Setup();
     g_ui.UpdateScreen();
 
-    // Rotary Encoder Setup
-
-    pinMode(ENCODER_A, INPUT_PULLDOWN);
-    pinMode(ENCODER_B, INPUT_PULLDOWN);
+    // Rotary Encoder Pushbutton
     pinMode(ENCODER_SWITCH, INPUT_PULLDOWN);
-
-    attachInterrupt(digitalPinToInterrupt(ENCODER_A), encoder_update, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(ENCODER_B), encoder_update, CHANGE);
-    attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoder_reset, RISING);
+    attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoderPushButton, RISING);
 
     if (g_has_not_homed == true)
     {
@@ -373,7 +364,7 @@ void setup()
 
 void loop()
 {
-    g_ui.UpdateState(static_cast<int>(speedPercentage), static_cast<int>(g_encoder.getPosition()));
+    g_ui.UpdateState(static_cast<int>(speedPercentage), static_cast<int>(strokePercentage + 0.5f));
     g_ui.UpdateScreen();
 
 
