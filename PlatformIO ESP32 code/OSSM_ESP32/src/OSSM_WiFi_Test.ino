@@ -19,7 +19,7 @@
 ///////////////////////////////////////////
 
 // Uncomment the following line if you wish to print DEBUG info
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define LogDebug(...) Serial.println(__VA_ARGS__)
@@ -201,6 +201,7 @@ bool setInternetControl(bool wifiControlEnable);
 bool getInternetSettings();
 
 bool stopSwitchTriggered = 0;
+
 
 /**
  * the iterrupt service routine (ISR) for the emergency swtich
