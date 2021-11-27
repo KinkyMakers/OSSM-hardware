@@ -26,6 +26,8 @@ class OssmUi
      */
     void SetTargetFps(uint8_t target_fps);
 
+    void ResetState();
+
     void SetFrames(OverlayCallback *overlays, size_t overlays_count, FrameCallback *frames, size_t frames_count);
 
     void SetActivitySymbols(const uint8_t *active, const uint8_t *inactive);
@@ -42,15 +44,21 @@ class OssmUi
         m_ui.nextFrame();
     }
 
-    int16_t UpdateScreen()
+    void UpdateScreen();
+
+    bool DisplayIsConnected() const
     {
-        return m_ui.update();
+        return m_connected;
     }
 
    private:
 
     SSD1306Wire m_display;
     OLEDDisplayUi m_ui;
+    uint8_t m_address;
+    uint32_t m_check_connectivity_interval;
+    bool m_connected;
+    uint32_t m_last_update_time;
 
 };
 

@@ -70,6 +70,7 @@ IRAM_ATTR void encoderPushButton()
     // TODO: Toggle position mode
     g_encoder.write(0);
     g_ui.NextFrame();
+    LogDebug("Next frame");
 }
 
 float getEncoderPercentage()
@@ -355,6 +356,19 @@ void loop()
 {
     g_ui.UpdateState(static_cast<int>(speedPercentage), static_cast<int>(strokePercentage + 0.5f));
     g_ui.UpdateScreen();
+
+    // debug
+    static bool is_connected = false;
+    if (!is_connected && g_ui.DisplayIsConnected())
+    {
+        LogDebug("Display Connected");
+        is_connected = true;
+    }
+    else if (is_connected && !g_ui.DisplayIsConnected())
+    {
+        LogDebug("Display Disconnected");
+        is_connected = false;
+    }
 }
 
 ///////////////////////////////////////////
