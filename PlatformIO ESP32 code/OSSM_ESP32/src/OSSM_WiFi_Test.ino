@@ -19,7 +19,7 @@
 ///////////////////////////////////////////
 
 // Uncomment the following line if you wish to print DEBUG info
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define LogDebug(...) Serial.println(__VA_ARGS__)
@@ -206,6 +206,7 @@ bool getInternetSettings();
 
 bool stopSwitchTriggered = 0;
 
+
 /**
  * the iterrupt service routine (ISR) for the emergency swtich
  * this gets called on a rising edge on the IO Pin the emergency switch is
@@ -281,6 +282,7 @@ void setup()
 
     // OLED SETUP
     g_ui.Setup();
+    g_ui.UpdateScreen();
 
     // Rotary Encoder Setup
 
@@ -374,7 +376,10 @@ void loop()
     g_ui.UpdateState(static_cast<int>(speedPercentage), static_cast<int>(g_encoder.getPosition()));
     g_ui.UpdateScreen();
 
-    // vTaskDelete(NULL); // we don't want this loop to run (because it runs on
+
+
+
+    //vTaskDelete(NULL); // we don't want this loop to run (because it runs on
     // core
     // 0 where we have the critical FlexyStepper code)
 }
@@ -389,11 +394,17 @@ void loop()
 
 void oledUpdateTask(void *pvParameters)
 {
+   
     for (;;)
     {
+
+        //g_ui.UpdateState(static_cast<int>(speedPercentage), static_cast<int>(g_encoder.getPosition()));
+        //g_ui.UpdateScreen();
         // ui.update();
         // test
-        vTaskDelay(10);
+        //delay(g_ui.UpdateScreen());
+
+        vTaskDelay(100);
     }
 }
 
