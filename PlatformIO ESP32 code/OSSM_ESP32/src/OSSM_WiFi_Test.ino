@@ -196,7 +196,6 @@ void getUserInputTask(void *pvParameters);
 void motionCommandTask(void *pvParameters);
 void wifiConnectionTask(void *pvParameters);
 void estopResetTask(void *pvParameters);
-void oledUpdateTask(void *pvParameters);
 float getAnalogAverage(int pinNumber, int samples);
 bool setInternetControl(bool wifiControlEnable);
 bool getInternetSettings();
@@ -341,16 +340,6 @@ void setup()
                             0);               /* pin task to core 0 */
 
     delay(500);
-
-    xTaskCreatePinnedToCore(oledUpdateTask,   /* Task function. */
-                            "oledUpdateTask", /* name of task. */
-                            10000,            /* Stack size of task */
-                            NULL,             /* parameter of the task */
-                            2,                /* priority of the task */
-                            &oledTask,        /* Task handle to keep track of created task */
-                            0);               /* pin task to core 0 */
-
-    delay(500);
 } // Void Setup()
 
 ///////////////////////////////////////////
@@ -365,10 +354,6 @@ void loop()
 {
     g_ui.UpdateState(static_cast<int>(speedPercentage), static_cast<int>(strokePercentage + 0.5f));
     g_ui.UpdateScreen();
-
-    // vTaskDelete(NULL); // we don't want this loop to run (because it runs on
-    // core
-    // 0 where we have the critical FlexyStepper code)
 }
 
 ///////////////////////////////////////////
@@ -378,16 +363,6 @@ void loop()
 ////
 ////
 ///////////////////////////////////////////
-
-void oledUpdateTask(void *pvParameters)
-{
-    for (;;)
-    {
-        // ui.update();
-        // test
-        vTaskDelay(10);
-    }
-}
 
 void estopResetTask(void *pvParameters)
 {
