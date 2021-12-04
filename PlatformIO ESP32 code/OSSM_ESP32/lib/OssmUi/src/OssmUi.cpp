@@ -53,38 +53,25 @@ const uint8_t s_inactive_symbol[8] PROGMEM = {
 
 static void OssmUiOverlaySpeed(OLEDDisplay* display, OLEDDisplayUiState* state)
 {
-    display->setTextAlignment(TEXT_ALIGN_LEFT);
+    display->setTextAlignment(TEXT_ALIGN_CENTER);
     display->setFont(ArialMT_Plain_10);
-    display->drawString(0, 0, "SPEED " + String(s_speed_percentage) + "%");
-}
+    display->drawString(64, 0, "SPEED                STROKE");
 
+}
 static void OssmUiFrameKMlogo(OLEDDisplay* display, OLEDDisplayUiState* state, int16_t x, int16_t y)
 {
 
-  display->drawXbm(x + 44, y + 14, 40, 40, km_logo);
+    display->fillRect(10,64-int(s_speed_percentage/2),10,64);
+    display->drawXbm(x + 44, y + 14, 40, 40, km_logo);
+    display->fillRect(106,64-int(s_encoder_position/2),10,64);
 
-}
-
-static void OssmUiFrameStrokePercentage(OLEDDisplay* display, OLEDDisplayUiState* state, int16_t x, int16_t y)
-{
-    display->setTextAlignment(TEXT_ALIGN_LEFT);
-    display->setFont(ArialMT_Plain_10);
-    display->drawString(10 + x, 10 + y, "Stroke Percentage " + String(s_encoder_position));
-    // display->drawString(10 + x, 20 + y, "Limit Switch " + String( digitalRead(LIMIT_SWITCH_PIN) ) );
-}
-
-static void OssmUiFramePosition(OLEDDisplay* display, OLEDDisplayUiState* state, int16_t x, int16_t y)
-{
-    display->setTextAlignment(TEXT_ALIGN_LEFT);
-    display->setFont(ArialMT_Plain_10);
-    display->drawString(10 + x, 10 + y, "Position");
 }
 
 const size_t s_overlay_count = 1;
 OverlayCallback s_overlays[] = {OssmUiOverlaySpeed};
 
-const size_t s_frame_count = 3;
-FrameCallback s_frames[] = {OssmUiFrameKMlogo, OssmUiFrameStrokePercentage, OssmUiFramePosition};
+const size_t s_frame_count = 1;
+FrameCallback s_frames[] = {OssmUiFrameKMlogo};
 
 // OssmUi constructor and methods
 
@@ -109,6 +96,8 @@ OssmUi::OssmUi(uint8_t address, int sda, int scl)
     m_ui.disableAutoTransition();
     // no transition animation
     m_ui.setTimePerTransition(0);
+    // Get rid of the indicators on screen
+    m_ui.disableAllIndicators();
 }
 
 void OssmUi::SetTargetFps(uint8_t target_fps)
@@ -148,15 +137,15 @@ void OssmUi::Setup()
     // Defines where the first frame is located in the bar.
     m_ui.setIndicatorDirection(LEFT_RIGHT);
 
-    // You can change the transition that is used
-    // SLIDE_LEFT, SLIDE_RIGHT, SLIDE_UP, SLIDE_DOWN
-    // m_ui.setFrameAnimation(SLIDE_LEFT);
-
     // Initialising the UI will init the display too.
     m_ui.init();
 
     // flip screen
     m_display.flipScreenVertically();
+
+
+
+    
 }
 
 void OssmUi::UpdateState(const int speed_percentage, const int encoder_position)
@@ -188,4 +177,11 @@ void OssmUi::UpdateScreen()
             m_connected = false;
         }
     }
+}
+
+
+void OssmUi::UpdateOnly()
+{
+    m_ui.update();
+
 }

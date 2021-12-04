@@ -50,6 +50,7 @@
 
 // Homing
 volatile bool g_has_not_homed = true;
+        bool REMOTE_ATTACHED = false;
 
 // Encoder
 Encoder g_encoder(ENCODER_A, ENCODER_B);
@@ -68,14 +69,14 @@ OssmUi g_ui(REMOTE_ADDRESS, REMOTE_SDA, REMOTE_CLK);
 IRAM_ATTR void encoderPushButton()
 {
     // TODO: Toggle position mode
-    g_encoder.write(0);
-    g_ui.NextFrame();
-    LogDebug("Next frame");
+   // g_encoder.write(0);       // Reset on Button Push
+   // g_ui.NextFrame();         // Next Frame on Button Push
+    LogDebug("Encoder Button Push");
 }
 
 float getEncoderPercentage()
 {
-    const int encoderFullScale = 36;
+    const int encoderFullScale = 100;
     int position = g_encoder.read();
     float positionPercentage;
     if (position < 0)
@@ -168,7 +169,7 @@ CRGB leds[NUM_LEDS];
 const float maxSpeedMmPerSecond = 1000;
 const float motorStepPerRevolution = 800;
 const float pulleyToothCount = 20;
-const float maxStrokeLengthMm = 150; // This is in millimeters, and is what's used to define how much of
+const float maxStrokeLengthMm = 50; // This is in millimeters, and is what's used to define how much of
                                      // your rail is usable.
 //                                            //  150mm on a 400mm rail is
 //                                            comfortable and will generally
@@ -260,8 +261,9 @@ void setup()
     // function
     attachInterrupt(digitalPinToInterrupt(STOP_PIN), stopSwitchHandler, RISING);
     // Set analog pots (control knobs)
-    pinMode(STROKE_POT_PIN, INPUT);
+    pinMode(STROKE_POT_PIN, INPUT_PULLUP);
     adcAttachPin(STROKE_POT_PIN);
+
 
     pinMode(SPEED_POT_PIN, INPUT);
     adcAttachPin(SPEED_POT_PIN);
@@ -279,7 +281,8 @@ void setup()
 
     // OLED SETUP
     g_ui.Setup();
-    g_ui.UpdateScreen();
+    g_ui.UpdateOnly();
+    
 
     // Rotary Encoder Pushbutton
     pinMode(ENCODER_SWITCH, INPUT_PULLDOWN);
@@ -434,8 +437,10 @@ void getUserInputTask(void *pvParameters)
     for (;;) // tasks should loop forever and not return - or will throw error in
              // OS
     {
-        LogDebug("Speed: " + String(speedPercentage) + "\% Stroke: " + String(strokePercentage) +
-                 "\% Distance to target: " + String(stepper.getDistanceToTargetSigned()) + " steps?");
+        //LogDebug("Speed: " + String(speedPercentage) + "\% Stroke: " + String(strokePercentage) +
+        //         "\% Distance to target: " + String(stepper.getDistanceToTargetSigned()) + " steps?");
+
+
 
         if (speedPercentage > 1)
         {
@@ -444,7 +449,7 @@ void getUserInputTask(void *pvParameters)
         else
         {
             stepper.emergencyStop();
-            LogDebug("FULL STOP CAPTAIN");
+            //LogDebug("FULL STOP CAPTAIN");
         }
 
         if (digitalRead(WIFI_CONTROL_TOGGLE_PIN) == HIGH) // TODO: check if wifi available and handle gracefully

@@ -46,6 +46,8 @@ class OssmUi
 
     void UpdateScreen();
 
+    void UpdateOnly();
+
     bool DisplayIsConnected() const
     {
         return m_connected;
