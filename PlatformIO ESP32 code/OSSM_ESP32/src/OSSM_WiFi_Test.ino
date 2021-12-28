@@ -1,28 +1,21 @@
-#include <Arduino.h>
-#include <ArduinoJson.h>
-#include <ESP_FlexyStepper.h>
-#include <HTTPClient.h>
-#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
-#include <Wire.h>
-#include "FastLED.h"
-
-// OSSM Reference Remote header files
-#include <Encoder.h>
-#include "OssmUi.h"
-
-
-/// THIS IS TO CONFIRM THIS IS THE CODE
+#include <Arduino.h>            // Basic Needs
+#include <ArduinoJson.h>        // Needed for the Bubble APP
+#include <HTTPClient.h>         // Needed for the Bubble APP
+#include <ESP_FlexyStepper.h>   // Current Motion Control
+#include <WiFiManager.h>        // Used to provide easy network connection  https://github.com/tzapu/WiFiManager
+#include <Wire.h>               // Used for i2c connections (Remote OLED Screen)
+#include "FastLED.h"            // Used for the LED on the Reference Board (or any other pixel LEDS you may add)
+#include <Encoder.h>            // Used for the Remote Encoder Input
+#include "OssmUi.h"             // Separate file that helps contain the OLED screen functions
 
 ///////////////////////////////////////////
 ////
-////
 ////  To Debug or not to Debug
-////
 ////
 ///////////////////////////////////////////
 
 // Uncomment the following line if you wish to print DEBUG info
-#define DEBUG
+#define DEBUG      
 
 #ifdef DEBUG
 #define LogDebug(...) Serial.println(__VA_ARGS__)
@@ -35,13 +28,63 @@
 ///////////////////////////////////////////
 ////
 ////
-////  Things specific to the OSSM Reference Board & Remote
+////  Use this area to define settings required to use the OSSM
 ////
 ////
 ///////////////////////////////////////////
 
+
+#define MOTOR_STEP_PIN 14           // Provides setps out to motor controller - OSSM Default: 14
+#define MOTOR_DIRECTION_PIN 27      // Provides direction out to motor - OSSM Default: 27
+// If the SERVO is spinning the wrong direction, reverse the direction using DIP SWITCH #5 (IHS57)
+#define MOTOR_ENABLE_PIN 26         // Provides motor enable - FUTURE USE - OSSM Default: 26
+
+// this pin resets WiFi credentials if needed
+#define WIFI_RESET_PIN 0            // Resets WIFI settings if your having trouble connecting
+// this pin toggles between manual knob control and Web-based control
+#define WIFI_CONTROL_TOGGLE_PIN 22  //   <---------- Confirm default for OSSM PCB / can we do better about how this works?
+#define WIFI_CONTROL_DEFAULT INPUT_PULLDOWN // uncomment for analog pots as default
+//#define WIFI_CONTROL_DEFAULT INPUT_PULLUP // uncomment for WiFi control as
+
+
+// define the IO pin the emergency stop switch is connected to
+#define STOP_PIN 19
+// define the IO pin where the limit switches are connected to (switches in
+// series in normally closed setup)
+#define LIMIT_SWITCH_PIN \
+    12 // If commented out, limit switch will not be used and toy must be extended
+       // at least as far as the "maxStrokeLengthMm"
+
+// limits and physical parameters
+const float maxSpeedMmPerSecond = 1000;
+const float motorStepPerRevolution = 800;
+const float pulleyToothCount = 20;
+const float maxStrokeLengthMm = 50; // This is in millimeters, and is what's used to define how much of
+                                     // your rail is usable.
+//                                            //  150mm on a 400mm rail is
+//                                            comfortable and will generally
+//                                            avoid smashing endstops
+//                                            //  This can be lowered if you
+//                                            want to reduce the maximum stroke
+const float minStrokeOffLimit = 6; // Machine needs some room away from the limit switch to not tick every
+                                   // stroke @ 100% stroke
+const float minimumCommandPercentage = 1.0f;
+// GT2 belt has 2mm tooth pitch
+const float beltPitchMm = 2;
+
+// Tuning parameters
+// affects acceleration in stepper trajectory
+const float accelerationScaling = 80.0f;
+
+const char *ossmId = "OSSM1"; // this should be unique to your device. You will use this on the
+                              // web portal to interact with your OSSM.
+// there is NO security other than knowing this name, make this unique to avoid
+// collisions with other users
+
+
 // SETTINGS
 
+#define SPEED_POT_PIN 34
 #define ENCODER_SWITCH 35
 #define ENCODER_A 18
 #define ENCODER_B 5
@@ -49,7 +92,19 @@
 #define REMOTE_CLK 19
 #define REMOTE_ADDRESS 0x3c
 
-// CONSTRUCT THINGS
+
+
+
+
+
+///////////////////////////////////////////
+////
+////
+////  Place your constructors here
+////
+////
+///////////////////////////////////////////
+
 
 // Homing
 volatile bool g_has_not_homed = true;
@@ -133,66 +188,7 @@ TaskHandle_t oledTask = nullptr;
 #define NUM_LEDS 1
 CRGB leds[NUM_LEDS];
 
-///////////////////////////////////////////
-////
-////
-////  SETUP Parameters
-////  These should be moved to an external file only for settings, or much
-/// higher up /  it should be immediately obvious where these are and easy for
-/// novices to modify
-////
-////
-///////////////////////////////////////////
 
-// Parameters you may need to change for your specific implementation
-#define MOTOR_STEP_PIN 14
-#define MOTOR_DIRECTION_PIN 27
-#define MOTOR_ENABLE_PIN 26
-// controller knobs
-#define STROKE_POT_PIN 32
-#define SPEED_POT_PIN 34
-// this pin resets WiFi credentials if needed
-#define WIFI_RESET_PIN 0
-// this pin toggles between manual knob control and Web-based control
-#define WIFI_CONTROL_TOGGLE_PIN 22
-
-#define WIFI_CONTROL_DEFAULT INPUT_PULLDOWN // uncomment for analog pots as default
-//#define WIFI_CONTROL_DEFAULT INPUT_PULLUP // uncomment for WiFi control as
-// default Pull pin 26 low if you want to switch to analog pot control
-
-// define the IO pin the emergency stop switch is connected to
-#define STOP_PIN 19
-// define the IO pin where the limit switches are connected to (switches in
-// series in normally closed setup)
-#define LIMIT_SWITCH_PIN \
-    12 // If commented out, limit switch will not be used and toy must be extended
-       // at least as far as the "maxStrokeLengthMm"
-
-// limits and physical parameters
-const float maxSpeedMmPerSecond = 1000;
-const float motorStepPerRevolution = 800;
-const float pulleyToothCount = 20;
-const float maxStrokeLengthMm = 50; // This is in millimeters, and is what's used to define how much of
-                                     // your rail is usable.
-//                                            //  150mm on a 400mm rail is
-//                                            comfortable and will generally
-//                                            avoid smashing endstops
-//                                            //  This can be lowered if you
-//                                            want to reduce the maximum stroke
-const float minStrokeOffLimit = 6; // Machine needs some room away from the limit switch to not tick every
-                                   // stroke @ 100% stroke
-const float minimumCommandPercentage = 1.0f;
-// GT2 belt has 2mm tooth pitch
-const float beltPitchMm = 2;
-
-// Tuning parameters
-// affects acceleration in stepper trajectory
-const float accelerationScaling = 80.0f;
-
-const char *ossmId = "OSSM1"; // this should be unique to your device. You will use this on the
-                              // web portal to interact with your OSSM.
-// there is NO security other than knowing this name, make this unique to avoid
-// collisions with other users
 
 // Declarations
 // TODO: Document functions
@@ -256,7 +252,7 @@ void setup()
     pinMode(MOTOR_ENABLE_PIN, OUTPUT);
     pinMode(WIFI_RESET_PIN, INPUT_PULLUP);
     pinMode(WIFI_CONTROL_TOGGLE_PIN, WIFI_CONTROL_DEFAULT);
-    // set the pin for the emegrenxy witch to input with inernal pullup
+    // set the pin for the emegrency switch to input with inernal pullup
     // the emergency switch is connected in a Active Low configuraiton in this
     // example, meaning the switch connects the input to ground when closed
     pinMode(STOP_PIN, INPUT_PULLUP);
@@ -264,9 +260,6 @@ void setup()
     // function
     attachInterrupt(digitalPinToInterrupt(STOP_PIN), stopSwitchHandler, RISING);
     // Set analog pots (control knobs)
-    pinMode(STROKE_POT_PIN, INPUT_PULLUP);
-    adcAttachPin(STROKE_POT_PIN);
-
 
     pinMode(SPEED_POT_PIN, INPUT);
     adcAttachPin(SPEED_POT_PIN);
@@ -391,7 +384,7 @@ void estopResetTask(void *pvParameters)
     {
         if (stopSwitchTriggered == 1)
         {
-            while ((getAnalogAverage(SPEED_POT_PIN, 50) + getAnalogAverage(STROKE_POT_PIN, 50)) > 2)
+            while ((getAnalogAverage(SPEED_POT_PIN, 50) > 2))
             {
                 vTaskDelay(1);
             }
