@@ -34,6 +34,8 @@ class OssmUi
 
     void UpdateState(const int speed_percentage, const int encoder_position);
 
+    void UpdateMessage(String message_in);
+
     void ShowFrame(uint8_t frame)
     {
         m_ui.switchToFrame(frame);

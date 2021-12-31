@@ -7,8 +7,9 @@
 #include "FastLED.h"            // Used for the LED on the Reference Board (or any other pixel LEDS you may add)
 #include <Encoder.h>            // Used for the Remote Encoder Input
 #include "OssmUi.h"             // Separate file that helps contain the OLED screen functions
-#include "OSSM_Config.h"
-#include "OSSM_PinDef.h"
+#include "OSSM_Config.h"        // START HERE FOR Configuration
+#include "OSSM_PinDef.h"        // This is where you set pins specific for your board
+
 
 ///////////////////////////////////////////
 ////
@@ -152,6 +153,8 @@ void setup()
     LogDebug("\n Starting");
     delay(200);
 
+
+
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
     FastLED.setBrightness(150);
     setLedRainbow(leds);
@@ -166,6 +169,15 @@ void setup()
     stepper.setAccelerationInMillimetersPerSecondPerSecond(100);
     stepper.setDecelerationInStepsPerSecondPerSecond(100);
     stepper.setLimitSwitchActive(LIMIT_SWITCH_PIN);
+
+    // Start the stepper instance as a service in the "background" as a separate
+    // task and the OS of the ESP will take care of invoking the processMovement()
+    // task regularly on core 1 so you can do whatever you want on core 0
+    stepper.startAsService(); // Kinky Makers - we have modified this function
+                              // from default library to run on core 1 and suggest
+                              // you don't run anything else on that core.
+
+
 
     WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
     // put your setup code here, to run once:
@@ -195,6 +207,7 @@ void setup()
         LogDebug("settings reset");
     }
 
+
     // OLED SETUP
     g_ui.Setup();
     g_ui.UpdateOnly();
@@ -207,21 +220,19 @@ void setup()
     if (g_has_not_homed == true)
     {
         LogDebug("OSSM will now home");
+        g_ui.UpdateMessage("Finding Home");
         stepper.moveToHomeInMillimeters(1, 100, 400, LIMIT_SWITCH_PIN);
         LogDebug("OSSM has homed, will now move out to max length");
+        g_ui.UpdateMessage("Found Home");
         stepper.moveToPositionInMillimeters((-1 * maxStrokeLengthMm) - strokeZeroOffsetmm);
         LogDebug("OSSM has moved out, will now set new home?");
+        g_ui.UpdateMessage("Moving to Max");
         stepper.setCurrentPositionAsHomeAndStop();
         LogDebug("OSSM should now be home and happy");
+        g_ui.UpdateMessage("OSSM Ready to Play");
         g_has_not_homed = false;
     }
 
-    // Start the stepper instance as a service in the "background" as a separate
-    // task and the OS of the ESP will take care of invoking the processMovement()
-    // task regularly on core 1 so you can do whatever you want on core 0
-    stepper.startAsService(); // Kinky Makers - we have modified this function
-                              // from default library to run on core 1 and suggest
-                              // you don't run anything else on that core.
 
     // Kick off the http and motion tasks - they begin executing as soon as they
     // are created here! Do not change the priority of the task, or do so with

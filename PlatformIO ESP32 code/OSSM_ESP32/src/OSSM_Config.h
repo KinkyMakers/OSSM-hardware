@@ -19,7 +19,7 @@ const float beltPitchMm = 2.0f;
 // The absolute max your OSSM would have is the distance between the belt attachments subtract
 // the linear block holder length (75mm on OSSM)
 // Recommended to also subtract e.g. 20mm to keep the backstop well away from the device.
-const float maxStrokeLengthMm = 130.0f;
+const float maxStrokeLengthMm = 50.f;
 /*
         Web Config
 */

@@ -5,6 +5,7 @@
 
 volatile int s_speed_percentage = 0;
 volatile int s_encoder_position = 0;
+String s_message = "Machine Homing";
 
 // KM logo
 
@@ -56,13 +57,14 @@ static void OssmUiOverlaySpeed(OLEDDisplay* display, OLEDDisplayUiState* state)
     display->setTextAlignment(TEXT_ALIGN_CENTER);
     display->setFont(ArialMT_Plain_10);
     display->drawString(64, 0, "SPEED                STROKE");
+    display->drawString(64, 50, s_message);
 
 }
 static void OssmUiFrameKMlogo(OLEDDisplay* display, OLEDDisplayUiState* state, int16_t x, int16_t y)
 {
 
     display->fillRect(10,64-int(s_speed_percentage/2),10,64);
-    display->drawXbm(x + 44, y + 14, 40, 40, km_logo);
+    display->drawXbm(x + 44, y + 6, 40, 40, km_logo);
     display->fillRect(106,64-int(s_encoder_position/2),10,64);
 
 }
@@ -145,13 +147,20 @@ void OssmUi::Setup()
 
 
 
-    
+
 }
 
 void OssmUi::UpdateState(const int speed_percentage, const int encoder_position)
 {
     s_speed_percentage = speed_percentage;
     s_encoder_position = encoder_position;
+}
+
+
+void OssmUi::UpdateMessage( String message_in)
+{
+    s_message = message_in;
+    m_ui.update();
 }
 
 void OssmUi::UpdateScreen()
