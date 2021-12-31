@@ -63,9 +63,11 @@ static void OssmUiOverlaySpeed(OLEDDisplay* display, OLEDDisplayUiState* state)
 static void OssmUiFrameKMlogo(OLEDDisplay* display, OLEDDisplayUiState* state, int16_t x, int16_t y)
 {
 
-    display->fillRect(10,64-int(s_speed_percentage/2),10,64);
+    //display->fillRect(10,14+(50-int(s_speed_percentage/2)),10,20-int(s_speed_percentage/100));
+    display->fillRect(10,14+(34-int(s_speed_percentage/3)),10,int(s_speed_percentage/3));
     display->drawXbm(x + 44, y + 6, 40, 40, km_logo);
-    display->fillRect(106,64-int(s_encoder_position/2),10,64);
+    //display->fillRect(106,64-int(s_encoder_position/2),10,64);
+    display->fillRect(106,14+(34-int(s_encoder_position/3)),10,int(s_encoder_position/3));
 
 }
 
