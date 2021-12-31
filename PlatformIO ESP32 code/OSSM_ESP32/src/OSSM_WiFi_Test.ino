@@ -7,6 +7,8 @@
 #include "FastLED.h"            // Used for the LED on the Reference Board (or any other pixel LEDS you may add)
 #include <Encoder.h>            // Used for the Remote Encoder Input
 #include "OssmUi.h"             // Separate file that helps contain the OLED screen functions
+#include "OSSM_Config.h"
+#include "OSSM_PinDef.h"
 
 ///////////////////////////////////////////
 ////
@@ -15,7 +17,7 @@
 ///////////////////////////////////////////
 
 // Uncomment the following line if you wish to print DEBUG info
-#define DEBUG      
+#define DEBUG
 
 #ifdef DEBUG
 #define LogDebug(...) Serial.println(__VA_ARGS__)
@@ -24,87 +26,6 @@
 #define LogDebug(...) ((void)0)
 #define LogDebugFormatted(...) ((void)0)
 #endif
-
-///////////////////////////////////////////
-////
-////
-////  Use this area to define settings required to use the OSSM
-////
-////
-///////////////////////////////////////////
-
-
-#define MOTOR_STEP_PIN 14           // Provides setps out to motor controller - OSSM Default: 14
-#define MOTOR_DIRECTION_PIN 27      // Provides direction out to motor - OSSM Default: 27
-// If the SERVO is spinning the wrong direction, reverse the direction using DIP SWITCH #5 (IHS57)
-#define MOTOR_ENABLE_PIN 26         // Provides motor enable - FUTURE USE - OSSM Default: 26
-
-// this pin resets WiFi credentials if needed
-#define WIFI_RESET_PIN 0            // Resets WIFI settings if your having trouble connecting
-// this pin toggles between manual knob control and Web-based control
-#define WIFI_CONTROL_TOGGLE_PIN 22  //   <---------- Confirm default for OSSM PCB / can we do better about how this works?
-#define WIFI_CONTROL_DEFAULT INPUT_PULLDOWN // uncomment for analog pots as default
-//#define WIFI_CONTROL_DEFAULT INPUT_PULLUP // uncomment for WiFi control as
-
-
-// define the IO pin the emergency stop switch is connected to
-#define STOP_PIN 19
-// define the IO pin where the limit switches are connected to (switches in
-// series in normally closed setup)
-#define LIMIT_SWITCH_PIN \
-    12 // If commented out, limit switch will not be used and toy must be extended
-       // at least as far as the "maxStrokeLengthMm"
-
-// limits and physical parameters
-const float maxSpeedMmPerSecond = 1000;
-const float motorStepPerRevolution = 800;
-const float pulleyToothCount = 20;
-const float maxStrokeLengthMm = 50; // This is in millimeters, and is what's used to define how much of
-                                     // your rail is usable.
-//                                            //  150mm on a 400mm rail is
-//                                            comfortable and will generally
-//                                            avoid smashing endstops
-//                                            //  This can be lowered if you
-//                                            want to reduce the maximum stroke
-const float minStrokeOffLimit = 6; // Machine needs some room away from the limit switch to not tick every
-                                   // stroke @ 100% stroke
-const float minimumCommandPercentage = 1.0f;
-// GT2 belt has 2mm tooth pitch
-const float beltPitchMm = 2;
-
-// Tuning parameters
-// affects acceleration in stepper trajectory
-const float accelerationScaling = 80.0f;
-
-const char *ossmId = "OSSM1"; // this should be unique to your device. You will use this on the
-                              // web portal to interact with your OSSM.
-// there is NO security other than knowing this name, make this unique to avoid
-// collisions with other users
-
-
-// SETTINGS
-
-#define SPEED_POT_PIN 34
-#define ENCODER_SWITCH 35
-#define ENCODER_A 18
-#define ENCODER_B 5
-#define REMOTE_SDA 21
-#define REMOTE_CLK 19
-#define REMOTE_ADDRESS 0x3c
-
-
-
-
-
-
-///////////////////////////////////////////
-////
-////
-////  Place your constructors here
-////
-////
-///////////////////////////////////////////
-
 
 // Homing
 volatile bool g_has_not_homed = true;
@@ -187,7 +108,6 @@ TaskHandle_t oledTask = nullptr;
 #define LED_PIN 25
 #define NUM_LEDS 1
 CRGB leds[NUM_LEDS];
-
 
 
 // Declarations
@@ -278,7 +198,7 @@ void setup()
     // OLED SETUP
     g_ui.Setup();
     g_ui.UpdateOnly();
-    
+
 
     // Rotary Encoder Pushbutton
     pinMode(ENCODER_SWITCH, INPUT_PULLDOWN);
@@ -289,7 +209,7 @@ void setup()
         LogDebug("OSSM will now home");
         stepper.moveToHomeInMillimeters(1, 100, 400, LIMIT_SWITCH_PIN);
         LogDebug("OSSM has homed, will now move out to max length");
-        stepper.moveToPositionInMillimeters((-1 * maxStrokeLengthMm) - minStrokeOffLimit);
+        stepper.moveToPositionInMillimeters((-1 * maxStrokeLengthMm) - strokeZeroOffsetmm);
         LogDebug("OSSM has moved out, will now set new home?");
         stepper.setCurrentPositionAsHomeAndStop();
         LogDebug("OSSM should now be home and happy");
@@ -477,7 +397,7 @@ void getUserInputTask(void *pvParameters)
 
         // We should scale these values with initialized settings not hard coded
         // values!
-        if (speedPercentage > minimumCommandPercentage)
+        if (speedPercentage > commandDeadzonePercentage)
         {
             stepper.setSpeedInMillimetersPerSecond(maxSpeedMmPerSecond * speedPercentage / 100.0);
             stepper.setAccelerationInMillimetersPerSecondPerSecond(maxSpeedMmPerSecond * speedPercentage *
@@ -496,8 +416,8 @@ void motionCommandTask(void *pvParameters)
              // OS
     {
         // poll at 200Hz for when motion is complete
-        while ((stepper.getDistanceToTargetSigned() != 0) || (strokePercentage < minimumCommandPercentage) ||
-               (speedPercentage < minimumCommandPercentage))
+        while ((stepper.getDistanceToTargetSigned() != 0) || (strokePercentage < commandDeadzonePercentage) ||
+               (speedPercentage < commandDeadzonePercentage))
         {
             vTaskDelay(5); // wait for motion to complete and requested stroke more than zero
         }
@@ -510,8 +430,8 @@ void motionCommandTask(void *pvParameters)
         stepper.setTargetPositionInMillimeters(targetPosition);
         vTaskDelay(1);
 
-        while ((stepper.getDistanceToTargetSigned() != 0) || (strokePercentage < minimumCommandPercentage) ||
-               (speedPercentage < minimumCommandPercentage))
+        while ((stepper.getDistanceToTargetSigned() != 0) || (strokePercentage < commandDeadzonePercentage) ||
+               (speedPercentage < commandDeadzonePercentage))
         {
             vTaskDelay(5); // wait for motion to complete, since we are going back to
                            // zero, don't care about stroke value
