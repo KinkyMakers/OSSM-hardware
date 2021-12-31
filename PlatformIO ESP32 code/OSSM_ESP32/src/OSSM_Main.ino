@@ -229,7 +229,6 @@ void setup()
         g_ui.UpdateMessage("Moving to Max");
         stepper.setCurrentPositionAsHomeAndStop();
         LogDebug("OSSM should now be home and happy");
-        g_ui.UpdateMessage("OSSM Ready to Play");
         g_has_not_homed = false;
     }
 
@@ -245,7 +244,7 @@ void setup()
                             1,                    /* priority of the task */
                             &wifiTask,            /* Task handle to keep track of created task */
                             0);                   /* pin task to core 0 */
-    delay(5000);
+    delay(100);
     xTaskCreatePinnedToCore(getUserInputTask,   /* Task function. */
                             "getUserInputTask", /* name of task. */
                             10000,              /* Stack size of task */
@@ -253,7 +252,7 @@ void setup()
                             1,                  /* priority of the task */
                             &getInputTask,      /* Task handle to keep track of created task */
                             0);                 /* pin task to core 0 */
-    delay(500);
+    delay(100);
     xTaskCreatePinnedToCore(motionCommandTask,   /* Task function. */
                             "motionCommandTask", /* name of task. */
                             10000,               /* Stack size of task */
@@ -262,7 +261,7 @@ void setup()
                             &motionTask,         /* Task handle to keep track of created task */
                             0);                  /* pin task to core 0 */
 
-    delay(500);
+    delay(100);
     xTaskCreatePinnedToCore(estopResetTask,   /* Task function. */
                             "estopResetTask", /* name of task. */
                             10000,            /* Stack size of task */
@@ -271,7 +270,9 @@ void setup()
                             &estopTask,       /* Task handle to keep track of created task */
                             0);               /* pin task to core 0 */
 
-    delay(500);
+    delay(100);
+
+    g_ui.UpdateMessage("OSSM Ready to Play");
 } // Void Setup()
 
 ///////////////////////////////////////////
