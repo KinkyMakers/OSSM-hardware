@@ -223,10 +223,9 @@ void setup()
         g_ui.UpdateMessage("Finding Home");
         stepper.moveToHomeInMillimeters(1, 100, 400, LIMIT_SWITCH_PIN);
         LogDebug("OSSM has homed, will now move out to max length");
-        g_ui.UpdateMessage("Found Home");
+        g_ui.UpdateMessage("Moving to Max");
         stepper.moveToPositionInMillimeters((-1 * maxStrokeLengthMm) - strokeZeroOffsetmm);
         LogDebug("OSSM has moved out, will now set new home?");
-        g_ui.UpdateMessage("Moving to Max");
         stepper.setCurrentPositionAsHomeAndStop();
         LogDebug("OSSM should now be home and happy");
         g_has_not_homed = false;
