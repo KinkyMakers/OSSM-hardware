@@ -58,10 +58,13 @@ We are calling this the reference build, when deviating from it please check com
    - Minimum 250mm in length
    - Must be MGN12**H** rail
 7) **Power Supply** : [Amazon.ca](https://www.amazon.ca/LEDENET-Adapter-Flexible-Lighting-5-52-5mm/dp/B078N5DC2J/ref=sr_1_9?keywords=24v+4a&qid=1636728925&sr=8-9)
-   - Recommended specifications; 24v 4A
+   - Larger motors generally need more power. For the large 180W servo a 36V 5A supply would be ideal.
+   - 140W -> 24V 6A or 36V 4A
+   - 100W -> 24V 4A or 36V 3A
+   - Choose the closest supply to the guidelines, the ossm will still work, but may be limited at maximum thrust speed/force.
    - Ensure the power supply is fully enclosed (like a laptop power supply)
    - Ensure the power supply has the correct approvals for your location
-8)**Metric Cap Screws** : [Amazon.ca](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_12?dchild=1&keywords=metric+socket+head+cap+screw+kit&qid=1600747665&sr=8-12)
+8) **Metric Cap Screws** : [Amazon.ca](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_12?dchild=1&keywords=metric+socket+head+cap+screw+kit&qid=1600747665&sr=8-12)
    - A kit like this will provide what's needed, specific quantities TBD
 9) **ESP32 Development Board**  
   
