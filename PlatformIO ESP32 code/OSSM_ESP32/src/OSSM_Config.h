@@ -6,7 +6,7 @@
         Motion System Config
 */
 //Top linear speed of the device.
-const float maxSpeedMmPerSecond = 1000.0f;
+const float maxSpeedMmPerSecond = 750.0f;
 //This should match the step/rev of your stepper or servo.
 //N.b. the iHSV57 has a table on the side for setting the DIP switches to your preference.
 const float motorStepPerRevolution = 800.0f;
@@ -39,7 +39,7 @@ const float strokeZeroOffsetmm = 6.0f;
 // prevents noisy pots registering commands when turned down to zero by user
 const float commandDeadzonePercentage = 1.0f;
 // affects acceleration in stepper trajectory (Aggressiveness of motion)
-const float accelerationScaling = 80.0f;
+const float accelerationScaling = 60.0f;
 
 
 

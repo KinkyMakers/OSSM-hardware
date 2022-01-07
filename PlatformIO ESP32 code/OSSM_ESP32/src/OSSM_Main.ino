@@ -167,7 +167,7 @@ void setup()
     // will be overwritten by user controls. 100 values are placeholders
     stepper.setSpeedInStepsPerSecond(100);
     stepper.setAccelerationInMillimetersPerSecondPerSecond(100);
-    stepper.setDecelerationInStepsPerSecondPerSecond(100);
+    stepper.setDecelerationInStepsPerSecondPerSecond(100000);
     stepper.setLimitSwitchActive(LIMIT_SWITCH_PIN);
 
     // Start the stepper instance as a service in the "background" as a separate
