@@ -34,6 +34,19 @@ It is driven by a Nema23 motor of **your** choosing, although we reccomend small
 
 <img src="https://github.com/KinkyMakers/OSSM-hardware/blob/5cbd1378f6389e5d8ece273931e7b261c27d1871/Documentation/OSSM%20mechanical%20overview.png" width="750" >
 
+### Safety
+
+The safety of the OSSM build is yet to be fully characterized as it is a work in progress. The OSSM is a work in progress and as it is a framework for building your own sex machine your specific combination may have risks not inherent to other builds. These risks may be undocumented. 
+
+While using the OSSM we can suggest the following heiracrhy of safety, however it is up to you and your build to decide what risks exist and how to mitigate them. 
+
+- A) Have ability to move away
+- B) Have ability to remove the power
+- C) If in bondage, that is responsibility of the Top
+
+
+
+
 ## Bill Of Materials
 
 We are calling this the reference build, when deviating from it please check compatability with existing BOM
