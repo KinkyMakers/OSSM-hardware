@@ -5,16 +5,12 @@ This project aims to help people curious about sex machines explore their intere
 
 Please note that this is a _work in progress_ and we have attempted to keep compatibility with the current BOM going forward, but it's not guaranteed.
 
-### Primary design goals:
-- Compact
-- Quiet
-- Moderate cost
-- 3D printable (no cutting/machining)
-- High performance, flexible
-- Easily sourced components
-- Doesn't look like a giant machine
+*Primary design goals* are to make a machine that is Compact, Quiet, Moderate cost, 3D printable (no cutting/machining), High performance, flexible, Easily sourced components, Doesn't look like a giant machine.
 
 ## Getting Started
+
+[Read the FAQ](FAQ.md)
+
 There are a few hardware flavours to choose from, we've included user modified versions in case that fits your use case better!
 
 [Build Instructions](https://github.com/KinkyMakers/OSSM-hardware/blob/master/Documentation/Assembly%20Instructions.pdf)
