@@ -21,7 +21,7 @@
 // define the IO pin the emergency stop switch is connected to
 #define STOP_PIN 19
 // define the IO pin where the limit(homing) switch(es) are connected to (switches in
-// series in normally closed setup)
+// series in normally open setup) Switches wired from IO pin to ground.
 #define LIMIT_SWITCH_PIN 12
 
 /*
