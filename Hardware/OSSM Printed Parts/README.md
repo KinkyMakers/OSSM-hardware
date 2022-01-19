@@ -6,5 +6,5 @@ The OSSM base is the most structurally important piece, recommend using 6 perime
 Other parts are not so critical, and you can print with the settings you like on your printer.
 
 ### Belt Clamping
-You can either print the **!Alternate Belt Clamp! 24mm Threaded End Mount.stl** or **OSSM Clamp Top** and **OSSM Clamp Bottom** The threaded end mount now has the belt cmalp integrated and secured by the jam nut.
+You can either print the **!Alternate Belt Clamp! 24mm Threaded End Mount.stl** or **OSSM Clamp Top** and **OSSM Clamp Bottom** The threaded end mount now has the belt clamp integrated and secured by the jam nut.
 
