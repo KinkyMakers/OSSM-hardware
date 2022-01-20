@@ -97,8 +97,7 @@ We are calling this the reference build, when deviating from it please check com
 
 ### GPIO Layout
 
-![image](https://user-images.githubusercontent.com/43324815/150353854-ad689705-2459-4793-9e94-8240b6fc30f6.png)
-
+![image](https://user-images.githubusercontent.com/43324815/150366260-31567c44-a27e-4938-a0b1-7f76ee6b62ad.png)
 
 
 
