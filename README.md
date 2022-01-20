@@ -86,6 +86,10 @@ We are calling this the reference build, when deviating from it please check com
 
 ## Official OSSM Wiring
 
+
+![image](https://user-images.githubusercontent.com/43324815/150361448-80e9fdaf-4a8c-4054-a920-6eab9aa68678.png)
+
+
 ### OSSM PCB Connections
 
 ![image](https://user-images.githubusercontent.com/43324815/150355658-2ab2c53f-8da0-41ce-ad61-cfe9965b9ab2.png)
