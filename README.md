@@ -83,7 +83,22 @@ We are calling this the reference build, when deviating from it please check com
    - To start working on the project, something like this [Adafruit board](https://www.adafruit.com/product/3405) is an excellent place to start.
    - Accessories required for prototyping include [Breadboard](https://www.amazon.ca/Breadboard-Solderless-Prototype-Distribution-Connecting/dp/B01EV6LJ7G/ref=sr_1_5?dchild=1&keywords=breadboard&qid=1627823170&sr=8-5) and [Dupont Jumpers](https://www.amazon.ca/120pcs-Multicolored-Breadboard-Arduino-raspberry/dp/B01LZF1ZSZ/ref=sr_1_5?dchild=1&keywords=dupont+jumper&qid=1627823220&sr=8-5)
 
-## Wiring Notes
+
+## Official OSSM Wiring
+
+### OSSM PCB Connections
+
+![image](https://user-images.githubusercontent.com/43324815/150355658-2ab2c53f-8da0-41ce-ad61-cfe9965b9ab2.png)
+
+
+### GPIO Layout
+
+![image](https://user-images.githubusercontent.com/43324815/150353854-ad689705-2459-4793-9e94-8240b6fc30f6.png)
+
+
+
+
+## Non-Official OSSM Wiring
 
 This should be a good start for the wiring of your OSSM! However, depending on your hardware mix settings or wiring may be different 
 
