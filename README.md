@@ -109,7 +109,7 @@ This should be a good start for the wiring of your OSSM! However, depending on y
 
 ### Servo Wiring
 
-![image](https://user-images.githubusercontent.com/43324815/127773668-ebfa57bf-29da-4c6b-8785-8ae0f1ffbf3b.png)
+![image](https://user-images.githubusercontent.com/43324815/150361181-98c5375e-c517-4882-8e53-6cac407164b0.png)
 
 ### Stepper Wiring 
 
