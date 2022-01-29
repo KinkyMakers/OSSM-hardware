@@ -19,7 +19,7 @@ const float beltPitchMm = 2.0f;
 // The absolute max your OSSM would have is the distance between the belt attachments subtract
 // the linear block holder length (75mm on OSSM)
 // Recommended to also subtract e.g. 20mm to keep the backstop well away from the device.
-const float maxStrokeLengthMm = 50.f;
+const float maxStrokeLengthMm = 75.f;
 /*
         Web Config
 */
@@ -39,7 +39,7 @@ const float strokeZeroOffsetmm = 6.0f;
 // prevents noisy pots registering commands when turned down to zero by user
 const float commandDeadzonePercentage = 1.0f;
 // affects acceleration in stepper trajectory (Aggressiveness of motion)
-const float accelerationScaling = 70.0f;
+const float accelerationScaling = 100.0f;
 
 
 
