@@ -97,8 +97,7 @@ We are calling this the reference build, when deviating from it please check com
 
 ### GPIO Layout
 
-![image](https://user-images.githubusercontent.com/43324815/150366260-31567c44-a27e-4938-a0b1-7f76ee6b62ad.png)
-
+![OSSM pinout](https://user-images.githubusercontent.com/12459679/152600401-80b986ea-6f5b-480d-ba74-5b5001079c1b.png)
 
 
 ## Non-Official OSSM Wiring
