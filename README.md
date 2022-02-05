@@ -74,7 +74,13 @@ We are calling this the reference build, when deviating from it please check com
    - Ensure the power supply is fully enclosed (like a laptop power supply)
    - Ensure the power supply has the correct approvals for your location
 8) **Metric Cap Screws** : [Amazon.ca](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_12?dchild=1&keywords=metric+socket+head+cap+screw+kit&qid=1600747665&sr=8-12)
-   - A kit like this will provide what's needed, specific quantities TBD
+   - A kit like this will provide what's needed:
+   - 4x m5x20
+   - 1x m5x12 (can also use m5x20)
+   - 10x m3x8
+   - 2x m3x16
+   - 8x m5 nuts
+   - 8x m3 nuts
 9) **ESP32 Development Board**  
   
    - [An official OSSM reference PCB](https://research-and-desire.myshopify.com/collections/all/products/ossm-reference-board) 
