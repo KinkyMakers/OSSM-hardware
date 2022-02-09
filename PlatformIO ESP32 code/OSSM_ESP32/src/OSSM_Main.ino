@@ -1,15 +1,15 @@
-#include <Arduino.h>            // Basic Needs
-#include <ArduinoJson.h>        // Needed for the Bubble APP
-#include <HTTPClient.h>         // Needed for the Bubble APP
-#include <ESP_FlexyStepper.h>   // Current Motion Control
-#include <WiFiManager.h>        // Used to provide easy network connection  https://github.com/tzapu/WiFiManager
-#include <Wire.h>               // Used for i2c connections (Remote OLED Screen)
-#include "FastLED.h"            // Used for the LED on the Reference Board (or any other pixel LEDS you may add)
-#include <Encoder.h>            // Used for the Remote Encoder Input
-#include "OssmUi.h"             // Separate file that helps contain the OLED screen functions
-#include "OSSM_Config.h"        // START HERE FOR Configuration
-#include "OSSM_PinDef.h"        // This is where you set pins specific for your board
+#include <Arduino.h>          // Basic Needs
+#include <ArduinoJson.h>      // Needed for the Bubble APP
+#include <ESP_FlexyStepper.h> // Current Motion Control
+#include <Encoder.h>          // Used for the Remote Encoder Input
+#include <HTTPClient.h>       // Needed for the Bubble APP
+#include <WiFiManager.h>      // Used to provide easy network connection  https://github.com/tzapu/WiFiManager
+#include <Wire.h>             // Used for i2c connections (Remote OLED Screen)
 
+#include "FastLED.h"     // Used for the LED on the Reference Board (or any other pixel LEDS you may add)
+#include "OSSM_Config.h" // START HERE FOR Configuration
+#include "OSSM_PinDef.h" // This is where you set pins specific for your board
+#include "OssmUi.h"      // Separate file that helps contain the OLED screen functions
 
 ///////////////////////////////////////////
 ////
@@ -30,7 +30,7 @@
 
 // Homing
 volatile bool g_has_not_homed = true;
-        bool REMOTE_ATTACHED = false;
+bool REMOTE_ATTACHED = false;
 
 // Encoder
 Encoder g_encoder(ENCODER_A, ENCODER_B);
@@ -49,8 +49,8 @@ OssmUi g_ui(REMOTE_ADDRESS, REMOTE_SDA, REMOTE_CLK);
 IRAM_ATTR void encoderPushButton()
 {
     // TODO: Toggle position mode
-   // g_encoder.write(0);       // Reset on Button Push
-   // g_ui.NextFrame();         // Next Frame on Button Push
+    // g_encoder.write(0);       // Reset on Button Push
+    // g_ui.NextFrame();         // Next Frame on Button Push
     LogDebug("Encoder Button Push");
 }
 
@@ -110,7 +110,6 @@ TaskHandle_t oledTask = nullptr;
 #define NUM_LEDS 1
 CRGB leds[NUM_LEDS];
 
-
 // Declarations
 // TODO: Document functions
 void setLedRainbow(CRGB leds[]);
@@ -123,7 +122,6 @@ bool setInternetControl(bool wifiControlEnable);
 bool getInternetSettings();
 
 bool stopSwitchTriggered = 0;
-
 
 /**
  * the iterrupt service routine (ISR) for the emergency swtich
@@ -153,8 +151,6 @@ void setup()
     LogDebug("\n Starting");
     delay(200);
 
-
-
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
     FastLED.setBrightness(150);
     setLedRainbow(leds);
@@ -165,7 +161,7 @@ void setup()
     stepper.setStepsPerMillimeter(stepsPerMm);
     // initialize the speed and acceleration rates for the stepper motor. These
     // will be overwritten by user controls. 100 values are placeholders
-    stepper.setSpeedInStepsPerSecond(100);
+    stepper.setSpeedInStepsPerSecond(200);
     stepper.setAccelerationInMillimetersPerSecondPerSecond(100);
     stepper.setDecelerationInStepsPerSecondPerSecond(100000);
     stepper.setLimitSwitchActive(LIMIT_SWITCH_PIN);
@@ -177,13 +173,13 @@ void setup()
                               // from default library to run on core 1 and suggest
                               // you don't run anything else on that core.
 
-
-
     WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
     // put your setup code here, to run once:
     pinMode(MOTOR_ENABLE_PIN, OUTPUT);
     pinMode(WIFI_RESET_PIN, INPUT_PULLUP);
-    pinMode(WIFI_CONTROL_TOGGLE_PIN, WIFI_CONTROL_DEFAULT);
+    pinMode(WIFI_CONTROL_TOGGLE_PIN, WIFI_CONTROLLER); // choose between WIFI_CONTROLLER and LOCAL_CONTROLLER
+    // test
+
     // set the pin for the emegrency switch to input with inernal pullup
     // the emergency switch is connected in a Active Low configuraiton in this
     // example, meaning the switch connects the input to ground when closed
@@ -207,35 +203,15 @@ void setup()
         LogDebug("settings reset");
     }
 
-
     // OLED SETUP
     g_ui.Setup();
     g_ui.UpdateOnly();
-
 
     // Rotary Encoder Pushbutton
     pinMode(ENCODER_SWITCH, INPUT_PULLDOWN);
     attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoderPushButton, RISING);
 
-    if (g_has_not_homed == true)
-    {
-        LogDebug("OSSM will now home");
-        g_ui.UpdateMessage("Finding Home");
-        stepper.moveToHomeInMillimeters(1, 100, 400, LIMIT_SWITCH_PIN);
-        LogDebug("OSSM has homed, will now move out to max length");
-        g_ui.UpdateMessage("Moving to Max");
-        stepper.moveToPositionInMillimeters((-1 * maxStrokeLengthMm) - strokeZeroOffsetmm);
-        LogDebug("OSSM has moved out, will now set new home?");
-        stepper.setCurrentPositionAsHomeAndStop();
-        LogDebug("OSSM should now be home and happy");
-        g_has_not_homed = false;
-    }
-
-
-    // Kick off the http and motion tasks - they begin executing as soon as they
-    // are created here! Do not change the priority of the task, or do so with
-    // caution. RTOS runs first in first out, so if there are no delays in your
-    // tasks they will prevent all other code from running on that core!
+    //start the WiFi connection task so we can be doing something while homing!
     xTaskCreatePinnedToCore(wifiConnectionTask,   /* Task function. */
                             "wifiConnectionTask", /* name of task. */
                             10000,                /* Stack size of task */
@@ -244,6 +220,28 @@ void setup()
                             &wifiTask,            /* Task handle to keep track of created task */
                             0);                   /* pin task to core 0 */
     delay(100);
+
+    if (g_has_not_homed == true)
+    {
+        LogDebug("OSSM will now home");
+        g_ui.UpdateMessage("Finding Home");
+        stepper.setSpeedInMillimetersPerSecond(25);
+        stepper.moveToHomeInMillimeters(1, 25, 300, LIMIT_SWITCH_PIN);
+        LogDebug("OSSM has homed, will now move out to max length");
+        g_ui.UpdateMessage("Moving to Max");
+        stepper.setSpeedInMillimetersPerSecond(7);
+        stepper.moveToPositionInMillimeters((-1 * maxStrokeLengthMm) - strokeZeroOffsetmm);
+        LogDebug("OSSM has moved out, will now set new home?");
+        stepper.setCurrentPositionAsHomeAndStop();
+        LogDebug("OSSM should now be home and happy");
+        g_has_not_homed = false;
+    }
+
+    // Kick off the http and motion tasks - they begin executing as soon as they
+    // are created here! Do not change the priority of the task, or do so with
+    // caution. RTOS runs first in first out, so if there are no delays in your
+    // tasks they will prevent all other code from running on that core!
+
     xTaskCreatePinnedToCore(getUserInputTask,   /* Task function. */
                             "getUserInputTask", /* name of task. */
                             10000,              /* Stack size of task */
@@ -329,7 +327,7 @@ void estopResetTask(void *pvParameters)
 
 void wifiConnectionTask(void *pvParameters)
 {
-    wm.setConfigPortalTimeout(1);
+    wm.setConfigPortalTimeout(100);
     wm.setConfigPortalBlocking(false);
     // here we try to connect to WiFi or launch settings hotspot for you to enter
     // WiFi credentials
@@ -364,10 +362,8 @@ void getUserInputTask(void *pvParameters)
     for (;;) // tasks should loop forever and not return - or will throw error in
              // OS
     {
-        //LogDebug("Speed: " + String(speedPercentage) + "\% Stroke: " + String(strokePercentage) +
-        //         "\% Distance to target: " + String(stepper.getDistanceToTargetSigned()) + " steps?");
-
-
+        // LogDebug("Speed: " + String(speedPercentage) + "\% Stroke: " + String(strokePercentage) +
+        //          "\% Distance to target: " + String(stepper.getDistanceToTargetSigned()) + " steps?");
 
         if (speedPercentage > 1)
         {
@@ -376,7 +372,7 @@ void getUserInputTask(void *pvParameters)
         else
         {
             stepper.emergencyStop();
-            //LogDebug("FULL STOP CAPTAIN");
+            // LogDebug("FULL STOP CAPTAIN");
         }
 
         if (digitalRead(WIFI_CONTROL_TOGGLE_PIN) == HIGH) // TODO: check if wifi available and handle gracefully
@@ -386,6 +382,10 @@ void getUserInputTask(void *pvParameters)
                 // this is a transition to WiFi, we should tell the server it has
                 // control
                 wifiControlEnable = true;
+                if (WiFi.status() != WL_CONNECTED)
+                {
+                    delay(5000);
+                }
                 setInternetControl(wifiControlEnable);
             }
             getInternetSettings(); // we load speedPercentage and strokePercentage in
