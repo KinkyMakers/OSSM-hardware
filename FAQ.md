@@ -31,7 +31,7 @@ A build with a servo motor will have a flat torque curve across the speed range.
   
 
 ### Q: Hold on, why does anal play need more powerful motors? 
-A: When many people orgasm they clench their ass. This clench is powerful enough to stop less powerful motors that are moving heavier dildos.  
+A: Butts have big powerful muscles! It's common for people to bear down, or clench when things are feeling really good. Also it can be pretty fun shoving big objects in there! It can take a big motor to handle a big toy in a poweful butt.
 
 ### Q: What sized 3D printer do I need? 
 A: The minimum bed size is 105mm x 105mm for the largest single piece. Approximately 125mm of height is required for the shorter vac-u-lock compatible adapter, the plate is significantly shorter. 
