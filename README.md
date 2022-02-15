@@ -55,9 +55,9 @@ We are calling this the reference build, when deviating from it please check com
 2) ** IHSV57 NEMA23 Servo with 8mm shaft** : [Amazon.ca](https://www.amazon.ca/Integrated-Servo-Motor-IHSV57-30-10-3000rpm/dp/B081CVJHC7) | [JMC](https://www.jmc-motor.com/product/953.html)
    - *Avoid the StepperOnline version until we can further test*
    - Make sure you get something with 8mm shaft max!
-   - There are *3* sizes of this motor -100W,140W,180W. If you are using the 140W or180W version it is recommended to use a 10mm wide belt and pulley (see the next two items)
-   - search around for the best deal for you - have found occasionally better deals on Aliexpress
-   - [Force Calculator for OSSM](https://app.researchanddesire.com/ossm-calculator)
+   - search around for the best deal for you - reccommend searching "ihsv57" on Aliexpress and choosing the -10 -14 or -18
+   - There are *3* sizes of this motor.  100W = iHSV57-30-**10**, 140W = iHSV57-30-**14**, 180W = iHSV57-30-**18** 
+   - If you are using the 140W or180W version it is recommended to use a 10mm wide belt and pulley (see the next two items)
 3) **GT2 Pulley 8mm Bore 20 Tooth** : [Amazon.ca](https://www.amazon.ca/Saiper-Timing-Aluminum-Synchronous-Printer/dp/B07MDH63GX/ref=sr_1_5?dchild=1&keywords=8mm+bore+gt2&qid=1627821975&sr=8-5)
 4) **GT2 Timing Belt** : [Amazon.ca](https://www.amazon.ca/Printer-Timing-Teeth-Pulley-Wrench/dp/B08PKPK4D8/ref=sr_1_8?dchild=1&keywords=gt2+timing+belt&qid=1627821669&sr=8-8)
 * Only the GT2 belt is needed from this kit, however it's often cheaper with the incorrect sized pulleys in a bundle
@@ -70,7 +70,7 @@ We are calling this the reference build, when deviating from it please check com
    - Larger motors generally need more power. For the large 180W servo a 36V 5A supply would be ideal.
    - 140W -> 24V 6A or 36V 4A
    - 100W -> 24V 4A or 36V 3A
-   - Choose the closest supply to the guidelines, the ossm will still work, but may be limited at maximum thrust speed/force.
+   - Choose the closest supply to the guidelines, **the ossm will still work**, but may be limited at maximum thrust force.
    - Ensure the power supply is fully enclosed (like a laptop power supply)
    - Ensure the power supply has the correct approvals for your location
 8) **Metric Cap Screws** : [Amazon.ca](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_12?dchild=1&keywords=metric+socket+head+cap+screw+kit&qid=1600747665&sr=8-12)
