@@ -22,8 +22,9 @@ A: That depends on a couple of factors.
 - Anticipated Speed
   
 We don't have a lot of recorded data [Please help us with this!] however the general suggeestions are;
-- **100w or 140w** IHSV57 Servo : Vaginal usage with small / medium size toys and Anal usage with smaller toys 
-- **180w** IHSV57 servo works with a wide range of toys but if you like big really heavy fantasy dildos you might want to consider building a Squooter [see the discord] that uses and even a larger motor mount; the NEMA34 which has even more powerful motors.
+- **100w** IHSV57 Servo : Vaginal usage with medium size toys and Anal usage with smaller toys 
+- **140W** IHSV57 Servo : Vaginal usage with larger toys, Anal use with medium size toys
+- **180w** IHSV57 servo works with a wide range of toys and really packs a punch. However if you like seriously heavy fantasy dildos you might want to consider building a Squooter [see the discord] that uses and even a larger motor mount; the NEMA34 which has even more powerful motors.
 
 A build with a servo motor will have a flat torque curve across the speed range. That's to say - it will push just as hard at the slow speeds as well as the fast. 
   With a stepper, the most force will be at the slower speeds and the top speed of a stepper is much less than the servo we've chosen to work with. 
