@@ -28,7 +28,7 @@
         Wifi Control Pins
 */
 // Pin for WiFi reset button (optional)
-#define WIFI_RESET_PIN 0
+#define WIFI_RESET_PIN 23
 
 //Pin for the toggle for wifi control (Can be left alone if no hardware toggle is required)
 #define WIFI_CONTROL_TOGGLE_PIN 22
