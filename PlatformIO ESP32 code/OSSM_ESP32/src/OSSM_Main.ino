@@ -176,7 +176,7 @@ void setup()
     WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
     // put your setup code here, to run once:
     pinMode(MOTOR_ENABLE_PIN, OUTPUT);
-    pinMode(WIFI_RESET_PIN, INPUT_PULLUP);
+    pinMode(WIFI_RESET_PIN, INPUT_PULLDOWN);
     pinMode(WIFI_CONTROL_TOGGLE_PIN, WIFI_CONTROLLER); // choose between WIFI_CONTROLLER and LOCAL_CONTROLLER
     // test
 
@@ -196,7 +196,7 @@ void setup()
     analogSetAttenuation(ADC_11db); // allows us to read almost full 3.3V range
 
     // This is here in case you want to change WiFi settings - pull IO low
-    if (digitalRead(WIFI_RESET_PIN) == LOW)
+    if (digitalRead(WIFI_RESET_PIN) == HIGH)
     {
         // reset settings - for testing
         wm.resetSettings();
