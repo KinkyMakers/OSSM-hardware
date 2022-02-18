@@ -1,11 +1,13 @@
-## OSM 4040 Assembly
+![OSSM_4040_demo_wide](https://user-images.githubusercontent.com/12459679/154694727-2d1f8a40-9f06-414f-881b-a12a7c9f48b8.png)
+
+## OSSM 4040 Assembly
 
 All STL files in folder. 
 All Parts in f3d for edit and changes. 
 
 ## Parts Needed:
 
-4040 T-Nut Profil:
+4040 T-Nut Profile:
 2x 300 mm  (Could be Longer for Feets)
 1x 480 mm
 1x 470 mm
