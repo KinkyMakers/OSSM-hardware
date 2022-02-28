@@ -4,5 +4,8 @@
     "recommendations": [
         "editorconfig.editorconfig",
         "platformio.platformio-ide"
+    ],
+    "unwantedRecommendations": [
+        "ms-vscode.cpptools-extension-pack"
     ]
 }
