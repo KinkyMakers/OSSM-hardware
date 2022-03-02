@@ -29,7 +29,6 @@ We don't have a lot of recorded data [Please help us with this!] however the gen
 A build with a servo motor will have a flat torque curve across the speed range. That's to say - it will push just as hard at the slow speeds as well as the fast. 
   With a stepper, the most force will be at the slower speeds and the top speed of a stepper is much less than the servo we've chosen to work with. 
   
-
 ### Q: Hold on, why does anal play need more powerful motors? 
 A: Butts have big powerful muscles! It's common for people to bear down, or clench when things are feeling really good. Also it can be pretty fun shoving big objects in there! It can take a big motor to handle a big toy in a poweful butt.
 
@@ -39,18 +38,21 @@ A: The minimum bed size is 105mm x 105mm for the largest single piece. Approxima
 ### Q: What print material is best?
 A: All of our testing has been with simple PLA, however if you do print it in an interesting material make sure to share it to the discord!
 
-  
 ### Q: What is the infill percentage? 
-A: 40% has been found to work just fine with PLA
+A: 30% has been found to work just fine with PLA for non flexible parts 
+
+### Q: How thick are the walls and top?
+A: Recommend at least 3mm for non flexible parts. 
+
+### Q: What are these flexible parts and how should I print them?
+A: There are mounting solutions that use clamps for the OSSM these need some flexiblity.  For these parts thinner walls 2mm, lower infill percentages and a gyroid pattern. 
 
 ### Q: How do I mount toys onto the OSSM? 
-A: Aside from the motor this is second decision.  There is a vacc-u-lock compatible mount <insert name> and a plate mount for suction cup toys that has some points to tie a dildo down <insert name> 
+A: Aside from the motor this is second decision.  There is a vacc-u-lock compatible mount the double double and a plate mount for suction cup toys that has some points to tie a dildo down The OSSM Platten
 
-  
 ### Q: What to I mount the machine on?  
 A: Well there are a few designs available.  THere are standard pipe mounts for US/Canadian along with 80/20 rails that can be used like a construction set.  There are even manfrotto boom compatible adaptors.  It is really limited by you imagination. 
 
-  
 ### Q: How do I control my OSSM 
 A: It depends on how you are going to use it.  Basic OSSM control is via a web page there are also hardware controller.  If you want something specific you can create your own that is the great thing about open source hardware.
 
@@ -61,8 +63,10 @@ A: Yes you can control an OSSM over the internet.  Isn't it a great time to be a
 A: No you don't but it does make building an OSSM a lot easier and stops you having to solder anything.  
 
 ### Q: Powersupplies what size do I need?
-A: That is linked to the size of motor.  The higher the wattage of motor the higher amperage of powersupply you need.  All supplies have to output 48v ideally they are double insulated.  
+A: That is linked to the size of motor.  The higher the wattage of motor the larger the powersupply you need.  For safety use a desktop power supply that is ideally double insulated. Power supplies from Mouser/Digikey/Conrad/RS etc are all typically more expensive than "no brand supplies" you get from AliExpress/eBay/Amazon. Experience has been mixed with unbranded supplies with occasional quality and longer term stability issues.  
+
 - 100w JMC we currently suggest a 6A 24V Supply
-- 140w /180w JMC we currently suggest a 12A 24V Supply
+- 140w /180w JMC we currently suggest at least a 5A 36V Supply
 
-
+### Q: How long should the H-rail be?
+A: It is really up to you but a 350mm rail will give approximately 195mm of depth.  
