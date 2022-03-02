@@ -4,7 +4,7 @@ This is particularly important when it comes to managing all the libraries and d
 
 Why? More time for coding features andn easier collaboration! OSSM is moving fast. Once you get used to VSCode there are some other great features such automatic downloads from Github and linting (autocomplete for code). 
 
-1. Start by installing VSCode and the PlatformIO plug in. There are plenty of guides for this on the web.  
+1. Start by installing VSCode and the PlatformIO extension. There are plenty of guides for this on the web.  
 
 2. Restart VSCode wait until PlatformIO has started and look on the sidebar for this button.
 
