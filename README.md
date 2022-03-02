@@ -18,6 +18,9 @@ There are a few hardware flavours to choose from, we've included user modified v
 Join our Discord to be part of the discussion and get help with your build. https://discord.gg/MmpT9xE
 
 ### Software
+
+The software is available in this github repository, the software is written and compiled utilizing PlatformIO on Visual Studio Code. <a href="OSSM PlatformIO Readme.md">Reference for working with the code in PlatformIO here</a>
+
 We recommend using the ESP32 microcontroller. This code is still arduino IDE compatible but offers many times better performance and a nice internet dashboard you can use!
 Control your OSSM at https://app.researchanddesire.com/ossm !
 
