@@ -22,9 +22,9 @@ A: That depends on a couple of factors.
 - Anticipated Speed
   
 We don't have a lot of recorded data [Please help us with this!] however the general suggeestions are;
-- **100w** IHSV57 Servo : Vaginal usage with medium size toys and Anal usage with smaller toys 
-- **140W** IHSV57 Servo : Vaginal usage with larger toys, Anal use with medium size toys
-- **180w** IHSV57 servo works with a wide range of toys and really packs a punch. However if you like seriously heavy fantasy dildos you might want to consider building a Squooter [see the discord] that uses and even a larger motor mount; the NEMA34 which has even more powerful motors.
+- **100w** IHSV57 Servo : Vaginal usage with medium size toys and Anal usage with smaller toys (10 lbs force)
+- **140W** IHSV57 Servo : Vaginal usage with larger toys, Anal use with medium size toys (15 lbs force)
+- **180w** IHSV57 servo works with a wide range of toys for vaginal or anal play, and really packs a punch (20 lbs force). However if you like seriously heavy fantasy dildos you might want to consider building a Squooter [see the discord] that uses and even a larger motor mount; the NEMA34 which has even more powerful motors.
 
 A build with a servo motor will have a flat torque curve across the speed range. That's to say - it will push just as hard at the slow speeds as well as the fast. 
   With a stepper, the most force will be at the slower speeds and the top speed of a stepper is much less than the servo we've chosen to work with. 
@@ -65,8 +65,8 @@ A: No you don't but it does make building an OSSM a lot easier and stops you hav
 ### Q: Powersupplies what size do I need?
 A: That is linked to the size of motor.  The higher the wattage of motor the larger the powersupply you need.  For safety use a desktop power supply that is ideally double insulated. Power supplies from Mouser/Digikey/Conrad/RS etc are all typically more expensive than "no brand supplies" you get from AliExpress/eBay/Amazon. Experience has been mixed with unbranded supplies with occasional quality and longer term stability issues.  
 
-- 100w JMC we currently suggest a 6A 24V Supply
-- 140w /180w JMC we currently suggest at least a 5A 36V Supply
+- 100w JMC we currently suggest a 4A 24V Supply
+- 140w /180w JMC we currently suggest a 6A 24V or 5A 36V Supply
 
 ### Q: How long should the H-rail be?
 A: It is really up to you but a 350mm rail will give approximately 195mm of depth.  
