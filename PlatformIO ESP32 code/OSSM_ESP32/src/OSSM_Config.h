@@ -30,19 +30,21 @@ const float maxStrokeLengthMm = 75.f;
 const char *ossmId = "OSSM1";
 
 /*
+        Xtoys Config
+
+*/
+const float xtoySpeedScaling  = 1000.0f;          // Scaling how fast Xtoy can travel it is limted by maxSpeedMmPerSecond at top.
+const float xtoyAccelartion   = 40000.0f;         // Hard Coded Acceleration.
+const float xtoyDeaccelartion =  80000.0f;        // Hard Coded Decceleration.
+
+/*
         Advanced Config
 */
 // After homing this is the physical buffer distance from the effective zero to the home switch
 // This is to stop the home switch being smacked constantly
-const float strokeZeroOffsetmm = 6.0f;
+const float strokeZeroOffsetmm = 10.0f;
 // The minimum value of the pot in percent
 // prevents noisy pots registering commands when turned down to zero by user
 const float commandDeadzonePercentage = 1.0f;
 // affects acceleration in stepper trajectory (Aggressiveness of motion)
 const float accelerationScaling = 100.0f;
-
-
-
-
-
-
