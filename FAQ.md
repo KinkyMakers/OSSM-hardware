@@ -66,7 +66,7 @@ A: No you don't but it does make building an OSSM a lot easier and stops you hav
 A: That is linked to the size of motor.  The higher the wattage of motor the larger the powersupply you need.  For safety use a desktop power supply that is ideally double insulated. Power supplies from Mouser/Digikey/Conrad/RS etc are all typically more expensive than "no brand supplies" you get from AliExpress/eBay/Amazon. Experience has been mixed with unbranded supplies with occasional quality and longer term stability issues.  
 
 - 100w JMC we currently suggest a 4A 24V Supply
-- 140w /180w JMC we currently suggest a 6A 24V or 5A 36V Supply
+- 140w /180w JMC we currently suggest a 6A 24V
 
 ### Q: How long should the H-rail be?
 A: It is really up to you but a 350mm rail will give approximately 195mm of depth.  
