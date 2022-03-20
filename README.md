@@ -118,8 +118,7 @@ This should be a good start for the wiring of your OSSM! However, depending on y
 
 ### OSSM PCB w/ TB6600 Stepper Driver
 
-![image](https://user-images.githubusercontent.com/43324815/150360206-af9415c0-5eb6-42bb-a5fc-49bc39058e9d.png)
-
+<img width="1028" alt="image" src="https://user-images.githubusercontent.com/43324815/159145946-a9960bba-c9bc-4717-b3b4-5b5c34b4a3d2.png">
 
 ### Servo Wiring
 
