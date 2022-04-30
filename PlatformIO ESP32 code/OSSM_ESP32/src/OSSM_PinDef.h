@@ -1,4 +1,5 @@
-
+#ifndef OSSM_PIN_H
+#define OSSM_PIN_H
 /*
     Pin Definitions - Drivers, Buttons and Remotes
     OSSM Reference board users are unlikely to need to modify this! See OSSM_Config.h
@@ -47,3 +48,6 @@
 #define REMOTE_SDA 21
 #define REMOTE_CLK 19
 #define REMOTE_ADDRESS 0x3c
+
+
+#endif
