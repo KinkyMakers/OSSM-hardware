@@ -17,7 +17,7 @@ Users; fall into two subgroups and you can be both at once.  Operators and the r
 •	Think about any new hazards that your design may introduce.  Some ideas cannot be made safe, but other risks can be managed with careful thought. 
 •	Inclusive design is often safer design.  Designing for people that are visually, physically or cognitively impaired is hard but there are many benefits.  
 •	FDM/3D printed materials have some qualities you need to be aware of.  Layer orientation, material choice all can have a positive (or negative) impact on safety.
-•	For safety critical cases   Similarly be aware of the limitations of software.  Programming for safety is harder than it looks and there is a considerable body of knowledge devoted to it.  If you can find an alternate hazard mitigation such as a power switch that will be more reliable than a software interrupt.  
+•	For safety critical cases be aware of the limitations of software.  Programming for safety is harder than it looks and there is a considerable body of knowledge devoted to it.  If you can find an alternate hazard mitigation such as a power switch that will be more reliable than a software interrupt.  
 •	Don’t expect users and builders to “do the right thing”.  A designer is often best placed to understand the potential issues.  A builder may not identify risks and users are often distracted when using an OSSM. 
 
 **Guidance for builders**
