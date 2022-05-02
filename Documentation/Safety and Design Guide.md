@@ -36,7 +36,3 @@ Users; fall into two subgroups and you can be both at once.  Operators and the r
 •	Think about over penetration risks.  Being restrained and unable to move away from the machine greatly increases risk and chance of injury.  
 •	Lube, lube, lube  
 
-
-
-Unlike many products you may be a member of all three groups or only one but most people are builders and users.  
-
