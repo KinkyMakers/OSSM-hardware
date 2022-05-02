@@ -21,8 +21,8 @@ Our analysis identifies three areas of hazard; design, build and use which neatl
 **Guidance for builders**
 
 -	Get to know your 3D printer and filament.  For critical parts print with thicker walls, larger layer heights and hotter temperatures than normal to maximize strength.  Resin printers do not typically create strong enough prints to be used safely.
--	Think about finishing and sharp edges.  An OSSM is frequently used with minimal clothing and users are frequently distracted.
--	Try to avoid relying on the user of the OSSM “to do the right thing” and work around build deficiencies or missing parts such as covers.  
+-	Think about finishing and sharp edges.  An OSSM is frequently used with minimal clothing and users are often distracted.
+-	Try to avoid relying on the user of the OSSM to "do the right thing” and work around build deficiencies or missing parts such as covers.  
 
 **Guidance for users**
 
@@ -30,7 +30,7 @@ Our analysis identifies three areas of hazard; design, build and use which neatl
 -	Use appropriate toys.  
 -	Take frequent breaks.
 -	Perform an inspection prior to use.  Don’t operate an OSSM with missing or broken parts.
--	Don’t operate an OSSM while suffering temporary cognitively impairment.
+-	Don’t operate an OSSM while suffering temporary cognitive impairment.
 -	Think about over penetration risks.  Being restrained and unable to move away from the machine greatly increases risk and chance of injury.
 -	Lube, lube, lube  
 
