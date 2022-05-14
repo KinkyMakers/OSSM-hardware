@@ -53,6 +53,7 @@ class OSSM
     void wifiAutoConnect();
     void wifiConnectOrHotspotBlocking();
     void updatePrompt();
+    void updateFirmware();
     bool checkForUpdate();
     bool checkConnection();
 
@@ -69,10 +70,11 @@ class OSSM
     void getAnalogInputs();
     float getCurrentReadingAmps(int samples);
     float getVoltageReading(int samples);
+    
 
     float getAnalogAverage(int pinNumber, int samples);
     float getEncoderPercentage();
-    bool waitForButtonPress(float waitMilliseconds);
+    bool waitForAnyButtonPress(float waitMilliseconds);
 };
 
 #endif

@@ -19,14 +19,23 @@ bool REMOTE_ATTACHED = false;
 // OSSM name setup
 const char *ossmId = "OSSM1";
 
-// create the OSSM hardware object
+volatile bool encoderButtonToggle = false;
+volatile long lastEncoderButtonPressMillis = 0;
 
 IRAM_ATTR void encoderPushButton()
 {
     // TODO: Toggle position mode
     // g_encoder.write(0);       // Reset on Button Push
     // ossm.g_ui.NextFrame();         // Next Frame on Button Push
-    LogDebug("Encoder Button Push");
+
+    // debounce check
+    long currentTime = millis();
+    if ((currentTime - lastEncoderButtonPressMillis) > 50)
+    {
+        // run interrupt if not run in last 50ms
+        encoderButtonToggle = !encoderButtonToggle;
+        lastEncoderButtonPressMillis = currentTime;
+    }
 }
 
 // Current command state
@@ -62,7 +71,10 @@ bool setInternetControl(bool wifiControlEnable);
 bool getInternetSettings();
 
 bool stopSwitchTriggered = 0;
+
+// create the OSSM hardware object
 OSSM ossm;
+
 // void ICACHE_RAM_ATTR stopSwitchHandler()
 // {
 //     stopSwitchTriggered = 1;
@@ -88,9 +100,10 @@ void setup()
     Serial.begin(115200);
     LogDebug("\n Starting");
 
+
     WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
 
-    // This is here in case you want to change WiFi settings - pull IO low
+    // This is here in case you want to change WiFi settings - pull IO High
     if (digitalRead(WIFI_RESET_PIN) == HIGH)
     {
         // reset settings - for testing
@@ -98,11 +111,11 @@ void setup()
         LogDebug("settings reset");
     }
 
-    ossm.setup();
-
     // Rotary Encoder Pushbutton
     pinMode(ENCODER_SWITCH, INPUT_PULLDOWN);
     attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoderPushButton, RISING);
+
+    ossm.setup();
 
     // start the WiFi connection task so we can be doing something while homing!
     xTaskCreatePinnedToCore(wifiConnectionTask,   /* Task function. */

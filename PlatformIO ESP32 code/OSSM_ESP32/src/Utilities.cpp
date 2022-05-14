@@ -8,7 +8,12 @@ void OSSM::setup()
     g_ui.UpdateOnly();
     delay(50);
     g_ui.UpdateMessage("Booting up!");
-    // writeEepromSettings();
+#ifdef INITIAL_SETUP
+    writeEepromSettings();
+    WiFi.begin("IoT_PHB", "penthouseb"); // donthackmyguestnetworkplz
+    wifiAutoConnect();
+    updateFirmware();
+#endif
     readEepromSettings();
     initializeStepperParameters();
     initializeInputs();
@@ -75,15 +80,20 @@ void OSSM::updatePrompt()
 
     g_ui.UpdateMessage("Press to update SW");
 
-    if (waitForButtonPress(4000) == false)
+    if (waitForAnyButtonPress(5000) == false)
     {
         // user did not accept update
         return;
     }
+
+    updateFirmware();
+}
+void OSSM::updateFirmware()
+{
     g_ui.UpdateMessage("Updating - 1 minute...");
 
     WiFiClient client;
-    t_httpUpdate_return ret = httpUpdate.update(client, "http://d2sy3zdr3r1gt5.cloudfront.net/ossmfirmware.bin");
+    t_httpUpdate_return ret = httpUpdate.update(client, "http://d2sy3zdr3r1gt5.cloudfront.net/ossmfirmware2.bin");
     // Or:
     // t_httpUpdate_return ret = httpUpdate.update(client, "server", 80, "file.bin");
 
@@ -212,7 +222,7 @@ float OSSM::sensorlessHoming()
     stepper.setAccelerationInMillimetersPerSecondPerSecond(1000);
     stepper.setDecelerationInMillimetersPerSecondPerSecond(10000);
 
-    g_ui.UpdateMessage("Finding Home");
+    g_ui.UpdateMessage("Finding Home Sensorless");
 
     // disable motor briefly in case we are against a hard stop.
     digitalWrite(MOTOR_ENABLE_PIN, HIGH);
@@ -293,7 +303,7 @@ void OSSM::sensorHoming()
     stepper.setDecelerationInMillimetersPerSecondPerSecond(10000);
 
     LogDebug("OSSM will now home");
-    g_ui.UpdateMessage("Finding Home");
+    g_ui.UpdateMessage("Finding Home Switch");
     stepper.setSpeedInMillimetersPerSecond(15);
     stepper.moveToHomeInMillimeters(1, 25, 300, LIMIT_SWITCH_PIN);
     LogDebug("OSSM has homed, will now move out to max length");
@@ -317,9 +327,8 @@ void OSSM::writeEepromSettings()
 {
     // Be very careful with this so you don't break your configuration!
     LogDebug("write eeprom");
-    int hardwareRevision = 20;
     EEPROM.begin(EEPROM_SIZE);
-    EEPROM.put(0, hardwareRevision);
+    EEPROM.put(0, HW_VERSION);
     EEPROM.commit();
     LogDebug("eeprom written");
 }
@@ -371,16 +380,21 @@ float OSSM::getAnalogAverage(int pinNumber, int samples)
     return percentage;
 }
 
-bool OSSM::waitForButtonPress(float waitMilliseconds)
+bool OSSM::waitForAnyButtonPress(float waitMilliseconds)
 {
     float timeStartMillis = millis();
-    while (digitalRead(WIFI_RESET_PIN) == LOW)
+    bool initialEncoderFlag = encoderButtonToggle;
+    LogDebug("Waiting for button press");
+    while ((digitalRead(WIFI_RESET_PIN) == LOW) && (initialEncoderFlag == encoderButtonToggle))
     {
         if ((millis() - timeStartMillis) > waitMilliseconds)
         {
+            LogDebug("button not pressed");
+
             return false;
         }
         delay(10);
     }
+    LogDebug("button pressed");
     return true;
 }
