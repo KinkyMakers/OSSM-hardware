@@ -6,7 +6,6 @@
 #include <WiFiManager.h>      // Used to provide easy network connection  https://github.com/tzapu/WiFiManager
 #include <Wire.h>             // Used for i2c connections (Remote OLED Screen)
 
-#include "FastLED.h"     // Used for the LED on the Reference Board (or any other pixel LEDS you may add)
 #include "OSSM_Config.h" // START HERE FOR Configuration
 #include "OSSM_PinDef.h" // This is where you set pins specific for your board
 #include "OssmUi.h"      // Separate file that helps contain the OLED screen functions
@@ -52,13 +51,6 @@ TaskHandle_t motionTask = nullptr;
 TaskHandle_t estopTask = nullptr;
 TaskHandle_t oledTask = nullptr;
 
-#define BRIGHTNESS 170
-#define LED_TYPE WS2811
-#define COLOR_ORDER GRB
-#define LED_PIN 25
-#define NUM_LEDS 1
-CRGB leds[NUM_LEDS];
-
 // Declarations
 // TODO: Document functions
 void setLedRainbow(CRGB leds[]);
@@ -74,6 +66,7 @@ bool stopSwitchTriggered = 0;
 
 // create the OSSM hardware object
 OSSM ossm;
+CRGB leds[NUM_LEDS];
 
 // void ICACHE_RAM_ATTR stopSwitchHandler()
 // {
@@ -99,7 +92,6 @@ void setup()
     FastLED.show();
     Serial.begin(115200);
     LogDebug("\n Starting");
-
 
     WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
 

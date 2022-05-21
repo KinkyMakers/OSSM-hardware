@@ -9,6 +9,9 @@ void OSSM::setup()
     delay(50);
     g_ui.UpdateMessage("Booting up!");
 #ifdef INITIAL_SETUP
+    FastLED.setBrightness(150);
+    fill_rainbow(leds, NUM_LEDS, 34, 1);
+    FastLED.show();
     writeEepromSettings();
     WiFi.begin("IoT_PHB", "penthouseb"); // donthackmyguestnetworkplz
     wifiAutoConnect();
@@ -90,6 +93,9 @@ void OSSM::updatePrompt()
 }
 void OSSM::updateFirmware()
 {
+    FastLED.setBrightness(150);
+    fill_rainbow(leds, NUM_LEDS, 192, 1);
+    FastLED.show();
     g_ui.UpdateMessage("Updating - 1 minute...");
 
     WiFiClient client;

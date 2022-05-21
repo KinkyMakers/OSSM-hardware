@@ -9,11 +9,19 @@
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
 
+#include "FastLED.h" // Used for the LED on the Reference Board (or any other pixel LEDS you may add)
 #include "OSSM_Config.h"
 #include "OSSM_PinDef.h"
 #include "OssmUi.h" // Separate file that helps contain the OLED screen functions
 #include "WiFi.h"
 #include "WiFiManager.h"
+
+#define BRIGHTNESS 170
+#define LED_TYPE WS2811
+#define COLOR_ORDER GRB
+#define LED_PIN 25
+#define NUM_LEDS 1
+extern CRGB leds[NUM_LEDS];
 
 class OSSM
 {
@@ -25,6 +33,7 @@ class OSSM
     ESP_FlexyStepper stepper;
     Encoder g_encoder;
     OssmUi g_ui;
+    CRGB ossmleds[NUM_LEDS];
 
     float maxSpeedMmPerSecond = hardcode_maxSpeedMmPerSecond;
     float motorStepPerRevolution = hardcode_motorStepPerRevolution;
@@ -70,7 +79,6 @@ class OSSM
     void getAnalogInputs();
     float getCurrentReadingAmps(int samples);
     float getVoltageReading(int samples);
-    
 
     float getAnalogAverage(int pinNumber, int samples);
     float getEncoderPercentage();
