@@ -16,10 +16,13 @@ volatile bool g_has_not_homed = true;
 bool REMOTE_ATTACHED = false;
 
 // OSSM name setup
-const char *ossmId = "OSSM1";
+const char *ossmId = "life";
 
 volatile bool encoderButtonToggle = false;
 volatile long lastEncoderButtonPressMillis = 0;
+float lastLifeUpdateMillis = 0;
+
+float travelledDistanceKilometers = 0;
 
 IRAM_ATTR void encoderPushButton()
 {
@@ -140,7 +143,7 @@ void setup()
     delay(100);
     xTaskCreatePinnedToCore(motionCommandTask,   /* Task function. */
                             "motionCommandTask", /* name of task. */
-                            10000,               /* Stack size of task */
+                            20000,               /* Stack size of task */
                             NULL,                /* parameter of the task */
                             1,                   /* priority of the task */
                             &motionTask,         /* Task handle to keep track of created task */
@@ -282,12 +285,19 @@ void getUserInputTask(void *pvParameters)
             // going from high to low speed causes the motor to travel a long distance
             // before slowing. We should only change decel at rest
         }
-        vTaskDelay(100); // let other code run!
+        vTaskDelay(50); // let other code run!
     }
 }
 
 void motionCommandTask(void *pvParameters)
 {
+    float currentStroke = 0;
+    float lastLifeWrite = 0;
+    float seconds = 0;
+    float minutes = 0;
+    float hours = 0;
+    float days = 0;
+    float secondsOffset = ossm.lifeSecondsPowered;
     for (;;) // tasks should loop forever and not return - or will throw error in
              // OS
     {
@@ -299,6 +309,7 @@ void motionCommandTask(void *pvParameters)
         }
 
         float targetPosition = (strokePercentage / 100.0) * ossm.maxStrokeLengthMm;
+        currentStroke = abs(targetPosition);
         LogDebugFormatted("Moving stepper to position %ld \n", static_cast<long int>(targetPosition));
         vTaskDelay(1);
         ossm.stepper.setDecelerationInMillimetersPerSecondPerSecond(ossm.maxSpeedMmPerSecond * speedPercentage *
@@ -319,6 +330,30 @@ void motionCommandTask(void *pvParameters)
                                                                     speedPercentage / ossm.accelerationScaling);
         ossm.stepper.setTargetPositionInMillimeters(targetPosition);
         vTaskDelay(1);
+
+        ossm.numberStrokes++;
+        ossm.travelledDistanceMeters += (0.002 * currentStroke);
+        travelledDistanceKilometers = (0.001 * ossm.travelledDistanceMeters);
+        seconds = (0.001 * millis()) + secondsOffset;
+        minutes = seconds / 60;
+        hours = minutes / 60;
+        days = hours / 60;
+        if ((millis() - lastLifeUpdateMillis) > 5000)
+        {
+            Serial.printf("\n%dd %dh %dm %ds \n", ((int(days) % 60)), (int(hours) % 60), (int(minutes) % 60),
+                          (int(seconds) % 60));
+            Serial.printf("%.0f strokes \n", ossm.numberStrokes);
+            Serial.printf("%.2f kilometers \n", travelledDistanceKilometers);
+            Serial.printf("%.2fA avg current \n", ossm.averageCurrent);
+            lastLifeUpdateMillis = millis();
+        }
+        if ((millis() - lastLifeWrite) > 300000)
+        {
+            // write eeprom every 5 minutes
+            ossm.lifeSecondsPowered = seconds;
+            ossm.writeEepromLifeStats();
+            lastLifeWrite = millis();
+        }
     }
 }
 

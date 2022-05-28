@@ -326,6 +326,10 @@ int OSSM::readEepromSettings()
     LogDebug("read eeprom");
     EEPROM.begin(EEPROM_SIZE);
     EEPROM.get(0, hardwareVersion);
+    EEPROM.get(4, numberStrokes);
+    EEPROM.get(12, travelledDistanceMeters);
+    EEPROM.get(20, lifeSecondsPowered);
+
     return hardwareVersion;
 }
 
@@ -335,6 +339,21 @@ void OSSM::writeEepromSettings()
     LogDebug("write eeprom");
     EEPROM.begin(EEPROM_SIZE);
     EEPROM.put(0, HW_VERSION);
+    EEPROM.put(4, 0);
+    EEPROM.put(12, 0);
+    EEPROM.put(20, 0);
+    EEPROM.commit();
+    LogDebug("eeprom written");
+}
+void OSSM::writeEepromLifeStats()
+{
+    // Be very careful with this so you don't break your configuration!
+    LogDebug("writing eeprom life stats");
+    Serial.printf("\nwriting eeprom life stats...\n");
+    EEPROM.begin(EEPROM_SIZE);
+    EEPROM.put(4, numberStrokes);
+    EEPROM.put(12, travelledDistanceMeters);
+    EEPROM.put(20, lifeSecondsPowered);
     EEPROM.commit();
     LogDebug("eeprom written");
 }
@@ -343,10 +362,17 @@ void OSSM::getAnalogInputs()
 {
     speedPercentage = getAnalogAverage(SPEED_POT_PIN, 50);
     strokePercentage = getEncoderPercentage();
-    // current = getCurrentReadingAmps
+    immediateCurrent = getCurrentReadingAmps(20);
+    averageCurrent = immediateCurrent * 0.02 + averageCurrent * 0.98;
 }
 
-float OSSM::getCurrentReadingAmps(int samples) {}
+float OSSM::getCurrentReadingAmps(int samples)
+{
+    float currentAnalogPercent = getAnalogAverage(36, samples) - currentSensorOffset;
+    float current = currentAnalogPercent * 0.13886;
+    // 0.13886 is a scaling factor determined by real life testing. Convert percent full scale to amps.
+    return current;
+}
 float OSSM::getVoltageReading(int samples) {}
 
 float OSSM::getEncoderPercentage()

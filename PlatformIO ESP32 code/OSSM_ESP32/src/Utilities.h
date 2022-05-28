@@ -45,6 +45,11 @@ class OSSM
     float accelerationScaling = hardcode_accelerationScaling;
     int hardwareVersion = 10; // V2.7 = integer value 27
     float currentSensorOffset = 0;
+    float immediateCurrent = 0;
+    float averageCurrent = 0;
+    float numberStrokes = 0;
+    float travelledDistanceMeters = 0;
+    float lifeSecondsPowered = 0;
     char Id[20];
 
     float speedPercentage = 0;  // percentage 0-100
@@ -74,6 +79,7 @@ class OSSM
     void sensorHoming();
     int readEepromSettings();
     void writeEepromSettings();
+    void writeEepromLifeStats();
 
     // inputs
     void getAnalogInputs();

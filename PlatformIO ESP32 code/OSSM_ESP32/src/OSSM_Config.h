@@ -2,7 +2,7 @@
 #define OSSM_CONFIG_H
 
 
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 #define LogDebug(...) Serial.println(__VA_ARGS__)
