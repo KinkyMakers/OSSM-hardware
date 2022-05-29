@@ -43,6 +43,7 @@ class OSSM
     float strokeZeroOffsetmm = hardcode_strokeZeroOffsetmm;
     float commandDeadzonePercentage = commandDeadzonePercentage;
     float accelerationScaling = hardcode_accelerationScaling;
+
     int hardwareVersion = 10; // V2.7 = integer value 27
     float currentSensorOffset = 0;
     float immediateCurrent = 0;
@@ -50,6 +51,9 @@ class OSSM
     float numberStrokes = 0;
     float travelledDistanceMeters = 0;
     float lifeSecondsPowered = 0;
+    float lifeSecondsPoweredAtStartup = 0;
+    float lastLifeUpdateMillis = 0;
+    float lastLifeWriteMillis = 0;
     char Id[20];
 
     float speedPercentage = 0;  // percentage 0-100
@@ -80,6 +84,7 @@ class OSSM
     int readEepromSettings();
     void writeEepromSettings();
     void writeEepromLifeStats();
+    void updateLifeStats();
 
     // inputs
     void getAnalogInputs();

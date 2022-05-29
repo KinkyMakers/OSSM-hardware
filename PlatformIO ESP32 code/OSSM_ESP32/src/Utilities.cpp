@@ -353,9 +353,41 @@ void OSSM::writeEepromLifeStats()
     EEPROM.begin(EEPROM_SIZE);
     EEPROM.put(4, numberStrokes);
     EEPROM.put(12, travelledDistanceMeters);
-    EEPROM.put(20, lifeSecondsPowered);
+    EEPROM.put(20, lifeSecondsPoweredAtStartup);
     EEPROM.commit();
     LogDebug("eeprom written");
+}
+
+void OSSM::updateLifeStats()
+{
+
+    float minutes = 0;
+    float hours = 0;
+    float days = 0;
+    float travelledDistanceKilometers = 0;
+
+    travelledDistanceKilometers = (0.001 * travelledDistanceMeters);
+    lifeSecondsPowered = (0.001 * millis()) + lifeSecondsPoweredAtStartup;
+    minutes = lifeSecondsPowered / 60;
+    hours = minutes / 60;
+    days = hours / 24;
+    if ((millis() - lastLifeUpdateMillis) > 5000)
+    {
+        Serial.printf("\n%dd %dh %dm %ds \n", ((int(days))), (int(hours) % 24), (int(minutes) % 60),
+                      (int(lifeSecondsPowered) % 60));
+        Serial.printf("%.0f strokes \n", numberStrokes);
+        Serial.printf("%.2f kilometers \n", travelledDistanceKilometers);
+        Serial.printf("%.2fA avg current \n", averageCurrent);
+        lastLifeUpdateMillis = millis();
+    }
+    if ((millis() - lastLifeWriteMillis) > 180000)
+    {
+        // write eeprom every 3 minutes
+        writeEepromLifeStats();
+        lastLifeWriteMillis = millis();
+    }
+
+    return;
 }
 
 void OSSM::getAnalogInputs()

@@ -20,9 +20,9 @@ const char *ossmId = "OSSM1";
 
 volatile bool encoderButtonToggle = false;
 volatile long lastEncoderButtonPressMillis = 0;
-float lastLifeUpdateMillis = 0;
 
-float travelledDistanceKilometers = 0;
+
+
 
 IRAM_ATTR void encoderPushButton()
 {
@@ -292,12 +292,6 @@ void getUserInputTask(void *pvParameters)
 void motionCommandTask(void *pvParameters)
 {
     float currentStroke = 0;
-    float lastLifeWrite = 0;
-    float seconds = 0;
-    float minutes = 0;
-    float hours = 0;
-    float days = 0;
-    float secondsOffset = ossm.lifeSecondsPowered;
     for (;;) // tasks should loop forever and not return - or will throw error in
              // OS
     {
@@ -333,28 +327,9 @@ void motionCommandTask(void *pvParameters)
 
         ossm.numberStrokes++;
         ossm.travelledDistanceMeters += (0.002 * currentStroke);
-        travelledDistanceKilometers = (0.001 * ossm.travelledDistanceMeters);
-        seconds = (0.001 * millis()) + secondsOffset;
-        minutes = seconds / 60;
-        hours = minutes / 60;
-        days = hours / 24;
-        if ((millis() - lastLifeUpdateMillis) > 5000)
-        {
-            Serial.printf("\n%dd %dh %dm %ds \n", ((int(days))), (int(hours) % 24), (int(minutes) % 60),
-                          (int(seconds) % 60));
-            Serial.printf("%.0f strokes \n", ossm.numberStrokes);
-            Serial.printf("%.2f kilometers \n", travelledDistanceKilometers);
-            Serial.printf("%.2fA avg current \n", ossm.averageCurrent);
-            lastLifeUpdateMillis = millis();
+        ossm.updateLifeStats();
+
         }
-        if ((millis() - lastLifeWrite) > 300000)
-        {
-            // write eeprom every 5 minutes
-            ossm.lifeSecondsPowered = seconds;
-            ossm.writeEepromLifeStats();
-            lastLifeWrite = millis();
-        }
-    }
 }
 
 // float getAnalogVoltage(int pinNumber, int samples){
