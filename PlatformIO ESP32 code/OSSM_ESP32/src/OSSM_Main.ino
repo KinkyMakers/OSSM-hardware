@@ -16,7 +16,7 @@ volatile bool g_has_not_homed = true;
 bool REMOTE_ATTACHED = false;
 
 // OSSM name setup
-const char *ossmId = "life";
+const char *ossmId = "OSSM1";
 
 volatile bool encoderButtonToggle = false;
 volatile long lastEncoderButtonPressMillis = 0;
@@ -337,10 +337,10 @@ void motionCommandTask(void *pvParameters)
         seconds = (0.001 * millis()) + secondsOffset;
         minutes = seconds / 60;
         hours = minutes / 60;
-        days = hours / 60;
+        days = hours / 24;
         if ((millis() - lastLifeUpdateMillis) > 5000)
         {
-            Serial.printf("\n%dd %dh %dm %ds \n", ((int(days) % 60)), (int(hours) % 60), (int(minutes) % 60),
+            Serial.printf("\n%dd %dh %dm %ds \n", ((int(days))), (int(hours) % 24), (int(minutes) % 60),
                           (int(seconds) % 60));
             Serial.printf("%.0f strokes \n", ossm.numberStrokes);
             Serial.printf("%.2f kilometers \n", travelledDistanceKilometers);
