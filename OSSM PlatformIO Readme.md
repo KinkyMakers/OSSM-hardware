@@ -41,3 +41,7 @@ What if that doesn't work?  Check the debug screen but chances are you have not 
 ![image](https://user-images.githubusercontent.com/93972925/156354154-c71755e4-d19f-4387-bceb-743403777711.png)
 
 11. The reference board for OSSM has an embedded "Espressif ESP32 Dev Module".
+
+12. If the project fails to build and the upload fails DON'T PANIC! Chances are there has been some kind of external library update.  Try changing the following lines in platformIO.ini in the root of the project 
+
+"platform = espressif32"   to "platform = espressif32@3.5.0" 
