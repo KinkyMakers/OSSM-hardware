@@ -9,7 +9,8 @@
 #include "OSSM_Config.h" // START HERE FOR Configuration
 #include "OSSM_PinDef.h" // This is where you set pins specific for your board
 #include "OssmUi.h"      // Separate file that helps contain the OLED screen functions
-#include "Utilities.h"   // Utility helper functions - wifi update and homing
+#include "Stroke_Engine_Helper.h"
+#include "Utilities.h" // Utility helper functions - wifi update and homing
 
 // Homing
 volatile bool g_has_not_homed = true;
@@ -17,12 +18,8 @@ bool REMOTE_ATTACHED = false;
 
 // OSSM name setup
 const char *ossmId = "OSSM1";
-
 volatile bool encoderButtonToggle = false;
 volatile long lastEncoderButtonPressMillis = 0;
-
-
-
 
 IRAM_ATTR void encoderPushButton()
 {
@@ -32,7 +29,7 @@ IRAM_ATTR void encoderPushButton()
 
     // debounce check
     long currentTime = millis();
-    if ((currentTime - lastEncoderButtonPressMillis) > 50)
+    if ((currentTime - lastEncoderButtonPressMillis) > 100)
     {
         // run interrupt if not run in last 50ms
         encoderButtonToggle = !encoderButtonToggle;
@@ -41,9 +38,9 @@ IRAM_ATTR void encoderPushButton()
 }
 
 // Current command state
-volatile float strokePercentage = 0;
-volatile float speedPercentage = 0;
-volatile float deceleration = 0;
+// volatile float strokePercentage = 0;
+// volatile float ossm.speedPercentage = 0;
+// volatile float deceleration = 0;
 
 // Create tasks for checking pot input or web server control, and task to handle
 // planning the motion profile (this task is high level only and does not pulse
@@ -56,7 +53,7 @@ TaskHandle_t oledTask = nullptr;
 
 // Declarations
 // TODO: Document functions
-void setLedRainbow(CRGB leds[]);
+// void setLedRainbow(CRGB leds[]);
 void getUserInputTask(void *pvParameters);
 void motionCommandTask(void *pvParameters);
 void wifiConnectionTask(void *pvParameters);
@@ -69,70 +66,40 @@ bool stopSwitchTriggered = 0;
 
 // create the OSSM hardware object
 OSSM ossm;
-CRGB leds[NUM_LEDS];
-
-// void ICACHE_RAM_ATTR stopSwitchHandler()
-// {
-//     stopSwitchTriggered = 1;
-//     vTaskSuspend(motionTask);
-//     vTaskSuspend(getInputTask);
-//     ossm.stepper.emergencyStop();
-// }
 
 ///////////////////////////////////////////
 ////
-////
 ////  VOID SETUP -- Here's where it's hiding
-////
 ////
 ///////////////////////////////////////////
 
 void setup()
 {
-    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-    FastLED.setBrightness(150);
-    setLedRainbow(leds);
-    FastLED.show();
+    ossm.startLeds();
     Serial.begin(115200);
     LogDebug("\n Starting");
-
-    WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
-
-    // This is here in case you want to change WiFi settings - pull IO High
-    if (digitalRead(WIFI_RESET_PIN) == HIGH)
-    {
-        // reset settings - for testing
-        ossm.wm.resetSettings();
-        LogDebug("settings reset");
-    }
-
-    // Rotary Encoder Pushbutton
-    pinMode(ENCODER_SWITCH, INPUT_PULLDOWN);
+    pinMode(ENCODER_SWITCH, INPUT_PULLDOWN); // Rotary Encoder Pushbutton
     attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoderPushButton, RISING);
 
     ossm.setup();
+    ossm.findHome();
+
+    ossm.setRunMode();
 
     // start the WiFi connection task so we can be doing something while homing!
-    xTaskCreatePinnedToCore(wifiConnectionTask,   /* Task function. */
-                            "wifiConnectionTask", /* name of task. */
-                            10000,                /* Stack size of task */
-                            NULL,                 /* parameter of the task */
-                            1,                    /* priority of the task */
-                            &wifiTask,            /* Task handle to keep track of created task */
-                            0);                   /* pin task to core 0 */
-    delay(100);
-
-    if (g_has_not_homed == true)
-    {
-        ossm.findHome();
-        g_has_not_homed = false;
-    }
+    // xTaskCreatePinnedToCore(wifiConnectionTask,   /* Task function. */
+    //                         "wifiConnectionTask", /* name of task. */
+    //                         10000,                /* Stack size of task */
+    //                         NULL,                 /* parameter of the task */
+    //                         1,                    /* priority of the task */
+    //                         &wifiTask,            /* Task handle to keep track of created task */
+    //                         0);                   /* pin task to core 0 */
+    // delay(100);
 
     // Kick off the http and motion tasks - they begin executing as soon as they
     // are created here! Do not change the priority of the task, or do so with
     // caution. RTOS runs first in first out, so if there are no delays in your
     // tasks they will prevent all other code from running on that core!
-
     xTaskCreatePinnedToCore(getUserInputTask,   /* Task function. */
                             "getUserInputTask", /* name of task. */
                             10000,              /* Stack size of task */
@@ -159,7 +126,6 @@ void setup()
                             0);               /* pin task to core 0 */
 
     delay(100);
-
     ossm.g_ui.UpdateMessage("OSSM Ready to Play");
 } // Void Setup()
 
@@ -173,7 +139,7 @@ void setup()
 
 void loop()
 {
-    ossm.g_ui.UpdateState(static_cast<int>(speedPercentage), static_cast<int>(strokePercentage + 0.5f));
+    ossm.g_ui.UpdateState(static_cast<int>(ossm.speedPercentage), static_cast<int>(ossm.strokePercentage + 0.5f));
     ossm.g_ui.UpdateScreen();
 
     // debug
@@ -204,7 +170,7 @@ void estopResetTask(void *pvParameters)
     {
         if (stopSwitchTriggered == 1)
         {
-            while ((ossm.getAnalogAverage(SPEED_POT_PIN, 50) > 2))
+            while ((ossm.getAnalogAveragePercent(SPEED_POT_PIN, 50) > 2))
             {
                 vTaskDelay(1);
             }
@@ -229,20 +195,12 @@ void getUserInputTask(void *pvParameters)
     for (;;) // tasks should loop forever and not return - or will throw error in
              // OS
     {
-        // LogDebug("Speed: " + String(speedPercentage) + "\% Stroke: " + String(strokePercentage) +
+        // LogDebug("Speed: " + String(ossm.speedPercentage) + "\% Stroke: " + String(ossm.strokePercentage) +
         //          "\% Distance to target: " + String(ossm.stepper.getDistanceToTargetSigned()) + " steps?");
 
-        ossm.getAnalogInputs();
+        ossm.updateAnalogInputs();
 
-        if (speedPercentage > 1)
-        {
-            ossm.stepper.releaseEmergencyStop();
-        }
-        else
-        {
-            ossm.stepper.emergencyStop();
-            // LogDebug("FULL STOP CAPTAIN");
-        }
+        ossm.speedPercentage > 1 ? ossm.stepper.releaseEmergencyStop() : ossm.stepper.emergencyStop();
 
         if (digitalRead(WIFI_CONTROL_TOGGLE_PIN) == HIGH) // TODO: check if wifi available and handle gracefully
         {
@@ -257,7 +215,7 @@ void getUserInputTask(void *pvParameters)
                 }
                 setInternetControl(wifiControlEnable);
             }
-            getInternetSettings(); // we load speedPercentage and strokePercentage in
+            getInternetSettings(); // we load ossm.speedPercentage and ossm.strokePercentage in
                                    // this routine.
         }
         else
@@ -269,18 +227,18 @@ void getUserInputTask(void *pvParameters)
                 wifiControlEnable = false;
                 setInternetControl(wifiControlEnable);
             }
-            speedPercentage = ossm.speedPercentage;
-            // strokePercentage = getAnalogAverage(STROKE_POT_PIN, 50);
-            strokePercentage = ossm.getEncoderPercentage();
+            ossm.speedPercentage = ossm.speedPercentage;
+            // ossm.strokePercentage = getAnalogAverage(STROKE_POT_PIN, 50);
+            ossm.strokePercentage = ossm.getEncoderPercentage();
         }
 
         // We should scale these values with initialized settings not hard coded
         // values!
-        if (speedPercentage > commandDeadzonePercentage)
+        if (ossm.speedPercentage > commandDeadzonePercentage)
         {
-            ossm.stepper.setSpeedInMillimetersPerSecond(ossm.maxSpeedMmPerSecond * speedPercentage / 100.0);
-            ossm.stepper.setAccelerationInMillimetersPerSecondPerSecond(ossm.maxSpeedMmPerSecond * speedPercentage *
-                                                                        speedPercentage / ossm.accelerationScaling);
+            ossm.stepper.setSpeedInMillimetersPerSecond(ossm.maxSpeedMmPerSecond * ossm.speedPercentage / 100.0);
+            ossm.stepper.setAccelerationInMillimetersPerSecondPerSecond(
+                ossm.maxSpeedMmPerSecond * ossm.speedPercentage * ossm.speedPercentage / ossm.accelerationScaling);
             // We do not set deceleration value here because setting a low decel when
             // going from high to low speed causes the motor to travel a long distance
             // before slowing. We should only change decel at rest
@@ -291,45 +249,20 @@ void getUserInputTask(void *pvParameters)
 
 void motionCommandTask(void *pvParameters)
 {
-    float currentStroke = 0;
     for (;;) // tasks should loop forever and not return - or will throw error in
              // OS
     {
-        // poll at 200Hz for when motion is complete
-        while ((ossm.stepper.getDistanceToTargetSigned() != 0) || (strokePercentage < commandDeadzonePercentage) ||
-               (speedPercentage < commandDeadzonePercentage))
+        switch (ossm.activeRunMode)
         {
-            vTaskDelay(5); // wait for motion to complete and requested stroke more than zero
+            case ossm.simpleMode:
+                ossm.runPenetrate();
+                break;
+
+            case ossm.strokeEngineMode:
+                ossm.runStrokeEngine();
+                break;
         }
-
-        float targetPosition = (strokePercentage / 100.0) * ossm.maxStrokeLengthMm;
-        currentStroke = abs(targetPosition);
-        LogDebugFormatted("Moving stepper to position %ld \n", static_cast<long int>(targetPosition));
-        vTaskDelay(1);
-        ossm.stepper.setDecelerationInMillimetersPerSecondPerSecond(ossm.maxSpeedMmPerSecond * speedPercentage *
-                                                                    speedPercentage / ossm.accelerationScaling);
-        ossm.stepper.setTargetPositionInMillimeters(targetPosition);
-        vTaskDelay(1);
-
-        while ((ossm.stepper.getDistanceToTargetSigned() != 0) || (strokePercentage < commandDeadzonePercentage) ||
-               (speedPercentage < commandDeadzonePercentage))
-        {
-            vTaskDelay(5); // wait for motion to complete, since we are going back to
-                           // zero, don't care about stroke value
-        }
-        targetPosition = 0;
-        // Serial.printf("Moving stepper to position %ld \n", targetPosition);
-        vTaskDelay(1);
-        ossm.stepper.setDecelerationInMillimetersPerSecondPerSecond(ossm.maxSpeedMmPerSecond * speedPercentage *
-                                                                    speedPercentage / ossm.accelerationScaling);
-        ossm.stepper.setTargetPositionInMillimeters(targetPosition);
-        vTaskDelay(1);
-
-        ossm.numberStrokes++;
-        ossm.travelledDistanceMeters += (0.002 * currentStroke);
-        ossm.updateLifeStats();
-
-        }
+    }
 }
 
 // float getAnalogVoltage(int pinNumber, int samples){
@@ -351,8 +284,8 @@ bool setInternetControl(bool wifiControlEnable)
     StaticJsonDocument<200> doc;
     doc["ossmId"] = ossmId;
     doc["wifiControlEnabled"] = wifiControlEnable;
-    doc["stroke"] = strokePercentage;
-    doc["speed"] = speedPercentage;
+    doc["stroke"] = ossm.strokePercentage;
+    doc["speed"] = ossm.speedPercentage;
     String requestBody;
     serializeJson(doc, requestBody);
 
@@ -414,8 +347,8 @@ bool getInternetSettings()
 
     // TODO: handle status response
     // const char *status = bubbleResponse["status"]; // "success"
-    strokePercentage = bubbleResponse["response"]["stroke"];
-    speedPercentage = bubbleResponse["response"]["speed"];
+    ossm.strokePercentage = bubbleResponse["response"]["stroke"];
+    ossm.speedPercentage = bubbleResponse["response"]["speed"];
 
     // debug info on the http payload
     LogDebug(payload);
@@ -423,15 +356,15 @@ bool getInternetSettings()
 
     return true;
 }
-void setLedRainbow(CRGB leds[])
-{
-    // int power = 250;
+// void setLedRainbow(CRGB leds[])
+// {
+//     // int power = 250;
 
-    for (int hueShift = 0; hueShift < 350; hueShift++)
-    {
-        int gHue = hueShift % 255;
-        fill_rainbow(leds, NUM_LEDS, gHue, 25);
-        FastLED.show();
-        delay(4);
-    }
-}
+//     for (int hueShift = 0; hueShift < 350; hueShift++)
+//     {
+//         int gHue = hueShift % 255;
+//         fill_rainbow(leds, NUM_LEDS, gHue, 25);
+//         FastLED.show();
+//         delay(4);
+//     }
+// }

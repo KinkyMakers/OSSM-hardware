@@ -8,6 +8,7 @@
 #include <Encoder.h>          // Used for the Remote Encoder Input
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
+#include <StrokeEngine.h>
 
 #include "FastLED.h" // Used for the LED on the Reference Board (or any other pixel LEDS you may add)
 #include "OSSM_Config.h"
@@ -21,7 +22,6 @@
 #define COLOR_ORDER GRB
 #define LED_PIN 25
 #define NUM_LEDS 1
-extern CRGB leds[NUM_LEDS];
 
 class OSSM
 {
@@ -35,6 +35,10 @@ class OSSM
     OssmUi g_ui;
     CRGB ossmleds[NUM_LEDS];
 
+    enum runMode {simpleMode, strokeEngineMode};
+    int runModeCount = 2;
+
+    runMode activeRunMode = simpleMode;
     float maxSpeedMmPerSecond = hardcode_maxSpeedMmPerSecond;
     float motorStepPerRevolution = hardcode_motorStepPerRevolution;
     float pulleyToothCount = hardcode_pulleyToothCount;
@@ -56,6 +60,7 @@ class OSSM
     float lastLifeWriteMillis = 0;
     char Id[20];
 
+    bool wifiControlActive = false;
     float speedPercentage = 0;  // percentage 0-100
     float strokePercentage = 0; // percentage 0-100
 
@@ -66,6 +71,11 @@ class OSSM
     }
 
     void setup();
+
+    void runPenetrate(); //runs actual penetration motion one cycle
+    void runStrokeEngine(); //runs stroke Engine
+    String getPatternJSON(StrokeEngine Stroker);
+    void setRunMode();
 
     // WiFi helper functions
     void wifiAutoConnect();
@@ -85,13 +95,14 @@ class OSSM
     void writeEepromSettings();
     void writeEepromLifeStats();
     void updateLifeStats();
+    void startLeds();
 
     // inputs
-    void getAnalogInputs();
+    void updateAnalogInputs();
     float getCurrentReadingAmps(int samples);
     float getVoltageReading(int samples);
 
-    float getAnalogAverage(int pinNumber, int samples);
+    float getAnalogAveragePercent(int pinNumber, int samples);
     float getEncoderPercentage();
     bool waitForAnyButtonPress(float waitMilliseconds);
 };
