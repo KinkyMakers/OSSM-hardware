@@ -36,6 +36,8 @@ class OssmUi
 
     void UpdateMessage(String message_in);
 
+    void showBootScreen();
+
     void ShowFrame(uint8_t frame)
     {
         m_ui.switchToFrame(frame);

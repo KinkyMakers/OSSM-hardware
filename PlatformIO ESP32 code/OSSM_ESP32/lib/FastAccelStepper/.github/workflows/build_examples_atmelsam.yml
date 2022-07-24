@@ -1,0 +1,21 @@
+name: Build examples for Atmel SAM
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Make directories
+      run: bash extras/scripts/build-pio-dirs.sh
+    - name: Build on PlatformIO
+      run: bash extras/scripts/build-platformio.sh atmelsam
+

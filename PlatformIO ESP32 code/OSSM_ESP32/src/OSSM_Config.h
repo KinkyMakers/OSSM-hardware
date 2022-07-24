@@ -2,7 +2,7 @@
 #define OSSM_CONFIG_H
 
 
-//#define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define LogDebug(...) Serial.println(__VA_ARGS__)
@@ -12,11 +12,11 @@
 #define LogDebugFormatted(...) ((void)0)
 #endif
 
-#define SW_VERSION "0.201"
-#define HW_VERSION 20 //divide by 10 for real hw version
+#define SW_VERSION "0.21"
+#define HW_VERSION 21 //divide by 10 for real hw version
 #define EEPROM_SIZE 200
 
-//#define INITIAL_SETUP //should only be defined at initial burn to configure HW version
+// #define INITIAL_SETUP //should only be defined at initial burn to configure HW version
 
 extern volatile bool encoderButtonToggle;
 extern volatile long lastEncoderButtonPressMillis;
