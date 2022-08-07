@@ -13,7 +13,7 @@ void OSSM::setup()
     g_ui.UpdateMessage("Booting up!");
 #ifdef INITIAL_SETUP
     FastLED.setBrightness(150);
-    fill_rainbow(leds, NUM_LEDS, 34, 1);
+    fill_rainbow(ossmleds, NUM_LEDS, 34, 1);
     FastLED.show();
     writeEepromSettings();
     WiFi.begin("IoT_PHB", "penthouseb"); // donthackmyguestnetworkplz

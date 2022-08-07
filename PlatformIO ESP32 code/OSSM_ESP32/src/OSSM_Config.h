@@ -16,7 +16,7 @@
 #define HW_VERSION 21 //divide by 10 for real hw version
 #define EEPROM_SIZE 200
 
-// #define INITIAL_SETUP //should only be defined at initial burn to configure HW version
+//#define INITIAL_SETUP //should only be defined at initial burn to configure HW version
 
 extern volatile bool encoderButtonToggle;
 extern volatile long lastEncoderButtonPressMillis;
