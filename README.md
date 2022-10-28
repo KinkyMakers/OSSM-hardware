@@ -71,7 +71,7 @@ We are calling this the reference build, when deviating from it please check com
    - Minimum 250mm in length
    - Rail length = desired stroke + 180mm
    - Must be MGN12**H** rail
-7) **Power Supply** : [Amazon.ca](https://www.amazon.ca/LEDENET-Adapter-Flexible-Lighting-5-52-5mm/dp/B078N5DC2J/ref=sr_1_9?keywords=24v+4a&qid=1636728925&sr=8-9)
+7) **Power Supply** : 24v 4-5A w/ 2.1mm DC plug - (need to update reference link)
    - Larger motors generally need more power. 
    - 180W -> 24V 6A
    - 140W -> 24V 6A
