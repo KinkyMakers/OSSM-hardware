@@ -29,7 +29,7 @@ IRAM_ATTR void encoderPushButton()
 
     // debounce check
     long currentTime = millis();
-    if ((currentTime - lastEncoderButtonPressMillis) > 100)
+    if ((currentTime - lastEncoderButtonPressMillis) > 200)
     {
         // run interrupt if not run in last 50ms
         encoderButtonToggle = !encoderButtonToggle;

@@ -31,6 +31,6 @@ static motorProperties servoMotor{
     .enablePin = MOTOR_ENABLE_PIN};
 
 static endstopProperties endstop = {
-    .homeToBack = true, .activeLow = true, .endstopPin = LIMIT_SWITCH_PIN, .pinMode = INPUT};
+    .homeToBack = false, .activeLow = true, .endstopPin = LIMIT_SWITCH_PIN, .pinMode = INPUT};
 
 #endif

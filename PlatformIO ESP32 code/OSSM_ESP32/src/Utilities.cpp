@@ -1,5 +1,7 @@
 #include "Utilities.h"
 
+#include <string>
+
 #include "Stroke_Engine_Helper.h"
 
 void OSSM::setup()
@@ -10,7 +12,11 @@ void OSSM::setup()
     g_ui.Setup();
     g_ui.UpdateOnly();
     delay(50);
-    g_ui.UpdateMessage("Booting up!");
+    String message = "";
+    message += "V";
+    message += SW_VERSION;
+    message += " Booting up!";
+    g_ui.UpdateMessage(message);
 #ifdef INITIAL_SETUP
     FastLED.setBrightness(150);
     fill_rainbow(ossmleds, NUM_LEDS, 34, 1);
@@ -122,6 +128,7 @@ void OSSM::runStrokeEngine()
             {
                 strokePattern = 0;
             }
+            Stroker.stopMotion();//testing!
             Stroker.setPattern(strokePattern, false); // Pattern, index must be < Stroker.getNumberOfPattern()
             g_ui.UpdateMessage(Stroker.getPatternName(strokePattern));
             Stroker.startPattern();
