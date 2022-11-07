@@ -18,7 +18,7 @@
 
 //#define INITIAL_SETUP //should only be defined at initial burn to configure HW version
 
-extern volatile bool encoderButtonToggle;
+extern volatile int encoderButtonPresses;
 extern volatile long lastEncoderButtonPressMillis;
 
 /*
