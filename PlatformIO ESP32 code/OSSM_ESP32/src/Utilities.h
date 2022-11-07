@@ -39,10 +39,10 @@ class OSSM
     OssmUi g_ui;
     CRGB ossmleds[NUM_LEDS];
 
-    enum runMode {strokeEngineMode, simpleMode};
+    enum runMode {simpleMode, strokeEngineMode};
     int runModeCount = 2;
 
-    runMode activeRunMode = strokeEngineMode;
+    runMode activeRunMode = simpleMode;
     float maxSpeedMmPerSecond = hardcode_maxSpeedMmPerSecond;
     float motorStepPerRevolution = hardcode_motorStepPerRevolution;
     float pulleyToothCount = hardcode_pulleyToothCount;
