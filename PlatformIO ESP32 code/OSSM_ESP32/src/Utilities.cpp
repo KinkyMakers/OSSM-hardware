@@ -110,6 +110,7 @@ void OSSM::runStrokeEngine()
     Stroker.setPattern(strokePattern, true);
     Stroker.setDepth(0.01 * depthPercentage * abs(maxStrokeLengthMm), true);
     Stroker.setStroke(0.01 * strokePercentage * abs(maxStrokeLengthMm), true);
+    Stroker.moveToMax(10 * 3);
     Serial.println(Stroker.getState());
     g_ui.UpdateMessage(Stroker.getPatternName(strokePattern));
 
