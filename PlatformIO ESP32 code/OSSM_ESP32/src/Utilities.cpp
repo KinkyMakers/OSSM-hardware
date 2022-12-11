@@ -80,8 +80,7 @@ void OSSM::runPenetrate()
 
 void OSSM::runTCode()
 {
-    OSSMTCode tcode;
-    tcode.setup(stepper, maxStrokeLengthMm);
+    OSSMTCode tcode(stepper, maxStrokeLengthMm);
     for (;;)
     {
         tcode.loop();

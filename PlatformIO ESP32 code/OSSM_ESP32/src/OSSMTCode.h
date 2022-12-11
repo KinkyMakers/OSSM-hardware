@@ -9,7 +9,7 @@
 class OSSMTCode
 {
     int xLin;
-    ESP_FlexyStepper stepper;
+    ESP_FlexyStepper& stepper;
 
     float maxSpeedMmPerSecond = hardcode_maxSpeedMmPerSecond;
     float maxStrokeLengthMm = hardcode_maxStrokeLengthMm;
@@ -21,9 +21,9 @@ class OSSMTCode
     TaskHandle_t xInputTaskHandle = NULL;
 
    public:
-    void setup(ESP_FlexyStepper stepper, float maxStrokeLengthMm);
+    OSSMTCode(ESP_FlexyStepper& stepper, float maxStrokeLengthMm);
     void loop();
 
    private:
-    void static inputTask(void *parameter);
+    void static inputTask(void* parameter);
 };

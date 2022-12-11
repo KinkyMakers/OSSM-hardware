@@ -14,21 +14,19 @@ TCode tcode(FIRMWARE_ID, TCODE_VER);
 
 #define TCODE_PORT 6969
 
-void OSSMTCode::setup(ESP_FlexyStepper stepper, float maxStrokeLengthMm)
+OSSMTCode::OSSMTCode(ESP_FlexyStepper &stepper, float maxStrokeLengthMm) : stepper(stepper)
 {
     tcode.RegisterAxis("L0", "Up");
     this->stepper = stepper;
     this->maxStrokeLengthMm = maxStrokeLengthMm;
-
     stepper.setAccelerationInMillimetersPerSecondPerSecond(hardcode_maxSpeedMmPerSecond * 100.0);
     stepper.setDecelerationInMillimetersPerSecondPerSecond(hardcode_maxSpeedMmPerSecond * 100.0);
     stepper.setSpeedInMillimetersPerSecond(hardcode_maxSpeedMmPerSecond);
-
     wifiUdp.begin(TCODE_PORT);
 
     xTaskCreatePinnedToCore(OSSMTCode::inputTask,    /* Task function. */
                             "TCodeInputTask",        /* String with name of task (by default max 16 characters long) */
-                            512,                     /* Stack size in bytes. */
+                            2000,                    /* Stack size in bytes. */
                             this,                    /* Parameter passed as input of the task */
                             1,                       /* Priority of the task, 1 seems to work just fine for us */
                             &this->xInputTaskHandle, /* Task handle. */
@@ -39,7 +37,7 @@ void OSSMTCode::loop()
 {
     xLin = tcode.AxisRead("L0");
     auto targetMm = map(xLin, 0, 9999, 0 + 5, maxStrokeLengthMm - 5);
-    stepper.setTargetPositionInMillimeters(targetMm);
+    this->stepper.setTargetPositionInMillimeters(targetMm);
     vTaskDelay(10);
 };
 
