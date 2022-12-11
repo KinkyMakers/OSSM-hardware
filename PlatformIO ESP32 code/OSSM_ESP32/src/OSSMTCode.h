@@ -10,10 +10,10 @@ class OSSMTCode
 {
     int xLin;
     ESP_FlexyStepper& stepper;
+    TCode tcode;
 
     float maxSpeedMmPerSecond = hardcode_maxSpeedMmPerSecond;
     float maxStrokeLengthMm = hardcode_maxStrokeLengthMm;
-    float accelerationScaling = hardcode_accelerationScaling;
 
     WiFiUDP wifiUdp;
     bool udpInitialized = false;

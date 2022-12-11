@@ -9,20 +9,17 @@
 #define FIRMWARE_ID "OSSMTCode.cpp" // Device and firmware version
 #define TCODE_VER "TCode v0.3"      // Current version of TCode
 
-// todo make this a class member
-TCode tcode(FIRMWARE_ID, TCODE_VER);
-
 #define TCODE_PORT 6969
 
-OSSMTCode::OSSMTCode(ESP_FlexyStepper &stepper, float maxStrokeLengthMm) : stepper(stepper)
+OSSMTCode::OSSMTCode(ESP_FlexyStepper &stepper, float maxStrokeLengthMm) : stepper(stepper), tcode(FIRMWARE_ID, TCODE_VER)
 {
     tcode.RegisterAxis("L0", "Up");
     this->maxStrokeLengthMm = maxStrokeLengthMm;
 
     // Acceleration calculation/motion planning is supposed to be handled by the TCode generator.
-    stepper.setAccelerationInMillimetersPerSecondPerSecond(hardcode_maxSpeedMmPerSecond * 100.0);
-    stepper.setDecelerationInMillimetersPerSecondPerSecond(hardcode_maxSpeedMmPerSecond * 100.0);
-    stepper.setSpeedInMillimetersPerSecond(hardcode_maxSpeedMmPerSecond);
+    stepper.setAccelerationInMillimetersPerSecondPerSecond(maxSpeedMmPerSecond * 100.0);
+    stepper.setDecelerationInMillimetersPerSecondPerSecond(maxSpeedMmPerSecond * 100.0);
+    stepper.setSpeedInMillimetersPerSecond(maxSpeedMmPerSecond);
     wifiUdp.begin(TCODE_PORT);
 
     xTaskCreatePinnedToCore(OSSMTCode::inputTask,    /* Task function. */
@@ -73,14 +70,14 @@ void OSSMTCode::inputTask(void *parameter)
             }
             for (int i = 0; i++; i < len)
             {
-                tcode.ByteInput(packetBuffer[i]);
+                tRef->tcode.ByteInput(packetBuffer[i]);
             }
         }
         // Read serial and send to tcode class
         while (Serial.available() > 0)
         {
             // Send the serial bytes to the t-code object
-            tcode.ByteInput(Serial.read());
+            tRef->tcode.ByteInput(Serial.read());
         }
         vTaskDelay(100);
     }
