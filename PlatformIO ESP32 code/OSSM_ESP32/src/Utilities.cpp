@@ -363,7 +363,6 @@ void OSSM::initializeStepperParameters()
     float stepsPerMm = motorStepPerRevolution / (pulleyToothCount * beltPitchMm);
     stepper.setStepsPerMillimeter(stepsPerMm);
     stepper.setLimitSwitchActive(LIMIT_SWITCH_PIN);
-    Serial.println("start service");
     stepper.startAsService(); // Kinky Makers - we have modified this function
     // from default library to run on core 1 and suggest you don't run anything else on that core.
 }

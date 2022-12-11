@@ -3,8 +3,6 @@
 #include <ESP_FlexyStepper.h> // Current Motion Control
 #include <WiFiUdp.h>
 
-#include <functional>
-
 #include "OSSM_Config.h"
 #include "TCode.cpp"
 
