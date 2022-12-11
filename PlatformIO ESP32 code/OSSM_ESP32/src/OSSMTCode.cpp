@@ -17,7 +17,6 @@ TCode tcode(FIRMWARE_ID, TCODE_VER);
 OSSMTCode::OSSMTCode(ESP_FlexyStepper &stepper, float maxStrokeLengthMm) : stepper(stepper)
 {
     tcode.RegisterAxis("L0", "Up");
-    this->stepper = stepper;
     this->maxStrokeLengthMm = maxStrokeLengthMm;
 
     // Acceleration calculation/motion planning is supposed to be handled by the TCode generator.
@@ -40,34 +39,34 @@ OSSMTCode::OSSMTCode(ESP_FlexyStepper &stepper, float maxStrokeLengthMm) : stepp
 
 void OSSMTCode::loop()
 {
-    while ((this->stepper.getDistanceToTargetSigned() != 0))
+    while ((stepper.getDistanceToTargetSigned() != 0))
     {
         vTaskDelay(5);
-        LogDebugFormatted("%d,%f,%d,%f,%f,wait\n", xLin, this->stepper.getCurrentPositionInMillimeters(),
-                          this->stepper.getDistanceToTargetSigned(), this->stepper.getTargetPositionInMillimeters(),
-                          this->stepper.getCurrentVelocityInMillimetersPerSecond());
+        LogDebugFormatted("%d,%f,%d,%f,%f,wait\n", xLin, stepper.getCurrentPositionInMillimeters(),
+                          stepper.getDistanceToTargetSigned(), stepper.getTargetPositionInMillimeters(),
+                          stepper.getCurrentVelocityInMillimetersPerSecond());
     }
 
     xLin = tcode.AxisRead("L0");
     auto targetMm = map(xLin, 0, 9999, (0 + TCODE_KEEPOUT) * TCODE_PRECISION,
                         (maxStrokeLengthMm - TCODE_KEEPOUT) * TCODE_PRECISION) /
                     float(TCODE_PRECISION);
-    this->stepper.setTargetPositionInMillimeters(targetMm);
-    LogDebugFormatted("%d,%f,%d,%f,%f,command\n", xLin, this->stepper.getCurrentPositionInMillimeters(),
-                      this->stepper.getDistanceToTargetSigned(), this->stepper.getTargetPositionInMillimeters(),
-                      this->stepper.getCurrentVelocityInMillimetersPerSecond());
+    stepper.setTargetPositionInMillimeters(targetMm);
+    LogDebugFormatted("%d,%f,%d,%f,%f,command\n", xLin, stepper.getCurrentPositionInMillimeters(),
+                      stepper.getDistanceToTargetSigned(), stepper.getTargetPositionInMillimeters(),
+                      stepper.getCurrentVelocityInMillimetersPerSecond());
 };
 
 void OSSMTCode::inputTask(void *parameter)
 {
     char packetBuffer[255];
-    OSSMTCode *tCodeRef = static_cast<OSSMTCode *>(parameter);
+    OSSMTCode *tRef = static_cast<OSSMTCode *>(parameter);
     for (;;)
     {
-        int packetSize = tCodeRef->wifiUdp.parsePacket();
+        int packetSize = tRef->wifiUdp.parsePacket();
         if (packetSize)
         {
-            int len = tCodeRef->wifiUdp.read(packetBuffer, 255);
+            int len = tRef->wifiUdp.read(packetBuffer, 255);
             if (len > 0)
             {
                 packetBuffer[len] = 0;
