@@ -19,6 +19,8 @@ OSSMTCode::OSSMTCode(ESP_FlexyStepper &stepper, float maxStrokeLengthMm) : stepp
     tcode.RegisterAxis("L0", "Up");
     this->stepper = stepper;
     this->maxStrokeLengthMm = maxStrokeLengthMm;
+
+    // Acceleration calculation/motion planning is supposed to be handled by the TCode generator.
     stepper.setAccelerationInMillimetersPerSecondPerSecond(hardcode_maxSpeedMmPerSecond * 100.0);
     stepper.setDecelerationInMillimetersPerSecondPerSecond(hardcode_maxSpeedMmPerSecond * 100.0);
     stepper.setSpeedInMillimetersPerSecond(hardcode_maxSpeedMmPerSecond);
@@ -33,12 +35,15 @@ OSSMTCode::OSSMTCode(ESP_FlexyStepper &stepper, float maxStrokeLengthMm) : stepp
                             0);
 };
 
+#define PRECISION 4
+
 void OSSMTCode::loop()
 {
     xLin = tcode.AxisRead("L0");
-    auto targetMm = map(xLin, 0, 9999, 0 + 5, maxStrokeLengthMm - 5);
+    auto targetMm = map(xLin, 0, 9999, (0 + 5) * PRECISION, (maxStrokeLengthMm - 5) * PRECISION) / float(PRECISION);
     this->stepper.setTargetPositionInMillimeters(targetMm);
-    vTaskDelay(10);
+    LogDebugFormatted("%d,%f,%f\n", xLin, this->stepper.getCurrentPositionInMillimeters(),
+                      this->stepper.getTargetPositionInMillimeters());
 };
 
 void OSSMTCode::inputTask(void *parameter)
