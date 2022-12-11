@@ -78,6 +78,17 @@ void OSSM::runPenetrate()
     }
 }
 
+void OSSM::runTCode()
+{
+    OSSMTCode tcode;
+    tcode.setup(stepper, maxStrokeLengthMm);
+    for (;;)
+    {
+        tcode.loop();
+        vTaskDelay(10);
+    }
+}
+
 void OSSM::runStrokeEngine()
 {
     stepper.stopService();
@@ -128,7 +139,7 @@ void OSSM::runStrokeEngine()
             {
                 strokePattern = 0;
             }
-            Stroker.stopMotion();//testing!
+            Stroker.stopMotion();                     // testing!
             Stroker.setPattern(strokePattern, false); // Pattern, index must be < Stroker.getNumberOfPattern()
             g_ui.UpdateMessage(Stroker.getPatternName(strokePattern));
             Stroker.startPattern();
@@ -181,6 +192,11 @@ void OSSM::setRunMode()
             case strokeEngineMode:
                 g_ui.UpdateMessage("Stroke Engine");
                 activeRunMode = strokeEngineMode;
+                break;
+
+            case tCodeMode:
+                g_ui.UpdateMessage("T Code");
+                activeRunMode = tCodeMode;
                 break;
         }
     }
@@ -347,6 +363,7 @@ void OSSM::initializeStepperParameters()
     float stepsPerMm = motorStepPerRevolution / (pulleyToothCount * beltPitchMm);
     stepper.setStepsPerMillimeter(stepsPerMm);
     stepper.setLimitSwitchActive(LIMIT_SWITCH_PIN);
+    Serial.println("start service");
     stepper.startAsService(); // Kinky Makers - we have modified this function
     // from default library to run on core 1 and suggest you don't run anything else on that core.
 }

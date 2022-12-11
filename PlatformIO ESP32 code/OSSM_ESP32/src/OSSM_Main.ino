@@ -261,6 +261,10 @@ void motionCommandTask(void *pvParameters)
             case ossm.strokeEngineMode:
                 ossm.runStrokeEngine();
                 break;
+
+            case ossm.tCodeMode:
+                ossm.runTCode();
+                break;
         }
     }
 }
