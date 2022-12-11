@@ -35,15 +35,27 @@ OSSMTCode::OSSMTCode(ESP_FlexyStepper &stepper, float maxStrokeLengthMm) : stepp
                             0);
 };
 
-#define PRECISION 4
+#define TCODE_PRECISION 4
+#define TCODE_KEEPOUT 5
 
 void OSSMTCode::loop()
 {
+    while ((this->stepper.getDistanceToTargetSigned() != 0))
+    {
+        vTaskDelay(5);
+        LogDebugFormatted("%d,%f,%d,%f,%f,wait\n", xLin, this->stepper.getCurrentPositionInMillimeters(),
+                          this->stepper.getDistanceToTargetSigned(), this->stepper.getTargetPositionInMillimeters(),
+                          this->stepper.getCurrentVelocityInMillimetersPerSecond());
+    }
+
     xLin = tcode.AxisRead("L0");
-    auto targetMm = map(xLin, 0, 9999, (0 + 5) * PRECISION, (maxStrokeLengthMm - 5) * PRECISION) / float(PRECISION);
+    auto targetMm = map(xLin, 0, 9999, (0 + TCODE_KEEPOUT) * TCODE_PRECISION,
+                        (maxStrokeLengthMm - TCODE_KEEPOUT) * TCODE_PRECISION) /
+                    float(TCODE_PRECISION);
     this->stepper.setTargetPositionInMillimeters(targetMm);
-    LogDebugFormatted("%d,%f,%f\n", xLin, this->stepper.getCurrentPositionInMillimeters(),
-                      this->stepper.getTargetPositionInMillimeters());
+    LogDebugFormatted("%d,%f,%d,%f,%f,command\n", xLin, this->stepper.getCurrentPositionInMillimeters(),
+                      this->stepper.getDistanceToTargetSigned(), this->stepper.getTargetPositionInMillimeters(),
+                      this->stepper.getCurrentVelocityInMillimetersPerSecond());
 };
 
 void OSSMTCode::inputTask(void *parameter)
@@ -71,6 +83,6 @@ void OSSMTCode::inputTask(void *parameter)
             // Send the serial bytes to the t-code object
             tcode.ByteInput(Serial.read());
         }
-        vTaskDelay(10);
+        vTaskDelay(100);
     }
 }
