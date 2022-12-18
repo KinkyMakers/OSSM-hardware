@@ -1,0 +1,30 @@
+name: PlatformIO CI
+
+on:
+  push:
+    paths:
+      - PlatformIO ESP32 code/OSSM_ESP32/**
+      - .github/**
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Cache PlatformIO
+        uses: actions/cache@v3
+        with:
+          path: ~/.platformio
+          key: platformio-${{ runner.os }}-${{ hashFiles('**/platformio.ini') }}
+      - name: Install PlatformIO
+        working-directory: ./PlatformIO ESP32 code/OSSM_ESP32
+        run: pip install -r requirements.txt
+      - name: Run PlatformIO
+        working-directory: ./PlatformIO ESP32 code/OSSM_ESP32
+        run: pio run
