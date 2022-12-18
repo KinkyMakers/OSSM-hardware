@@ -39,7 +39,7 @@ void OSSMTCode::loop()
     while ((stepper.getDistanceToTargetSigned() != 0))
     {
         vTaskDelay(5);
-        LogDebugFormatted("%d,%f,%d,%f,%f,wait\n", xLin, stepper.getCurrentPositionInMillimeters(),
+        LogDebugFormatted("%d,%f,%ld,%f,%f,wait\n", xLin, stepper.getCurrentPositionInMillimeters(),
                           stepper.getDistanceToTargetSigned(), stepper.getTargetPositionInMillimeters(),
                           stepper.getCurrentVelocityInMillimetersPerSecond());
     }
@@ -49,7 +49,7 @@ void OSSMTCode::loop()
                         (maxStrokeLengthMm - TCODE_KEEPOUT) * TCODE_PRECISION) /
                     float(TCODE_PRECISION);
     stepper.setTargetPositionInMillimeters(targetMm);
-    LogDebugFormatted("%d,%f,%d,%f,%f,command\n", xLin, stepper.getCurrentPositionInMillimeters(),
+    LogDebugFormatted("%d,%f,%ld,%f,%f,command\n", xLin, stepper.getCurrentPositionInMillimeters(),
                       stepper.getDistanceToTargetSigned(), stepper.getTargetPositionInMillimeters(),
                       stepper.getCurrentVelocityInMillimetersPerSecond());
 };
@@ -68,7 +68,7 @@ void OSSMTCode::inputTask(void *parameter)
             {
                 packetBuffer[len] = 0;
             }
-            for (int i = 0; i++; i < len)
+            for (int i = 0; i < len; i++)
             {
                 tRef->tcode.ByteInput(packetBuffer[i]);
             }
