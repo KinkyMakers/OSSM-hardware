@@ -78,6 +78,16 @@ void OSSM::runPenetrate()
     }
 }
 
+void OSSM::runTCode()
+{
+    OSSMTCode tcode(stepper, maxStrokeLengthMm);
+    for (;;)
+    {
+        tcode.loop();
+        vTaskDelay(10);
+    }
+}
+
 void OSSM::runStrokeEngine()
 {
     stepper.stopService();
@@ -128,7 +138,7 @@ void OSSM::runStrokeEngine()
             {
                 strokePattern = 0;
             }
-            Stroker.stopMotion();//testing!
+            Stroker.stopMotion();                     // testing!
             Stroker.setPattern(strokePattern, false); // Pattern, index must be < Stroker.getNumberOfPattern()
             g_ui.UpdateMessage(Stroker.getPatternName(strokePattern));
             Stroker.startPattern();
@@ -181,6 +191,11 @@ void OSSM::setRunMode()
             case strokeEngineMode:
                 g_ui.UpdateMessage("Stroke Engine");
                 activeRunMode = strokeEngineMode;
+                break;
+
+            case tCodeMode:
+                g_ui.UpdateMessage("T Code");
+                activeRunMode = tCodeMode;
                 break;
         }
     }
