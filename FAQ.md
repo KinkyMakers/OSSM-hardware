@@ -1,6 +1,6 @@
 ### Q: What is OSSM? 
 
-A: An OSSM is compact sex machine that can be customised to suit you.  Based around a NEMA24 pattern for electric motors it can be driven by stepper or best of all servo motors it uses a combination of 3D printed and off the shelf parts. 
+A: An OSSM is compact sex machine that can be customised to suit you.  Based around a NEMA23 pattern for electric motors it can be driven by stepper or best of all servo motors it uses a combination of 3D printed and off the shelf parts. 
 
 ### Q: Why go to all this trouble?  Why don't you just buy a ready made machine? 
 
@@ -12,7 +12,7 @@ A: Head over to https://github.com/KinkyMakers/OSSM-hardware/tree/master - the B
   
 ### Q: I've been reading about motors and now I'm really confused
   
-A: While you can theoretically use any Nema24 mount motor.  There are motors that work and some that work better.  Stepper motors are cheaper and noiser so the community recommends closed loop servo motors.  These are more efficient and more importantly easier to program.  
+A: While you can theoretically use any Nema23 mount motor.  There are motors that work and some that work better.  Stepper motors are cheaper and noiser so the community recommends closed loop servo motors.  These are more efficient and more importantly easier to program.  
 
 ### Q:  What strength of  motor do I need? 
   

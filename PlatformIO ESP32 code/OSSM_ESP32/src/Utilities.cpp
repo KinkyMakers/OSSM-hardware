@@ -272,7 +272,7 @@ void OSSM::wifiAutoConnect()
         delay(100);
     }
 
-    wm.setConfigPortalTimeout(1);
+    wm.setConfigPortalTimeout(50);
     if (!wm.autoConnect("OSSM Setup"))
     {
         LogDebug("failed to connect and hit timeout");

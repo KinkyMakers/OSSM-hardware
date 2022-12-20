@@ -6,6 +6,9 @@ This project aims to help people curious about sex machines explore their intere
 Please note that this is a _work in progress_ and we have attempted to keep compatibility with the current BOM going forward, but it's not guaranteed.
 
 *Primary design goals* are to make a machine that is Compact, Quiet, Moderate cost, 3D printable (no cutting/machining), High performance, flexible, Easily sourced components, Doesn't look like a giant machine.
+<p align="center">
+<img src="https://user-images.githubusercontent.com/12459679/200219198-df577cbc-8503-47af-bbc8-9cb65de7ea49.jpg" width="750">
+</p>
 
 ## Getting Started
 
@@ -15,7 +18,11 @@ There are a few hardware flavours to choose from, we've included user modified v
 
 <h3><p align="center"><a href="https://github.com/KinkyMakers/OSSM-hardware/blob/master/Documentation/Assembly%20Instructions.pdf">Build Instructions</a></p></h3>
 
-Join our Discord to be part of the discussion and get help with your build. https://discord.gg/MmpT9xE
+Join our Discord to be part of the discussion and get help with your build. We have a huge community of makers! https://discord.gg/MmpT9xE
+
+<p align="center">
+<img src="https://user-images.githubusercontent.com/12459679/200221900-9ee3337d-2c42-4a85-90ad-25ee921a2b87.png" width="750">
+</p>
 
 ### Software
 
@@ -29,10 +36,10 @@ Simple PCB to power an ESP32 (wifi enabled microcontroller) from 24V and breakou
 
 ### Mechanical design
 The OSSM use a compact belt design with components that have become widely available due to 3D printing popularity.
-It is driven by a Nema23 motor of **your** choosing, although we reccomend small integrated closed loop steppers for their cost to performance ratio.
-
-<img src="https://github.com/KinkyMakers/OSSM-hardware/blob/5cbd1378f6389e5d8ece273931e7b261c27d1871/Documentation/OSSM%20mechanical%20overview.png" width="750" >
-
+It is driven by a Nema23 motor of **your** choosing, although we reccomend small integrated closed loop servos for their silent operation and very high performance.
+<p align="center">
+<img src="https://user-images.githubusercontent.com/12459679/200219706-f93fa014-7fea-4f31-b5d0-d89d4e6ab130.png">
+</p>
 ### Safety
 
 The safety of the OSSM build is yet to be fully characterized as it is a work in progress. The OSSM is a work in progress and as it is a framework for building your own sex machine your specific combination may have risks not inherent to other builds. These risks may be undocumented. 
@@ -55,10 +62,11 @@ We are calling this the reference build, when deviating from it please check com
    - [Make sure to choose one of the options for the toy adapters](Hardware/OSSM%20Printed%20Parts/end%20effector%20options)
    - Mounting options are still something that need to be worked on
    - Thank you @Elims for the [belt tensioner design](https://media.discordapp.net/attachments/756320102919700607/858110808281317396/unknown.png) ( https://github.com/theelims/FuckIO )
-2) ** IHSV57 NEMA23 Servo with 8mm shaft** : [Amazon.ca](https://www.amazon.ca/Integrated-Servo-Motor-IHSV57-30-10-3000rpm/dp/B081CVJHC7) | [JMC](https://www.jmc-motor.com/product/953.html)
+2) **IHSV57 NEMA23 Servo with 8mm shaft** : [Amazon.ca](https://www.amazon.ca/Integrated-Servo-Motor-IHSV57-30-10-3000rpm/dp/B081CVJHC7) | [JMC](https://www.jmc-motor.com/product/953.html)
    - *Avoid the StepperOnline version until we can further test*
    - Make sure you get something with **8mm** shaft.
    - There are *3* sizes of this motor.  100W = iHSV57-30-**10**, 140W = iHSV57-30-**14**, 180W = iHSV57-30-**18** 
+   - Prefer motors with firmware version 6 (shown as `V60x`)
    - Search around for the best deal for you - reccommend searching "ihsv57" on Aliexpress.com and choosing the -10 -14 or -18
    - For details on picking the right motor for your use case - check this [FAQ](https://github.com/KinkyMakers/OSSM-hardware/blob/master/FAQ.md#q--what-strength-of--motor-do-i-need)
    - If you are using the 140W or180W version it is recommended to use a 10mm wide belt and pulley (see the next two items)
@@ -73,12 +81,12 @@ We are calling this the reference build, when deviating from it please check com
    - Must be MGN12**H** rail
 7) **Power Supply** : 24v 4-5A w/ 2.1mm DC plug - (need to update reference link)
    - Larger motors generally need more power. 
-   - 180W -> 24V 6A
-   - 140W -> 24V 6A
+   - 180W -> 24V 5A
+   - 140W -> 24V 4A
    - 100W -> 24V 4A
-   - Choose the closest supply to the guidelines, **the ossm will still work**, but may be limited at maximum thrust force.
+   - The OSSM will work even with small power supplies, but will be limited on maximum force
    - Ensure the power supply is fully enclosed (like a laptop power supply)
-   - Ensure the power supply has the correct approvals for your location
+   - Ensure the power supply has the correct approvals for your location - This really helps ensure performance as well!
 8) **Metric Cap Screws** : [Amazon.ca](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_12?dchild=1&keywords=metric+socket+head+cap+screw+kit&qid=1600747665&sr=8-12)
    - A kit like this will provide what's needed:
    - 4x m5x20
