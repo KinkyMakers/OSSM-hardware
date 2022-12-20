@@ -22,6 +22,10 @@
 #define COLOR_ORDER GRB
 #define LED_PIN 25
 #define NUM_LEDS 1
+#define MODE_STROKE 0
+#define MODE_DEPTH 1
+#define MODE_SENSATION 2
+#define MODE_PATTERN 3
 
 class OSSM
 {
@@ -62,7 +66,14 @@ class OSSM
 
     bool wifiControlActive = false;
     float speedPercentage = 0;  // percentage 0-100
-    float strokePercentage = 0; // percentage 0-100
+    float depthPercentage = 100; // percentage 0-100
+    float strokePercentage = 10; // percentage 0-100
+    float sensationPercentage = 40; // percentage 0-100, maps to sensation -100 - 100, so 40 default = -20 sensation
+    int strokePattern = 0;
+    int strokePatternCount = 0;
+    int changePattern = 0; // -1 = prev, 1 = next
+    bool modeChanged = true; // initialize encoder state
+    int rightKnobMode = 0; // MODE_STROKE, MODE_DEPTH, MODE_SENSATION, MODE_PATTERN
 
     OSSM()
         : g_encoder(ENCODER_A, ENCODER_B),
@@ -103,6 +114,7 @@ class OSSM
     float getVoltageReading(int samples);
 
     float getAnalogAveragePercent(int pinNumber, int samples);
+    void setEncoderPercentage(float percentage);
     float getEncoderPercentage();
     bool waitForAnyButtonPress(float waitMilliseconds);
 };

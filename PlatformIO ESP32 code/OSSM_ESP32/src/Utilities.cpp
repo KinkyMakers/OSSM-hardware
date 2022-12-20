@@ -78,6 +78,15 @@ void OSSM::runPenetrate()
     }
 }
 
+bool isChangeSignificant(float oldPct, float newPct) {
+    return oldPct != newPct && (abs(newPct - oldPct) > 2 || newPct == 0 || newPct == 100);
+}
+
+float calculateSensation(float sensationPercentage)
+{
+    return ((sensationPercentage * 200.0) / 100.0) - 100.0;
+}
+
 void OSSM::runStrokeEngine()
 {
     stepper.stopService();
@@ -88,55 +97,120 @@ void OSSM::runStrokeEngine()
     Stroker.begin(&strokingMachine, &servoMotor);
     Stroker.thisIsHome();
 
-    float lastSpeedPercentage = 0;
-    float lastStrokePercentage = 0;
-    bool lastEncoderButtonToggle = encoderButtonToggle;
-    int strokePattern = 0;
+    float lastSpeedPercentage = speedPercentage;
+    float lastStrokePercentage = strokePercentage;
+    float lastDepthPercentage = depthPercentage;
+    float lastSensationPercentage = sensationPercentage;
+    int lastEncoderButtonPresses = encoderButtonPresses;
+    strokePattern = 0;
+    strokePatternCount = Stroker.getNumberOfPattern();
 
-    Stroker.setSensation(-20, true);
+    Stroker.setSensation(calculateSensation(sensationPercentage), true);
 
     Stroker.setPattern(strokePattern, true);
-    Stroker.setDepth(abs(maxStrokeLengthMm), true);
-    Stroker.setStroke(10, true);
-    Stroker.startPattern();
+    Stroker.setDepth(0.01 * depthPercentage * abs(maxStrokeLengthMm), true);
+    Stroker.setStroke(0.01 * strokePercentage * abs(maxStrokeLengthMm), true);
+    Stroker.moveToMax(10 * 3);
     Serial.println(Stroker.getState());
     g_ui.UpdateMessage(Stroker.getPatternName(strokePattern));
 
     for (;;)
     {
         Serial.println("looping");
-        if (abs(speedPercentage - lastSpeedPercentage) > 5)
+        if (isChangeSignificant(lastSpeedPercentage, speedPercentage))
         {
-            Serial.println("changing speed");
+            Serial.printf("changing speed: %f\n", speedPercentage * 3);
+            if(speedPercentage == 0) {
+                Stroker.stopMotion();
+            } else if(Stroker.getState() == READY) {
+                Stroker.startPattern();
+            }
+
             Stroker.setSpeed(speedPercentage * 3, true); // multiply by 3 to get to sane thrusts per minute speed
             lastSpeedPercentage = speedPercentage;
         }
-        if (abs(strokePercentage - lastStrokePercentage) > 5)
+
+        int buttonPressCount = encoderButtonPresses - lastEncoderButtonPresses;
+        if (!modeChanged && buttonPressCount > 0 && (millis() - lastEncoderButtonPressMillis) > 200)
         {
-            Serial.println("changine stroke");
-            Stroker.setStroke(0.01 * strokePercentage * abs(maxStrokeLengthMm), true);
+            Serial.printf("switching mode pre: %i %i\n", rightKnobMode, buttonPressCount);
+
+            if(buttonPressCount > 1) {
+                rightKnobMode = MODE_PATTERN;
+            }
+            else if(strokePattern == 0)
+            {
+                rightKnobMode += 1;
+                if(rightKnobMode > 1)
+                {
+                    rightKnobMode = 0;
+                }
+            }
+            else
+            {
+                rightKnobMode += 1;
+                if(rightKnobMode > 2)
+                {
+                    rightKnobMode = 0;
+                }
+            }
+
+            Serial.printf("switching mode: %i\n", rightKnobMode);
+
+            modeChanged = true;
+            lastEncoderButtonPresses = encoderButtonPresses;
+        }
+
+
+        if (lastStrokePercentage != strokePercentage)
+        {
+            float newStroke = 0.01 * strokePercentage * abs(maxStrokeLengthMm);
+            Serial.printf("change stroke: %f %f\n", strokePercentage, newStroke);
+            Stroker.setStroke(newStroke, true);
             lastStrokePercentage = strokePercentage;
         }
 
-        if (lastEncoderButtonToggle != encoderButtonToggle)
+        if (lastDepthPercentage != depthPercentage)
         {
-            Serial.println("incrementing pattern");
-            lastEncoderButtonToggle = encoderButtonToggle;
-            strokePattern++;
-            Serial.println(Stroker.getPatternName(strokePattern));
-            if (strokePattern >= Stroker.getNumberOfPattern())
+            float newDepth = 0.01 * depthPercentage * abs(maxStrokeLengthMm);
+            Serial.printf("change depth: %f %f\n", depthPercentage, newDepth);
+            Stroker.setDepth(newDepth, false);
+            lastDepthPercentage = depthPercentage;
+        }
+
+        if (lastSensationPercentage != sensationPercentage)
+        {
+            float newSensation = calculateSensation(sensationPercentage);
+            Serial.printf("change sensation: %f, %f\n", sensationPercentage, newSensation);
+            Stroker.setSensation(newSensation, false);
+            lastSensationPercentage = sensationPercentage;
+        }
+
+        if (!modeChanged && changePattern != 0)
+        {
+            strokePattern += changePattern;
+
+            if(strokePattern < 0)
+            {
+                strokePattern = Stroker.getNumberOfPattern() - 1;
+            }
+            else if (strokePattern >= Stroker.getNumberOfPattern())
             {
                 strokePattern = 0;
             }
-            Stroker.stopMotion();//testing!
+
+            Serial.println(Stroker.getPatternName(strokePattern));
+
             Stroker.setPattern(strokePattern, false); // Pattern, index must be < Stroker.getNumberOfPattern()
             g_ui.UpdateMessage(Stroker.getPatternName(strokePattern));
-            Stroker.startPattern();
+
+            modeChanged = true;
         }
 
         vTaskDelay(400);
     }
 }
+
 String getPatternJSON(StrokeEngine Stroker)
 {
     String JSON = "[{\"";
@@ -160,10 +234,10 @@ String getPatternJSON(StrokeEngine Stroker)
 
 void OSSM::setRunMode()
 {
-    bool initialEncoderFlag = encoderButtonToggle;
+    int initialEncoderFlag = encoderButtonPresses;
     int runModeVal;
     int encoderVal;
-    while (initialEncoderFlag == encoderButtonToggle)
+    while (initialEncoderFlag == encoderButtonPresses)
     {
         encoderVal = abs(g_encoder.read());
         runModeVal = (encoderVal % (2 * runModeCount)) / 2; // scale by 2 because encoder counts by 2
@@ -574,7 +648,49 @@ void OSSM::startLeds()
 void OSSM::updateAnalogInputs()
 {
     speedPercentage = getAnalogAveragePercent(SPEED_POT_PIN, 50);
-    strokePercentage = getEncoderPercentage();
+
+    if (modeChanged) {
+        switch(rightKnobMode) {
+            case MODE_STROKE:
+                setEncoderPercentage(strokePercentage);
+                break;
+            case MODE_DEPTH:
+                setEncoderPercentage(depthPercentage);
+                break;
+            case MODE_SENSATION:
+                setEncoderPercentage(sensationPercentage);
+                break;
+            case MODE_PATTERN:
+                changePattern = 0;
+                setEncoderPercentage(50);
+                break;
+        }
+
+        modeChanged = false;
+    } else {
+        switch(rightKnobMode) {
+            case MODE_STROKE:
+                strokePercentage = getEncoderPercentage();
+                break;
+            case MODE_DEPTH:
+                depthPercentage = getEncoderPercentage();
+                break;
+            case MODE_SENSATION:
+                sensationPercentage = getEncoderPercentage();
+                break;
+            case MODE_PATTERN:
+                float patternPercentage = getEncoderPercentage();
+                if(patternPercentage >= 52) {
+                    changePattern = 1;
+                } else if(patternPercentage <= 48) {
+                    changePattern = -1;
+                } else {
+                    changePattern = 0;
+                }
+                break;
+        }
+    }
+
     immediateCurrent = getCurrentReadingAmps(20);
     averageCurrent = immediateCurrent * 0.02 + averageCurrent * 0.98;
 }
@@ -587,6 +703,18 @@ float OSSM::getCurrentReadingAmps(int samples)
     return current;
 }
 float OSSM::getVoltageReading(int samples) {}
+
+void OSSM::setEncoderPercentage(float percentage)
+{
+    const int encoderFullScale = 100;
+    if (percentage < 0) {
+        percentage = 0;
+    } else if(percentage > 100) {
+        percentage = 100;
+    }
+
+    g_encoder.write(encoderFullScale * percentage / 100);
+}
 
 float OSSM::getEncoderPercentage()
 {
@@ -628,9 +756,9 @@ float OSSM::getAnalogAveragePercent(int pinNumber, int samples)
 bool OSSM::waitForAnyButtonPress(float waitMilliseconds)
 {
     float timeStartMillis = millis();
-    bool initialEncoderFlag = encoderButtonToggle;
+    int initialEncoderFlag = encoderButtonPresses;
     LogDebug("Waiting for button press");
-    while ((digitalRead(WIFI_RESET_PIN) == LOW) && (initialEncoderFlag == encoderButtonToggle))
+    while ((digitalRead(WIFI_RESET_PIN) == LOW) && (initialEncoderFlag == encoderButtonPresses))
     {
         if ((millis() - timeStartMillis) > waitMilliseconds)
         {

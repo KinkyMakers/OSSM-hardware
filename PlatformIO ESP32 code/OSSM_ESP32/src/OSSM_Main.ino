@@ -18,7 +18,7 @@ bool REMOTE_ATTACHED = false;
 
 // OSSM name setup
 const char *ossmId = "OSSM1";
-volatile bool encoderButtonToggle = false;
+volatile int encoderButtonPresses = 0; // increment for each click
 volatile long lastEncoderButtonPressMillis = 0;
 
 IRAM_ATTR void encoderPushButton()
@@ -32,7 +32,7 @@ IRAM_ATTR void encoderPushButton()
     if ((currentTime - lastEncoderButtonPressMillis) > 200)
     {
         // run interrupt if not run in last 50ms
-        encoderButtonToggle = !encoderButtonToggle;
+        encoderButtonPresses++;
         lastEncoderButtonPressMillis = currentTime;
     }
 }
@@ -139,7 +139,20 @@ void setup()
 
 void loop()
 {
-    ossm.g_ui.UpdateState(static_cast<int>(ossm.speedPercentage), static_cast<int>(ossm.strokePercentage + 0.5f));
+    switch(ossm.rightKnobMode) {
+        case MODE_STROKE:
+            ossm.g_ui.UpdateState("STROKE", static_cast<int>(ossm.speedPercentage), static_cast<int>(ossm.strokePercentage + 0.5f));
+            break;
+        case MODE_DEPTH:
+            ossm.g_ui.UpdateState("DEPTH", static_cast<int>(ossm.speedPercentage), static_cast<int>(ossm.depthPercentage + 0.5f));
+            break;
+        case MODE_SENSATION:
+            ossm.g_ui.UpdateState("SENSTN", static_cast<int>(ossm.speedPercentage), static_cast<int>(ossm.sensationPercentage + 0.5f));
+            break;
+        case MODE_PATTERN:
+            ossm.g_ui.UpdateState("PATTRN", static_cast<int>(ossm.speedPercentage), ossm.strokePattern * 100 / (ossm.strokePatternCount - 1));
+            break;
+    }
     ossm.g_ui.UpdateScreen();
 
     // debug
@@ -227,9 +240,9 @@ void getUserInputTask(void *pvParameters)
                 wifiControlEnable = false;
                 setInternetControl(wifiControlEnable);
             }
-            ossm.speedPercentage = ossm.speedPercentage;
+            // ossm.speedPercentage = ossm.speedPercentage;
             // ossm.strokePercentage = getAnalogAverage(STROKE_POT_PIN, 50);
-            ossm.strokePercentage = ossm.getEncoderPercentage();
+            // ossm.strokePercentage = ossm.getEncoderPercentage();
         }
 
         // We should scale these values with initialized settings not hard coded

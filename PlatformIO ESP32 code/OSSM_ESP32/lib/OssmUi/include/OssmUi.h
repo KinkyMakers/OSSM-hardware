@@ -32,7 +32,7 @@ class OssmUi
 
     void SetActivitySymbols(const uint8_t *active, const uint8_t *inactive);
 
-    void UpdateState(const int speed_percentage, const int encoder_position);
+    void UpdateState(String mode_label, const int speed_percentage, const int encoder_position);
 
     void UpdateMessage(String message_in);
 
