@@ -22,6 +22,8 @@
     #define PRINT_ENCODER_INFO_BEFORE_MODE false
     // Set to spam position, current info during homeing procedure
     #define PRINT_HOMING_INFO false
+    // Set to spam position commands in runPenetrate() mode
+    #define PRINT_NON_STROKE_ENGINE_DEBUG false
 
     // StrokeEngine specific debug messages
     #define DEBUG_STROKE_ENGINE true
@@ -53,7 +55,7 @@
 ///      VERSION INFO      ///
 /////////////////////////////
 #define SW_VERSION "0.23"
-#define HW_VERSION 23 // divide by 10 for real hw version
+#define HW_VERSION 22 // divide by 10 for real hw version
 #define EEPROM_SIZE 200
 // #define INITIAL_SETUP //should only be defined at initial burn to configure HW version
 

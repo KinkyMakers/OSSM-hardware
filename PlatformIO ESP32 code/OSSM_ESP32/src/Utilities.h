@@ -84,7 +84,7 @@ class OSSM
     int rightKnobMode = 0;   // MODE_STROKE, MODE_DEPTH, MODE_SENSATION, MODE_PATTERN, MODE_FORCE
 
 #if SERVO_TORQUE_SETTING
-    ModbusClientRTU* MB;
+    ModbusClientRTU* MB = NULL;
     uint32_t MB_Token = 1111;
     bool modbusDetected = false;
     void setForce(int force);
@@ -110,6 +110,17 @@ class OSSM
         : g_encoder(ENCODER_A, ENCODER_B),
           g_ui(REMOTE_ADDRESS, REMOTE_SDA, REMOTE_CLK) // this just creates the objects with parameters
     {
+    }
+
+    ~OSSM()
+    {
+        // MB might be null if a serial connection was not sucessful, or if a V5 motor is used. We don't _need_ to check
+        //   for a null pointer, as deleting a null pointer is fine, but imo its good to check anyway, as it shows that
+        //   there is a possibility of MB not being set.
+        if (MB != NULL)
+        {
+            delete MB;
+        }
     }
 
     void setup();

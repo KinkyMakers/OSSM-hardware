@@ -166,7 +166,9 @@ void OSSM::runPenetrate()
 
         float targetPosition = (strokePercentage / 100.0) * maxStrokeLengthMm;
         float currentStrokeMm = abs(targetPosition);
-        //////LogDebugFormatted("Moving stepper to position %ld \n", static_cast<long int>(targetPosition));
+#if PRINT_NON_STROKE_ENGINE_DEBUG
+        LogDebugFormatted("Moving stepper to position %ld \n", static_cast<long int>(targetPosition));
+#endif
         vTaskDelay(1);
         stepper.setDecelerationInMillimetersPerSecondPerSecond(maxSpeedMmPerSecond * speedPercentage * speedPercentage /
                                                                accelerationScaling);
@@ -443,7 +445,7 @@ void OSSM::wifiConnectOrHotspotNonBlocking()
     int wifiTimeoutSeconds = 15;
     float threadStartTimeMillis = millis();
     float threadRuntimeSeconds = 0;
-    
+
     // This should always be run in a thread!!!
     wm.setConfigPortalTimeout(wifiTimeoutSeconds);
     wm.setConfigPortalBlocking(false);
