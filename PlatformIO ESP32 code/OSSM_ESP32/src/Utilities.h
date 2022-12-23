@@ -90,7 +90,7 @@ class OSSM
 
     // WiFi helper functions
     void wifiAutoConnect();
-    void wifiConnectOrHotspotBlocking();
+    void wifiConnectOrHotspotNonBlocking();
     void updatePrompt();
     void updateFirmware();
     bool checkForUpdate();

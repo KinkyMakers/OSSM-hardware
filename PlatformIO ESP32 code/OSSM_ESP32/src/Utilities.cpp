@@ -78,7 +78,8 @@ void OSSM::runPenetrate()
     }
 }
 
-bool isChangeSignificant(float oldPct, float newPct) {
+bool isChangeSignificant(float oldPct, float newPct)
+{
     return oldPct != newPct && (abs(newPct - oldPct) > 2 || newPct == 0 || newPct == 100);
 }
 
@@ -120,9 +121,12 @@ void OSSM::runStrokeEngine()
         if (isChangeSignificant(lastSpeedPercentage, speedPercentage))
         {
             Serial.printf("changing speed: %f\n", speedPercentage * 3);
-            if(speedPercentage == 0) {
+            if (speedPercentage == 0)
+            {
                 Stroker.stopMotion();
-            } else if(Stroker.getState() == READY) {
+            }
+            else if (Stroker.getState() == READY)
+            {
                 Stroker.startPattern();
             }
 
@@ -135,13 +139,14 @@ void OSSM::runStrokeEngine()
         {
             Serial.printf("switching mode pre: %i %i\n", rightKnobMode, buttonPressCount);
 
-            if(buttonPressCount > 1) {
+            if (buttonPressCount > 1)
+            {
                 rightKnobMode = MODE_PATTERN;
             }
-            else if(strokePattern == 0)
+            else if (strokePattern == 0)
             {
                 rightKnobMode += 1;
-                if(rightKnobMode > 1)
+                if (rightKnobMode > 1)
                 {
                     rightKnobMode = 0;
                 }
@@ -149,7 +154,7 @@ void OSSM::runStrokeEngine()
             else
             {
                 rightKnobMode += 1;
-                if(rightKnobMode > 2)
+                if (rightKnobMode > 2)
                 {
                     rightKnobMode = 0;
                 }
@@ -160,7 +165,6 @@ void OSSM::runStrokeEngine()
             modeChanged = true;
             lastEncoderButtonPresses = encoderButtonPresses;
         }
-
 
         if (lastStrokePercentage != strokePercentage)
         {
@@ -190,7 +194,7 @@ void OSSM::runStrokeEngine()
         {
             strokePattern += changePattern;
 
-            if(strokePattern < 0)
+            if (strokePattern < 0)
             {
                 strokePattern = Stroker.getNumberOfPattern() - 1;
             }
@@ -270,9 +274,14 @@ void OSSM::wifiAutoConnect()
         wm.resetSettings();
         LogDebug("settings reset");
         delay(100);
+        wm.setConfigPortalTimeout(60);
+        if (!wm.autoConnect("OSSM Setup"))
+        {
+            LogDebug("failed to connect and hit timeout");
+        }
     }
 
-    wm.setConfigPortalTimeout(50);
+    wm.setConfigPortalTimeout(1);
     if (!wm.autoConnect("OSSM Setup"))
     {
         LogDebug("failed to connect and hit timeout");
@@ -280,16 +289,19 @@ void OSSM::wifiAutoConnect()
     LogDebug("exiting autoconnect");
 }
 
-void OSSM::wifiConnectOrHotspotBlocking()
+void OSSM::wifiConnectOrHotspotNonBlocking()
 {
+    int wifiTimeoutSeconds = 15;
+    float threadStartTimeMillis = millis();
+    float threadRuntimeSeconds = 0;
     // This should always be run in a thread!!!
-    wm.setConfigPortalTimeout(120);
+    wm.setConfigPortalTimeout(wifiTimeoutSeconds);
     wm.setConfigPortalBlocking(false);
     // here we try to connect to WiFi or launch settings hotspot for you to enter WiFi credentials
     if (!wm.autoConnect("OSSM setup"))
     {
         // TODO: Set Status LED to indicate failure
-        LogDebug("failed to connect and hit timeout");
+        LogDebug("No connection, launching config portal");
     }
     else
     {
@@ -301,8 +313,12 @@ void OSSM::wifiConnectOrHotspotBlocking()
         wm.process();
         vTaskDelay(1);
         // delete this task once connected!
-        if (WiFi.status() == WL_CONNECTED)
+        threadRuntimeSeconds = (millis() - threadStartTimeMillis) / 1000;
+        if (WiFi.status() == WL_CONNECTED || (threadRuntimeSeconds > (wifiTimeoutSeconds + 10)))
         {
+            WiFi.disconnect(true);
+            WiFi.mode(WIFI_OFF);
+            vTaskDelay(100);
             vTaskDelete(NULL);
         }
     }
@@ -595,7 +611,7 @@ void OSSM::writeEepromLifeStats()
     EEPROM.begin(EEPROM_SIZE);
     EEPROM.put(4, numberStrokes);
     EEPROM.put(12, travelledDistanceMeters);
-    EEPROM.put(20, lifeSecondsPoweredAtStartup);
+    EEPROM.put(20, lifeSecondsPowered);
     EEPROM.commit();
     LogDebug("eeprom written");
 }
@@ -649,8 +665,10 @@ void OSSM::updateAnalogInputs()
 {
     speedPercentage = getAnalogAveragePercent(SPEED_POT_PIN, 50);
 
-    if (modeChanged) {
-        switch(rightKnobMode) {
+    if (modeChanged)
+    {
+        switch (rightKnobMode)
+        {
             case MODE_STROKE:
                 setEncoderPercentage(strokePercentage);
                 break;
@@ -667,8 +685,11 @@ void OSSM::updateAnalogInputs()
         }
 
         modeChanged = false;
-    } else {
-        switch(rightKnobMode) {
+    }
+    else
+    {
+        switch (rightKnobMode)
+        {
             case MODE_STROKE:
                 strokePercentage = getEncoderPercentage();
                 break;
@@ -680,11 +701,16 @@ void OSSM::updateAnalogInputs()
                 break;
             case MODE_PATTERN:
                 float patternPercentage = getEncoderPercentage();
-                if(patternPercentage >= 52) {
+                if (patternPercentage >= 52)
+                {
                     changePattern = 1;
-                } else if(patternPercentage <= 48) {
+                }
+                else if (patternPercentage <= 48)
+                {
                     changePattern = -1;
-                } else {
+                }
+                else
+                {
                     changePattern = 0;
                 }
                 break;
@@ -707,9 +733,12 @@ float OSSM::getVoltageReading(int samples) {}
 void OSSM::setEncoderPercentage(float percentage)
 {
     const int encoderFullScale = 100;
-    if (percentage < 0) {
+    if (percentage < 0)
+    {
         percentage = 0;
-    } else if(percentage > 100) {
+    }
+    else if (percentage > 100)
+    {
         percentage = 100;
     }
 

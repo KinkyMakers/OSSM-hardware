@@ -82,19 +82,20 @@ void setup()
     attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoderPushButton, RISING);
 
     ossm.setup();
+
+    // start the WiFi connection task so we can be doing something while homing!
+    xTaskCreatePinnedToCore(wifiConnectionTask,   /* Task function. */
+                            "wifiConnectionTask", /* name of task. */
+                            10000,                /* Stack size of task */
+                            NULL,                 /* parameter of the task */
+                            1,                    /* priority of the task */
+                            &wifiTask,            /* Task handle to keep track of created task */
+                            0);                   /* pin task to core 0 */
+    delay(100);
+
     ossm.findHome();
 
     ossm.setRunMode();
-
-    // start the WiFi connection task so we can be doing something while homing!
-    // xTaskCreatePinnedToCore(wifiConnectionTask,   /* Task function. */
-    //                         "wifiConnectionTask", /* name of task. */
-    //                         10000,                /* Stack size of task */
-    //                         NULL,                 /* parameter of the task */
-    //                         1,                    /* priority of the task */
-    //                         &wifiTask,            /* Task handle to keep track of created task */
-    //                         0);                   /* pin task to core 0 */
-    // delay(100);
 
     // Kick off the http and motion tasks - they begin executing as soon as they
     // are created here! Do not change the priority of the task, or do so with
@@ -139,18 +140,23 @@ void setup()
 
 void loop()
 {
-    switch(ossm.rightKnobMode) {
+    switch (ossm.rightKnobMode)
+    {
         case MODE_STROKE:
-            ossm.g_ui.UpdateState("STROKE", static_cast<int>(ossm.speedPercentage), static_cast<int>(ossm.strokePercentage + 0.5f));
+            ossm.g_ui.UpdateState("STROKE", static_cast<int>(ossm.speedPercentage),
+                                  static_cast<int>(ossm.strokePercentage + 0.5f));
             break;
         case MODE_DEPTH:
-            ossm.g_ui.UpdateState("DEPTH", static_cast<int>(ossm.speedPercentage), static_cast<int>(ossm.depthPercentage + 0.5f));
+            ossm.g_ui.UpdateState("DEPTH", static_cast<int>(ossm.speedPercentage),
+                                  static_cast<int>(ossm.depthPercentage + 0.5f));
             break;
         case MODE_SENSATION:
-            ossm.g_ui.UpdateState("SENSTN", static_cast<int>(ossm.speedPercentage), static_cast<int>(ossm.sensationPercentage + 0.5f));
+            ossm.g_ui.UpdateState("SENSTN", static_cast<int>(ossm.speedPercentage),
+                                  static_cast<int>(ossm.sensationPercentage + 0.5f));
             break;
         case MODE_PATTERN:
-            ossm.g_ui.UpdateState("PATTRN", static_cast<int>(ossm.speedPercentage), ossm.strokePattern * 100 / (ossm.strokePatternCount - 1));
+            ossm.g_ui.UpdateState("PATTRN", static_cast<int>(ossm.speedPercentage),
+                                  ossm.strokePattern * 100 / (ossm.strokePatternCount - 1));
             break;
     }
     ossm.g_ui.UpdateScreen();
@@ -197,7 +203,7 @@ void estopResetTask(void *pvParameters)
 
 void wifiConnectionTask(void *pvParameters)
 {
-    ossm.wifiConnectOrHotspotBlocking();
+    ossm.wifiConnectOrHotspotNonBlocking();
 }
 
 // Task to read settings from server - only need to check this when in WiFi
