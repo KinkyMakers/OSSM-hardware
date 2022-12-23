@@ -82,6 +82,7 @@ void setup()
     attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoderPushButton, RISING);
 
     ossm.setup();
+    ossm.setupModbusAndReportState();
 
     // start the WiFi connection task so we can be doing something while homing!
     xTaskCreatePinnedToCore(wifiConnectionTask,   /* Task function. */
@@ -93,7 +94,7 @@ void setup()
                             0);                   /* pin task to core 0 */
     delay(100);
 
-    ossm.setupModbusAndReportState();
+
     ossm.findHome();
 
     ossm.setRunMode();
@@ -209,7 +210,7 @@ void estopResetTask(void *pvParameters)
 void wifiConnectionTask(void *pvParameters)
 {
 #if INTERNET_CONNECTION_MODE >= 1
-    ossm.wifiConnectOrHotspotBlocking();
+    ossm.wifiConnectOrHotspotNonBlocking();
 #else
     Serial.println("Skipping wifi connection task due to INTERNET_CONNECTION_MODE defined in OSSM_Config.h");
 #endif

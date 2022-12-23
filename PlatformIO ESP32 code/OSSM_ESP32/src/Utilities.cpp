@@ -418,10 +418,15 @@ void OSSM::wifiAutoConnect()
         wm.resetSettings();
         LogDebug("settings reset");
         delay(100);
+        wm.setConfigPortalTimeout(60);
+        if (!wm.autoConnect("OSSM Setup"))
+        {
+            LogDebug("failed to connect and hit timeout");
+        }
     }
 
 #if INTERNET_CONNECTION_MODE >= 1
-    wm.setConfigPortalTimeout(50);
+    wm.setConfigPortalTimeout(1);
     if (!wm.autoConnect("OSSM Setup"))
     {
         LogDebug("failed to connect and hit timeout");
@@ -432,17 +437,21 @@ void OSSM::wifiAutoConnect()
 #endif
 }
 
-void OSSM::wifiConnectOrHotspotBlocking()
+void OSSM::wifiConnectOrHotspotNonBlocking()
 {
 #if INTERNET_CONNECTION_MODE >= 1
+    int wifiTimeoutSeconds = 15;
+    float threadStartTimeMillis = millis();
+    float threadRuntimeSeconds = 0;
+    
     // This should always be run in a thread!!!
-    wm.setConfigPortalTimeout(120);
+    wm.setConfigPortalTimeout(wifiTimeoutSeconds);
     wm.setConfigPortalBlocking(false);
     // here we try to connect to WiFi or launch settings hotspot for you to enter WiFi credentials
     if (!wm.autoConnect("OSSM setup"))
     {
         // TODO: Set Status LED to indicate failure
-        LogDebug("failed to connect and hit timeout");
+        LogDebug("No connection, launching config portal");
     }
     else
     {
@@ -454,8 +463,12 @@ void OSSM::wifiConnectOrHotspotBlocking()
         wm.process();
         vTaskDelay(1);
         // delete this task once connected!
-        if (WiFi.status() == WL_CONNECTED)
+        threadRuntimeSeconds = (millis() - threadStartTimeMillis) / 1000;
+        if (WiFi.status() == WL_CONNECTED || (threadRuntimeSeconds > (wifiTimeoutSeconds + 10)))
         {
+            WiFi.disconnect(true);
+            WiFi.mode(WIFI_OFF);
+            vTaskDelay(100);
             vTaskDelete(NULL);
         }
     }
@@ -766,7 +779,7 @@ void OSSM::writeEepromLifeStats()
     EEPROM.begin(EEPROM_SIZE);
     EEPROM.put(4, numberStrokes);
     EEPROM.put(12, travelledDistanceMeters);
-    EEPROM.put(20, lifeSecondsPoweredAtStartup);
+    EEPROM.put(20, lifeSecondsPowered);
     EEPROM.commit();
     LogDebug("eeprom written");
 }
