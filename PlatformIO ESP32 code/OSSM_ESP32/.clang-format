@@ -7,4 +7,5 @@ Language: Cpp
 BreakBeforeBraces: Allman
 SpacesBeforeTrailingComments: 1
 AllowShortFunctionsOnASingleLine: Empty
+IndentPPDirectives: BeforeHash
 ---
