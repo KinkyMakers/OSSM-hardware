@@ -40,6 +40,7 @@ It is driven by a Nema23 motor of **your** choosing, although we reccomend small
 <p align="center">
 <img src="https://user-images.githubusercontent.com/12459679/200219706-f93fa014-7fea-4f31-b5d0-d89d4e6ab130.png">
 </p>
+
 ### Safety
 
 The safety of the OSSM build is yet to be fully characterized as it is a work in progress. The OSSM is a work in progress and as it is a framework for building your own sex machine your specific combination may have risks not inherent to other builds. These risks may be undocumented. 
