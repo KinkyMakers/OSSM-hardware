@@ -7,3 +7,7 @@ Use this if you do not need quick changes and are primarily using Vac-u-lock com
 ### 24mm Threaded
 
 3D printable quick change system for end effectors
+
+## 24mm Thread Details
+
+![image](https://user-images.githubusercontent.com/43324815/215673458-30f63cbb-4002-408f-acb9-2b2236570088.png)
