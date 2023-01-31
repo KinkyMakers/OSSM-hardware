@@ -70,3 +70,6 @@ A: That is linked to the size of motor.  The higher the wattage of motor the lar
 
 ### Q: How long should the H-rail be?
 A: It is really up to you but a 350mm rail will give approximately 195mm of depth.  
+
+### Q: What is the size of the 24mm Thread for the End Effector?
+A: It is a M24x3 (this is the size on the machine, do a test print for your new End Effector, you may have to upsize by 3-5%)
