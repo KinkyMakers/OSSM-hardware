@@ -1,4 +1,6 @@
 // Based on https://www.hackster.io/techbase_group/arduino-esp32-serial-port-to-tcp-converter-via-wifi-66d341
+#include "config.hpp"
+
 #include "WiFi.h"
 #include "AsyncTCP.h"
 
@@ -7,10 +9,10 @@
 
 #include "serial.hpp"
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE VCP_BUFFER_SIZE
 #define SERIAL_RX_PIN 44
 #define SERIAL_TX_PIN 43
-const int baudrate = 38400;
+const int baudrate = VCP_BAUD_RATE;
 const int rs_config = SERIAL_8N1;
 
 //WiFiServer serial_server;

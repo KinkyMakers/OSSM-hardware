@@ -135,8 +135,10 @@ void boot_setup() {
   leds[0] = CHSV(0, 180, 64);
   FastLED.show(); 
 
+#if ENABLE_LVGL == FUNCTIONALITY_ENABLED
   gui = new LVGLGui();
   gui->start();
+#endif
 }
 
 BootScreen* bootScreen = NULL;
