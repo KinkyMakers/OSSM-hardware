@@ -1,6 +1,23 @@
 # OSSM Software
 This is the recommended software for use with OSSM designs
 
+# Loading a pre-built image onto your OSSM v2 PCB
+The OSSM v2 PCB should come already pre-loaded with the OSSM Software. Occasional updates are released and are available as pre-built binaries.
+
+These binaries can be loaded onto your OSSM v2 PCB (or other hardware) using the built-in DFU Upgrade option on the Web Interface. If for some reason your hardware is bricked, you can reload the binary using the [ESP32 Flash Tool](https://github.com/hanhdt/esp32-flash-tool)
+
+<!-- ESP32 Flash Tool is not a final choice, but looks like a potential suggestion -->
+
+#  Directory Structure
+## Addons
+## CANopen
+## Controllers
+## Fonts
+## Images
+## Motors
+## Screens
+
+
 ### Requirements:
 - Arduino IDE or PlatformIO
 - ESP32 microcontroller
