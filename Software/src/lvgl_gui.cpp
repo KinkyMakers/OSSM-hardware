@@ -12,6 +12,10 @@ LVGLGui::LVGLGui() {
   img = new TFT_eSprite(tft);
 }
 
+static LVGLGui* LVGLGui::getInstance() {
+  return lvgl_instance;
+}
+
 void gui_lvgl_task(void *pvParameter) {  
   while (true) {
     vTaskDelay(5 / portTICK_PERIOD_MS);

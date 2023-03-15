@@ -43,6 +43,7 @@
 
 #include "soc/soc.h"
 
+#include "config.hpp"
 #include "CANopen.h"
 #include "CO_config_target.h"
 #include "301/CO_driver.h"

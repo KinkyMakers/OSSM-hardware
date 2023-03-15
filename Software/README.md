@@ -8,6 +8,8 @@ These binaries can be loaded onto your OSSM v2 PCB (or other hardware) using the
 
 <!-- ESP32 Flash Tool is not a final choice, but looks like a potential suggestion -->
 
+# Code Style
+
 #  Directory Structure
 ## Addons
 ## CANopen

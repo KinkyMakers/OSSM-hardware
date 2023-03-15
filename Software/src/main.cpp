@@ -1,5 +1,5 @@
 #include "esp_log.h"
-#include "config.h"
+#include "config.hpp"
 
 // General hardware libs
 #include "SPIFFS.h"
@@ -9,17 +9,16 @@
 #include <SHA256.h>
 
 // Specific hardware libs
-#include <ESPConnect.h>
 #include "ESPAsyncWebServer.h"
 #include <ESPDash.h>
 #include <FastLED.h>
 
-#include "blynk.hpp"
 #include "StrokeEngine.h"
 
 #include "controller/canfuck.hpp"
 
 #include "CO_main.h"
+
 #include "lvgl_gui.hpp"
 #include "wifi.hpp"
 
@@ -30,17 +29,10 @@
 #include "screen/wifi_sta.hpp"
 #include "screen/wifi_failure.hpp"
 
-#include "data_logger.hpp"
 #include "reset_reason.hpp"
 
 #define NUM_LEDS 1
 CRGB leds[NUM_LEDS];
-
-AsyncWebServer server(80);
-AsyncWebSocket ws("/");
-AsyncEventSource events("/es");
-
-// TODO - Allow ESP32 Perferences to choose motor implementation
 
 #if MOTOR_USED == MOTOR_LINMOT
   #include "motor/linmot.hpp"
@@ -51,68 +43,7 @@ AsyncEventSource events("/es");
 #endif
 
 StrokeEngine* engine;
-CANFuckController* controller; // TODO - Abstract interface with controller away? Use similar system to Object Dictionary with CANOpen?
-BlynkController* blynk = NULL;
 
-void onRequest(AsyncWebServerRequest *request){
-  //Handle Unknown Request
-  request->send(404);
-}
-
-void onBody(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
-  //Handle body
-}
-
-void onUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
-  //Handle upload
-}
-
-void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
-             void *arg, uint8_t *data, size_t len) {
-  switch (type) {
-    case WS_EVT_CONNECT:
-      Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-      break;
-    case WS_EVT_DISCONNECT:
-      Serial.printf("WebSocket client #%u disconnected\n", client->id());
-      break;
-    case WS_EVT_DATA:
-      // TODO - Might support incoming data at some point, but not a concern right now
-      break;
-    case WS_EVT_PONG:
-    case WS_EVT_ERROR:
-      break;
-  }
-}
-
-void onConnect(AsyncEventSourceClient *client) {
-    if(client->lastId()){
-      Serial.printf("EventSource Client reconnected! Last message ID that it gat is: %u\n", client->lastId());
-    } else {
-      Serial.printf("EventSource Client connected!");
-    }
-    //send event with message "hello!", id current millis
-    // and set reconnect delay to 1 second
-    client->send("hello!",NULL,millis(),1000);
-}
-
-
-// States
-// Booting - Show Logo for a few seconds
-// Connecting to AP
-// Starting SoftAP
-
-// BOOT (Serial, I2C, Core Dump / CPU Reset Reason)
-// WIFI_CONNECT (Attempt WiFi connection for 1 min, then abort)
-// WIFI_SOFT_AP_START (Idle in this state for a minute)
-// COREDUMP_SEND (Optional if WiFi starts)
-// WIFI_SERVER_START (Optional if WiFi starts)
-// MOTOR_START
-// ENGINE_START
-// ACTIVE
-// ERROR
-
-LVGLGui* gui;
 void loop() {
   if (blynk != NULL) {
     blynk->loop();
@@ -133,12 +64,7 @@ void boot_setup() {
   digitalWrite(13, HIGH);
   FastLED.addLeds<NEOPIXEL, 21>(leds, NUM_LEDS);
   leds[0] = CHSV(0, 180, 64);
-  FastLED.show(); 
-
-#if ENABLE_LVGL == FUNCTIONALITY_ENABLED
-  gui = new LVGLGui();
-  gui->start();
-#endif
+  FastLED.show();
 }
 
 BootScreen* bootScreen = NULL;
@@ -150,64 +76,6 @@ void boot_start () {
   for (uint8_t i = 0; i < (BOOT_SCREEN_WAIT / 50); i++) { vTaskDelay(50 / portTICK_PERIOD_MS); }
 }
 
-WifiStaScreen* wifiStaScreen = NULL;
-WifiApScreen* wifiApScreen = NULL;
-WifiFailureScreen* wifiFailureScreen = NULL;
-StatusScreen* statusScreen = NULL;
-void wifi_poll(void* pvParameter) {
-  while (true) {
-    // If WiFi is Connected, move on to Status
-    if (WiFi.status() == WL_CONNECTED) {
-      ESP_LOGI("main", "Wifi Polling Task exiting");
-      vTaskDelete(NULL);
-    } else if (WiFi.getMode() == WIFI_AP_STA && !wifiApScreen->getIsActive()) { 
-      gui->activate(wifiApScreen);
-    } else if (WiFi.getMode() == WIFI_STA  && !wifiStaScreen->getIsActive()) {
-      gui->activate(wifiStaScreen);
-    }
-
-    vTaskDelay(33 / portTICK_PERIOD_MS);
-  }
-}
-
-#define HASH_SIZE 32
-SHA256 sha256;
-void wifi_setup () {
-  wifiStaScreen = new WifiStaScreen();
-  wifiApScreen = new WifiApScreen();
-  wifiFailureScreen = new WifiFailureScreen();
-
-  const char* mac = WiFi.macAddress().c_str();
-  uint8_t value[HASH_SIZE];
-
-  Hash *hash = &sha256;
-  hash->reset();
-  hash->update(mac, strlen(mac));
-  hash->finalize(value, sizeof(value));
-
-  sprintf(wifiName, "CAN-SoftAP %02X", value[4]);
-  sprintf(wifiPassword, "softap-%02x%02x", value[5], value[6]);
-
-  ESP_LOGI("main", "Wifi: %s %s", wifiName, wifiPassword);
-  ESPConnect.autoConnect(wifiName, wifiPassword);
-
-  // Start the WiFi checking task
-  TaskHandle_t wifiPollTask;
-  xTaskCreatePinnedToCore(&wifi_poll, "wifi_poll", 4096, NULL, 5, &wifiPollTask, 1);
-
-  // 30 second attempt to connect to configured AP
-  // 180 second attempt to serve AP page for configuring WiFi
-  // This will halt until WiFi.status() == WL_CONNECTED, or a timeout
-  // Returns true if connected, false if timed out
-  bool success = ESPConnect.begin(&server);
-
-  if (!success) {
-    vTaskDelete(wifiPollTask);
-    gui->activate(wifiFailureScreen);
-    ESP_LOGE("main", "Failed to connect to WiFi. Waiting for reboot...");
-    while (true) { vTaskDelay(50 / portTICK_PERIOD_MS); }
-  }
-}
 
 void storage_setup() {
   ESP_LOGI("main", "Mounting SPIFFS");
@@ -217,10 +85,23 @@ void storage_setup() {
   }
 }
 
+void espnow_setup() {
+  WiFi.mode(WIFI_STA);
+  ESP_LOGI("main", "MAC Address: %s", WiFi.macAddress());
+
+  // Init ESP-NOW
+  if (esp_now_init() != ESP_OK) {
+    ESP_LOGE("main", "Error initializing ESP-NOW");
+    return;
+  }
+}
+
+/*
 void blynk_setup() {
   ESP_LOGI("main", "Starting Blynk!");
   blynk = new BlynkController();
 }
+*/
 
 void server_setup() {
   ESP_LOGI("main", "Starting Web Server");
@@ -244,11 +125,20 @@ void server_setup() {
   wlog.startTask();
 }
 
+FunctionalityStateService functionalityStateService;
 void setup() {
   boot_setup();
   boot_start();
+
+  gui = new LVGLGui();
+  gui->start();
+
+  functionalityStateService.read([&](FunctionalityState& state) {
+    if (state.)
+  });
+
   wifi_setup();
-  blynk_setup();
+  //blynk_setup();
   storage_setup();
   server_setup();
 

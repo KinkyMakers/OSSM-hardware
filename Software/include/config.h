@@ -1,15 +1,16 @@
-#pragma once
+#ifndef CONFIG_H
+#define CONFIG_H
 
 #define FUNCTIONALITY_ENABLED 1
 #define FUNCTIONALITY_DISABLED 0
 
-#define BOARD_CANOPEN "CANopen"
-#define BOARD_OSSM_V2 "OSSMv2"
+#define BOARD_CANOPEN 0
+#define BOARD_OSSM_V2 1
 
-#define MOTOR_TYPE_STEPPER "Stepper"
-#define MOTOR_TYPE_IHSV_5 "iHSV5"
-#define MOTOR_TYPE_IHSV_6 "iHSV6"
-#define MOTOR_TYPE_LINMOT "LinMot"
+#define MOTOR_TYPE_STEPPER 0
+#define MOTOR_TYPE_IHSV_5 1
+#define MOTOR_TYPE_IHSV_6 2
+#define MOTOR_TYPE_LINMOT 3
 
 /*****************************************************/
 /*************** START USER CONFIGURATION ************/
@@ -40,8 +41,11 @@
 #define UART_SPEED 115200
 #define M5_REMOTE_ADDRESS {0x08, 0x3A, 0xF2, 0x68, 0x1E, 0x74}
 
+#include "config_defaults.h"
 #if BOARD == BOARD_CANOPEN
-  #include "config_canopen.hpp"
+  #include "config_canopen.h"
 #elif BOARD == BOARD_OSSM_V2
-  #include "config_ossmv2"
+  #include "config_ossmv2.h"
+#endif
+
 #endif

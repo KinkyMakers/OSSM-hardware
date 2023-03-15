@@ -1,5 +1,7 @@
-#ifndef LVGL_GUI_H
-#define LVGL_GUI_H
+#pragma once
+
+#include "config.hpp"
+#if LVGL_AVAILABLE == 1
 
 #include "esp_log.h"
 #include <TFT_eSPI.h>
@@ -23,6 +25,8 @@ class ScreenInterface {
 class LVGLGui {
   public:
     LVGLGui();
+
+    static LVGLGui* getInstance();
 
     void start();
     void flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p);
