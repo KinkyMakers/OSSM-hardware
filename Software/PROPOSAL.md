@@ -44,3 +44,16 @@ It currently allows displaying WiFi AP credentals for a user to connect to for f
 mDNS would allow us to advertise a easy to remember DNS entry on any local network the OSSM connects to. For example, we could advertise "ossm.local" and any network user would be able to load the UI.
 
 This helps reduce the complexity of knowing the IP, or looking up the DHCP lease of the ESP32 when doing setup
+
+## Coding Standards
+### Result Type for returning from functions which can error
+We are using the [Result](https://github.com/bitwizeshift/result) type for handling errors/return values.
+
+### Safety
+TODO - Describe Safe Coding Styles for C++
+
+## Vision
+![image](https://user-images.githubusercontent.com/63624195/225158520-dce097cb-d3f6-4310-b854-a13358da800d.png)
+
+## [Figma Diagram](https://www.figma.com/file/xvwuVPN9qcOHEUhXHBKHwk/OSSM?node-id=0%3A1&t=uwt1JDeEB0goYgEb-1)
+![image](https://user-images.githubusercontent.com/63624195/225158667-a4a898d0-a395-41e3-9548-4f46c31b833e.png)
