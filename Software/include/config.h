@@ -6,8 +6,6 @@
 /*****************************************************/
 /*************** START USER CONFIGURATION ************/
 /*****************************************************/
-#define BOARD BOARD_CANOPEN
-#define MOTOR_TYPE MOTOR_TYPE_VIRTUAL
 
 // Addon: Eject Cum Pump - https://github.com/ortlof/EJECT-cum-tube-project
 #define ENABLE_ADDON_EJECT FUNCTIONALITY_DISABLED
