@@ -1,5 +1,5 @@
 // Based on https://www.hackster.io/techbase_group/arduino-esp32-serial-port-to-tcp-converter-via-wifi-66d341
-#include "config.hpp"
+#include "config.h"
 
 #include "WiFi.h"
 #include "AsyncTCP.h"

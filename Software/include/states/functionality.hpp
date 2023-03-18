@@ -1,5 +1,6 @@
+#pragma once
 #include "StatefulService.hpp"
-#include "config.hpp"
+#include "config.h"
 
 class FunctionalityState {
   public:
@@ -10,10 +11,10 @@ class FunctionalityState {
     uint8_t modbusTxPin = MODBUS_TX_PIN;
     uint32_t modbusBaudRate = MODBUS_BAUD_RATE;
 
-    const bool canbusAvailable = CANBUS_AVAILABLE;
-    bool canbusEnabled = CANBUS_DEFAULT;
-    uint8_t canbusRxPin = CANBUS_RX_PIN;
-    uint8_t canbusTxPin = CANBUS_TX_PIN;
+    const bool canbusAvailable = CANOPEN_AVAILABLE;
+    bool canbusEnabled = CANOPEN_DEFAULT;
+    uint8_t canbusRxPin = CANOPEN_RX_PIN;
+    uint8_t canbusTxPin = CANOPEN_TX_PIN;
 
     bool vcpEnabled = VCP_DEFAULT;
 
@@ -25,4 +26,8 @@ class FunctionalityState {
 
 class FunctionalityStateService : public StatefulService<FunctionalityState> {
 
+};
+
+namespace Config {
+  extern FunctionalityStateService functionality;
 };

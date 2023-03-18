@@ -1,22 +1,13 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define FUNCTIONALITY_ENABLED 1
-#define FUNCTIONALITY_DISABLED 0
-
-#define BOARD_CANOPEN 0
-#define BOARD_OSSM_V2 1
-
-#define MOTOR_TYPE_STEPPER 0
-#define MOTOR_TYPE_IHSV_5 1
-#define MOTOR_TYPE_IHSV_6 2
-#define MOTOR_TYPE_LINMOT 3
+#include "config_generic.h"
 
 /*****************************************************/
 /*************** START USER CONFIGURATION ************/
 /*****************************************************/
 #define BOARD BOARD_CANOPEN
-#define MOTOR_TYPE MOTOR_TYPE_LINMOT
+#define MOTOR_TYPE MOTOR_TYPE_VIRTUAL
 
 // Addon: Eject Cum Pump - https://github.com/ortlof/EJECT-cum-tube-project
 #define ENABLE_ADDON_EJECT FUNCTIONALITY_DISABLED
@@ -33,19 +24,11 @@
 /**************** END USER CONFIGURATION *************/
 /*****************************************************/
 
-/*****************************************************/
-/*************** INTERNAL CONFIGURATION **************/
-/*****************************************************/
-/*!!!!!!!!!! DO NOT TOUCH UNLESS INSTRUCTED !!!!!!!!!*/
-
-#define UART_SPEED 115200
-#define M5_REMOTE_ADDRESS {0x08, 0x3A, 0xF2, 0x68, 0x1E, 0x74}
-
-#include "config_defaults.h"
 #if BOARD == BOARD_CANOPEN
   #include "config_canopen.h"
 #elif BOARD == BOARD_OSSM_V2
   #include "config_ossmv2.h"
 #endif
 
+#include "states/functionality.hpp"
 #endif

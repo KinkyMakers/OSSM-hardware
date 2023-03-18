@@ -1,6 +1,6 @@
 #pragma once
 
-#include "config.hpp"
+#include "config.h"
 #if LVGL_AVAILABLE == 1
 
 #include "esp_log.h"

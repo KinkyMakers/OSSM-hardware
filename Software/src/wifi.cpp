@@ -1,22 +1,28 @@
+#include "config.h"
 #include "wifi.hpp"
-#include "lvgl_gui.hpp"
+#include "webserver.hpp"
 
 #include <ESPConnect.h>
+#include <Crypto.h>
+#include <SHA256.h>
 
 // TODO - Get rid of these globals eventually
 char wifiName[32];
 char wifiPassword[10];
 
-AsyncWebServer server(80);
-AsyncWebSocket ws("/");
-AsyncEventSource events("/es");
-
+#if LVGL_AVAILABLE == 1
+#include "lvgl_gui.hpp"
+#include "screen/wifi_ap.hpp"
+#include "screen/wifi_sta.hpp"
+#include "screen/wifi_failure.hpp"
 WifiStaScreen* wifiStaScreen = NULL;
 WifiApScreen* wifiApScreen = NULL;
 WifiFailureScreen* wifiFailureScreen = NULL;
-StatusScreen* statusScreen = NULL;
-void wifi_poll(void* pvParameter) {
+void wifi_gui_poll(void* pvParameter) {
   LVGLGui* gui = LVGLGui::getInstance();
+  wifiStaScreen = new WifiStaScreen();
+  wifiApScreen = new WifiApScreen();
+  wifiFailureScreen = new WifiFailureScreen();
 
   while (true) {
     // If WiFi is Connected, move on to Status
@@ -32,15 +38,12 @@ void wifi_poll(void* pvParameter) {
     vTaskDelay(33 / portTICK_PERIOD_MS);
   }
 }
+#endif
 
 #define HASH_SIZE 32
 SHA256 sha256;
 void wifi_setup () {
   LVGLGui* gui = LVGLGui::getInstance();
-
-  wifiStaScreen = new WifiStaScreen();
-  wifiApScreen = new WifiApScreen();
-  wifiFailureScreen = new WifiFailureScreen();
 
   const char* mac = WiFi.macAddress().c_str();
   uint8_t value[HASH_SIZE];
@@ -57,9 +60,15 @@ void wifi_setup () {
   ESP_LOGI("main", "MAC Address: %s", WiFi.macAddress());
   ESPConnect.autoConnect(wifiName, wifiPassword);
 
+#if LVGL_AVAILABLE == 1
   // Start the WiFi checking task
   TaskHandle_t wifiPollTask;
-  xTaskCreatePinnedToCore(&wifi_poll, "wifi_poll", 4096, NULL, 5, &wifiPollTask, 1);
+  Config::functionality.read([&](FunctionalityState& state) {
+    if (state.lvglEnabled) {
+      xTaskCreatePinnedToCore(&wifi_gui_poll, "wifi_poll", 4096, NULL, 5, &wifiPollTask, 1);
+    }
+  });
+#endif
 
   // 30 second attempt to connect to configured AP
   // 180 second attempt to serve AP page for configuring WiFi

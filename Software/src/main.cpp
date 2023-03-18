@@ -1,12 +1,10 @@
 #include "esp_log.h"
-#include "config.hpp"
+#include "config.h"
 
 // General hardware libs
 #include "SPIFFS.h"
 #include "Wire.h"
 #include <Preferences.h>
-#include <Crypto.h>
-#include <SHA256.h>
 
 // Specific hardware libs
 #include "ESPAsyncWebServer.h"
@@ -15,29 +13,24 @@
 
 #include "StrokeEngine.h"
 
-#include "controller/canfuck.hpp"
+//#include "controller/canfuck.hpp"
 
 #include "CO_main.h"
 
-#include "lvgl_gui.hpp"
 #include "wifi.hpp"
 
-// Screens
-#include "screen/boot.hpp"
-#include "screen/status.hpp"
-#include "screen/wifi_ap.hpp"
-#include "screen/wifi_sta.hpp"
-#include "screen/wifi_failure.hpp"
-
+#include "data_logger.hpp"
 #include "reset_reason.hpp"
+
+#include "webserver.hpp"
 
 #define NUM_LEDS 1
 CRGB leds[NUM_LEDS];
 
-#if MOTOR_USED == MOTOR_LINMOT
+#if MOTOR_TYPE == MOTOR_TYPE_LINMOT
   #include "motor/linmot.hpp"
   LinmotMotor* motor;
-#elif MOTOR_USED == MOTOR_MOCK
+#elif MOTOR_TYPE == MOTOR_TYPE_VIRTUAL
   #include "motor/virtualMotor.h"
   VirtualMotor* motor;
 #endif
@@ -45,10 +38,6 @@ CRGB leds[NUM_LEDS];
 StrokeEngine* engine;
 
 void loop() {
-  if (blynk != NULL) {
-    blynk->loop();
-  }
-
   vTaskDelay(200 / portTICK_PERIOD_MS);
   // TODO - fix this stack overflow
   //ws.cleanupClients();
@@ -62,20 +51,39 @@ void boot_setup() {
   
   pinMode(13, OUTPUT);
   digitalWrite(13, HIGH);
+
   FastLED.addLeds<NEOPIXEL, 21>(leds, NUM_LEDS);
   leds[0] = CHSV(0, 180, 64);
   FastLED.show();
 }
 
+#if LVGL_AVAILABLE == 1
+#include "lvgl_gui.hpp"
+#include "screen/boot.hpp"
+#include "screen/status.hpp"
+
+void boot_setup_lvgl() {
+  LVGLGui::getInstance()->start();
+}
+
 BootScreen* bootScreen = NULL;
-void boot_start () {
+void boot_show_logo () {
   bootScreen = new BootScreen();
-  gui->activate(bootScreen);
+  LVGLGui::getInstance()->activate(bootScreen);
 
   // Allow the boot screen to show for a bit
   for (uint8_t i = 0; i < (BOOT_SCREEN_WAIT / 50); i++) { vTaskDelay(50 / portTICK_PERIOD_MS); }
 }
 
+StatusScreen* statusScreen = NULL;
+void boot_show_status() {
+  statusScreen = new StatusScreen();
+  LVGLGui::getInstance()->activate(statusScreen);
+}
+#elif
+void boot_setup_lvgl() {}
+void boot_show_logo() {}
+#endif
 
 void storage_setup() {
   ESP_LOGI("main", "Mounting SPIFFS");
@@ -85,6 +93,7 @@ void storage_setup() {
   }
 }
 
+/*
 void espnow_setup() {
   WiFi.mode(WIFI_STA);
   ESP_LOGI("main", "MAC Address: %s", WiFi.macAddress());
@@ -95,6 +104,7 @@ void espnow_setup() {
     return;
   }
 }
+*/
 
 /*
 void blynk_setup() {
@@ -103,48 +113,28 @@ void blynk_setup() {
 }
 */
 
-void server_setup() {
-  ESP_LOGI("main", "Starting Web Server");
-  DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Origin"), F("*"));
-  DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Headers"), F("content-type"));
-
-  server.serveStatic("/www2", SPIFFS, "/www/").setDefaultFile("index.html");
-  server.onNotFound([](AsyncWebServerRequest *request) {
-      Serial.printf("Not found: %s!\r\n", request->url().c_str());
-      request->send(404);
-   });
-
-  server.begin();
-
-  ws.onEvent(onEvent);
-  events.onConnect((ArEventHandlerFunction)onConnect);
-  server.addHandler(&ws);
-  server.addHandler(&events);
-  wlog.attachWebsocket(&ws);
-  wlog.attachEventsource(&events);
-  wlog.startTask();
-}
-
-FunctionalityStateService functionalityStateService;
 void setup() {
   boot_setup();
-  boot_start();
 
-  gui = new LVGLGui();
-  gui->start();
-
-  functionalityStateService.read([&](FunctionalityState& state) {
-    if (state.)
+  Config::functionality.read([&](FunctionalityState& state) {
+    if (state.lvglEnabled) {
+      boot_setup_lvgl();
+      boot_show_logo();
+    }
   });
 
   wifi_setup();
   //blynk_setup();
   storage_setup();
   server_setup();
+  
+  Config::functionality.read([&](FunctionalityState& state) {
+    if (state.lvglEnabled) {
+      boot_show_status();
+    }
+  });
 
-  statusScreen = new StatusScreen();
-  gui->activate(statusScreen);
-
+/*
   if (CONTROLLER_USED) {
     WEB_LOGI("main", "Initializing Hardware Controller");
     controller = new CANFuckController();
@@ -155,29 +145,25 @@ void setup() {
   } else {
     WEB_LOGI("main", "No Hardware Controller, only Blynk Controls will be available!");
   }
+  */
 
   WEB_LOGI("main", "Configuring Motor");
 
-#if MOTOR_USED == MOTOR_LINMOT
+#if MOTOR_TYPE == MOTOR_TYPE_LINMOT
   motor = new LinmotMotor();
 
-  MachineGeometry bounds = {
-    .start = 110, // mm
-    .end = -7, // mm
-    .keepout = 10 // mm
-  };
+  motor->setMachineGeometry(110, -7, 10);
   motor->setMaxSpeed(5000); // 5 m/s
   motor->setMaxAcceleration(500); // 25 m/s^2
-  motor->setMachineGeometry(bounds);
 
-  motor->CO_setNodeId(NODE_ID_LINMOT);
+  motor->CO_setNodeId(CANOPEN_NODEID_LINMOT);
   motor->CO_setStatusUInt16(OD_ENTRY_H2110_linMotStatusUInt16);
   motor->CO_setMonitorSInt16(OD_ENTRY_H2114_linMotStatusSInt16);
   motor->CO_setMonitorSInt32(OD_ENTRY_H2115_linMotStatusSInt32);
   motor->CO_setControl(OD_ENTRY_H2111_linMotControlWord);
   motor->CO_setCmdHeader(OD_ENTRY_H2112_linMotCMD_Header);
   motor->CO_setCmdParameters(OD_ENTRY_H2113_linMotCMD_Parameters);
-#elif MOTOR_USED == MOTOR_MOCK
+#elif MOTOR_TYPE == MOTOR_TYPE_VIRTUAL
   motor = new VirtualMotor();
 
   motor->setMaxSpeed(5000); // 5 m/s
@@ -189,6 +175,7 @@ void setup() {
   WEB_LOGI("main", "Attaching Motor to Stroke Engine");
   engine->attachMotor(motor);
 
+/*
   if (controller != NULL) {
   WEB_LOGI("main", "Attaching Controller to Stroke Engine");
     controller->attachEngine(engine);
@@ -196,6 +183,7 @@ void setup() {
 
   WEB_LOGI("main", "Attaching Blynk to Motor and Engine");
   blynk->attach(engine, motor);
+  */
 
   WEB_LOGI("main", "Configuring Stroke Engine");
   engine->setParameter(StrokeParameter::RATE, 50);
@@ -203,10 +191,12 @@ void setup() {
   engine->setParameter(StrokeParameter::STROKE, 50);
   engine->setParameter(StrokeParameter::SENSATION, 0);
   
+  /*
   // TODO - Move controller tasks into init/attach
   if (controller != NULL) {
     controller->registerTasks();
   }
+  */
 
   WEB_LOGI("main", "Homing Motor");
   motor->enable();

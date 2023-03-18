@@ -43,7 +43,7 @@
 
 #include "soc/soc.h"
 
-#include "config.hpp"
+#include "config.h"
 #include "CANopen.h"
 #include "CO_config_target.h"
 #include "301/CO_driver.h"
@@ -60,15 +60,7 @@ static twai_timing_config_t timingConfig = TWAI_TIMING_CONFIG_500KBITS();     //
 static twai_filter_config_t filterConfig = TWAI_FILTER_CONFIG_ACCEPT_ALL(); //Disable Message Filter
                                                                           //CAN General configuration
                                                                           
-static twai_general_config_t generalConfig = {.mode = TWAI_MODE_NORMAL,
-                                             .tx_io = CAN_TX_IO,                  /*TX IO Pin (CO_config.h)*/
-                                             .rx_io = CAN_RX_IO,                  /*RX IO Pin (CO_config.h)*/
-                                             .clkout_io = TWAI_IO_UNUSED,          /*No clockout pin*/
-                                             .bus_off_io = TWAI_IO_UNUSED,         /*No busoff pin*/
-                                             .tx_queue_len = CAN_TX_QUEUE_LENGTH, /*ESP TX Buffer Size (CO_config.h)*/
-                                             .rx_queue_len = CAN_RX_QUEUE_LENGTH, /*ESP RX Buffer Size (CO_config.h)*/
-                                             .alerts_enabled = TWAI_ALERT_ALL | TWAI_ALERT_AND_LOG,    /*Disable CAN Alarms TODO: Enable for CO_CANverifyErrors*/
-                                             .clkout_divider = 0};                /*No Clockout*/
+static twai_general_config_t generalConfig = {};                
 
 //Timer Interrupt Configuration
 const esp_timer_create_args_t CO_CANinterruptArgs = {
@@ -151,16 +143,18 @@ CO_ReturnError_t CO_CANmodule_init(
         CANmodule->txArray[i].bufferFull = false;
     }
 
-    /* Configure CAN module registers */
-    generalConfig.mode = TWAI_MODE_NORMAL;
-    generalConfig.tx_io = CAN_TX_IO;
-    generalConfig.rx_io = CAN_RX_IO;
-    generalConfig.clkout_io = TWAI_IO_UNUSED;
-    generalConfig.bus_off_io = TWAI_IO_UNUSED;
-    generalConfig.tx_queue_len = CAN_TX_QUEUE_LENGTH;
-    generalConfig.rx_queue_len = CAN_RX_QUEUE_LENGTH;
-    generalConfig.alerts_enabled = TWAI_ALERT_ALL;
-    generalConfig.clkout_divider = 0;
+    Config::functionality.read([](FunctionalityState &instance) -> void{
+      /* Configure CAN module registers */
+      generalConfig.mode = TWAI_MODE_NORMAL;
+      generalConfig.tx_io = static_cast<gpio_num_t>(instance.canbusTxPin);
+      generalConfig.rx_io = static_cast<gpio_num_t>(instance.canbusRxPin);
+      generalConfig.clkout_io = TWAI_IO_UNUSED;
+      generalConfig.bus_off_io = TWAI_IO_UNUSED;
+      generalConfig.tx_queue_len = CAN_TX_QUEUE_LENGTH;
+      generalConfig.rx_queue_len = CAN_RX_QUEUE_LENGTH;
+      generalConfig.alerts_enabled = TWAI_ALERT_ALL;
+      generalConfig.clkout_divider = 0;
+    });
 
     /* Configure CAN timing */
     switch (CANbitRate)

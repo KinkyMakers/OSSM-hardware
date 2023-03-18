@@ -97,14 +97,14 @@ void app_init_communication() {
   // CO_CANsetConfigurationMode((void *)&CANptr); - Not needed on ESP32 - We handle this in CO_CANinit
   // TODO - ESP_ERR_INVALID_STATE - CO_CANmodule_disable(CO->CANmodule);
 
-  if (CAN_OD_USED == CAN_A1100_OD) {
+  if (CANOPEN_OD_EXTENSIONS & CANOPEN_OD_A1100) {
     CO_linmot_a1100_TPDO_init();
   } else {
     CO_linmot_b1100_TPDO_init();
   }
 
   /* Initialize CAN Device */
-  err = CO_CANinit(CO, NULL, CAN_BITRATE /* bit rate */);
+  err = CO_CANinit(CO, NULL, CANOPEN_BAUD_RATE /* bit rate */);
   if (err != CO_ERROR_NO)
   {
     WEB_LOGE("init.comm", "CO_init failed. Errorcode: %d", err);
@@ -124,7 +124,7 @@ void app_init_communication() {
     SDO_SRV_TIMEOUT_TIME, /* SDOserverTimeoutTime_ms */
     SDO_CLI_TIMEOUT_TIME, /* SDOclientTimeoutTime_ms */
     SDO_CLI_BLOCK,     /* SDOclientBlockTransfer */
-    NODE_ID_SELF,
+    CANOPEN_NODEID_SELF,
     &errInfo
   );
 
@@ -138,7 +138,7 @@ void app_init_communication() {
   }
 
   /* Initialize TPDO and RPDO if defined in CO_config.h */
-  err = CO_CANopenInitPDO(CO, CO->em, OD, NODE_ID_SELF, &errInfo);
+  err = CO_CANopenInitPDO(CO, CO->em, OD, CANOPEN_NODEID_SELF, &errInfo);
   if(err != CO_ERROR_NO) {
     if (err == CO_ERROR_OD_PARAMETERS) {
       WEB_LOGE("init.comm", "Error: Object Dictionary entry 0x%X\n", errInfo);

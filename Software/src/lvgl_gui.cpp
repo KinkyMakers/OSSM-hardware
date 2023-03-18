@@ -1,6 +1,6 @@
 #include "lvgl_gui.hpp"
 
-LVGLGui* lvgl_instance;
+LVGLGui* lvgl_instance = nullptr;
 void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
   lvgl_instance->flush(disp, area, color_p);
 }
@@ -12,7 +12,11 @@ LVGLGui::LVGLGui() {
   img = new TFT_eSprite(tft);
 }
 
-static LVGLGui* LVGLGui::getInstance() {
+LVGLGui* LVGLGui::getInstance() {
+  if (lvgl_instance == nullptr) {
+    lvgl_instance = new LVGLGui();
+  }
+  
   return lvgl_instance;
 }
 
