@@ -72,8 +72,7 @@ We are calling this the reference build, when deviating from it please check com
    - For details on picking the right motor for your use case - check this [FAQ](https://github.com/KinkyMakers/OSSM-hardware/blob/master/FAQ.md#q--what-strength-of--motor-do-i-need)
    - If you are using the 140W or180W version it is recommended to use a 10mm wide belt and pulley (see the next two items)
 3) **GT2 Pulley 8mm Bore 20 Tooth, 10mm width** : [Amazon.ca](https://www.amazon.ca/Timing-Pulley-8mm-bore-10mm-belt-20-Tooth/dp/B09L7D7HHT)
-4) **GT2 Timing Belt** : [Amazon.ca](https://www.amazon.ca/Printer-Timing-Teeth-Pulley-Wrench/dp/B08PKPK4D8/ref=sr_1_8?dchild=1&keywords=gt2+timing+belt&qid=1627821669&sr=8-8)
-* Only the GT2 belt is needed from this kit, however it's often cheaper with the incorrect sized pulleys in a bundle
+4) **GT2 Timing Belt - 10mm width** : [Amazon.ca](www.amazon.ca/Timing-Meters-Creality-Anycubic-Printer/dp/B097T4DFM6/)
 * Your desired stroke length plus about 200mm should be your minimum order length
 5) **Bearings** 5x11x4mm : [Amazon.ca](https://www.amazon.ca/gp/product/B07CVBW44R/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)
 6) **MGN12H Rail and bearing** : [Amazon.ca](https://www.amazon.ca/Usongshine-guidage-lin%C3%A9aire-MGN12H-300mm/dp/B07XLL484J/ref=pd_sbs_201_1/139-0384147-0570541?_encoding=UTF8&pd_rd_i=B07XT8ZY9H&pd_rd_r=e7dc0ab7-e244-4a6c-ba42-59d7da76e03b&pd_rd_w=jhRlq&pd_rd_wg=zovAp&pf_rd_p=0ec96c83-1800-4e36-8486-44f5573a2612&pf_rd_r=YZGA61RD95B0E3H004ZA&refRID=YZGA61RD95B0E3H004ZA&th=1)
@@ -119,6 +118,8 @@ We are calling this the reference build, when deviating from it please check com
 ### GPIO Layout
 
 ![OSSM pinout](https://user-images.githubusercontent.com/12459679/152600401-80b986ea-6f5b-480d-ba74-5b5001079c1b.png)
+![JST Header](https://user-images.githubusercontent.com/12459679/226189433-db28dfc6-22ac-4fdb-8b45-afe0c3fa9a7b.png)
+
 
 
 ## Non-Official OSSM Wiring
