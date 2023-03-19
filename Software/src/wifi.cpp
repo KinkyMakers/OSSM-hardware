@@ -8,7 +8,7 @@
 
 // TODO - Get rid of these globals eventually
 char wifiName[32];
-char wifiPassword[10];
+char wifiPassword[16];
 
 #if LVGL_AVAILABLE == 1
 #include "lvgl_gui.hpp"
@@ -57,7 +57,7 @@ void wifi_setup () {
   sprintf(wifiPassword, "softap-%02x%02x", value[5], value[6]);
 
   ESP_LOGI("main", "Wifi: %s %s", wifiName, wifiPassword);
-  ESP_LOGI("main", "MAC Address: %s", WiFi.macAddress());
+  ESP_LOGI("main", "MAC Address: %s", WiFi.macAddress().c_str());
   ESPConnect.autoConnect(wifiName, wifiPassword);
 
 #if LVGL_AVAILABLE == 1

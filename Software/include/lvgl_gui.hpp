@@ -3,32 +3,17 @@
 #include "config.h"
 #if LVGL_AVAILABLE == 1
 
-#include "esp_log.h"
 #include <TFT_eSPI.h>
 #include <lvgl.h>
 #include <map>
 
-class ScreenInterface {
-  public:
-    bool getIsActive() { return isActive; }
-    virtual String getName() { return "generic"; }
-
-  protected:
-    virtual void tick();
-    bool isActive = false;
-
-    lv_obj_t *ui_root;
-
-  friend class LVGLGui;
-};
+#include "lvgl_screen.hpp"
+#include "data_logger.hpp"
 
 class LVGLGui {
   public:
-    LVGLGui();
-
     static LVGLGui* getInstance();
 
-    void start();
     void flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p);
 
     void activate(ScreenInterface* screen) {
@@ -36,7 +21,7 @@ class LVGLGui {
         return; // TODO - Log a warning here
       }
 
-      ESP_LOGI("gui", "Activating new screen '%s'", screen->getName());
+      WEB_LOGI("gui", "Activating new screen '%s'", screen->getName());
 
       if (this->activeScreen != NULL) {
         this->activeScreen->isActive = false;
@@ -63,6 +48,9 @@ class LVGLGui {
     }
 
   private:
+    LVGLGui();
+    void start();
+
     uint16_t forceInvalidateCounter = 0;
 
     TFT_eSPI* tft;

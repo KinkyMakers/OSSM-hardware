@@ -1,3 +1,6 @@
+#include <iostream>
+#include <thread>
+#include <mutex>
 #include "lvgl_gui.hpp"
 
 LVGLGui* lvgl_instance = nullptr;
@@ -12,10 +15,12 @@ LVGLGui::LVGLGui() {
   img = new TFT_eSprite(tft);
 }
 
+std::once_flag initGuiFlag;
 LVGLGui* LVGLGui::getInstance() {
-  if (lvgl_instance == nullptr) {
+  std::call_once(initGuiFlag, [&]() {
     lvgl_instance = new LVGLGui();
-  }
+    lvgl_instance->start();
+  });
   
   return lvgl_instance;
 }

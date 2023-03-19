@@ -41,6 +41,8 @@ extern const char* DataParameter_KEYS[];
 
 #define WEBLOGGER_BUFFER_SIZE 64
 
+// TODO - Checkout esp_log_set_vprintf to see if we can replace all of this, 
+// and truely capture all of the logs we need to send to the web interface
 #define WEBLOG_LOG_FORMAT(format)  "[%s:%u] %s(): " format "\r\n", pathToFileName(__FILE__), __LINE__, __FUNCTION__
 
 #if WEBLOG_AVAILABLE == 1

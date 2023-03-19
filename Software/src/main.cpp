@@ -11,6 +11,8 @@
 #include <ESPDash.h>
 #include <FastLED.h>
 
+#include "ESPmDNS.h"
+
 #include "StrokeEngine.h"
 
 //#include "controller/canfuck.hpp"
@@ -55,16 +57,14 @@ void boot_setup() {
   FastLED.addLeds<NEOPIXEL, 21>(leds, NUM_LEDS);
   leds[0] = CHSV(0, 180, 64);
   FastLED.show();
+  
+  MDNS.begin("ossm");
 }
 
 #if LVGL_AVAILABLE == 1
 #include "lvgl_gui.hpp"
 #include "screen/boot.hpp"
 #include "screen/status.hpp"
-
-void boot_setup_lvgl() {
-  LVGLGui::getInstance()->start();
-}
 
 BootScreen* bootScreen = NULL;
 void boot_show_logo () {
@@ -118,7 +118,7 @@ void setup() {
 
   Config::functionality.read([&](FunctionalityState& state) {
     if (state.lvglEnabled) {
-      boot_setup_lvgl();
+      LVGLGui::getInstance(); // TODO - Hack to initialize LVGL
       boot_show_logo();
     }
   });

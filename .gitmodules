@@ -2,3 +2,6 @@
 	path = Software/lib/StrokeEngine
 	url = https://github.com/theelims/StrokeEngine/
 	branch = experimental-generic
+[submodule "Software/lib/OSSM-framework"]
+	path = Software/lib/OSSM-framework
+	url = https://github.com/zylos146/OSSM-framework.git
