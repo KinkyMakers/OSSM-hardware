@@ -22,7 +22,7 @@
 #define CONNECT 88
 #define HEARTBEAT 99
 
-typedef struct struct_message {
+typedef struct m5remote_packet {
   float esp_speed;
   float esp_depth;
   float esp_stroke;
@@ -34,4 +34,4 @@ typedef struct struct_message {
   int esp_command;
   float esp_value;
   int esp_target;
-} struct_message;
+} m5remote_packet;

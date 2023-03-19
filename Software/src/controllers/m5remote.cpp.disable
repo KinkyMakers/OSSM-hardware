@@ -42,13 +42,19 @@ struct_message incomingcontrol;
 esp_now_peer_info_t peerInfo;
 uint32_t Token = 1111;
 
-// Callback when data is sent
-void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
+void M5Remote::onDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
+
 }
 
-// Callback when data is received
-void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
+void M5Remote::onDataRecieve(const uint8_t * mac, const uint8_t *incomingData, int len) {
+  // TODO - Semaphore incase we get two packets at once
+  if (len != sizeof(incomingcontrol)) {
+    WEB_LOGE("m5remote", "Incoming Data Packet was the wrong size! %d expected, %d recieved!", sizeof(incomingcontrol), len);
+    return;
+  }
   memcpy(&incomingcontrol, incomingData, sizeof(incomingcontrol));
+  
+  
   switch(incomingcontrol.esp_target)
   {
     case OSSM_ID:
@@ -156,42 +162,26 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   
 }
 
-void M5Remote::_attachTask() {
-  xTaskCreatePinnedToCore(
-    std::bind(&M5Remote::_tick, &this),      /* Task function. */
-    "espNowRemoteTask",  /* name of task. */
-    4096,               /* Stack size of task */
-    NULL,               /* parameter of the task */
-    5,                  /* priority of the task */
-    &eRemote_t,         /* Task handle to keep track of created task */
-    0                   /* pin task to core 0 */
-  );        
+void M5Remote::_task_register() {
+  esp_now_register_send_cb(std::bind(&M5Remote::onDataSent, &this));
+  esp_now_register_recv_cb(std::bind(&M5Remote::onDataRecieve, &this));
+
+  memcpy(peerInfo.peer_addr, Broadcast_Address, 6);
+  peerInfo.channel = 0;  
+  peerInfo.encrypt = false;
+
+  if (esp_now_add_peer(&peerInfo) != ESP_OK){
+    WEB_LOGE("m5remote", "Failed to add peer");
+    std::terminate();
+    return;
+  } else {
+    vTaskSuspend(CRemote_T);
+  }
+
+  std::terminate();
 }
 
-void M5Remote::_tick(void *pvParameters)
-{
-    // Once ESPNow is successfully Init, we will register for Send CB to
-    // get the status of Trasnmitted packet
-    esp_now_register_send_cb(OnDataSent);
-
-    // Register peer
-    memcpy(peerInfo.peer_addr, Broadcast_Address, 6);
-    peerInfo.channel = 0;  
-    peerInfo.encrypt = false;
-  
-    // Add peer
-    if (esp_now_add_peer(&peerInfo) != ESP_OK){
-      ESP_LOGE("m5remote", "Failed to add peer");
-      vTaskSuspend();
-    return;
-    } else {
-      vTaskSuspend(CRemote_T);
-    }
-    // Register for a callback function that will be called when data is received
-    esp_now_register_recv_cb(OnDataRecv);
-
-    for(;;)
-    {
-      vTaskDelay(500);
-    }
+void M5Remote::_attachTask() {
+  // TODO - Confirm Core Pinning
+  std::thread(&M5Remote::_task_register, this);
 }
