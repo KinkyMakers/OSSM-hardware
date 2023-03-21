@@ -55,7 +55,7 @@ void LinmotMotor::CO_run_rpdo_received () {
     this->state = MotorState::ACTIVE;
   }
 
-  // ESP_LOGI("task.main", "RPDO CSword %d, CRunword %d, RunState %d, CErrorword %d,  CWarnword %d, Status %d, State %d!", this->CO_statusWord, this->CO_runWord, runState, this->CO_errorWord, this->CO_warnWord, this->status, (int)this->getState());
+  // log_i("RPDO CSword %d, CRunword %d, RunState %d, CErrorword %d,  CWarnword %d, Status %d, State %d!", this->CO_statusWord, this->CO_runWord, runState, this->CO_errorWord, this->CO_warnWord, this->status, (int)this->getState());
 
   time(&this->lastRPDOUpdate);
 }
@@ -166,7 +166,7 @@ void LinmotMotor::CO_sendCmd(uint16_t cmd, uint16_t parameter_a, uint16_t parame
   this->CO_controlWord = (this->CO_controlWord + 1) % 16;
   uint16_t cmdWord = (cmd & 0xFFF0) | (this->CO_controlWord & 0x0F);
 
-  //ESP_LOGI("task.main", "Sending LinMot Motion CMD %d, %d!\n", cmdWord, parameter_a);
+  //log_i("Sending LinMot Motion CMD %d, %d!\n", cmdWord, parameter_a);
   OD_set_u16(this->CO_cmdHeader_entry, 0x00, cmdWord, false);
 
   OD_set_u8(this->CO_cmdParameters_entry, 0x01, (uint8_t)((parameter_a >> 0) & 0xFF), false);

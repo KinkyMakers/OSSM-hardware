@@ -6,7 +6,7 @@ AsyncWebSocket ws("/");
 AsyncEventSource events("/es");
 
 void server_setup() {
-  ESP_LOGI("main", "Starting Web Server");
+  log_i("Starting Web Server");
   DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Origin"), F("*"));
   DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Headers"), F("content-type"));
 

@@ -89,7 +89,7 @@ void CO_linmot_a1100_TPDO_init() {
 }
 
 void app_init_communication() {
-  WEB_LOGI("init.comm", "Resetting communication...");
+  log_i("Resetting communication...");
   CO_ReturnError_t err;
   uint32_t errInfo = 0;
 
@@ -107,7 +107,7 @@ void app_init_communication() {
   err = CO_CANinit(CO, NULL, CANOPEN_BAUD_RATE /* bit rate */);
   if (err != CO_ERROR_NO)
   {
-    WEB_LOGE("init.comm", "CO_init failed. Errorcode: %d", err);
+    log_e("CO_init failed. Errorcode: %d", err);
     CO_errorReport(CO->em, CO_EM_MEMORY_ALLOCATION_ERROR, CO_EMC_SOFTWARE_INTERNAL, err);
     esp_restart();
   }
@@ -130,9 +130,9 @@ void app_init_communication() {
 
   if(err != CO_ERROR_NO && err != CO_ERROR_NODE_ID_UNCONFIGURED_LSS) {
     if (err == CO_ERROR_OD_PARAMETERS) {
-      WEB_LOGE("init.comm", "Error: Object Dictionary entry 0x%X\n", errInfo);
+      log_e("Error: Object Dictionary entry 0x%X\n", errInfo);
     } else {
-      WEB_LOGE("init.comm", "Error: CANopen initialization failed: %d\n", err);
+      log_e("Error: CANopen initialization failed: %d\n", err);
     }
     return;
   }
@@ -141,9 +141,9 @@ void app_init_communication() {
   err = CO_CANopenInitPDO(CO, CO->em, OD, CANOPEN_NODEID_SELF, &errInfo);
   if(err != CO_ERROR_NO) {
     if (err == CO_ERROR_OD_PARAMETERS) {
-      WEB_LOGE("init.comm", "Error: Object Dictionary entry 0x%X\n", errInfo);
+      log_e("Error: Object Dictionary entry 0x%X\n", errInfo);
     } else {
-      WEB_LOGE("init.comm", "Error: PDO initialization failed: %d\n", err);
+      log_e("Error: PDO initialization failed: %d\n", err);
     }
     return;
   }
@@ -157,20 +157,20 @@ void app_init_communication() {
   /* start CAN */
   CO_CANsetNormalMode(CO->CANmodule);
 
-  WEB_LOGI("init.comm", "done");
+  log_i("done");
 }
 
 void canopen_main_task(void *pvParameter) {
   CO = CO_new(config_ptr, &heapMemoryUsed);
   if (CO == NULL) {
-    WEB_LOGE("task.main", "Error: Can't allocate memory\n");
+    log_e("Error: Can't allocate memory\n");
     return;
   } else {
-    WEB_LOGI("task.main", "Allocated %u bytes for CANopen objects\n", heapMemoryUsed);
+    log_i("Allocated %u bytes for CANopen objects\n", heapMemoryUsed);
   }
 
   vTaskDelay(CANOPEN_START_WAIT / portTICK_PERIOD_MS);
-  WEB_LOGI("task.main", "Started");
+  log_i("Started");
 
   while (reset != CO_RESET_APP) {
     uint32_t coInterruptCounterPrevious = coInterruptCounter;
@@ -184,16 +184,16 @@ void canopen_main_task(void *pvParameter) {
       coInterruptCounterDiff = coInterruptCounterCopy - coInterruptCounterPrevious;
       coInterruptCounterPrevious = coInterruptCounterCopy;
 
-      //WEB_LOGI("task.main", "Processing CANOpen... %u diff cycles", coInterruptCounterDiff);
+      //log_i("Processing CANOpen... %u diff cycles", coInterruptCounterDiff);
       reset = CO_process(CO, false, coInterruptCounterDiff * 1000, NULL);
 
       vTaskDelay(CANOPEN_TASK_INTERVAL_MS / portTICK_PERIOD_MS);
     }
 
-    WEB_LOGI("task.main", "Communication reset was requested by CANOpen");
+    log_i("Communication reset was requested by CANOpen");
   }
 
-  WEB_LOGI("task.main", "Application reset was requested by CANOpen");
+  log_i("Application reset was requested by CANOpen");
   esp_restart();
 }
 

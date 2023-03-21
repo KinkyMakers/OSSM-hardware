@@ -1,4 +1,5 @@
 #include "esp_log.h"
+#include <logging.hpp>
 #include "config.h"
 
 // General hardware libs
@@ -86,9 +87,9 @@ void boot_show_logo() {}
 #endif
 
 void storage_setup() {
-  ESP_LOGI("main", "Mounting SPIFFS");
+  log_i("Mounting SPIFFS");
   if(!SPIFFS.begin(true)){
-    ESP_LOGE("main", "An Error has occurred while mounting SPIFFS");
+    log_e("An Error has occurred while mounting SPIFFS");
     return;
   }
 }
@@ -96,11 +97,11 @@ void storage_setup() {
 /*
 void espnow_setup() {
   WiFi.mode(WIFI_STA);
-  ESP_LOGI("main", "MAC Address: %s", WiFi.macAddress());
+  log_i("MAC Address: %s", WiFi.macAddress());
 
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK) {
-    ESP_LOGE("main", "Error initializing ESP-NOW");
+    log_e("Error initializing ESP-NOW");
     return;
   }
 }
@@ -108,7 +109,7 @@ void espnow_setup() {
 
 /*
 void blynk_setup() {
-  ESP_LOGI("main", "Starting Blynk!");
+  log_i("Starting Blynk!");
   blynk = new BlynkController();
 }
 */
@@ -136,18 +137,18 @@ void setup() {
 
 /*
   if (CONTROLLER_USED) {
-    WEB_LOGI("main", "Initializing Hardware Controller");
+    log_i("Initializing Hardware Controller");
     controller = new CANFuckController();
     if (controller->start() == false) {
-      WEB_LOGE("main", "Unable to initialize Hardware Controller");
+      log_e("Unable to initialize Hardware Controller");
       esp_restart();
     }
   } else {
-    WEB_LOGI("main", "No Hardware Controller, only Blynk Controls will be available!");
+    log_i("No Hardware Controller, only Blynk Controls will be available!");
   }
   */
 
-  WEB_LOGI("main", "Configuring Motor");
+  log_i("Configuring Motor");
 
 #if MOTOR_TYPE == MOTOR_TYPE_LINMOT
   motor = new LinmotMotor();
@@ -172,20 +173,20 @@ void setup() {
 #endif
 
   engine = new StrokeEngine();
-  WEB_LOGI("main", "Attaching Motor to Stroke Engine");
+  log_i("Attaching Motor to Stroke Engine");
   engine->attachMotor(motor);
 
 /*
   if (controller != NULL) {
-  WEB_LOGI("main", "Attaching Controller to Stroke Engine");
+  log_i("Attaching Controller to Stroke Engine");
     controller->attachEngine(engine);
   }
 
-  WEB_LOGI("main", "Attaching Blynk to Motor and Engine");
+  log_i("Attaching Blynk to Motor and Engine");
   blynk->attach(engine, motor);
   */
 
-  WEB_LOGI("main", "Configuring Stroke Engine");
+  log_i("Configuring Stroke Engine");
   engine->setParameter(StrokeParameter::RATE, 50);
   engine->setParameter(StrokeParameter::DEPTH, 100);
   engine->setParameter(StrokeParameter::STROKE, 50);
@@ -198,7 +199,7 @@ void setup() {
   }
   */
 
-  WEB_LOGI("main", "Homing Motor");
+  log_i("Homing Motor");
   motor->enable();
   motor->home();
 }

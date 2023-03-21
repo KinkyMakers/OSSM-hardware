@@ -28,7 +28,7 @@ void wifi_gui_poll(void* pvParameter) {
   while (true) {
     // If WiFi is Connected, move on to Status
     if (WiFi.status() == WL_CONNECTED) {
-      ESP_LOGI("main", "Wifi Polling Task exiting");
+      log_i("Wifi Polling Task exiting");
       vTaskDelete(NULL);
     } else if (WiFi.getMode() == WIFI_AP_STA && !wifiApScreen->getIsActive()) { 
       gui->activate(wifiApScreen);
@@ -47,7 +47,7 @@ void wifi_mdns_poll(void* pvParameter) {
 
   while (true) {
     if (WiFi.status() == WL_CONNECTED) {
-      ESP_LOGI("main", "Wifi Polling Task exiting");
+      log_i("Wifi Polling Task exiting");
       vTaskDelete(NULL);
     }
 
@@ -72,8 +72,8 @@ void wifi_setup () {
   sprintf(wifiName, "OSSM-SoftAP %02X", value[4]);
   sprintf(wifiPassword, "softap-%02x%02x", value[5], value[6]);
 
-  ESP_LOGI("main", "Wifi: %s %s", wifiName, wifiPassword);
-  ESP_LOGI("main", "MAC Address: %s", WiFi.macAddress().c_str());
+  log_i("Wifi: %s %s", wifiName, wifiPassword);
+  log_i("MAC Address: %s", WiFi.macAddress().c_str());
   ESPConnect.autoConnect(wifiName, wifiPassword);
 
 #if LVGL_AVAILABLE == 1
@@ -101,7 +101,7 @@ void wifi_setup () {
     vTaskDelete(wifiGuiPollTask);
     vTaskDelete(wifiMdnsPollTask);
     gui->activate(wifiFailureScreen);
-    ESP_LOGE("main", "Failed to connect to WiFi. Waiting for reboot...");
+    log_e("Failed to connect to WiFi. Waiting for reboot...");
     while (true) { vTaskDelay(50 / portTICK_PERIOD_MS); }
   }
 }

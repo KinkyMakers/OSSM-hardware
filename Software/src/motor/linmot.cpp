@@ -2,7 +2,7 @@
 
 void LinmotMotor::unsafeGoToPos(float position, float speed, float acceleration) {
   if (!this->isInState(MotorState::ACTIVE)) {
-    ESP_LOGE("LinmotMotor", "Attempted to issue Motion CMD while in incorrect state '%s'!", this->getStateString());
+    log_e("Attempted to issue Motion CMD while in incorrect state '%s'!", this->getStateString());
     return;
   }
 
