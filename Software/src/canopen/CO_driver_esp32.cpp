@@ -579,18 +579,6 @@ void CO_CANinterrupt(void *args)
         if (CANmodule->useCANrxFilters)
         {
             log_e("Filter system is not implemented");
-            /* CAN module filters are used. Message with known 11-bit identifier has */
-            /* been received */
-            index = 0; /* get index of the received message here. Or something similar */
-            if (index < CANmodule->rxSize)
-            {
-                buffer = &CANmodule->rxArray[index];
-                /* verify also RTR */
-                if (((rcvMsgIdent ^ buffer->ident) & buffer->mask) == 0U)
-                {
-                    msgMatched = true;
-                }
-            }
         }
         else
         {

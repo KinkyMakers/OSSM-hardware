@@ -64,6 +64,8 @@ void wifi_setup () {
   const char* mac = WiFi.macAddress().c_str();
   uint8_t value[HASH_SIZE];
 
+  // TODO - Should change this as I'm pretty sure MAC address is broadcast over WiFi to everyone?
+  // Instead just initialize a random value and store in preferences on first boot
   Hash *hash = &sha256;
   hash->reset();
   hash->update(mac, strlen(mac));

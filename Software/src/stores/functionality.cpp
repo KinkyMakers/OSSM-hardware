@@ -1,4 +1,4 @@
-#include "states/functionality.hpp"
+#include "stores/functionality.hpp"
 
 namespace Config {
   FunctionalityStateService functionality;
