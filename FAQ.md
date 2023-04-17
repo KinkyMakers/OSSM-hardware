@@ -54,10 +54,20 @@ A: Aside from the motor this is second decision.  There is a vacc-u-lock compati
 A: Well there are a few designs available.  THere are standard pipe mounts for US/Canadian along with 80/20 rails that can be used like a construction set.  There are even manfrotto boom compatible adaptors.  It is really limited by you imagination. 
 
 ### Q: How do I control my OSSM 
-A: It depends on how you are going to use it.  Basic OSSM control is via a web page there are also hardware controller.  If you want something specific you can create your own that is the great thing about open source hardware.
+A: It depends on how you are going to use it.  Basic OSSM control is via the wired remote and a more advanced remote is available from community members (M5 Remote).  If you want something specific you can create your own that is the great thing about open source hardware.
 
-### Q: Did you just say "control via a web page?"  Can I get people to control my OSSM over the internet?
-A: Yes you can control an OSSM over the internet.  Isn't it a great time to be alive and kinky.  
+### Q: I heard somewhere you can "control via a web page?"  Can I get people to control my OSSM over the internet?
+A: As of April 2023 you cannot control an OSSM over the internet.  In the past R&D offered a web page that allowed very basic control with speed and depth settings over wifi.  
+
+### Q: X-Toy and funscript support.  Where is it?  
+A: As of April 2023 there is a highly experimental X-toy firmware forked from an earlier version that requires endstops.  This code has significant issue and is not considered to be safe for use on humans. There are frequent pauses, it loses track of where it is and has a tendency to randomly extend to maximum depth. Development of an X-Toys firmware is happening but it is complicated.   
+
+### Q: Why is X-Toys/Funscripts/ButtplugIO so difficult?
+A: Things are a lot more complicated once you dig down into them.
+
+- The motion core does not yet support position streaming. This is in development and requires a complete redesign of the safety architecture as you don't want to accidentally stab yourself.
+- From the experimental software we learnt that the latency margin is really thin, Bluetooth especially struggles here. This will be a challenge to overcome.
+- The data models of both xtoys and Buttplug.io do not support complex data models as it would be required for OSSM out of the box. As scaling to the full length of OSSM is just not an option. There might be a workaround by emulating an other toy. But you won't be able to control all aspects of OSSM through this.
 
 ### Q: There is an OSSM reference board do I have to buy it to make an OSSM? 
 A: No you don't but it does make building an OSSM a lot easier and stops you having to solder anything.  
