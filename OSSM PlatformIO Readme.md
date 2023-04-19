@@ -2,7 +2,7 @@ OSSM has been developed in PlatformIO.  For people used to the Arduino IDE, movi
 
 This is particularly important when it comes to managing all the libraries and dependencies. This gets very complex, very quickly. Earlier builds of OSSM it was sort of possible to mash it into the Arduino IDE and get a compile happening.  It has now past the point when it is easier to teach you to use PlatformIO than it is to repackage OSSM for the Arduino at each release. 
 
-Why? More time for coding features andn easier collaboration! OSSM is moving fast. Once you get used to VSCode there are some other great features such automatic downloads from Github and linting (autocomplete for code). 
+Why? More time for coding features and easier collaboration! OSSM is moving fast. Once you get used to VSCode there are some other great features such automatic downloads from Github and linting (autocomplete for code). 
 
 1. Start by installing VSCode and the PlatformIO extension. There are plenty of guides for this on the web.  
 
