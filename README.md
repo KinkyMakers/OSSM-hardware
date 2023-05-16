@@ -87,6 +87,7 @@ We are calling this the reference build, when deviating from it please check com
    - The OSSM will work even with small power supplies, but will be limited on maximum force
    - Ensure the power supply is fully enclosed (like a laptop power supply)
    - Ensure the power supply has the correct approvals for your location - This really helps ensure performance as well!
+   - Use a good quality power supply from a reputable manufactuer. There have been reports of electromagnetic interference causing unpredicable OSSM operation created a safety hazard. Cheap power supplies also can have wildly optomistic voltage and amperage ratings, 
 8) **Metric Cap Screws** : [Amazon.ca](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_12?dchild=1&keywords=metric+socket+head+cap+screw+kit&qid=1600747665&sr=8-12)
    - A kit like this will provide what's needed:
    - 4x m5x20
