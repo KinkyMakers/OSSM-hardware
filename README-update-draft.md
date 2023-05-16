@@ -5,7 +5,7 @@ This project aims to help people curious about sex machines explore their intere
 
 Please note that this is a _work in progress_ and we have attempted to keep compatibility with the current BOM going forward, but it's not guaranteed.
 
-*Our Primary design goals* are to make a machine that is compact, quiet, of moderate cost, 3D printable (no cutting/machining), flexible, highly performant, with easily sourced components, and doesn't look like a giant machine.
+*Our Primary design goals* are to make a machine that is compact, quiet, of moderate cost, 3D printable (no cutting/machining required), flexible, highly performant, with easily sourced components, and doesn't look like a giant machine.
 <p align="center">
 <img src="https://user-images.githubusercontent.com/12459679/200219198-df577cbc-8503-47af-bbc8-9cb65de7ea49.jpg" width="750">
 </p>
@@ -42,14 +42,14 @@ It is driven by a Nema23 motor of **your** choosing, although we reccomend small
 
 ### Safety
 
-The safety of the OSSM build is yet to be fully characterized as it is a work in progress. The OSSM is a framework for building your own sex machine and  as such your specific combination may have risks not inherent to other builds. These risks may be undocumented and yet unrealized. 
+The safety of the OSSM build is yet to be fully characterized as it is a work in progress. The OSSM is a framework for building your own sex machine and as such your specific combination may have risks not inherent to other builds. These risks may be undocumented and yet unrealized. 
 
 While using the OSSM we can suggest the following hierarchy of safety, however it is up to you and your build to decide what risks exist and how to mitigate them. 
 
 - A) Have ability to move away
 - B) Have ability to remove the power
 - C) If you are in bondage, safety is responsibility of the Top
-- D) Some lower quality power supplies are not sufficiently shielded from EMI and can cross talk with the controller through the cable. If you have a lower quality power supply, be sure to use a shielded ethernet cable or be certain to keep the controller and cable away from one another. 
+- D) Some lower quality power supplies are not sufficiently shielded from EMI and can cross talk with the controller through the cable. If you have a lower quality power supply, be sure to use a shielded ethernet cable or be certain to keep the controller and cable away from one another. The safer option is to just purchase the one mentioned below.
 
 
 
@@ -66,13 +66,20 @@ We are calling this the reference build, when deviating from it please check com
 2) **IHSV57 NEMA23 Servo with 8mm shaft** : 
    - *Avoid the StepperOnline version until we can further test*
    - Make sure you get something with **8mm** shaft.
-   - There are *3* sizes of this motor.  100W = iHSV57-30-**10**, 140W = iHSV57-30-**14**, 180W = iHSV57-30-**18**: Specs:[JMC - 100w](https://www.jmc-motor.com/product/953.html),[JMC - 140w](https://www.jmc-motor.com/product/902.html), [JMC - 180w](https://www.jmc-motor.com/product/980.html). 
-   - Prefer motors with firmware version 6 (shown as `V60x`). Pay attention to this, [the firmware version is printed on the label on the side.](https://user-images.githubusercontent.com/131713378/234460307-1c29c18b-3bb5-4ac9-b66f-0dea9df0acac.png) You cannot update the motor firmware. version 5 will work, but it is not as feature rich.
-   - Search around for the best deal for you - reccommend searching "ihsv57" on Aliexpress.com and choosing the -10 -14 or -18. Some places you can get them: 
-   [AliExpress - US](https://www.aliexpress.us/item/2251832528412325.html?gatewayAdapt=glo2usa4itemAdapt&_randl_shipto=US),
-   [AliExpress - CA](https://www.aliexpress.us/item/32714727077.html?_randl_shipto=CA&gatewayAdapt=4itemAdapt),
-   [AliExpress - AU](https://www.aliexpress.us/item/32714727077.html?_randl_shipto=AU)
-   [eBay Listing - US](https://www.ebay.com/itm/263178016429) (may not always be available, this is just an example what to look for on eBay)
+   - There are *3* sizes of this motor:  
+        100W = [iHSV57-30-**10**](https://www.jmc-motor.com/product/953.html)
+        140W = [iHSV57-30-**14**](https://www.jmc-motor.com/product/902.html)
+        180W = [iHSV57-30-**18**](https://www.jmc-motor.com/product/980.html) 
+   - We strongly prefer motors with firmware version 6 (shown as `V60x`). Pay attention to this, [the firmware version is printed on the label on the side.](https://user-images.githubusercontent.com/131713378/234460307-1c29c18b-3bb5-4ac9-b66f-0dea9df0acac.png) You cannot update the motor firmware. version 5 will work, but it is not as feature rich.
+   - Search around for the best deal for you - we reccommend searching "ihsv57" on Aliexpress.com and choosing the -10 -14 or -18. Some places you can get them: 
+   [AliExpress - US](https://www.aliexpress.us/item/2251832528412325.html?gatewayAdapt=glo2usa4itemAdapt&_randl_shipto=US)  
+
+   [AliExpress - CA](https://www.aliexpress.us/item/32714727077.html?_randl_shipto=CA&gatewayAdapt=4itemAdapt)  
+
+   [AliExpress - AU](https://www.aliexpress.us/item/32714727077.html?_randl_shipto=AU)  
+
+   [eBay Listing - US](https://www.ebay.com/itm/263178016429) (may not always be available, this is just an example what to look for on eBay)  
+   
    - For details on picking the right motor for your use case - check this [FAQ](https://github.com/KinkyMakers/OSSM-hardware/blob/master/FAQ.md#q--what-strength-of--motor-do-i-need)
    - If you are using the 140W or 180W version it is recommended to use a 10mm wide belt and pulley (see the next two items)
 3) **GT2 Pulley 8mm Bore 20 Tooth, 10mm width** : 
