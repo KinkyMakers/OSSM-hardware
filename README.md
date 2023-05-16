@@ -132,7 +132,7 @@ This should be a good start for the wiring of your OSSM! However, depending on y
 
 ### Servo Wiring
 
-![image](https://user-images.githubusercontent.com/43324815/150361181-98c5375e-c517-4882-8e53-6cac407164b0.png)
+![ServoWiring](https://github.com/NightmareSyndrome/OSSM-hardware/assets/131713378/783876cf-f5bf-4708-9b4f-bd89723713f9)
 
 ### Stepper Wiring 
 
