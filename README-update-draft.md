@@ -104,7 +104,7 @@ We are calling this the reference build, when deviating from it please check com
 
    [Amazon - AU]()  
    
-* Your desired stroke length plus about 200mm should be your minimum order length
+   - Your desired stroke length plus about 200mm should be your minimum order length
 
 5) **Bearings** 5x11x4mm :   
    [Amazon - CA](https://www.amazon.ca/gp/product/B07CVBW44R/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)  
@@ -169,7 +169,7 @@ We are calling this the reference build, when deviating from it please check com
 
 
 ![image](https://user-images.githubusercontent.com/43324815/150361448-80e9fdaf-4a8c-4054-a920-6eab9aa68678.png)
-
+The above image is of a version 1 reference board.
 
 ### OSSM PCB Connections
 
