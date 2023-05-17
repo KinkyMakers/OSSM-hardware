@@ -106,7 +106,7 @@ We are calling this the reference build, when deviating from it please check com
    
    - Your desired stroke length plus about 200mm should be your minimum order length
 
-5) **Bearings** 5x11x4mm :   
+5) **Bearings** MR115-2RS 5x11x4mm :   
    [Amazon - CA](https://www.amazon.ca/gp/product/B07CVBW44R/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)  
 
    [Amazon - US](https://www.amazon.com/Miniature-Bearings-MR115-2RS-Double-Shielded-5x11x4mm/dp/B08PFT72RQ)  
@@ -115,17 +115,18 @@ We are calling this the reference build, when deviating from it please check com
 
 6) **MGN12H Rail and bearing** :  
 
-   [Amazon - CA](https://www.amazon.ca/CHUANGNENG-Linear-Carriage-Printer-Machine/dp/B09V6GKJGQ)  
+   [Amazon - CA](https://www.amazon.ca/MGN12H-Stainless-Carriage-Precision-Machine/dp/B09TWKWCZR/ref=sr_1_6?crid=F98MABNB9TGL&keywords=MGN12H%2B350mm&qid=1684288573&sprefix=mgn12h%2B350mm%2Caps%2C91&sr=8-6&th=1)  
 
-   [Amazon - US](https://www.amazon.com/CNCMANS-Miniature-Bearing-Printing-MGN12H-250mm/dp/B0BNQ63X3H)  
+   [Amazon - US](https://www.amazon.com/Twotrees-Sliding-Guideway-Bearing-Printer/dp/B07SPQZ383/ref=sr_1_5?crid=38K87044DT2X9&keywords=MGN12H%2B350mm&qid=1684288327&sprefix=mgn12h%2B350mm%2Caps%2C131&sr=8-5&th=1)  
 
    [Aliexpress - AU](https://www.aliexpress.com/item/32840113910.html?gatewayAdapt=4itemAdapt)
 
-   - Minimum 250mm in length
+   - Minimum 250mm in length, suggested 350mm
    - Rail length = desired stroke + 180mm
    - Must be MGN12**H** rail  
 
-7) **Power Supply** : 24 volt 4-5 amp w/ 2.1mm barrel DC plug
+7) **Power Supply** : 24 volt 4-5 amp w/ 2.1mm barrel DC plug  
+
    [Mouser - CA]([https://www.mouser.ca/ProductDetail/MEAN-WELL/GST120A24-P1M](https://www.mouser.ca/ProductDetail/MEAN-WELL/GST120A24-P1M?qs=V113mesSgrhUmhAWUz3R2A%3D%3D))  
 
    [Digikey - US](https://www.digikey.com/en/products/detail/mean-well-usa-inc/GST120A24-P1M/7703595)  
@@ -141,7 +142,7 @@ We are calling this the reference build, when deviating from it please check com
    - Ensure the power supply is fully enclosed and shielded to avoid cross talk from electromagnetic interference (like a laptop power supply).
    - Ensure the power supply has the correct approvals for your location - This really helps ensure performance as well! (UL, CE, etc.)  
 
-8) **Metric Cap Screws** :  
+8) **Metric Hex Cap Screws** :  
    [Amazon - CA](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_12?dchild=1&keywords=metric+socket+head+cap+screw+kit&qid=1600747665&sr=8-12)  
 
    [Amazon - US](https://www.amazon.com/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_1?crid=1HGK4VB6K1RMI&keywords=B06XQLTLHP&qid=1682739432&sprefix=b06xqltlhp%2Caps%2C62&sr=8-1&th=1)  
@@ -164,6 +165,11 @@ We are calling this the reference build, when deviating from it please check com
    - To start working on the project, something like this [Adafruit board](https://www.adafruit.com/product/3405) is an excellent place to start.
    - Accessories required for prototyping include [Breadboard](https://www.amazon.ca/Breadboard-Solderless-Prototype-Distribution-Connecting/dp/B01EV6LJ7G/ref=sr_1_5?dchild=1&keywords=breadboard&qid=1627823170&sr=8-5) and [Dupont Jumpers](https://www.amazon.ca/120pcs-Multicolored-Breadboard-Arduino-raspberry/dp/B01LZF1ZSZ/ref=sr_1_5?dchild=1&keywords=dupont+jumper&qid=1627823220&sr=8-5)
 
+### Octopart Links for ease of ordering and tracking
+
+A list of non-3d printed supplies in one place. Most of the parts aren't available through the preferred Octopart vendors but it still makes for a convenient list.
+
+[Bill of Materials for US Suppliers](https://octopart.com/bom-tool/nfUsbySS)
 
 ## Official OSSM Wiring
 
