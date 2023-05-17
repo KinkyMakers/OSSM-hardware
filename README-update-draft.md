@@ -169,7 +169,7 @@ We are calling this the reference build, when deviating from it please check com
 
 A list of non-3d printed supplies in one place. Most of the parts aren't available through the preferred Octopart vendors but it still makes for a convenient list.
 
-[Bill of Materials for US Suppliers](https://octopart.com/bom-tool/nfUsbySS)
+[Octopart - Collected Bill of Materials for US Suppliers](https://octopart.com/bom-tool/nfUsbySS)
 
 ## Official OSSM Wiring
 
