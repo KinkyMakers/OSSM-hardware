@@ -67,9 +67,12 @@ We are calling this the reference build, when deviating from it please check com
    - *Avoid the StepperOnline version until we can further test*
    - Make sure you get something with **8mm** shaft.
    - There are *3* sizes of this motor:  
-        100W = [iHSV57-30-**10**](https://www.jmc-motor.com/product/953.html)
-        140W = [iHSV57-30-**14**](https://www.jmc-motor.com/product/902.html)
-        180W = [iHSV57-30-**18**](https://www.jmc-motor.com/product/980.html) 
+        100W = [iHSV57-30-**10**](https://www.jmc-motor.com/product/953.html)  
+
+        140W = [iHSV57-30-**14**](https://www.jmc-motor.com/product/902.html)  
+
+        180W = [iHSV57-30-**18**](https://www.jmc-motor.com/product/980.html)   
+        
    - We strongly prefer motors with firmware version 6 (shown as `V60x`). Pay attention to this, [the firmware version is printed on the label on the side.](https://user-images.githubusercontent.com/131713378/234460307-1c29c18b-3bb5-4ac9-b66f-0dea9df0acac.png) You cannot update the motor firmware. version 5 will work, but it is not as feature rich.
    - Search around for the best deal for you - we reccommend searching "ihsv57" on Aliexpress.com and choosing the -10 -14 or -18. Some places you can get them: 
    [AliExpress - US](https://www.aliexpress.us/item/2251832528412325.html?gatewayAdapt=glo2usa4itemAdapt&_randl_shipto=US)  
@@ -79,7 +82,7 @@ We are calling this the reference build, when deviating from it please check com
    [AliExpress - AU](https://www.aliexpress.us/item/32714727077.html?_randl_shipto=AU)  
 
    [eBay Listing - US](https://www.ebay.com/itm/263178016429) (may not always be available, this is just an example what to look for on eBay)  
-   
+
    - For details on picking the right motor for your use case - check this [FAQ](https://github.com/KinkyMakers/OSSM-hardware/blob/master/FAQ.md#q--what-strength-of--motor-do-i-need)
    - If you are using the 140W or 180W version it is recommended to use a 10mm wide belt and pulley (see the next two items)
 3) **GT2 Pulley 8mm Bore 20 Tooth, 10mm width** : 
