@@ -72,58 +72,83 @@ We are calling this the reference build, when deviating from it please check com
         140W = [iHSV57-30-**14**](https://www.jmc-motor.com/product/902.html)  
 
         180W = [iHSV57-30-**18**](https://www.jmc-motor.com/product/980.html)   
-        
+
    - We strongly prefer motors with firmware version 6 (shown as `V60x`). Pay attention to this, [the firmware version is printed on the label on the side.](https://user-images.githubusercontent.com/131713378/234460307-1c29c18b-3bb5-4ac9-b66f-0dea9df0acac.png) You cannot update the motor firmware. version 5 will work, but it is not as feature rich.
    - Search around for the best deal for you - we reccommend searching "ihsv57" on Aliexpress.com and choosing the -10 -14 or -18. Some places you can get them: 
-   [AliExpress - US](https://www.aliexpress.us/item/2251832528412325.html?gatewayAdapt=glo2usa4itemAdapt&_randl_shipto=US)  
+      [AliExpress - US](https://www.aliexpress.us/item/2251832528412325.html?gatewayAdapt=glo2usa4itemAdapt&_randl_shipto=US)  
 
-   [AliExpress - CA](https://www.aliexpress.us/item/32714727077.html?_randl_shipto=CA&gatewayAdapt=4itemAdapt)  
+      [AliExpress - CA](https://www.aliexpress.us/item/32714727077.html?_randl_shipto=CA&gatewayAdapt=4itemAdapt)  
 
-   [AliExpress - AU](https://www.aliexpress.us/item/32714727077.html?_randl_shipto=AU)  
+      [AliExpress - AU](https://www.aliexpress.us/item/32714727077.html?_randl_shipto=AU)  
 
-   [eBay Listing - US](https://www.ebay.com/itm/263178016429) (may not always be available, this is just an example what to look for on eBay)  
+      [eBay Listing - US](https://www.ebay.com/itm/263178016429) (may not always be available, this is just an example what to look for on eBay)  
 
    - For details on picking the right motor for your use case - check this [FAQ](https://github.com/KinkyMakers/OSSM-hardware/blob/master/FAQ.md#q--what-strength-of--motor-do-i-need)
    - If you are using the 140W or 180W version it is recommended to use a 10mm wide belt and pulley (see the next two items)
 3) **GT2 Pulley 8mm Bore 20 Tooth, 10mm width** : 
-   [Amazon - CA](https://www.amazon.ca/Timing-Pulley-8mm-bore-10mm-belt-20-Tooth/dp/B09L7D7HHT),
-   [Amazon - US](https://www.amazon.com/WINSINN-Aluminum-Synchronous-Timing-Printer/dp/B07BTDRW5Z),
-   [Banggood - AU](https://au.banggood.com/5MM-or-6_35MM-or-8MM-Bore-20TeethGT2-Alumium-Timing-Pulley-For-Width-10mm-GT2-Belt-p-1106314.html?cur_warehouse=CN)
-4) **GT2 Timing Belt - 10mm width** : [Amazon - CA](www.amazon.ca/Timing-Meters-Creality-Anycubic-Printer/dp/B097T4DFM6),
-   [Amazon - US](https://www.amazon.com/Timing-Meters-Creality-Anycubic-Printer/dp/B097T4DFM6),
-   [Amazon - AU]()
+   [Amazon - CA](https://www.amazon.ca/Timing-Pulley-8mm-bore-10mm-belt-20-Tooth/dp/B09L7D7HHT)  
+
+   [Amazon - US](https://www.amazon.com/WINSINN-Aluminum-Synchronous-Timing-Printer/dp/B07BTDRW5Z)  
+
+   [Banggood - AU](https://au.banggood.com/5MM-or-6_35MM-or-8MM-Bore-20TeethGT2-Alumium-Timing-Pulley-For-Width-10mm-GT2-Belt-p-1106314.html?cur_warehouse=CN)  
+
+4) **GT2 Timing Belt - 10mm width** :  
+    [Amazon - CA](www.amazon.ca/Timing-Meters-Creality-Anycubic-Printer/dp/B097T4DFM6)  
+
+   [Amazon - US](https://www.amazon.com/Timing-Meters-Creality-Anycubic-Printer/dp/B097T4DFM6)  
+
+   [Amazon - AU]()  
+   
 * Your desired stroke length plus about 200mm should be your minimum order length
 
-5) **Bearings** 5x11x4mm : [Amazon - CA](https://www.amazon.ca/gp/product/B07CVBW44R/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1),
-   [Amazon - US](https://www.amazon.com/Miniature-Bearings-MR115-2RS-Double-Shielded-5x11x4mm/dp/B08PFT72RQ)
-   [ - AU]()
-6) **MGN12H Rail and bearing** : [Amazon - CA](https://www.amazon.ca/CHUANGNENG-Linear-Carriage-Printer-Machine/dp/B09V6GKJGQ),
-   [Amazon - US](https://www.amazon.com/CNCMANS-Miniature-Bearing-Printing-MGN12H-250mm/dp/B0BNQ63X3H),
+5) **Bearings** 5x11x4mm :   
+   [Amazon - CA](https://www.amazon.ca/gp/product/B07CVBW44R/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)  
+
+   [Amazon - US](https://www.amazon.com/Miniature-Bearings-MR115-2RS-Double-Shielded-5x11x4mm/dp/B08PFT72RQ)  
+
+   [ - AU]()  
+
+6) **MGN12H Rail and bearing** :  
+    [Amazon - CA](https://www.amazon.ca/CHUANGNENG-Linear-Carriage-Printer-Machine/dp/B09V6GKJGQ)  
+
+   [Amazon - US](https://www.amazon.com/CNCMANS-Miniature-Bearing-Printing-MGN12H-250mm/dp/B0BNQ63X3H)  
+
    [ - AU]()
    - Minimum 250mm in length
    - Rail length = desired stroke + 180mm
-   - Must be MGN12**H** rail
+   - Must be MGN12**H** rail  
+
 7) **Power Supply** : 24 volt 4-5 amp w/ 2.1mm barrel DC plug
-   [Mouser - CA]([https://www.mouser.ca/ProductDetail/MEAN-WELL/GST120A24-P1M](https://www.mouser.ca/ProductDetail/MEAN-WELL/GST120A24-P1M?qs=V113mesSgrhUmhAWUz3R2A%3D%3D)),
-   [Digikey - US](https://www.digikey.com/en/products/detail/mean-well-usa-inc/GST120A24-P1M/7703595),
-   [Mouser - AU](https://au.mouser.com/ProductDetail/MEAN-WELL/GST120A24-P1M?qs=V113mesSgrhUmhAWUz3R2A%3D%3D)
+   [Mouser - CA]([https://www.mouser.ca/ProductDetail/MEAN-WELL/GST120A24-P1M](https://www.mouser.ca/ProductDetail/MEAN-WELL/GST120A24-P1M?qs=V113mesSgrhUmhAWUz3R2A%3D%3D))  
+
+   [Digikey - US](https://www.digikey.com/en/products/detail/mean-well-usa-inc/GST120A24-P1M/7703595)  
+
+   [Mouser - AU](https://au.mouser.com/ProductDetail/MEAN-WELL/GST120A24-P1M?qs=V113mesSgrhUmhAWUz3R2A%3D%3D)  
+
    - Larger motors generally need more power! 
-   - 180W -> 24V 5A suggested minimum
-   - 140W -> 24V 4A suggested minimum
-   - 100W -> 24V 4A suggested minimum
-   - The OSSM will work with small power supplies, but will be limited on maximum force
-   - Ensure the power supply is fully enclosed and shielded to avoid cross talk from electromagnetic interference (like a laptop power supply)
-   - Ensure the power supply has the correct approvals for your location - This really helps ensure performance as well! (UL, CE, etc.)
-8) **Metric Cap Screws** : [Amazon - CA](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_12?dchild=1&keywords=metric+socket+head+cap+screw+kit&qid=1600747665&sr=8-12),
-   [Amazon - US](https://www.amazon.com/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_1?crid=1HGK4VB6K1RMI&keywords=B06XQLTLHP&qid=1682739432&sprefix=b06xqltlhp%2Caps%2C62&sr=8-1&th=1),
-   [Amazon - AU](https://www.amazon.com.au/VIGRUE-Stainless-Hexagon-Washers-Assortment/dp/B08CK9Y971/ref=sr_1_7?crid=2EWMTQOQ2WPJ1&keywords=m3+m4+m5+bolts&qid=1682740369&sprefix=m3+m4+m5%2Caps%2C131&sr=8-7) (this is a little expensive, we are looking for a cheaper alternative)
-   - A kit like this will provide what's needed:
+      180W -> 24V 5A suggested minimum
+      140W -> 24V 4A suggested minimum
+      100W -> 24V 4A suggested minimum  
+
+   - The OSSM will work with small power supplies, but will be limited on maximum force.
+   - Ensure the power supply is fully enclosed and shielded to avoid cross talk from electromagnetic interference (like a laptop power supply).
+   - Ensure the power supply has the correct approvals for your location - This really helps ensure performance as well! (UL, CE, etc.)  
+
+8) **Metric Cap Screws** :  
+   [Amazon - CA](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_12?dchild=1&keywords=metric+socket+head+cap+screw+kit&qid=1600747665&sr=8-12)  
+
+   [Amazon - US](https://www.amazon.com/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_1?crid=1HGK4VB6K1RMI&keywords=B06XQLTLHP&qid=1682739432&sprefix=b06xqltlhp%2Caps%2C62&sr=8-1&th=1)  
+
+   [Amazon - AU](https://www.amazon.com.au/VIGRUE-Stainless-Hexagon-Washers-Assortment/dp/B08CK9Y971/ref=sr_1_7?crid=2EWMTQOQ2WPJ1&keywords=m3+m4+m5+bolts&qid=1682740369&sprefix=m3+m4+m5%2Caps%2C131&sr=8-7) (this is a little expensive, we are looking for a cheaper alternative)  
+
+   - A kit like the ones above will provide what's needed:
    - 4x m5x20
    - 1x m5x12 (can also use m5x20)
    - 10x m3x8
    - 2x m3x16
    - 8x m5 nuts
-   - 8x m3 nuts
+   - 8x m3 nuts  
+   
 9) **ESP32 Development Board**  
   
    - [An official OSSM reference PCB](https://research-and-desire.myshopify.com/collections/all/products/ossm-reference-board) 
