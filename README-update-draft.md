@@ -62,7 +62,8 @@ We are calling this the reference build, when deviating from it please check com
    - This has recently had significant changes
    - [Make sure to choose one of the options for the toy adapters](Hardware/OSSM%20Printed%20Parts/end%20effector%20options)
    - There are several mounting options available, the most popular being the [Ulanzi Ball head mount](https://github.com/KinkyMakers/OSSM-hardware/tree/master/Hardware/OSSM%20Mounting) or the [Shicks mount](https://github.com/KinkyMakers/OSSM-hardware/tree/master/Hardware/OSSM%20Mounting/Shicks%204040%20mount)
-   - Thank you @Elims for the [belt tensioner design](https://media.discordapp.net/attachments/756320102919700607/858110808281317396/unknown.png) ( https://github.com/theelims/FuckIO )
+   - Thank you @Elims for the [belt tensioner design](https://media.discordapp.net/attachments/756320102919700607/858110808281317396/unknown.png) ( https://github.com/theelims/FuckIO )  
+
 2) **IHSV57 NEMA23 Servo with 8mm shaft** : 
    - *Avoid the StepperOnline version until we can further test*
    - Make sure you get something with **8mm** shaft.
@@ -74,7 +75,8 @@ We are calling this the reference build, when deviating from it please check com
         180W = [iHSV57-30-**18**](https://www.jmc-motor.com/product/980.html)   
 
    - We strongly prefer motors with firmware version 6 (shown as `V60x`). Pay attention to this, [the firmware version is printed on the label on the side.](https://user-images.githubusercontent.com/131713378/234460307-1c29c18b-3bb5-4ac9-b66f-0dea9df0acac.png) You cannot update the motor firmware. version 5 will work, but it is not as feature rich.
-   - Search around for the best deal for you - we reccommend searching "ihsv57" on Aliexpress.com and choosing the -10 -14 or -18. Some places you can get them: 
+   - Search around for the best deal for you - we reccommend searching "ihsv57" on Aliexpress.com and choosing the -10 -14 or -18. Some places you can get them:  
+
       [AliExpress - US](https://www.aliexpress.us/item/2251832528412325.html?gatewayAdapt=glo2usa4itemAdapt&_randl_shipto=US)  
 
       [AliExpress - CA](https://www.aliexpress.us/item/32714727077.html?_randl_shipto=CA&gatewayAdapt=4itemAdapt)  
@@ -84,15 +86,18 @@ We are calling this the reference build, when deviating from it please check com
       [eBay Listing - US](https://www.ebay.com/itm/263178016429) (may not always be available, this is just an example what to look for on eBay)  
 
    - For details on picking the right motor for your use case - check this [FAQ](https://github.com/KinkyMakers/OSSM-hardware/blob/master/FAQ.md#q--what-strength-of--motor-do-i-need)
-   - If you are using the 140W or 180W version it is recommended to use a 10mm wide belt and pulley (see the next two items)
-3) **GT2 Pulley 8mm Bore 20 Tooth, 10mm width** : 
+   - If you are using the 140W or 180W version it is recommended to use a 10mm wide belt and pulley (see the next two items)  
+
+3) **GT2 Pulley 8mm Bore 20 Tooth, 10mm width** :   
+
    [Amazon - CA](https://www.amazon.ca/Timing-Pulley-8mm-bore-10mm-belt-20-Tooth/dp/B09L7D7HHT)  
 
    [Amazon - US](https://www.amazon.com/WINSINN-Aluminum-Synchronous-Timing-Printer/dp/B07BTDRW5Z)  
 
    [Banggood - AU](https://au.banggood.com/5MM-or-6_35MM-or-8MM-Bore-20TeethGT2-Alumium-Timing-Pulley-For-Width-10mm-GT2-Belt-p-1106314.html?cur_warehouse=CN)  
 
-4) **GT2 Timing Belt - 10mm width** :  
+4) **GT2 Timing Belt - 10mm width** :    '
+
     [Amazon - CA](www.amazon.ca/Timing-Meters-Creality-Anycubic-Printer/dp/B097T4DFM6)  
 
    [Amazon - US](https://www.amazon.com/Timing-Meters-Creality-Anycubic-Printer/dp/B097T4DFM6)  
@@ -106,14 +111,16 @@ We are calling this the reference build, when deviating from it please check com
 
    [Amazon - US](https://www.amazon.com/Miniature-Bearings-MR115-2RS-Double-Shielded-5x11x4mm/dp/B08PFT72RQ)  
 
-   [ - AU]()  
+   [Aliexpress - AU](https://www.aliexpress.com/item/32814537922.html?spm=a2g0o.productlist.main.5.38487720mQlXkV&algo_pvid=bb2c10b1-30bc-4e51-86a7-68493e5564d6&algo_exp_id=bb2c10b1-30bc-4e51-86a7-68493e5564d6-2&pdp_npi=3%40dis%21AUD%215.8%214.06%21%21%21%21%21%402102186a16842861586958071d077f%2164677222625%21sea%21AU%210&curPageLogUid=2FWZADKJZlSq)  
 
 6) **MGN12H Rail and bearing** :  
-    [Amazon - CA](https://www.amazon.ca/CHUANGNENG-Linear-Carriage-Printer-Machine/dp/B09V6GKJGQ)  
+
+   [Amazon - CA](https://www.amazon.ca/CHUANGNENG-Linear-Carriage-Printer-Machine/dp/B09V6GKJGQ)  
 
    [Amazon - US](https://www.amazon.com/CNCMANS-Miniature-Bearing-Printing-MGN12H-250mm/dp/B0BNQ63X3H)  
 
-   [ - AU]()
+   [Aliexpress - AU](https://www.aliexpress.com/item/32840113910.html?gatewayAdapt=4itemAdapt)
+
    - Minimum 250mm in length
    - Rail length = desired stroke + 180mm
    - Must be MGN12**H** rail  
@@ -148,7 +155,7 @@ We are calling this the reference build, when deviating from it please check com
    - 2x m3x16
    - 8x m5 nuts
    - 8x m3 nuts  
-   
+
 9) **ESP32 Development Board**  
   
    - [An official OSSM reference PCB](https://research-and-desire.myshopify.com/collections/all/products/ossm-reference-board) 
@@ -186,7 +193,7 @@ This should be a good start for the wiring of your OSSM! However, depending on y
 
 ### Servo Wiring
 
-![image](https://user-images.githubusercontent.com/43324815/150361181-98c5375e-c517-4882-8e53-6cac407164b0.png)
+![ServoWiring](https://github.com/NightmareSyndrome/OSSM-hardware/assets/131713378/783876cf-f5bf-4708-9b4f-bd89723713f9)
 
 ### Stepper Wiring 
 
