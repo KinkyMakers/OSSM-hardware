@@ -28,7 +28,7 @@ Join our Discord to be part of the discussion and get help with your build. We h
 
 The software is available in this github repository. It is written and compiled utilizing PlatformIO on Visual Studio Code. <a href="OSSM PlatformIO Readme.md">Reference for working with the code in PlatformIO here</a>
 
-We recommend using the ESP32 microcontroller. This code is still arduino IDE compatible but offers many times better performance. Web based control is coming soon. A proof of concept can be found at https://app.researchanddesire.com/ossm. Modifications need to be made in order to use this proof of concept web control
+We recommend using the [Research and Desire Reference Board](https://shop.researchanddesire.com/products/ossm-reference-board) as Do It Yourself by someone without extensive electronics knowledge creates a lot of support overhead. This code is still arduino IDE compatible but offers many times better performance. Web based control is coming soon. A proof of concept can be found at https://app.researchanddesire.com/ossm, however modifications need to be made in order to use this proof of concept web control.
 
 ### Eagle PCB
 Simple PCB to power an ESP32 (wifi enabled microcontroller) from 24V and breakout the pins for the OSSM control
@@ -42,21 +42,17 @@ It is driven by a Nema23 motor of **your** choosing, although we reccomend small
 
 ### Safety
 
-The safety of the OSSM build is yet to be fully characterized as it is a work in progress. The OSSM is a framework for building your own sex machine and as such your specific combination may have risks not inherent to other builds. These risks may be undocumented and yet unrealized. 
+The safety of the OSSM build is yet to be fully characterized as it is a work in progress. The OSSM is a framework for building your own sex machine and as such your specific combination may have risks not inherent to other builds. These risks may be undocumented or undiscovered. Please see the [Hazards](./Documentation/Hazards.md) file for more information.
 
 While using the OSSM we can suggest the following hierarchy of safety, however it is up to you and your build to decide what risks exist and how to mitigate them. 
 
 - A) Have ability to move away
 - B) Have ability to remove the power
 - C) If you are in bondage, safety is responsibility of the Top
-- D) Some lower quality power supplies are not sufficiently shielded from EMI and can cross talk with the controller through the cable. If you have a lower quality power supply, be sure to use a shielded ethernet cable or be certain to keep the controller and cable away from one another. The safer option is to just purchase the one mentioned below.
-
-
-
 
 ## Bill Of Materials
 
-We are calling this the reference build, when deviating from it please check compatability with existing bill of materials (BOM)
+We are calling this the reference build, when deviating from it please check compatability with existing Bill Of Materials (BOM)
 
 1) **[3D Printed Parts](Hardware/OSSM%20Printed%20Parts)**
    - This has recently had significant changes
@@ -77,14 +73,10 @@ We are calling this the reference build, when deviating from it please check com
    - We strongly prefer motors with firmware version 6 (shown as `V60x`). Pay attention to this, [the firmware version is printed on the label on the side.](https://user-images.githubusercontent.com/131713378/234460307-1c29c18b-3bb5-4ac9-b66f-0dea9df0acac.png) You cannot update the motor firmware. version 5 will work, but it is not as feature rich.
    - Search around for the best deal for you - we reccommend searching "ihsv57" on Aliexpress.com and choosing the -10 -14 or -18. Some places you can get them:  
 
-      [AliExpress - US](https://www.aliexpress.us/item/2251832528412325.html?gatewayAdapt=glo2usa4itemAdapt&_randl_shipto=US)  
+      [AliExpress - US](https://www.aliexpress.us/item/2251832528412325.html)  
 
-      [AliExpress - CA](https://www.aliexpress.us/item/32714727077.html?_randl_shipto=CA&gatewayAdapt=4itemAdapt)  
-
-      [AliExpress - AU](https://www.aliexpress.us/item/32714727077.html?_randl_shipto=AU)  
-
-      [eBay Listing - US](https://www.ebay.com/itm/263178016429) (may not always be available, this is just an example what to look for on eBay)  
-
+      [AliExpress - CA & AU](https://www.aliexpress.us/item/32714727077.html)  
+      
    - For details on picking the right motor for your use case - check this [FAQ](https://github.com/KinkyMakers/OSSM-hardware/blob/master/FAQ.md#q--what-strength-of--motor-do-i-need)
    - If you are using the 140W or 180W version it is recommended to use a 10mm wide belt and pulley (see the next two items)  
 
@@ -94,11 +86,11 @@ We are calling this the reference build, when deviating from it please check com
 
    [Amazon - US](https://www.amazon.com/WINSINN-Aluminum-Synchronous-Timing-Printer/dp/B07BTDRW5Z)  
 
-   [Banggood - AU](https://au.banggood.com/5MM-or-6_35MM-or-8MM-Bore-20TeethGT2-Alumium-Timing-Pulley-For-Width-10mm-GT2-Belt-p-1106314.html?cur_warehouse=CN)  
+   [Banggood - AU](https://au.banggood.com/5MM-or-6_35MM-or-8MM-Bore-20TeethGT2-Alumium-Timing-Pulley-For-Width-10mm-GT2-Belt-p-1106314.html)  
 
 4) **GT2 Timing Belt - 10mm width** :    '
 
-    [Amazon - CA](www.amazon.ca/Timing-Meters-Creality-Anycubic-Printer/dp/B097T4DFM6)  
+   [Amazon - CA](www.amazon.ca/Timing-Meters-Creality-Anycubic-Printer/dp/B097T4DFM6)  
 
    [Amazon - US](https://www.amazon.com/Timing-Meters-Creality-Anycubic-Printer/dp/B097T4DFM6)  
 
@@ -107,19 +99,19 @@ We are calling this the reference build, when deviating from it please check com
    - Your desired stroke length plus about 200mm should be your minimum order length
 
 5) **Bearings** MR115-2RS 5x11x4mm :   
-   [Amazon - CA](https://www.amazon.ca/gp/product/B07CVBW44R/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)  
+   [Amazon - CA](https://www.amazon.ca/gp/product/B07CVBW44R)  
 
    [Amazon - US](https://www.amazon.com/Miniature-Bearings-MR115-2RS-Double-Shielded-5x11x4mm/dp/B08PFT72RQ)  
 
-   [Aliexpress - AU](https://www.aliexpress.com/item/32814537922.html?spm=a2g0o.productlist.main.5.38487720mQlXkV&algo_pvid=bb2c10b1-30bc-4e51-86a7-68493e5564d6&algo_exp_id=bb2c10b1-30bc-4e51-86a7-68493e5564d6-2&pdp_npi=3%40dis%21AUD%215.8%214.06%21%21%21%21%21%402102186a16842861586958071d077f%2164677222625%21sea%21AU%210&curPageLogUid=2FWZADKJZlSq)  
+   [Aliexpress - AU](https://www.aliexpress.us/item/2251832628223170.html)  
 
 6) **MGN12H Rail and bearing** :  
 
-   [Amazon - CA](https://www.amazon.ca/MGN12H-Stainless-Carriage-Precision-Machine/dp/B09TWKWCZR/ref=sr_1_6?crid=F98MABNB9TGL&keywords=MGN12H%2B350mm&qid=1684288573&sprefix=mgn12h%2B350mm%2Caps%2C91&sr=8-6&th=1)  
+   [Amazon - CA](https://www.amazon.ca/MGN12H-Stainless-Carriage-Precision-Machine/dp/B09TWKWCZR)  
 
-   [Amazon - US](https://www.amazon.com/Twotrees-Sliding-Guideway-Bearing-Printer/dp/B07SPQZ383/ref=sr_1_5?crid=38K87044DT2X9&keywords=MGN12H%2B350mm&qid=1684288327&sprefix=mgn12h%2B350mm%2Caps%2C131&sr=8-5&th=1)  
+   [Amazon - US](https://www.amazon.com/Twotrees-Sliding-Guideway-Bearing-Printer/dp/B07SPQZ383)  
 
-   [Aliexpress - AU](https://www.aliexpress.com/item/32840113910.html?gatewayAdapt=4itemAdapt)
+   [Aliexpress - AU](https://www.aliexpress.com/item/32840113910.html)
 
    - Minimum 250mm in length, suggested 350mm
    - Rail length = desired stroke + 180mm
@@ -143,11 +135,9 @@ We are calling this the reference build, when deviating from it please check com
    - Ensure the power supply has the correct approvals for your location - This really helps ensure performance as well! (UL, CE, etc.)  
 
 8) **Metric Hex Cap Screws** :  
-   [Amazon - CA](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_12?dchild=1&keywords=metric+socket+head+cap+screw+kit&qid=1600747665&sr=8-12)  
+   [Amazon - CA & US](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP)  
 
-   [Amazon - US](https://www.amazon.com/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_1?crid=1HGK4VB6K1RMI&keywords=B06XQLTLHP&qid=1682739432&sprefix=b06xqltlhp%2Caps%2C62&sr=8-1&th=1)  
-
-   [Amazon - AU](https://www.amazon.com.au/VIGRUE-Stainless-Hexagon-Washers-Assortment/dp/B08CK9Y971/ref=sr_1_7?crid=2EWMTQOQ2WPJ1&keywords=m3+m4+m5+bolts&qid=1682740369&sprefix=m3+m4+m5%2Caps%2C131&sr=8-7) (this is a little expensive, we are looking for a cheaper alternative)  
+   [Amazon - AU](https://www.amazon.com.au/VIGRUE-Stainless-Hexagon-Washers-Assortment/dp/B08CK9Y971) (this is a little expensive, we are looking for a cheaper alternative)  
 
    - A kit like the ones above will provide what's needed:
    - 4x m5x20
