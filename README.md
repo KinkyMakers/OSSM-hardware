@@ -5,7 +5,7 @@ This project aims to help people curious about sex machines explore their intere
 
 Please note that this is a _work in progress_ and we have attempted to keep compatibility with the current BOM going forward, but it's not guaranteed.
 
-*Primary design goals* are to make a machine that is Compact, Quiet, Moderate cost, 3D printable (no cutting/machining), High performance, flexible, Easily sourced components, Doesn't look like a giant machine.
+*Our Primary design goals* are to make a machine that is compact, quiet, of moderate cost, 3D printable (no cutting/machining required), flexible, highly performant, with easily sourced components, and doesn't look like a giant machine.
 <p align="center">
 <img src="https://user-images.githubusercontent.com/12459679/200219198-df577cbc-8503-47af-bbc8-9cb65de7ea49.jpg" width="750">
 </p>
@@ -14,7 +14,7 @@ Please note that this is a _work in progress_ and we have attempted to keep comp
 
 <h3><p align="center"><a href="FAQ.md">Read the Frequently Asked Questions</a></p></h3>
 
-There are a few hardware flavours to choose from, we've included user modified versions in case that fits your use case better!
+There are a few hardware flavours to choose from, we've included community modified versions in case that fits your use case better!
 
 <h3><p align="center"><a href="https://github.com/KinkyMakers/OSSM-hardware/blob/master/Documentation/Assembly%20Instructions.pdf">Build Instructions</a></p></h3>
 
@@ -26,10 +26,9 @@ Join our Discord to be part of the discussion and get help with your build. We h
 
 ### Software
 
-The software is available in this github repository, the software is written and compiled utilizing PlatformIO on Visual Studio Code. <a href="OSSM PlatformIO Readme.md">Reference for working with the code in PlatformIO here</a>
+The software is available in this github repository. It is written and compiled utilizing PlatformIO on Visual Studio Code. <a href="OSSM PlatformIO Readme.md">Reference for working with the code in PlatformIO here</a>
 
-We recommend using the ESP32 microcontroller. This code is still arduino IDE compatible but offers many times better performance and a nice internet dashboard you can use!
-Control your OSSM at https://app.researchanddesire.com/ossm !
+We recommend using the [Research and Desire Reference Board](https://shop.researchanddesire.com/products/ossm-reference-board) as Do It Yourself by someone without extensive electronics knowledge creates a lot of support overhead. This code is still arduino IDE compatible but offers many times better performance. Web based control is coming soon. A proof of concept can be found at https://app.researchanddesire.com/ossm, however modifications need to be made in order to use this proof of concept web control.
 
 ### Eagle PCB
 Simple PCB to power an ESP32 (wifi enabled microcontroller) from 24V and breakout the pins for the OSSM control
@@ -43,59 +42,111 @@ It is driven by a Nema23 motor of **your** choosing, although we reccomend small
 
 ### Safety
 
-The safety of the OSSM build is yet to be fully characterized as it is a work in progress. The OSSM is a work in progress and as it is a framework for building your own sex machine your specific combination may have risks not inherent to other builds. These risks may be undocumented. 
+The safety of the OSSM build is yet to be fully characterized as it is a work in progress. The OSSM is a framework for building your own sex machine and as such your specific combination may have risks not inherent to other builds. These risks may be undocumented or undiscovered. Please see the [Hazards](./Documentation/Hazards.md) file for more information.
 
-While using the OSSM we can suggest the following heiracrhy of safety, however it is up to you and your build to decide what risks exist and how to mitigate them. 
+While using the OSSM we can suggest the following hierarchy of safety, however it is up to you and your build to decide what risks exist and how to mitigate them. 
 
 - A) Have ability to move away
 - B) Have ability to remove the power
-- C) If in bondage, that is responsibility of the Top
-
-
-
+- C) If you are in bondage, safety is responsibility of the Top
 
 ## Bill Of Materials
 
-We are calling this the reference build, when deviating from it please check compatability with existing BOM
+We are calling this the reference build, when deviating from it please check compatability with existing Bill Of Materials (BOM)
 
 1) **[3D Printed Parts](Hardware/OSSM%20Printed%20Parts)**
    - This has recently had significant changes
    - [Make sure to choose one of the options for the toy adapters](Hardware/OSSM%20Printed%20Parts/end%20effector%20options)
-   - Mounting options are still something that need to be worked on
-   - Thank you @Elims for the [belt tensioner design](https://media.discordapp.net/attachments/756320102919700607/858110808281317396/unknown.png) ( https://github.com/theelims/FuckIO )
-2) **IHSV57 NEMA23 Servo with 8mm shaft** : [Amazon.ca](https://www.amazon.ca/Integrated-Servo-Motor-IHSV57-30-10-3000rpm/dp/B081CVJHC7) | [JMC](https://www.jmc-motor.com/product/953.html)
+   - There are several mounting options available, the most popular being the [Ulanzi Ball head mount](https://github.com/KinkyMakers/OSSM-hardware/tree/master/Hardware/OSSM%20Mounting) or the [Shicks mount](https://github.com/KinkyMakers/OSSM-hardware/tree/master/Hardware/OSSM%20Mounting/Shicks%204040%20mount)
+   - Thank you @Elims for the [belt tensioner design](https://media.discordapp.net/attachments/756320102919700607/858110808281317396/unknown.png) ( https://github.com/theelims/FuckIO )  
+
+2) **IHSV57 NEMA23 Servo with 8mm shaft** : 
    - *Avoid the StepperOnline version until we can further test*
    - Make sure you get something with **8mm** shaft.
-   - There are *3* sizes of this motor.  100W = iHSV57-30-**10**, 140W = iHSV57-30-**14**, 180W = iHSV57-30-**18** 
-   - Prefer motors with firmware version 6 (shown as `V60x`)
-   - Search around for the best deal for you - reccommend searching "ihsv57" on Aliexpress.com and choosing the -10 -14 or -18
+   - There are *3* sizes of this motor:  
+        100W = [iHSV57-30-**10**](https://www.jmc-motor.com/product/953.html)  
+
+        140W = [iHSV57-30-**14**](https://www.jmc-motor.com/product/902.html)  
+
+        180W = [iHSV57-30-**18**](https://www.jmc-motor.com/product/980.html)   
+
+   - We strongly prefer motors with firmware version 6 (shown as `V60x`). Pay attention to this, [the firmware version is printed on the label on the side.](https://user-images.githubusercontent.com/131713378/234460307-1c29c18b-3bb5-4ac9-b66f-0dea9df0acac.png) You cannot update the motor firmware. version 5 will work, but it is not as feature rich.
+   - Search around for the best deal for you - we reccommend searching "ihsv57" on Aliexpress.com and choosing the -10 -14 or -18. Some places you can get them:  
+
+      [AliExpress - US](https://www.aliexpress.us/item/2251832528412325.html)  
+
+      [AliExpress - CA & AU](https://www.aliexpress.us/item/32714727077.html)  
+      
    - For details on picking the right motor for your use case - check this [FAQ](https://github.com/KinkyMakers/OSSM-hardware/blob/master/FAQ.md#q--what-strength-of--motor-do-i-need)
-   - If you are using the 140W or180W version it is recommended to use a 10mm wide belt and pulley (see the next two items)
-3) **GT2 Pulley 8mm Bore 20 Tooth, 10mm width** : [Amazon.ca](https://www.amazon.ca/Timing-Pulley-8mm-bore-10mm-belt-20-Tooth/dp/B09L7D7HHT)
-4) **GT2 Timing Belt - 10mm width** : [Amazon.ca](www.amazon.ca/Timing-Meters-Creality-Anycubic-Printer/dp/B097T4DFM6/)
-* Your desired stroke length plus about 200mm should be your minimum order length
-5) **Bearings** 5x11x4mm : [Amazon.ca](https://www.amazon.ca/gp/product/B07CVBW44R/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)
-6) **MGN12H Rail and bearing** : [Amazon.ca](https://www.amazon.ca/Usongshine-guidage-lin%C3%A9aire-MGN12H-300mm/dp/B07XLL484J/ref=pd_sbs_201_1/139-0384147-0570541?_encoding=UTF8&pd_rd_i=B07XT8ZY9H&pd_rd_r=e7dc0ab7-e244-4a6c-ba42-59d7da76e03b&pd_rd_w=jhRlq&pd_rd_wg=zovAp&pf_rd_p=0ec96c83-1800-4e36-8486-44f5573a2612&pf_rd_r=YZGA61RD95B0E3H004ZA&refRID=YZGA61RD95B0E3H004ZA&th=1)
-   - Minimum 250mm in length
+   - If you are using the 140W or 180W version it is recommended to use a 10mm wide belt and pulley (see the next two items)  
+
+3) **GT2 Pulley 8mm Bore 20 Tooth, 10mm width** :   
+
+   [Amazon - CA](https://www.amazon.ca/Timing-Pulley-8mm-bore-10mm-belt-20-Tooth/dp/B09L7D7HHT)  
+
+   [Amazon - US](https://www.amazon.com/WINSINN-Aluminum-Synchronous-Timing-Printer/dp/B07BTDRW5Z)  
+
+   [Banggood - AU](https://au.banggood.com/5MM-or-6_35MM-or-8MM-Bore-20TeethGT2-Alumium-Timing-Pulley-For-Width-10mm-GT2-Belt-p-1106314.html)  
+
+4) **GT2 Timing Belt - 10mm width** :    '
+
+   [Amazon - CA](www.amazon.ca/Timing-Meters-Creality-Anycubic-Printer/dp/B097T4DFM6)  
+
+   [Amazon - US](https://www.amazon.com/Timing-Meters-Creality-Anycubic-Printer/dp/B097T4DFM6)  
+
+   [Amazon - AU]()  
+   
+   - Your desired stroke length plus about 200mm should be your minimum order length
+
+5) **Bearings** MR115-2RS 5x11x4mm :   
+   [Amazon - CA](https://www.amazon.ca/gp/product/B07CVBW44R)  
+
+   [Amazon - US](https://www.amazon.com/Miniature-Bearings-MR115-2RS-Double-Shielded-5x11x4mm/dp/B08PFT72RQ)  
+
+   [Aliexpress - AU](https://www.aliexpress.us/item/2251832628223170.html)  
+
+6) **MGN12H Rail and bearing** :  
+
+   [Amazon - CA](https://www.amazon.ca/MGN12H-Stainless-Carriage-Precision-Machine/dp/B09TWKWCZR)  
+
+   [Amazon - US](https://www.amazon.com/Twotrees-Sliding-Guideway-Bearing-Printer/dp/B07SPQZ383)  
+
+   [Aliexpress - AU](https://www.aliexpress.com/item/32840113910.html)
+
+   - Minimum 250mm in length, suggested 350mm
    - Rail length = desired stroke + 180mm
-   - Must be MGN12**H** rail
-7) **Power Supply** : 24v 4-5A w/ 2.1mm DC plug - (need to update reference link)
-   - Larger motors generally need more power. 
-   - 180W -> 24V 5A
-   - 140W -> 24V 4A
-   - 100W -> 24V 4A
-   - The OSSM will work even with small power supplies, but will be limited on maximum force
-   - Ensure the power supply is fully enclosed (like a laptop power supply)
-   - Ensure the power supply has the correct approvals for your location - This really helps ensure performance as well!
-   - Use a good quality power supply from a reputable manufactuer. There have been reports of electromagnetic interference causing unpredicable OSSM operation created a safety hazard. Cheap power supplies also can have wildly optomistic voltage and amperage ratings, 
-8) **Metric Cap Screws** : [Amazon.ca](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP/ref=sr_1_12?dchild=1&keywords=metric+socket+head+cap+screw+kit&qid=1600747665&sr=8-12)
-   - A kit like this will provide what's needed:
+   - Must be MGN12**H** rail  
+
+7) **Power Supply** : 24 volt 4-5 amp w/ 2.1mm barrel DC plug  
+
+   [Mouser - CA]([https://www.mouser.ca/ProductDetail/MEAN-WELL/GST120A24-P1M](https://www.mouser.ca/ProductDetail/MEAN-WELL/GST120A24-P1M?qs=V113mesSgrhUmhAWUz3R2A%3D%3D))  
+
+   [Digikey - US](https://www.digikey.com/en/products/detail/mean-well-usa-inc/GST120A24-P1M/7703595)  
+
+   [Mouser - AU](https://au.mouser.com/ProductDetail/MEAN-WELL/GST120A24-P1M?qs=V113mesSgrhUmhAWUz3R2A%3D%3D)  
+
+   - Larger motors generally need more power! 
+      180W -> 24V 5A suggested minimum
+      140W -> 24V 4A suggested minimum
+      100W -> 24V 4A suggested minimum  
+
+   - The OSSM will work with small power supplies, but will be limited on maximum force.
+   - Ensure the power supply is fully enclosed and shielded to avoid cross talk from electromagnetic interference (like a laptop power supply).
+   - Ensure the power supply has the correct approvals for your location - This really helps ensure performance as well! (UL, CE, etc.)  
+
+8) **Metric Hex Cap Screws** :  
+   [Amazon - CA & US](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP)  
+
+   [Amazon - AU](https://www.amazon.com.au/VIGRUE-Stainless-Hexagon-Washers-Assortment/dp/B08CK9Y971) (this is a little expensive, we are looking for a cheaper alternative)  
+
+   - A kit like the ones above will provide what's needed:
    - 4x m5x20
    - 1x m5x12 (can also use m5x20)
    - 10x m3x8
    - 2x m3x16
    - 8x m5 nuts
-   - 8x m3 nuts
+   - 8x m3 nuts  
+
 9) **ESP32 Development Board**  
   
    - [An official OSSM reference PCB](https://research-and-desire.myshopify.com/collections/all/products/ossm-reference-board) 
@@ -104,12 +155,17 @@ We are calling this the reference build, when deviating from it please check com
    - To start working on the project, something like this [Adafruit board](https://www.adafruit.com/product/3405) is an excellent place to start.
    - Accessories required for prototyping include [Breadboard](https://www.amazon.ca/Breadboard-Solderless-Prototype-Distribution-Connecting/dp/B01EV6LJ7G/ref=sr_1_5?dchild=1&keywords=breadboard&qid=1627823170&sr=8-5) and [Dupont Jumpers](https://www.amazon.ca/120pcs-Multicolored-Breadboard-Arduino-raspberry/dp/B01LZF1ZSZ/ref=sr_1_5?dchild=1&keywords=dupont+jumper&qid=1627823220&sr=8-5)
 
+### Octopart Links for ease of ordering and tracking
+
+A list of non-3d printed supplies in one place. Most of the parts aren't available through the preferred Octopart vendors but it still makes for a convenient list.
+
+[Octopart - Collected Bill of Materials for US Suppliers](https://octopart.com/bom-tool/nfUsbySS)
 
 ## Official OSSM Wiring
 
 
 ![image](https://user-images.githubusercontent.com/43324815/150361448-80e9fdaf-4a8c-4054-a920-6eab9aa68678.png)
-
+The above image is of a version 1 reference board.
 
 ### OSSM PCB Connections
 
@@ -133,7 +189,7 @@ This should be a good start for the wiring of your OSSM! However, depending on y
 
 ### Servo Wiring
 
-![image](https://user-images.githubusercontent.com/43324815/150361181-98c5375e-c517-4882-8e53-6cac407164b0.png)
+![ServoWiring](https://github.com/NightmareSyndrome/OSSM-hardware/assets/131713378/783876cf-f5bf-4708-9b4f-bd89723713f9)
 
 ### Stepper Wiring 
 
