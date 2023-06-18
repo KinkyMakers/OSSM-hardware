@@ -49,5 +49,5 @@ Installs the same as the DoubleDouble
 
 ## Tie Down and Suction plate - Mr Nevermore 
 
-Was designed after finding rope to be unsatisfactory because it is impossible to clean and wasteful to keep throwing it out after each use. Instead the it has adopted the use of latex tubing (the kind you use in a sling shot) and cord locks for fastening the toy to the tie down.  With deeper grooves and the embedded holes allows you to tie down a variety of toys without issue and they really stay in place.  As a bonus cleaning is simple and worry free.
+Was designed after finding rope to be unsatisfactory because it is impossible to clean and wasteful to keep throwing it out after each use. This desing has adopted the use of latex tubing (the kind you use in a sling shot) and cord locks for fastening the toy to the tie down.  With deeper grooves and the embedded holes it allows you to tie down a variety of toys without issue and they really stay in place.  As a bonus cleaning is simple and worry free.
 
