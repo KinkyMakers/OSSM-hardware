@@ -11,3 +11,9 @@ Use this if you do not need quick changes and are primarily using Vac-u-lock com
 ## 24mm Thread Details
 
 ![image](https://user-images.githubusercontent.com/43324815/215673458-30f63cbb-4002-408f-acb9-2b2236570088.png)
+
+### Suction Cup ScrewOn Mount (SuCSOn-Mount)
+
+For clamping suction cup dildos to a 24mm threaded end effector by NinaMercedez
+
+![image](https://github.com/KinkyMakers/OSSM-hardware/assets/93972925/ce4d09c6-50ee-41ea-bcd3-5b7521e9e1dd)
