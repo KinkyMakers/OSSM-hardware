@@ -16,4 +16,4 @@ Use this if you do not need quick changes and are primarily using Vac-u-lock com
 
 For clamping suction cup dildos to a 24mm threaded end effector by NinaMercedez
 
-![image](https://github.com/KinkyMakers/OSSM-hardware/assets/93972925/ce4d09c6-50ee-41ea-bcd3-5b7521e9e1dd)
+![image](https://github-production-user-asset-6210df.s3.amazonaws.com/93972925/263562333-55993df0-5b26-457c-9343-15003d2b527d.png)
