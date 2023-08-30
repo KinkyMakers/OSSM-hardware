@@ -57,10 +57,10 @@ A: Well there are a few designs available.  THere are standard pipe mounts for U
 A: It depends on how you are going to use it.  Basic OSSM control is via the wired remote and a more advanced remote is available from community members (M5 Remote).  If you want something specific you can create your own that is the great thing about open source hardware.
 
 ### Q: I heard somewhere you can "control via a web page?"  Can I get people to control my OSSM over the internet?
-A: As of April 2023 you cannot control an OSSM over the internet.  In the past R&D offered a web page that allowed very basic control with speed and depth settings over wifi.  
+A: As of August 2023 you cannot control an OSSM over the internet.  In the past R&D offered a web page that allowed very basic control with speed and depth settings over wifi.  
 
 ### Q: X-Toy and funscript support.  Where is it?  
-A: As of April 2023 there is a highly experimental X-toy firmware forked from an earlier version that requires endstops.  This code has significant issue and is not considered to be safe for use on humans. There are frequent pauses, it loses track of where it is and has a tendency to randomly extend to maximum depth. Development of an X-Toys firmware is happening but it is complicated.   
+A: As of August 2023 there is a highly experimental X-toy firmware forked from an earlier version that requires endstops.  This code has significant issue and is not considered to be safe for use on humans. There are frequent pauses, it loses track of where it is and has a tendency to randomly extend to maximum depth. Development of an X-Toys firmware is happening but it is complicated.   
 
 ### Q: Why is X-Toys/Funscripts/ButtplugIO so difficult?
 A: Things are a lot more complicated once you dig down into them.
