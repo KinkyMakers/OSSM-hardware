@@ -61,17 +61,17 @@ We are calling this the reference build, when deviating from it please check com
    - Thank you @Elims for the [belt tensioner design](https://media.discordapp.net/attachments/756320102919700607/858110808281317396/unknown.png) ( https://github.com/theelims/FuckIO )  
 
 2) **IHSV57 NEMA23 Servo with 8mm shaft** : 
-   - *Avoid the StepperOnline version until we can further test*
+   - *Avoid the StepperOnline version*
    - Make sure you get something with **8mm** shaft.
    - There are *3* sizes of this motor:  
-        100W = [iHSV57-30-**10**](https://www.jmc-motor.com/product/953.html)  
+        100W = [iHSV57-30-**10**](https://www.aliexpress.com/w/wholesale-iHSV57%2525252d30%2525252d10.html)  
 
-        140W = [iHSV57-30-**14**](https://www.jmc-motor.com/product/902.html)  
+        140W = [iHSV57-30-**14**](https://www.aliexpress.com/w/wholesale-iHSV57%2525252d30%2525252d14.html)  
 
-        180W = [iHSV57-30-**18**](https://www.jmc-motor.com/product/980.html)   
+        180W = [iHSV57-30-**18**](https://www.aliexpress.com/w/wholesale-iHSV57%2525252d30%2525252d18.html)   
 
-   - We strongly prefer motors with firmware version 6 (shown as `V60x`). Pay attention to this, [the firmware version is printed on the label on the side.](https://user-images.githubusercontent.com/131713378/234460307-1c29c18b-3bb5-4ac9-b66f-0dea9df0acac.png) You cannot update the motor firmware. version 5 will work, but it is not as feature rich.
-   - Search around for the best deal for you - we reccommend searching "ihsv57" on Aliexpress.com and choosing the -10 -14 or -18. Some places you can get them:  
+   - We recommend motors with firmware version 6 (shown as `V60x`). Pay attention to this, [the firmware version is printed on the label on the side.](https://user-images.githubusercontent.com/131713378/234460307-1c29c18b-3bb5-4ac9-b66f-0dea9df0acac.png) You cannot update the motor firmware. version 5 will work, but it is not as feature rich for potential new features.
+   - Search around for the best deal for you - we reccommend searching "ihsv57" on Aliexpress.com and choosing the -10 -14 or -18. Some example listings:  
 
       [AliExpress - US](https://www.aliexpress.us/item/2251832528412325.html)  
 
