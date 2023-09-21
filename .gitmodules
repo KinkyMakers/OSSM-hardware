@@ -1,0 +1,10 @@
+[submodule "lib/StrokeEngine"]
+	path = Software/lib/StrokeEngine
+	url = https://github.com/theelims/StrokeEngine/
+	branch = experimental-generic
+[submodule "Software/lib/OSSM-framework"]
+	path = Software/lib/OSSM-framework
+	url = https://github.com/zylos146/OSSM-framework.git
+[submodule "Software/lib/hsmcpp"]
+	path = Software/lib/hsmcpp
+	url = https://github.com/igor-krechetov/hsmcpp.git
