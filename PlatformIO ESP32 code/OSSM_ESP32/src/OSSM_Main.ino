@@ -278,7 +278,7 @@ void motionCommandTask(void *pvParameters)
                 break;
 
             case ossm.strokeEngineMode:
-                ossm.runStrokeEngine();
+                ossm.runPenetrateDtt();
                 break;
         }
     }
@@ -290,6 +290,7 @@ void motionCommandTask(void *pvParameters)
 
 bool setInternetControl(bool wifiControlEnable)
 {
+    return false;
     // here we will SEND the WiFi control permission, and current speed and stroke
     // to the remote server. The cloudfront redirect allows http connection with
     // bubble backend hosted at app.researchanddesire.com
@@ -334,6 +335,7 @@ bool setInternetControl(bool wifiControlEnable)
 
 bool getInternetSettings()
 {
+    return false;
     // here we will request speed and stroke settings from the remote server. The
     // cloudfront redirect allows http connection with bubble backend hosted at
     // app.researchanddesire.com

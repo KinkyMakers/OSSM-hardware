@@ -1,8 +1,30 @@
 #include "Utilities.h"
 
+#include <esp_now.h>
+
 #include <string>
 
 #include "Stroke_Engine_Helper.h"
+
+struct_message outgoingMessage;
+
+uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+// Peer info for sending data
+esp_now_peer_info_t peerInfo;
+
+float espNowPercent = 100;
+
+void OSSM::OnDataReceive(const uint8_t *mac, const uint8_t *incomingData, int len)
+{
+    memcpy(&outgoingMessage, incomingData, sizeof(outgoingMessage));
+//    Serial.print("Bytes received: ");
+//    Serial.println(len);
+//    Serial.print("Message: ");
+//    Serial.println(outgoingMessage.content);
+
+    espNowPercent = atof(outgoingMessage.content);
+}
 
 void OSSM::setup()
 {
@@ -17,6 +39,23 @@ void OSSM::setup()
     message += SW_VERSION;
     message += " Booting up!";
     g_ui.UpdateMessage(message);
+
+    // ESP NOW  -- START
+    WiFi.mode(WIFI_STA);
+    // Devices must be on the same channel
+    esp_wifi_set_channel(11, WIFI_SECOND_CHAN_NONE);
+    // ESP NOW  -- END
+
+    // ESP NOW.
+    esp_now_init();
+    esp_now_register_recv_cb(this->OnDataReceive);
+    // Initialize peer
+
+    memcpy(peerInfo.peer_addr, broadcastAddress, ESP_NOW_ETH_ALEN);
+    peerInfo.channel = 11;
+    peerInfo.encrypt = false;
+    esp_now_add_peer(&peerInfo);
+
 #ifdef INITIAL_SETUP
     FastLED.setBrightness(150);
     fill_rainbow(ossmleds, NUM_LEDS, 34, 1);
@@ -75,6 +114,24 @@ void OSSM::runPenetrate()
         numberStrokes++;
         travelledDistanceMeters += (0.002 * currentStrokeMm);
         updateLifeStats();
+    }
+}
+
+void OSSM::runPenetrateDtt()
+{
+    // poll at 200Hz for when motion is complete
+    for (;;)
+    {
+        while ((stepper.getDistanceToTargetSigned() != 0) || (strokePercentage <= commandDeadzonePercentage) ||
+               (speedPercentage <= commandDeadzonePercentage))
+        {
+            vTaskDelay(5); // wait for motion to complete and requested stroke more than zero
+        }
+
+        float safePercent = fmax(fmin((espNowPercent / 100.0) * strokePercentage, 100.0), 0) / 100;
+        float targetPosition = safePercent * maxStrokeLengthMm;
+        stepper.setTargetPositionInMillimeters(targetPosition);
+        vTaskDelay(1);
     }
 }
 
@@ -257,7 +314,7 @@ void OSSM::setRunMode()
                 break;
 
             case strokeEngineMode:
-                g_ui.UpdateMessage("Stroke Engine");
+                g_ui.UpdateMessage("DTT Sync");
                 activeRunMode = strokeEngineMode;
                 break;
         }
@@ -267,6 +324,7 @@ void OSSM::setRunMode()
 
 void OSSM::wifiAutoConnect()
 {
+    return;
     // This is here in case you want to change WiFi settings - pull IO High
     if (digitalRead(WIFI_RESET_PIN) == HIGH)
     {
@@ -291,6 +349,12 @@ void OSSM::wifiAutoConnect()
 
 void OSSM::wifiConnectOrHotspotNonBlocking()
 {
+    for (;;)
+    {
+        // Nothing.
+        vTaskDelay(100);
+
+    }
     int wifiTimeoutSeconds = 15;
     float threadStartTimeMillis = millis();
     float threadRuntimeSeconds = 0;
@@ -379,6 +443,7 @@ void OSSM::updateFirmware()
 
 bool OSSM::checkForUpdate()
 {
+    return false;
     String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/check-for-ossm-update"; // live url
 #ifdef VERSIONTEST
     serverNameBubble = "http://d2oq8yqnezqh3r.cloudfront.net/check-for-ossm-update"; // version-test

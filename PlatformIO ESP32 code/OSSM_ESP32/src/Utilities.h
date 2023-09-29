@@ -9,6 +9,7 @@
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
 #include <StrokeEngine.h>
+#include <esp_now.h>
 
 #include "FastLED.h" // Used for the LED on the Reference Board (or any other pixel LEDS you may add)
 #include "OSSM_Config.h"
@@ -26,6 +27,10 @@
 #define MODE_DEPTH 1
 #define MODE_SENSATION 2
 #define MODE_PATTERN 3
+
+typedef struct struct_message {
+    char content[32];
+} struct_message;
 
 class OSSM
 {
@@ -117,6 +122,10 @@ class OSSM
     void setEncoderPercentage(float percentage);
     float getEncoderPercentage();
     bool waitForAnyButtonPress(float waitMilliseconds);
+
+    void OnDataSent(const uint8_t* macAddr, esp_now_send_status_t status);
+    static void OnDataReceive(const uint8_t* mac, const uint8_t* incomingData, int len);
+    void runPenetrateDtt();
 };
 
 #endif
