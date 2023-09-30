@@ -128,7 +128,7 @@ void OSSM::runPenetrateDtt()
             vTaskDelay(5); // wait for motion to complete and requested stroke more than zero
         }
 
-        float safePercent = fmax(fmin((espNowPercent / 100.0) * strokePercentage, 100.0), 0) / 100;
+        float safePercent = fmax(fmin(((100 - espNowPercent) / 100.0) * strokePercentage, 100.0), 0) / 100;
         float targetPosition = safePercent * maxStrokeLengthMm;
         stepper.setTargetPositionInMillimeters(targetPosition);
         vTaskDelay(1);
