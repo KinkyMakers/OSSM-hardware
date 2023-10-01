@@ -846,9 +846,9 @@ static Pattern *patternTable[] = {
   new HalfnHalf("Half'n'Half"),
   new Deeper("Deeper"),
   new StopNGo("Stop'n'Go"),
-  new Insist("Insist"),
-  new JackHammer("Jack Hammer"),
-  new StrokeNibbler("Stroke Nibbler")
+  new Insist("Insist")
+  //new JackHammer("Jack Hammer"),
+  //new StrokeNibbler("Stroke Nibbler")
   // <-- insert your new pattern class here!
  };
 
