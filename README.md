@@ -119,20 +119,16 @@ We are calling this the reference build, when deviating from it please check com
 
 7) **Power Supply** : 24 volt 4-5 amp w/ 2.1mm barrel DC plug  
 
-   [Mouser - CA]([https://www.mouser.ca/ProductDetail/MEAN-WELL/GST120A24-P1M](https://www.mouser.ca/ProductDetail/MEAN-WELL/GST120A24-P1M?qs=V113mesSgrhUmhAWUz3R2A%3D%3D))  
-
-   [Digikey - US](https://www.digikey.com/en/products/detail/mean-well-usa-inc/GST120A24-P1M/7703595)  
-
-   [Mouser - AU](https://au.mouser.com/ProductDetail/MEAN-WELL/GST120A24-P1M?qs=V113mesSgrhUmhAWUz3R2A%3D%3D)  
-
    - Larger motors generally need more power! 
       180W -> 24V 5A suggested minimum
       140W -> 24V 4A suggested minimum
-      100W -> 24V 4A suggested minimum  
+      100W -> 24V 4A suggested minimum
 
+   - See the FAQ for more details about power supply sizing based on real world experience of OSSM users.
    - The OSSM will work with small power supplies, but will be limited on maximum force.
    - Ensure the power supply is fully enclosed and shielded to avoid cross talk from electromagnetic interference (like a laptop power supply).
-   - Ensure the power supply has the correct approvals for your location - This really helps ensure performance as well! (UL, CE, etc.)  
+   - Ensure the power supply has the correct approvals for your location - This really helps ensure performance as well! (UL, CE, etc.)
+   - It is strongly recommended that you purchase a good quality PSU such as a Meanwell.  
 
 8) **Metric Hex Cap Screws** :  
    [Amazon - CA & US](https://www.amazon.ca/Comdox-500pcs-Socket-Screws-Assortment/dp/B06XQLTLHP)  
