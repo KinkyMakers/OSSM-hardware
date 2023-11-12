@@ -17,6 +17,8 @@ Please note that this is a _work in progress_ and we have attempted to keep comp
 There are a few hardware flavours to choose from, we've included community modified versions in case that fits your use case better!
 
 <h3><p align="center"><a href="https://github.com/KinkyMakers/OSSM-hardware/blob/master/Documentation/Assembly%20Instructions.pdf">Build Instructions</a></p></h3>
+<h3><p align="center"><a href="https://youtube.com/playlist?list=PLzSK7OAu3KNQsFo6WJGT8P28lfkD3xpps">Build Videos</a></p></h3>
+
 
 Join our Discord to be part of the discussion and get help with your build. We have a huge community of makers! https://discord.gg/MmpT9xE
 
