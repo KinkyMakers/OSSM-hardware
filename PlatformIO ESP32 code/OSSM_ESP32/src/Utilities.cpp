@@ -38,11 +38,126 @@ void OSSM::setup()
     };
 }
 
+#if SERVO_TORQUE_SETTING
+bool OSSM::setupModbusAndReportState()
+{
+    if (SERVO_MOTOR_VERSION == 6)
+    {
+        Serial2.begin(57600, SERIAL_8E1, GPIO_NUM_16, GPIO_NUM_17, false, 2000);
+    }
+    else if (SERVO_MOTOR_VERSION == 5)
+    {
+        Serial.println("Disabling force control. Motor version must be >= 6 to enable force control :(");
+        return false;
+    }
+    else
+    {
+        Serial.println("Setting SERVO_MOTOR_VERSION in OSSM_Config.h has bad value, must be 5 or 6");
+        return false;
+    }
+
+    delay(500);
+    this->MB = new ModbusClientRTU(Serial2);
+
+    MB->setTimeout(2000);
+    MB->begin();
+
+    ModbusMessage DATA = MB->syncRequest(MB_Token++, 1, READ_HOLD_REGISTER, 0x01FE, 1);
+    Error err = DATA.getError();
+    if (err != SUCCESS)
+    {
+        ModbusError e(err);
+        Serial.printf(
+            "MODBUS ERROR - could not communicate with modbus. Disabling torque control. \n\tMake sure serial "
+            "tx/rx/gnd are connected between the OSSM board and your motor");
+        return false;
+    }
+    Serial.printf("\n\nMODBUS CONNECTED!\n\n");
+    modbusDetected = true;
+
+    // set our force calculation mode:
+    DATA = MB->syncRequest(MB_Token++, 1, WRITE_HOLD_REGISTER, 0x0066, 2); // default: 1
+    err = DATA.getError();
+    if (err != SUCCESS)
+    {
+        ModbusError e(err);
+        Serial.printf("\n\nMODBUS ERROR - Error setting 0x0066 state to 2 %02X - %s\n", (int)e, (const char *)e);
+    }
+    return true;
+}
+
+int OSSM::calculateForce(float forcePercentage)
+{
+    // Force is a value between 0-31, where 13 is the default for the motor.
+
+    double slope = 1.0 * (MAX_FORCE - MIN_FORCE) / 100;
+    return MIN_FORCE + floor(slope * (forcePercentage));
+}
+
+void OSSM::setForce(int forceVal)
+{
+    if (forceVal > MAX_SAFETY_FORCE)
+    {
+        Serial.printf("SAFETY ERROR! force value being set was higher than the safety value of %d\n", MAX_SAFETY_FORCE);
+        Serial.printf(
+            "\tIf you wish to exceed the current max force value, change MAX_FORCE in OSSM_Config.h! (do NOT directly "
+            "modify MAX_SAFETY_FORCE)");
+        return;
+    }
+    ModbusMessage DATA = MB->syncRequest(MB_Token++, 1, WRITE_HOLD_REGISTER, 0x0067, forceVal); // default: 13
+    Error err = DATA.getError();
+    if (err != SUCCESS)
+    {
+        ModbusError e(err);
+        Serial.printf("\n\nMODBUS ERROR - Error setting 0x0067 state to 1 %02X - %s\n", (int)e, (const char *)e);
+    }
+    else
+    {
+        Serial.printf("Force set to %d\n", forceVal);
+    }
+    return;
+}
+#endif
+
 void OSSM::runPenetrate()
 {
+    int lastEncoderButtonPresses = encoderButtonPresses;
+    float lastForcePercentage = forcePercentage;
     // poll at 200Hz for when motion is complete
     for (;;)
     {
+        // buttons and stuff
+        int buttonPressCount = encoderButtonPresses - lastEncoderButtonPresses;
+        if (!modeChanged && buttonPressCount > 0 && (millis() - lastEncoderButtonPressMillis) > MULTI_CLICK_SPEED)
+        {
+            Serial.printf("switching mode pre: %i %i\n", rightKnobMode, buttonPressCount);
+
+            // This isn't stroke engine, so we don't have fancy stuff... just length and force.
+            //   because people build a muscle memory, and having different button combos in different
+            //   modes is confusing, keep 3 button press = MODE_FORCE, and anything else goes back to MODE_STROKE
+            if (buttonPressCount == 3)
+            {
+                rightKnobMode = MODE_FORCE;
+            }
+            else
+            {
+                rightKnobMode = MODE_STROKE;
+            }
+
+            Serial.printf("switching mode: %i\n", rightKnobMode);
+
+            modeChanged = true;
+            lastEncoderButtonPresses = encoderButtonPresses;
+        }
+
+        if (lastForcePercentage != forcePercentage)
+        {
+            int newForce = calculateForce(forcePercentage);
+            Serial.printf("change force: %f, %d\n", forcePercentage, newForce);
+            setForce(newForce);
+            lastForcePercentage = forcePercentage;
+        }
+
         while ((stepper.getDistanceToTargetSigned() != 0) || (strokePercentage <= commandDeadzonePercentage) ||
                (speedPercentage <= commandDeadzonePercentage))
         {
@@ -51,7 +166,9 @@ void OSSM::runPenetrate()
 
         float targetPosition = (strokePercentage / 100.0) * maxStrokeLengthMm;
         float currentStrokeMm = abs(targetPosition);
+#if PRINT_NON_STROKE_ENGINE_DEBUG
         LogDebugFormatted("Moving stepper to position %ld \n", static_cast<long int>(targetPosition));
+#endif
         vTaskDelay(1);
         stepper.setDecelerationInMillimetersPerSecondPerSecond(maxSpeedMmPerSecond * speedPercentage * speedPercentage /
                                                                accelerationScaling);
@@ -102,11 +219,13 @@ void OSSM::runStrokeEngine()
     float lastStrokePercentage = strokePercentage;
     float lastDepthPercentage = depthPercentage;
     float lastSensationPercentage = sensationPercentage;
+    float lastForcePercentage = forcePercentage;
     int lastEncoderButtonPresses = encoderButtonPresses;
     strokePattern = 0;
     strokePatternCount = Stroker.getNumberOfPattern();
 
     Stroker.setSensation(calculateSensation(sensationPercentage), true);
+    setForce(calculateForce(forcePercentage));
 
     Stroker.setPattern(strokePattern, true);
     Stroker.setDepth(0.01 * depthPercentage * abs(maxStrokeLengthMm), true);
@@ -117,7 +236,9 @@ void OSSM::runStrokeEngine()
 
     for (;;)
     {
+#if DEBUG_CODE_POSITIONS
         Serial.println("looping");
+#endif
         if (isChangeSignificant(lastSpeedPercentage, speedPercentage))
         {
             Serial.printf("changing speed: %f\n", speedPercentage * 3);
@@ -135,29 +256,44 @@ void OSSM::runStrokeEngine()
         }
 
         int buttonPressCount = encoderButtonPresses - lastEncoderButtonPresses;
-        if (!modeChanged && buttonPressCount > 0 && (millis() - lastEncoderButtonPressMillis) > 200)
+        if (!modeChanged && buttonPressCount > 0 && (millis() - lastEncoderButtonPressMillis) > MULTI_CLICK_SPEED)
         {
             Serial.printf("switching mode pre: %i %i\n", rightKnobMode, buttonPressCount);
 
-            if (buttonPressCount > 1)
+            // Single button press should cycle between "normal" setting modes (stroke, depth, sensation (if patern >
+            // 0))
+            //   if the mode goes above the last "normal" setting for the given patern, wrap back to MODE_STROKE
+            if (buttonPressCount == 1)
+            {
+                if (strokePattern == 0)
+                {
+                    rightKnobMode += 1;
+                    if (rightKnobMode > MODE_DEPTH)
+                    {
+                        rightKnobMode = MODE_STROKE;
+                    }
+                }
+                else
+                {
+                    rightKnobMode += 1;
+                    if (rightKnobMode > MODE_SENSATION)
+                    {
+                        rightKnobMode = MODE_STROKE;
+                    }
+                }
+            }
+            // double click should enter mode selection
+            else if (buttonPressCount == 2)
             {
                 rightKnobMode = MODE_PATTERN;
             }
-            else if (strokePattern == 0)
+            else if (buttonPressCount == 3 && modbusDetected)
             {
-                rightKnobMode += 1;
-                if (rightKnobMode > 1)
-                {
-                    rightKnobMode = 0;
-                }
+                rightKnobMode = MODE_FORCE;
             }
             else
             {
-                rightKnobMode += 1;
-                if (rightKnobMode > 2)
-                {
-                    rightKnobMode = 0;
-                }
+                rightKnobMode = MODE_STROKE;
             }
 
             Serial.printf("switching mode: %i\n", rightKnobMode);
@@ -188,6 +324,14 @@ void OSSM::runStrokeEngine()
             Serial.printf("change sensation: %f, %f\n", sensationPercentage, newSensation);
             Stroker.setSensation(newSensation, false);
             lastSensationPercentage = sensationPercentage;
+        }
+
+        if (lastForcePercentage != forcePercentage)
+        {
+            int newForce = calculateForce(forcePercentage);
+            Serial.printf("change force: %f, %d\n", forcePercentage, newForce);
+            setForce(newForce);
+            lastForcePercentage = forcePercentage;
         }
 
         if (!modeChanged && changePattern != 0)
@@ -245,10 +389,12 @@ void OSSM::setRunMode()
     {
         encoderVal = abs(g_encoder.read());
         runModeVal = (encoderVal % (2 * runModeCount)) / 2; // scale by 2 because encoder counts by 2
+#if PRINT_ENCODER_INFO_BEFORE_MODE
         Serial.print("encoder: ");
         Serial.println(encoderVal);
         Serial.printf("%d encoder count \n", encoderVal);
         Serial.printf("%d runModeVal \n", runModeVal);
+#endif
         switch (runModeVal)
         {
             case simpleMode:
@@ -281,19 +427,25 @@ void OSSM::wifiAutoConnect()
         }
     }
 
+#if INTERNET_CONNECTION_MODE >= 1
     wm.setConfigPortalTimeout(1);
     if (!wm.autoConnect("OSSM Setup"))
     {
         LogDebug("failed to connect and hit timeout");
     }
     LogDebug("exiting autoconnect");
+#else
+    Serial.println("Skipping wifi setup due to INTERNET_CONNECTION_MODE defined in OSSM_Config.h");
+#endif
 }
 
 void OSSM::wifiConnectOrHotspotNonBlocking()
 {
+#if INTERNET_CONNECTION_MODE >= 1
     int wifiTimeoutSeconds = 15;
     float threadStartTimeMillis = millis();
     float threadRuntimeSeconds = 0;
+
     // This should always be run in a thread!!!
     wm.setConfigPortalTimeout(wifiTimeoutSeconds);
     wm.setConfigPortalBlocking(false);
@@ -322,10 +474,12 @@ void OSSM::wifiConnectOrHotspotNonBlocking()
             vTaskDelete(NULL);
         }
     }
+#endif
 }
 
 void OSSM::updatePrompt()
 {
+#if INTERNET_CONNECTION_MODE >= 2
     Serial.println("about to start httpOtaUpdate");
     if (WiFi.status() != WL_CONNECTED)
     {
@@ -340,13 +494,14 @@ void OSSM::updatePrompt()
 
     g_ui.UpdateMessage("Press to update SW");
 
-    if (waitForAnyButtonPress(5000) == false)
+    if (waitForAnyButtonPress(8000) == false)
     {
         // user did not accept update
         return;
     }
 
     updateFirmware();
+#endif
 }
 void OSSM::updateFirmware()
 {
@@ -357,8 +512,6 @@ void OSSM::updateFirmware()
 
     WiFiClient client;
     t_httpUpdate_return ret = httpUpdate.update(client, "http://d2sy3zdr3r1gt5.cloudfront.net/ossmfirmware2.bin");
-    // Or:
-    // t_httpUpdate_return ret = httpUpdate.update(client, "server", 80, "file.bin");
 
     switch (ret)
     {
@@ -379,10 +532,11 @@ void OSSM::updateFirmware()
 
 bool OSSM::checkForUpdate()
 {
-    String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/check-for-ossm-update"; // live url
-#ifdef VERSIONTEST
-    serverNameBubble = "http://d2oq8yqnezqh3r.cloudfront.net/check-for-ossm-update"; // version-test
-#endif
+#if INTERNET_CONNECTION_MODE >= 2
+    String serverNameBubble = !OTA_TEST_FIRMWARE
+                                  ? "http://d2g4f7zewm360.cloudfront.net/check-for-ossm-update"   // live url
+                                  : "http://d2oq8yqnezqh3r.cloudfront.net/check-for-ossm-update"; // test url
+
     LogDebug("about to hit http for update");
     HTTPClient http;
     http.begin(serverNameBubble);
@@ -417,6 +571,10 @@ bool OSSM::checkForUpdate()
     }
     http.end();
     return response_needUpdate;
+#else
+    Serial.println("Skipping update check due to INTERNET_CONNECTION_MODE defined in OSSM_Config.h");
+    return false;
+#endif
 }
 
 bool OSSM::checkConnection()
@@ -458,6 +616,12 @@ bool OSSM::findHome()
 {
     if (hardwareVersion >= 20)
     {
+        // Set motor force to be 13 (default) during home procedure, if capable.
+        //   This is needed here because if you reset the OSSM without killing power to the motor, the old
+        //   force value will sill be active, which might be too low and mess with the sensorless homing!
+        //
+        //   StrokeEngine / SimplePenetrate will re-set the force to the default once they are activated
+        setForce(13);
         maxStrokeLengthMm = sensorlessHoming();
         if (maxStrokeLengthMm > 20)
         {
@@ -493,9 +657,11 @@ float OSSM::sensorlessHoming()
     digitalWrite(MOTOR_ENABLE_PIN, LOW);
     delay(100);
 
+#if PRINT_HOMING_INFO
     Serial.print(getAnalogAveragePercent(36, 500) - currentSensorOffset);
     Serial.print(",");
     Serial.println(stepper.getCurrentPositionInMillimeters());
+#endif
 
     // find reverse limit
 
@@ -505,9 +671,11 @@ float OSSM::sensorlessHoming()
     while (current < currentLimit)
     {
         current = getAnalogAveragePercent(36, 25) - currentSensorOffset;
+#if PRINT_HOMING_INFO
         Serial.print(current);
         Serial.print(",");
         Serial.println(stepper.getCurrentPositionInMillimeters());
+#endif
     }
     // stepper.emergencyStop();
 
@@ -539,9 +707,11 @@ float OSSM::sensorlessHoming()
         current = getAnalogAveragePercent(36, 25) - currentSensorOffset;
         if (stepper.getCurrentPositionInMillimeters() > 90)
         {
+#if PRINT_HOMING_INFO
             Serial.print(current);
             Serial.print(",");
             Serial.println(stepper.getCurrentPositionInMillimeters());
+#endif
         }
     }
 
@@ -628,6 +798,7 @@ void OSSM::updateLifeStats()
     minutes = lifeSecondsPowered / 60;
     hours = minutes / 60;
     days = hours / 24;
+#if PRINT_STATS
     if ((millis() - lastLifeUpdateMillis) > 5000)
     {
         Serial.printf("\n%dd %dh %dm %ds \n", ((int(days))), (int(hours) % 24), (int(minutes) % 60),
@@ -643,6 +814,7 @@ void OSSM::updateLifeStats()
         writeEepromLifeStats();
         lastLifeWriteMillis = millis();
     }
+#endif
 
     return;
 }
@@ -682,6 +854,9 @@ void OSSM::updateAnalogInputs()
                 changePattern = 0;
                 setEncoderPercentage(50);
                 break;
+            case MODE_FORCE:
+                setEncoderPercentage(forcePercentage);
+                break;
         }
 
         modeChanged = false;
@@ -700,6 +875,7 @@ void OSSM::updateAnalogInputs()
                 sensationPercentage = getEncoderPercentage();
                 break;
             case MODE_PATTERN:
+            { // we need these {} here because patternPercentage is initialized inside the case statement.
                 float patternPercentage = getEncoderPercentage();
                 if (patternPercentage >= 52)
                 {
@@ -713,6 +889,10 @@ void OSSM::updateAnalogInputs()
                 {
                     changePattern = 0;
                 }
+            }
+            break;
+            case MODE_FORCE:
+                forcePercentage = getEncoderPercentage();
                 break;
         }
     }

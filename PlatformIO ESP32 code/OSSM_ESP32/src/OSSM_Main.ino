@@ -29,7 +29,7 @@ IRAM_ATTR void encoderPushButton()
 
     // debounce check
     long currentTime = millis();
-    if ((currentTime - lastEncoderButtonPressMillis) > 200)
+    if ((currentTime - lastEncoderButtonPressMillis) > CLICK_DEBOUNCE_SPEED)
     {
         // run interrupt if not run in last 50ms
         encoderButtonPresses++;
@@ -82,6 +82,7 @@ void setup()
     attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoderPushButton, RISING);
 
     ossm.setup();
+    ossm.setupModbusAndReportState();
 
     // start the WiFi connection task so we can be doing something while homing!
     xTaskCreatePinnedToCore(wifiConnectionTask,   /* Task function. */
@@ -92,6 +93,7 @@ void setup()
                             &wifiTask,            /* Task handle to keep track of created task */
                             0);                   /* pin task to core 0 */
     delay(100);
+
 
     ossm.findHome();
 
@@ -158,6 +160,10 @@ void loop()
             ossm.g_ui.UpdateState("PATTRN", static_cast<int>(ossm.speedPercentage),
                                   ossm.strokePattern * 100 / (ossm.strokePatternCount - 1));
             break;
+        case MODE_FORCE:
+            ossm.g_ui.UpdateState("FORCE", static_cast<int>(ossm.speedPercentage),
+                                  static_cast<int>(ossm.forcePercentage + 0.05f));
+            break;
     }
     ossm.g_ui.UpdateScreen();
 
@@ -203,7 +209,11 @@ void estopResetTask(void *pvParameters)
 
 void wifiConnectionTask(void *pvParameters)
 {
+#if INTERNET_CONNECTION_MODE >= 1
     ossm.wifiConnectOrHotspotNonBlocking();
+#else
+    Serial.println("Skipping wifi connection task due to INTERNET_CONNECTION_MODE defined in OSSM_Config.h");
+#endif
 }
 
 // Task to read settings from server - only need to check this when in WiFi
@@ -211,22 +221,18 @@ void wifiConnectionTask(void *pvParameters)
 void getUserInputTask(void *pvParameters)
 {
     bool wifiControlEnable = false;
-    for (;;) // tasks should loop forever and not return - or will throw error in
-             // OS
+    for (;;) // tasks should loop forever and not return - or will throw error in OS
     {
-        // LogDebug("Speed: " + String(ossm.speedPercentage) + "\% Stroke: " + String(ossm.strokePercentage) +
-        //          "\% Distance to target: " + String(ossm.stepper.getDistanceToTargetSigned()) + " steps?");
-
         ossm.updateAnalogInputs();
 
         ossm.speedPercentage > 1 ? ossm.stepper.releaseEmergencyStop() : ossm.stepper.emergencyStop();
 
+#if INTERNET_CONNECTION_MODE >= 1
         if (digitalRead(WIFI_CONTROL_TOGGLE_PIN) == HIGH) // TODO: check if wifi available and handle gracefully
         {
             if (wifiControlEnable == false)
             {
-                // this is a transition to WiFi, we should tell the server it has
-                // control
+                // this is a transition to WiFi, we should tell the server it has control
                 wifiControlEnable = true;
                 if (WiFi.status() != WL_CONNECTED)
                 {
@@ -241,8 +247,7 @@ void getUserInputTask(void *pvParameters)
         {
             if (wifiControlEnable == true)
             {
-                // this is a transition to local control, we should tell the server it
-                // cannot control
+                // this is a transition to local control, we should tell the server it cannot control
                 wifiControlEnable = false;
                 setInternetControl(wifiControlEnable);
             }
@@ -250,6 +255,7 @@ void getUserInputTask(void *pvParameters)
             // ossm.strokePercentage = getAnalogAverage(STROKE_POT_PIN, 50);
             // ossm.strokePercentage = ossm.getEncoderPercentage();
         }
+#endif
 
         // We should scale these values with initialized settings not hard coded
         // values!
@@ -284,20 +290,16 @@ void motionCommandTask(void *pvParameters)
     }
 }
 
-// float getAnalogVoltage(int pinNumber, int samples){
-
-// }
-
 bool setInternetControl(bool wifiControlEnable)
 {
+#if INTERNET_CONNECTION_MODE >= 3
     // here we will SEND the WiFi control permission, and current speed and stroke
     // to the remote server. The cloudfront redirect allows http connection with
     // bubble backend hosted at app.researchanddesire.com
 
-    String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/ossm-set-control"; // live server
-    // String serverNameBubble =
-    // "http://d2oq8yqnezqh3r.cloudfront.net/ossm-set-control"; // this is
-    // version-test server
+    String serverNameBubble = !INTERNET_CONNECTION_TEST_SERVER
+                                  ? "http://d2g4f7zewm360.cloudfront.net/ossm-set-control"   // live server
+                                  : "http://d2oq8yqnezqh3r.cloudfront.net/ossm-set-control"; // test server
 
     // Add values in the document to send to server
     StaticJsonDocument<200> doc;
@@ -330,19 +332,22 @@ bool setInternetControl(bool wifiControlEnable)
     LogDebugFormatted("HTTP Response code: %d\n", httpResponseCode);
 
     return true;
+#else
+    Serial.println("Skipping setInternetControl() due to INTERNET_CONNECTION_MODE defined in OSSM_Config.h");
+    return false;
+#endif
 }
 
 bool getInternetSettings()
 {
+#if INTERNET_CONNECTION_MODE >= 3
     // here we will request speed and stroke settings from the remote server. The
     // cloudfront redirect allows http connection with bubble backend hosted at
     // app.researchanddesire.com
 
-    String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/ossm-get-settings"; // live server
-    // String serverNameBubble =
-    // "http://d2oq8yqnezqh3r.cloudfront.net/ossm-get-settings"; // this is
-    // version-test
-    // server
+    String serverNameBubble = !INTERNET_CONNECTION_TEST_SERVER
+                                  ? "http://d2g4f7zewm360.cloudfront.net/ossm-get-settings"   // live server
+                                  : "http://d2oq8yqnezqh3r.cloudfront.net/ossm-get-settings"; // test server
 
     // Add values in the document
     StaticJsonDocument<200> doc;
@@ -374,6 +379,10 @@ bool getInternetSettings()
     LogDebugFormatted("HTTP Response code: %d\n", httpResponseCode);
 
     return true;
+#else
+    Serial.println("Skipping getInternetSettings() due to INTERNET_CONNECTION_MODE defined in OSSM_Config.h");
+    return false;
+#endif
 }
 // void setLedRainbow(CRGB leds[])
 // {
