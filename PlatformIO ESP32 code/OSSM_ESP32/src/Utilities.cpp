@@ -51,12 +51,12 @@ void OSSM::runPenetrate()
 
         float targetPosition = (strokePercentage / 100.0) * maxStrokeLengthMm;
         float currentStrokeMm = abs(targetPosition);
-        LogDebugFormatted("Moving stepper to position %ld \n", static_cast<long int>(targetPosition));
-        vTaskDelay(1);
+
         stepper.setDecelerationInMillimetersPerSecondPerSecond(maxSpeedMmPerSecond * speedPercentage * speedPercentage /
                                                                accelerationScaling);
         stepper.setTargetPositionInMillimeters(targetPosition);
-        vTaskDelay(1);
+        vTaskDelay(2);
+        // LogDebugFormatted("Moving stepper to position %ld \n", static_cast<long int>(targetPosition));
 
         while ((stepper.getDistanceToTargetSigned() != 0) || (strokePercentage <= commandDeadzonePercentage) ||
                (speedPercentage <= commandDeadzonePercentage))
@@ -75,6 +75,35 @@ void OSSM::runPenetrate()
         numberStrokes++;
         travelledDistanceMeters += (0.002 * currentStrokeMm);
         updateLifeStats();
+    }
+}
+void OSSM::handleStopCondition() // handles e-stop condition
+{
+    // check is speed is greater than deadzone value and emergency stop if not
+    if (speedPercentage <= commandDeadzonePercentage)
+    {
+        if (isStopped == false)
+        {
+            LogDebug("Speed: " + String(speedPercentage) + "\% Stroke: " + String(strokePercentage) +
+                     "\% Distance to target: " + String(stepper.getDistanceToTargetSigned()) + " steps");
+            stepper.emergencyStop(true);
+            LogDebug("Emergency Stop");
+            isStopped = true;
+            delay(100);
+        }
+    }
+    else
+    {
+        // release emergency stop
+        if (isStopped == true)
+        {
+            LogDebug("Speed: " + String(speedPercentage) + "\% Stroke: " + String(strokePercentage) +
+                     "\% Distance to target: " + String(stepper.getDistanceToTargetSigned()) + " steps");
+            stepper.releaseEmergencyStop();
+            LogDebug("Emergency Stop Released");
+            isStopped = false;
+            delay(100);
+        }
     }
 }
 
@@ -324,6 +353,111 @@ void OSSM::wifiConnectOrHotspotNonBlocking()
     }
 }
 
+void OSSM::enableWifiControl()
+{
+    if (wifiControlActive == false)
+    // this is a transition to WiFi, we should tell the server it has control
+    {
+        wifiControlActive = true;
+        if (WiFi.status() != WL_CONNECTED)
+        {
+            delay(5000);
+        }
+        setInternetControl(wifiControlActive);
+    }
+    getInternetSettings(); // we load ossm.speedPercentage and ossm.strokePercentage in
+                           // this routine.
+}
+
+bool OSSM::setInternetControl(bool setWifiControl)
+{
+    wifiControlActive = setWifiControl;
+    // here we will SEND the WiFi control permission, and current speed and stroke
+    // to the remote server. The cloudfront redirect allows http connection with
+    // bubble backend hosted at app.researchanddesire.com
+
+    String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/ossm-set-control"; // live server
+    // String serverNameBubble =
+    // "http://d2oq8yqnezqh3r.cloudfront.net/ossm-set-control"; // this is
+    // version-test server
+
+    // Add values in the document to send to server
+    StaticJsonDocument<200> doc;
+    doc["ossmId"] = ossmId;
+    doc["wifiControlEnabled"] = wifiControlActive;
+    doc["stroke"] = strokePercentage;
+    doc["speed"] = speedPercentage;
+    String requestBody;
+    serializeJson(doc, requestBody);
+
+    // Http request
+    HTTPClient http;
+    http.begin(serverNameBubble);
+    http.addHeader("Content-Type", "application/json");
+    // post and wait for response
+    int httpResponseCode = http.POST(requestBody);
+    String payload = "{}";
+    payload = http.getString();
+    http.end();
+
+    // deserialize JSON
+    StaticJsonDocument<200> bubbleResponse;
+    deserializeJson(bubbleResponse, payload);
+
+    // TODO: handle status response
+    // const char *status = bubbleResponse["status"]; // "success"
+
+    const char *wifiEnabledStr = (wifiControlActive ? "true" : "false");
+    LogDebugFormatted("Setting Wifi Control: %s\n%s\n%s\n", wifiEnabledStr, requestBody.c_str(), payload.c_str());
+    LogDebugFormatted("HTTP Response code: %d\n", httpResponseCode);
+
+    return true;
+}
+
+bool OSSM::getInternetSettings()
+{
+    // here we will request speed and stroke settings from the remote server. The
+    // cloudfront redirect allows http connection with bubble backend hosted at
+    // app.researchanddesire.com
+
+    String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/ossm-get-settings"; // live server
+    // String serverNameBubble =
+    // "http://d2oq8yqnezqh3r.cloudfront.net/ossm-get-settings"; // this is
+    // version-test
+    // server
+
+    // Add values in the document
+    StaticJsonDocument<200> doc;
+    doc["ossmId"] = ossmId;
+    String requestBody;
+    serializeJson(doc, requestBody);
+
+    // Http request
+    HTTPClient http;
+    http.begin(serverNameBubble);
+    http.addHeader("Content-Type", "application/json");
+    // post and wait for response
+    int httpResponseCode = http.POST(requestBody);
+    String payload = "{}";
+    payload = http.getString();
+    http.end();
+
+    // deserialize JSON
+    StaticJsonDocument<200> bubbleResponse;
+    deserializeJson(bubbleResponse, payload);
+
+    // TODO: handle status response
+    // const char *status = bubbleResponse["status"]; // "success"
+    strokePercentage = bubbleResponse["response"]["stroke"];
+    speedPercentage = bubbleResponse["response"]["speed"];
+
+    // debug info on the http payload
+    LogDebug(payload);
+    LogDebugFormatted("HTTP Response code: %d\n", httpResponseCode);
+
+    return true;
+}
+
 void OSSM::updatePrompt()
 {
     Serial.println("about to start httpOtaUpdate");
@@ -456,20 +590,13 @@ void OSSM::initializeInputs()
 
 bool OSSM::findHome()
 {
-    if (hardwareVersion >= 20)
+    maxStrokeLengthMm = sensorlessHoming();
+    if (maxStrokeLengthMm > 20)
     {
-        maxStrokeLengthMm = sensorlessHoming();
-        if (maxStrokeLengthMm > 20)
-        {
-            return true;
-        }
-        return false;
-    }
-    else
-    {
-        sensorHoming();
         return true;
     }
+    return false;
+
     LogDebug("Homing returning");
 }
 
@@ -478,6 +605,9 @@ float OSSM::sensorlessHoming()
     // find retracted position, mark as zero, find extended position, calc total length, subtract 2x offsets and
     // record length.
     //  move to offset and call it zero. homing complete.
+
+    pinMode(LIMIT_SWITCH_PIN, INPUT_PULLUP);
+
     float currentLimit = 1.5;
     currentSensorOffset = (getAnalogAveragePercent(36, 1000));
     float current = getAnalogAveragePercent(36, 200) - currentSensorOffset;
@@ -493,39 +623,43 @@ float OSSM::sensorlessHoming()
     digitalWrite(MOTOR_ENABLE_PIN, LOW);
     delay(100);
 
+    int limitSwitchActivated = digitalRead(LIMIT_SWITCH_PIN);
     Serial.print(getAnalogAveragePercent(36, 500) - currentSensorOffset);
     Serial.print(",");
-    Serial.println(stepper.getCurrentPositionInMillimeters());
+    Serial.print(stepper.getCurrentPositionInMillimeters());
+    Serial.print(",");
+    Serial.println(limitSwitchActivated);
 
     // find reverse limit
 
     stepper.setSpeedInMillimetersPerSecond(25);
     stepper.setTargetPositionInMillimeters(-400);
     current = getAnalogAveragePercent(36, 200) - currentSensorOffset;
-    while (current < currentLimit)
+
+    while (current < currentLimit && limitSwitchActivated != 0)
     {
         current = getAnalogAveragePercent(36, 25) - currentSensorOffset;
+        limitSwitchActivated = digitalRead(LIMIT_SWITCH_PIN);
         Serial.print(current);
         Serial.print(",");
-        Serial.println(stepper.getCurrentPositionInMillimeters());
+        Serial.print(stepper.getCurrentPositionInMillimeters());
+        Serial.print(",");
+        Serial.println(limitSwitchActivated);
     }
-    // stepper.emergencyStop();
-
+    if (limitSwitchActivated == 0)
+    {
+        stepper.setTargetPositionToStop();
+        delay(100);
+        stepper.setSpeedInMillimetersPerSecond(10);
+        stepper.moveRelativeInMillimeters((1 * maxStrokeLengthMm) - strokeZeroOffsetmm);
+        LogDebug("OSSM has moved out, will now set new home?");
+        stepper.setCurrentPositionAsHomeAndStop();
+        return -maxStrokeLengthMm;
+    }
     stepper.setTargetPositionToStop();
     stepper.moveRelativeInMillimeters(strokeZeroOffsetmm); //"move to" is blocking
     stepper.setCurrentPositionAsHomeAndStop();
     g_ui.UpdateMessage("Checking Stroke");
-    // int loop = 0;
-    // while (loop < 100)
-    // {
-    //     current = getAnalogAveragePercent(36, 25) - currentSensorOffset;
-    //     Serial.print(current);
-    //     Serial.print(",");
-    //     Serial.println(stepper.getCurrentPositionInMillimeters());
-    //     loop++;
-    // }
-    // stepper.setTargetPositionInMillimeters(6);
-    // stepper.setCurrentPositionAsHomeAndStop();
     delay(100);
 
     // find forward limit
@@ -574,7 +708,7 @@ void OSSM::sensorHoming()
     g_ui.UpdateMessage("Moving to Max");
     stepper.setSpeedInMillimetersPerSecond(10);
     stepper.moveToPositionInMillimeters((-1 * maxStrokeLengthMm) - strokeZeroOffsetmm);
-    LogDebug("OSSM has moved out, will now set new home?");
+    LogDebug("OSSM has moved out, will now set new home");
     stepper.setCurrentPositionAsHomeAndStop();
     LogDebug("OSSM should now be home and happy");
 }
@@ -586,7 +720,16 @@ int OSSM::readEepromSettings()
     EEPROM.get(0, hardwareVersion);
     EEPROM.get(4, numberStrokes);
     EEPROM.get(12, travelledDistanceMeters);
-    EEPROM.get(20, lifeSecondsPowered);
+    EEPROM.get(20, lifeSecondsPoweredAtStartup);
+
+    if (numberStrokes == NAN || !(numberStrokes > 0))
+    {
+        hardwareVersion = HW_VERSION;
+        numberStrokes = 0;
+        travelledDistanceMeters = 0;
+        lifeSecondsPoweredAtStartup = 0;
+        writeEepromSettings();
+    }
 
     return hardwareVersion;
 }
@@ -651,7 +794,7 @@ void OSSM::startLeds()
 {
     // int power = 250;
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(ossmleds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-    FastLED.setBrightness(150);
+    FastLED.setBrightness(100);
     for (int hueShift = 0; hueShift < 350; hueShift++)
     {
         int gHue = hueShift % 255;

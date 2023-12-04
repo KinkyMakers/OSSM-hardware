@@ -1,7 +1,6 @@
 #ifndef OSSM_CONFIG_H
 #define OSSM_CONFIG_H
 
-
 #define DEBUG
 
 #ifdef DEBUG
@@ -13,10 +12,10 @@
 #endif
 
 #define SW_VERSION "0.23"
-#define HW_VERSION 22 //divide by 10 for real hw version
+#define HW_VERSION 22 // divide by 10 for real hw version
 #define EEPROM_SIZE 200
 
-//#define INITIAL_SETUP //should only be defined at initial burn to configure HW version
+// #define INITIAL_SETUP //should only be defined at initial burn to configure HW version
 
 extern volatile int encoderButtonPresses;
 extern volatile long lastEncoderButtonPressMillis;
@@ -42,7 +41,7 @@ const float hardcode_beltPitchMm = 2.0f;
 // The absolute max your OSSM would have is the distance between the belt attachments subtract
 // the linear block holder length (75mm on OSSM)
 // Recommended to also subtract e.g. 20mm to keep the backstop well away from the device.
-const float hardcode_maxStrokeLengthMm = 75.f;
+const float hardcode_maxStrokeLengthMm = 100.f;
 /*
         Web Config
 */
@@ -60,8 +59,8 @@ extern const char *ossmId;
 const float hardcode_strokeZeroOffsetmm = 6.0f;
 // The minimum value of the pot in percent
 // prevents noisy pots registering commands when turned down to zero by user
-const float commandDeadzonePercentage = 1.0f;
+const float hardcode_commandDeadzonePercentage = 2.0f;
 // affects acceleration in stepper trajectory (Aggressiveness of motion)
-const float hardcode_accelerationScaling = 100.0f;
+const float hardcode_accelerationScaling = 120.0f;
 
 #endif

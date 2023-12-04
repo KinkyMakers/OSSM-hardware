@@ -57,12 +57,6 @@ TaskHandle_t oledTask = nullptr;
 void getUserInputTask(void *pvParameters);
 void motionCommandTask(void *pvParameters);
 void wifiConnectionTask(void *pvParameters);
-void estopResetTask(void *pvParameters);
-
-bool setInternetControl(bool wifiControlEnable);
-bool getInternetSettings();
-
-bool stopSwitchTriggered = 0;
 
 // create the OSSM hardware object
 OSSM ossm;
@@ -116,15 +110,6 @@ void setup()
                             1,                   /* priority of the task */
                             &motionTask,         /* Task handle to keep track of created task */
                             0);                  /* pin task to core 0 */
-
-    delay(100);
-    xTaskCreatePinnedToCore(estopResetTask,   /* Task function. */
-                            "estopResetTask", /* name of task. */
-                            10000,            /* Stack size of task */
-                            NULL,             /* parameter of the task */
-                            1,                /* priority of the task */
-                            &estopTask,       /* Task handle to keep track of created task */
-                            0);               /* pin task to core 0 */
 
     delay(100);
     ossm.g_ui.UpdateMessage("OSSM Ready to Play");
@@ -183,24 +168,6 @@ void loop()
 ////
 ///////////////////////////////////////////
 
-void estopResetTask(void *pvParameters)
-{
-    for (;;)
-    {
-        if (stopSwitchTriggered == 1)
-        {
-            while ((ossm.getAnalogAveragePercent(SPEED_POT_PIN, 50) > 2))
-            {
-                vTaskDelay(1);
-            }
-            stopSwitchTriggered = 0;
-            vTaskResume(motionTask);
-            vTaskResume(getInputTask);
-        }
-        vTaskDelay(100);
-    }
-}
-
 void wifiConnectionTask(void *pvParameters)
 {
     ossm.wifiConnectOrHotspotNonBlocking();
@@ -210,7 +177,9 @@ void wifiConnectionTask(void *pvParameters)
 // control mode
 void getUserInputTask(void *pvParameters)
 {
-    bool wifiControlEnable = false;
+    float targetSpeedMmPerSecond = 0;
+    float targetAccelerationMm = 0;
+    float previousSpeedPercentage = 0;
     for (;;) // tasks should loop forever and not return - or will throw error in
              // OS
     {
@@ -218,50 +187,47 @@ void getUserInputTask(void *pvParameters)
         //          "\% Distance to target: " + String(ossm.stepper.getDistanceToTargetSigned()) + " steps?");
 
         ossm.updateAnalogInputs();
-
-        ossm.speedPercentage > 1 ? ossm.stepper.releaseEmergencyStop() : ossm.stepper.emergencyStop();
+        ossm.handleStopCondition();
 
         if (digitalRead(WIFI_CONTROL_TOGGLE_PIN) == HIGH) // TODO: check if wifi available and handle gracefully
         {
-            if (wifiControlEnable == false)
-            {
-                // this is a transition to WiFi, we should tell the server it has
-                // control
-                wifiControlEnable = true;
-                if (WiFi.status() != WL_CONNECTED)
-                {
-                    delay(5000);
-                }
-                setInternetControl(wifiControlEnable);
-            }
-            getInternetSettings(); // we load ossm.speedPercentage and ossm.strokePercentage in
-                                   // this routine.
+            ossm.enableWifiControl();
         }
         else
         {
-            if (wifiControlEnable == true)
+            if (ossm.wifiControlActive == true)
             {
-                // this is a transition to local control, we should tell the server it
-                // cannot control
-                wifiControlEnable = false;
-                setInternetControl(wifiControlEnable);
+                // this is a transition to local control, we should tell the server it cannot control
+
+                ossm.setInternetControl(false);
             }
-            // ossm.speedPercentage = ossm.speedPercentage;
-            // ossm.strokePercentage = getAnalogAverage(STROKE_POT_PIN, 50);
-            // ossm.strokePercentage = ossm.getEncoderPercentage();
         }
 
         // We should scale these values with initialized settings not hard coded
         // values!
-        if (ossm.speedPercentage > commandDeadzonePercentage)
+        if (ossm.speedPercentage > ossm.commandDeadzonePercentage)
         {
-            ossm.stepper.setSpeedInMillimetersPerSecond(ossm.maxSpeedMmPerSecond * ossm.speedPercentage / 100.0);
-            ossm.stepper.setAccelerationInMillimetersPerSecondPerSecond(
-                ossm.maxSpeedMmPerSecond * ossm.speedPercentage * ossm.speedPercentage / ossm.accelerationScaling);
-            // We do not set deceleration value here because setting a low decel when
-            // going from high to low speed causes the motor to travel a long distance
-            // before slowing. We should only change decel at rest
+            targetSpeedMmPerSecond = ossm.maxSpeedMmPerSecond * ossm.speedPercentage / 100.0;
+            if ((ossm.speedPercentage - previousSpeedPercentage) > 30)
+            {
+                targetSpeedMmPerSecond =
+                    0.5 * (ossm.speedPercentage + previousSpeedPercentage) * ossm.maxSpeedMmPerSecond / 100.0;
+            }
+            targetAccelerationMm =
+                ossm.maxSpeedMmPerSecond * ossm.speedPercentage * ossm.speedPercentage / ossm.accelerationScaling;
+
+            ossm.stepper.setAccelerationInMillimetersPerSecondPerSecond(targetAccelerationMm);
+            if (targetSpeedMmPerSecond > ossm.stepper.getCurrentVelocityInMillimetersPerSecond())
+            { // we are speeding up, we need to increase deccel rate!
+                ossm.stepper.setDecelerationInMillimetersPerSecondPerSecond(targetAccelerationMm);
+            }
+
+            ossm.stepper.setSpeedInMillimetersPerSecond(targetSpeedMmPerSecond);
+
+            // If target speed is lower than current, we do not update deccel as setting a low decel when going from
+            // high to low speed causes the motor to travel a long distance before slowing.
         }
+        previousSpeedPercentage = ossm.speedPercentage;
         vTaskDelay(50); // let other code run!
     }
 }
@@ -288,93 +254,6 @@ void motionCommandTask(void *pvParameters)
 
 // }
 
-bool setInternetControl(bool wifiControlEnable)
-{
-    // here we will SEND the WiFi control permission, and current speed and stroke
-    // to the remote server. The cloudfront redirect allows http connection with
-    // bubble backend hosted at app.researchanddesire.com
-
-    String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/ossm-set-control"; // live server
-    // String serverNameBubble =
-    // "http://d2oq8yqnezqh3r.cloudfront.net/ossm-set-control"; // this is
-    // version-test server
-
-    // Add values in the document to send to server
-    StaticJsonDocument<200> doc;
-    doc["ossmId"] = ossmId;
-    doc["wifiControlEnabled"] = wifiControlEnable;
-    doc["stroke"] = ossm.strokePercentage;
-    doc["speed"] = ossm.speedPercentage;
-    String requestBody;
-    serializeJson(doc, requestBody);
-
-    // Http request
-    HTTPClient http;
-    http.begin(serverNameBubble);
-    http.addHeader("Content-Type", "application/json");
-    // post and wait for response
-    int httpResponseCode = http.POST(requestBody);
-    String payload = "{}";
-    payload = http.getString();
-    http.end();
-
-    // deserialize JSON
-    StaticJsonDocument<200> bubbleResponse;
-    deserializeJson(bubbleResponse, payload);
-
-    // TODO: handle status response
-    // const char *status = bubbleResponse["status"]; // "success"
-
-    const char *wifiEnabledStr = (wifiControlEnable ? "true" : "false");
-    LogDebugFormatted("Setting Wifi Control: %s\n%s\n%s\n", wifiEnabledStr, requestBody.c_str(), payload.c_str());
-    LogDebugFormatted("HTTP Response code: %d\n", httpResponseCode);
-
-    return true;
-}
-
-bool getInternetSettings()
-{
-    // here we will request speed and stroke settings from the remote server. The
-    // cloudfront redirect allows http connection with bubble backend hosted at
-    // app.researchanddesire.com
-
-    String serverNameBubble = "http://d2g4f7zewm360.cloudfront.net/ossm-get-settings"; // live server
-    // String serverNameBubble =
-    // "http://d2oq8yqnezqh3r.cloudfront.net/ossm-get-settings"; // this is
-    // version-test
-    // server
-
-    // Add values in the document
-    StaticJsonDocument<200> doc;
-    doc["ossmId"] = ossmId;
-    String requestBody;
-    serializeJson(doc, requestBody);
-
-    // Http request
-    HTTPClient http;
-    http.begin(serverNameBubble);
-    http.addHeader("Content-Type", "application/json");
-    // post and wait for response
-    int httpResponseCode = http.POST(requestBody);
-    String payload = "{}";
-    payload = http.getString();
-    http.end();
-
-    // deserialize JSON
-    StaticJsonDocument<200> bubbleResponse;
-    deserializeJson(bubbleResponse, payload);
-
-    // TODO: handle status response
-    // const char *status = bubbleResponse["status"]; // "success"
-    ossm.strokePercentage = bubbleResponse["response"]["stroke"];
-    ossm.speedPercentage = bubbleResponse["response"]["speed"];
-
-    // debug info on the http payload
-    LogDebug(payload);
-    LogDebugFormatted("HTTP Response code: %d\n", httpResponseCode);
-
-    return true;
-}
 // void setLedRainbow(CRGB leds[])
 // {
 //     // int power = 250;

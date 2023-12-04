@@ -39,7 +39,11 @@ class OSSM
     OssmUi g_ui;
     CRGB ossmleds[NUM_LEDS];
 
-    enum runMode {simpleMode, strokeEngineMode};
+    enum runMode
+    {
+        simpleMode,
+        strokeEngineMode
+    };
     int runModeCount = 2;
 
     runMode activeRunMode = simpleMode;
@@ -49,7 +53,7 @@ class OSSM
     float beltPitchMm = hardcode_beltPitchMm;
     float maxStrokeLengthMm = hardcode_maxStrokeLengthMm;
     float strokeZeroOffsetmm = hardcode_strokeZeroOffsetmm;
-    float commandDeadzonePercentage = commandDeadzonePercentage;
+    float commandDeadzonePercentage = hardcode_commandDeadzonePercentage;
     float accelerationScaling = hardcode_accelerationScaling;
 
     int hardwareVersion = 10; // V2.7 = integer value 27
@@ -65,15 +69,17 @@ class OSSM
     char Id[20];
 
     bool wifiControlActive = false;
-    float speedPercentage = 0;  // percentage 0-100
+
+    float speedPercentage = 0;   // percentage 0-100
     float depthPercentage = 100; // percentage 0-100
     float strokePercentage = 10; // percentage 0-100
+    bool isStopped = false;
     float sensationPercentage = 40; // percentage 0-100, maps to sensation -100 - 100, so 40 default = -20 sensation
     int strokePattern = 0;
     int strokePatternCount = 0;
-    int changePattern = 0; // -1 = prev, 1 = next
+    int changePattern = 0;   // -1 = prev, 1 = next
     bool modeChanged = true; // initialize encoder state
-    int rightKnobMode = 0; // MODE_STROKE, MODE_DEPTH, MODE_SENSATION, MODE_PATTERN
+    int rightKnobMode = 0;   // MODE_STROKE, MODE_DEPTH, MODE_SENSATION, MODE_PATTERN
 
     OSSM()
         : g_encoder(ENCODER_A, ENCODER_B),
@@ -82,15 +88,19 @@ class OSSM
     }
 
     void setup();
-
-    void runPenetrate(); //runs actual penetration motion one cycle
-    void runStrokeEngine(); //runs stroke Engine
+    void handleStopCondition(); // handles e-stop condition
+    void runPenetrate();        // runs actual penetration motion one cycle
+    void runStrokeEngine();     // runs stroke Engine
     String getPatternJSON(StrokeEngine Stroker);
     void setRunMode();
 
     // WiFi helper functions
     void wifiAutoConnect();
     void wifiConnectOrHotspotNonBlocking();
+    void enableWifiControl();
+    bool setInternetControl(bool wifiControlActive);
+    bool getInternetSettings();
+
     void updatePrompt();
     void updateFirmware();
     bool checkForUpdate();
