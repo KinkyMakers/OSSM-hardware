@@ -23,11 +23,10 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Change to Software Directory
-        run: cd Software
-
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
 
       - name: Build PlatformIO Project
-        run: pio run -e esp32dev
+        run: |
+          cd Software
+          pio run -e esp32dev
