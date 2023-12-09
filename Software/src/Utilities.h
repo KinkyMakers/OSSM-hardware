@@ -59,9 +59,9 @@ class OSSM
     int hardwareVersion = 10; // V2.7 = integer value 27
     float currentSensorOffset = 0;
     float immediateCurrent = 0;
-    float averageCurrent = 0;
+    double averageCurrent = 0;
     float numberStrokes = 0;
-    float travelledDistanceMeters = 0;
+    double travelledDistanceMeters = 0;
     float lifeSecondsPowered = 0;
     float lifeSecondsPoweredAtStartup = 0;
     float lastLifeUpdateMillis = 0;
@@ -75,8 +75,8 @@ class OSSM
     float strokePercentage = 10; // percentage 0-100
     bool isStopped = false;
     float sensationPercentage = 40; // percentage 0-100, maps to sensation -100 - 100, so 40 default = -20 sensation
-    int strokePattern = 0;
-    int strokePatternCount = 0;
+    unsigned int strokePattern = 0;
+    unsigned int strokePatternCount = 0;
     int changePattern = 0;   // -1 = prev, 1 = next
     bool modeChanged = true; // initialize encoder state
     int rightKnobMode = 0;   // MODE_STROKE, MODE_DEPTH, MODE_SENSATION, MODE_PATTERN
@@ -89,16 +89,16 @@ class OSSM
 
     void setup();
     void handleStopCondition(); // handles e-stop condition
-    void runPenetrate();        // runs actual penetration motion one cycle
-    void runStrokeEngine();     // runs stroke Engine
+    [[noreturn]] void runPenetrate();        // runs actual penetration motion one cycle
+    [[noreturn]] void runStrokeEngine();     // runs stroke Engine
     String getPatternJSON(StrokeEngine Stroker);
     void setRunMode();
 
     // WiFi helper functions
     void wifiAutoConnect();
-    void wifiConnectOrHotspotNonBlocking();
+    [[noreturn]] void wifiConnectOrHotspotNonBlocking();
     void enableWifiControl();
-    bool setInternetControl(bool wifiControlActive);
+    bool setInternetControl(bool setWifiControl);
     bool getInternetSettings();
 
     void updatePrompt();
