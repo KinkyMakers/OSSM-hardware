@@ -49,7 +49,7 @@ void OSSM::setup()
             vTaskDelay(5); // wait for motion to complete and requested stroke more than zero
         }
 
-        double targetPosition = (strokePercentage / 100.0) * maxStrokeLengthMm;
+        float targetPosition = (strokePercentage / 100.0f) * maxStrokeLengthMm;
         float currentStrokeMm = abs(targetPosition);
 
         stepper.setDecelerationInMillimetersPerSecondPerSecond(maxSpeedMmPerSecond * speedPercentage * speedPercentage /
@@ -138,8 +138,8 @@ float calculateSensation(float sensationPercentage)
     Stroker.setSensation(calculateSensation(sensationPercentage), true);
 
     Stroker.setPattern(int(strokePattern), true);
-    Stroker.setDepth(0.01 * depthPercentage * abs(maxStrokeLengthMm), true);
-    Stroker.setStroke(0.01 * strokePercentage * abs(maxStrokeLengthMm), true);
+    Stroker.setDepth(0.01f * depthPercentage * abs(maxStrokeLengthMm), true);
+    Stroker.setStroke(0.01f * strokePercentage * abs(maxStrokeLengthMm), true);
     Stroker.moveToMax(10 * 3);
     Serial.println(Stroker.getState());
     g_ui.UpdateMessage(Stroker.getPatternName(strokePattern));
@@ -197,7 +197,7 @@ float calculateSensation(float sensationPercentage)
 
         if (lastStrokePercentage != strokePercentage)
         {
-            float newStroke = 0.01 * strokePercentage * abs(maxStrokeLengthMm);
+            float newStroke = 0.01f * strokePercentage * abs(maxStrokeLengthMm);
             Serial.printf("change stroke: %f %f\n", strokePercentage, newStroke);
             Stroker.setStroke(newStroke, true);
             lastStrokePercentage = strokePercentage;
@@ -205,7 +205,7 @@ float calculateSensation(float sensationPercentage)
 
         if (lastDepthPercentage != depthPercentage)
         {
-            float newDepth = 0.01 * depthPercentage * abs(maxStrokeLengthMm);
+            float newDepth = 0.01f * depthPercentage * abs(maxStrokeLengthMm);
             Serial.printf("change depth: %f %f\n", depthPercentage, newDepth);
             Stroker.setDepth(newDepth, false);
             lastDepthPercentage = depthPercentage;
@@ -886,7 +886,8 @@ void OSSM::setEncoderPercentage(float percentage)
         percentage = 100;
     }
 
-    g_encoder.write(encoderFullScale * percentage / 100);
+    int position = round(encoderFullScale * percentage / 100);
+    g_encoder.write(position);
 }
 
 float OSSM::getEncoderPercentage()
