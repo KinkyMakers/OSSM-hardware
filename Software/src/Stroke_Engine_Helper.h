@@ -16,8 +16,8 @@
 #define PULLEY_TEETH 20   // How many teeth has the pulley
 #define BELT_PITCH 2      // What is the timing belt pitch in mm
 #define MAX_RPM 3000.0    // Maximum RPM of motor
-#define STEP_PER_MM STEP_PER_REV / (PULLEY_TEETH * BELT_PITCH)
-#define MAX_SPEED (MAX_RPM / 60.0) * PULLEY_TEETH* BELT_PITCH
+#define STEP_PER_MM (STEP_PER_REV / (PULLEY_TEETH * BELT_PITCH))
+#define MAX_SPEED ((MAX_RPM / 60.0) * PULLEY_TEETH * BELT_PITCH)
 #define DEBUG_TALKATIVE
 
 static motorProperties servoMotor{
