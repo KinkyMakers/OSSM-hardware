@@ -32,13 +32,13 @@ void OSSM::setup()
     strcpy(Id, ossmId);
     wifiAutoConnect();
     delay(500);
-    if (checkForUpdate() == true)
+    if (checkForUpdate())
     {
         updatePrompt();
     };
 }
 
-void OSSM::runPenetrate()
+[[noreturn]] void OSSM::runPenetrate()
 {
     // poll at 200Hz for when motion is complete
     for (;;)
@@ -49,7 +49,7 @@ void OSSM::runPenetrate()
             vTaskDelay(5); // wait for motion to complete and requested stroke more than zero
         }
 
-        float targetPosition = (strokePercentage / 100.0) * maxStrokeLengthMm;
+        float targetPosition = (strokePercentage / 100.0f) * maxStrokeLengthMm;
         float currentStrokeMm = abs(targetPosition);
 
         stepper.setDecelerationInMillimetersPerSecondPerSecond(maxSpeedMmPerSecond * speedPercentage * speedPercentage /
@@ -82,7 +82,7 @@ void OSSM::handleStopCondition() // handles e-stop condition
     // check is speed is greater than deadzone value and emergency stop if not
     if (speedPercentage <= commandDeadzonePercentage)
     {
-        if (isStopped == false)
+        if (!isStopped)
         {
             LogDebug("Speed: " + String(speedPercentage) + "\% Stroke: " + String(strokePercentage) +
                      "\% Distance to target: " + String(stepper.getDistanceToTargetSigned()) + " steps");
@@ -95,7 +95,7 @@ void OSSM::handleStopCondition() // handles e-stop condition
     else
     {
         // release emergency stop
-        if (isStopped == true)
+        if (isStopped)
         {
             LogDebug("Speed: " + String(speedPercentage) + "\% Stroke: " + String(strokePercentage) +
                      "\% Distance to target: " + String(stepper.getDistanceToTargetSigned()) + " steps");
@@ -114,10 +114,10 @@ bool isChangeSignificant(float oldPct, float newPct)
 
 float calculateSensation(float sensationPercentage)
 {
-    return ((sensationPercentage * 200.0) / 100.0) - 100.0;
+    return float((sensationPercentage * 200.0) / 100.0) - 100.0f;
 }
 
-void OSSM::runStrokeEngine()
+[[noreturn]] void OSSM::runStrokeEngine()
 {
     stepper.stopService();
 
@@ -137,9 +137,9 @@ void OSSM::runStrokeEngine()
 
     Stroker.setSensation(calculateSensation(sensationPercentage), true);
 
-    Stroker.setPattern(strokePattern, true);
-    Stroker.setDepth(0.01 * depthPercentage * abs(maxStrokeLengthMm), true);
-    Stroker.setStroke(0.01 * strokePercentage * abs(maxStrokeLengthMm), true);
+    Stroker.setPattern(int(strokePattern), true);
+    Stroker.setDepth(0.01f * depthPercentage * abs(maxStrokeLengthMm), true);
+    Stroker.setStroke(0.01f * strokePercentage * abs(maxStrokeLengthMm), true);
     Stroker.moveToMax(10 * 3);
     Serial.println(Stroker.getState());
     g_ui.UpdateMessage(Stroker.getPatternName(strokePattern));
@@ -197,7 +197,7 @@ void OSSM::runStrokeEngine()
 
         if (lastStrokePercentage != strokePercentage)
         {
-            float newStroke = 0.01 * strokePercentage * abs(maxStrokeLengthMm);
+            float newStroke = 0.01f * strokePercentage * abs(maxStrokeLengthMm);
             Serial.printf("change stroke: %f %f\n", strokePercentage, newStroke);
             Stroker.setStroke(newStroke, true);
             lastStrokePercentage = strokePercentage;
@@ -205,7 +205,7 @@ void OSSM::runStrokeEngine()
 
         if (lastDepthPercentage != depthPercentage)
         {
-            float newDepth = 0.01 * depthPercentage * abs(maxStrokeLengthMm);
+            float newDepth = 0.01f * depthPercentage * abs(maxStrokeLengthMm);
             Serial.printf("change depth: %f %f\n", depthPercentage, newDepth);
             Stroker.setDepth(newDepth, false);
             lastDepthPercentage = depthPercentage;
@@ -234,7 +234,7 @@ void OSSM::runStrokeEngine()
 
             Serial.println(Stroker.getPatternName(strokePattern));
 
-            Stroker.setPattern(strokePattern, false); // Pattern, index must be < Stroker.getNumberOfPattern()
+            Stroker.setPattern(int(strokePattern), false); // Pattern, index must be < Stroker.getNumberOfPattern()
             g_ui.UpdateMessage(Stroker.getPatternName(strokePattern));
 
             modeChanged = true;
@@ -289,6 +289,11 @@ void OSSM::setRunMode()
                 g_ui.UpdateMessage("Stroke Engine");
                 activeRunMode = strokeEngineMode;
                 break;
+
+            default:
+                g_ui.UpdateMessage("Simple Penetration");
+                activeRunMode = simpleMode;
+                break;
         }
     }
     g_encoder.write(0); // reset encoder to zero
@@ -318,25 +323,23 @@ void OSSM::wifiAutoConnect()
     LogDebug("exiting autoconnect");
 }
 
-void OSSM::wifiConnectOrHotspotNonBlocking()
+[[noreturn]] void OSSM::wifiConnectOrHotspotNonBlocking()
 {
     int wifiTimeoutSeconds = 15;
     float threadStartTimeMillis = millis();
-    float threadRuntimeSeconds = 0;
+    float threadRuntimeSeconds;
     // This should always be run in a thread!!!
     wm.setConfigPortalTimeout(wifiTimeoutSeconds);
     wm.setConfigPortalBlocking(false);
     // here we try to connect to WiFi or launch settings hotspot for you to enter WiFi credentials
+    String message = "Connected";
     if (!wm.autoConnect("OSSM setup"))
     {
         // TODO: Set Status LED to indicate failure
-        LogDebug("No connection, launching config portal");
+        message = "No connection, launching config portal";
     }
-    else
-    {
-        // TODO: Set Status LED to indicate everything is ok!
-        LogDebug("Connected!");
-    }
+    LogDebug(message);
+
     for (;;)
     {
         wm.process();
@@ -355,7 +358,7 @@ void OSSM::wifiConnectOrHotspotNonBlocking()
 
 void OSSM::enableWifiControl()
 {
-    if (wifiControlActive == false)
+    if (!wifiControlActive)
     // this is a transition to WiFi, we should tell the server it has control
     {
         wifiControlActive = true;
@@ -466,7 +469,7 @@ void OSSM::updatePrompt()
         // return if no WiFi
         return;
     }
-    if (checkForUpdate() == false)
+    if (!checkForUpdate())
     {
         return;
     }
@@ -474,7 +477,7 @@ void OSSM::updatePrompt()
 
     g_ui.UpdateMessage("Press to update SW");
 
-    if (waitForAnyButtonPress(5000) == false)
+    if (!waitForAnyButtonPress(5000))
     {
         // user did not accept update
         return;
@@ -540,10 +543,8 @@ bool OSSM::checkForUpdate()
 
     deserializeJson(bubbleResponse, payload);
 
-    const char *status = bubbleResponse["status"]; // "success"
     bool response_needUpdate = bubbleResponse["response"]["needUpdate"];
     LogDebug(payload);
-    const char *updateNeeded = bubbleResponse["response"]["needUpdate"];
 
     if (httpResponseCode <= 0)
     {
@@ -610,8 +611,8 @@ float OSSM::sensorlessHoming()
 
     float currentLimit = 1.5;
     currentSensorOffset = (getAnalogAveragePercent(36, 1000));
-    float current = getAnalogAveragePercent(36, 200) - currentSensorOffset;
-    float measuredStrokeMm = 0;
+    float current;
+    float measuredStrokeMm;
     stepper.setAccelerationInMillimetersPerSecondPerSecond(1000);
     stepper.setDecelerationInMillimetersPerSecondPerSecond(10000);
 
@@ -722,7 +723,7 @@ int OSSM::readEepromSettings()
     EEPROM.get(12, travelledDistanceMeters);
     EEPROM.get(20, lifeSecondsPoweredAtStartup);
 
-    if (numberStrokes == NAN || !(numberStrokes > 0))
+    if (numberStrokes == NAN || numberStrokes <= 0)
     {
         hardwareVersion = HW_VERSION;
         numberStrokes = 0;
@@ -761,10 +762,10 @@ void OSSM::writeEepromLifeStats()
 
 void OSSM::updateLifeStats()
 {
-    float minutes = 0;
-    float hours = 0;
-    float days = 0;
-    float travelledDistanceKilometers = 0;
+    float minutes;
+    float hours;
+    float days;
+    double travelledDistanceKilometers;
 
     travelledDistanceKilometers = (0.001 * travelledDistanceMeters);
     lifeSecondsPowered = (0.001 * millis()) + lifeSecondsPoweredAtStartup;
@@ -787,7 +788,7 @@ void OSSM::updateLifeStats()
         lastLifeWriteMillis = millis();
     }
 
-    return;
+
 }
 
 void OSSM::startLeds()
@@ -867,7 +868,7 @@ void OSSM::updateAnalogInputs()
 float OSSM::getCurrentReadingAmps(int samples)
 {
     float currentAnalogPercent = getAnalogAveragePercent(36, samples) - currentSensorOffset;
-    float current = currentAnalogPercent * 0.13886;
+    float current = currentAnalogPercent * 0.13886f;
     // 0.13886 is a scaling factor determined by real life testing. Convert percent full scale to amps.
     return current;
 }
@@ -885,7 +886,8 @@ void OSSM::setEncoderPercentage(float percentage)
         percentage = 100;
     }
 
-    g_encoder.write(encoderFullScale * percentage / 100);
+    int position = int(encoderFullScale * percentage / 100);
+    g_encoder.write(position);
 }
 
 float OSSM::getEncoderPercentage()
@@ -904,7 +906,7 @@ float OSSM::getEncoderPercentage()
         position = encoderFullScale;
     }
 
-    outputPositionPercentage = 100.0 * position / encoderFullScale;
+    outputPositionPercentage = 100.0f * float(position) / float(encoderFullScale);
 
     return outputPositionPercentage;
 }
@@ -912,16 +914,16 @@ float OSSM::getEncoderPercentage()
 float OSSM::getAnalogAveragePercent(int pinNumber, int samples)
 {
     float sum = 0;
-    float average = 0;
-    float percentage = 0;
+    float average;
+    float percentage;
     for (int i = 0; i < samples; i++)
     {
         // TODO: Possibly use fancier filters?
         sum += analogRead(pinNumber);
     }
-    average = sum / samples;
+    average = float(sum) / float(samples);
     // TODO: Might want to add a deadband
-    percentage = 100.0 * average / 4096.0; // 12 bit resolution
+    percentage = 100.0f * average / 4096.0f; // 12 bit resolution
     return percentage;
 }
 
