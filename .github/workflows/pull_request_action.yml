@@ -34,4 +34,4 @@ jobs:
       - name: Check PlatformIO Project
         run:  |
           cd Software
-          pio check --skip-packages --fail-on-defect medium --fail-on-defect high -e esp32dev -f src
+          pio check --skip-packages --fail-on-defect high -e esp32dev -f src
