@@ -886,7 +886,7 @@ void OSSM::setEncoderPercentage(float percentage)
         percentage = 100;
     }
 
-    int position = round(encoderFullScale * percentage / 100);
+    int position = int(encoderFullScale * percentage / 100);
     g_encoder.write(position);
 }
 
