@@ -1,16 +1,18 @@
 #include <Arduino.h>          // Basic Needs
 #include <ArduinoJson.h>      // Needed for the Bubble APP
 #include <ESP_FlexyStepper.h> // Current Motion Control
-#include <Encoder.h>          // Used for the Remote Encoder Input
-#include <HTTPClient.h>       // Needed for the Bubble APP
-#include <WiFiManager.h>      // Used to provide easy network connection  https://github.com/tzapu/WiFiManager
-#include <Wire.h>             // Used for i2c connections (Remote OLED Screen)
+// #include <Encoder.h>          // Used for the Remote Encoder Input
+#include <HTTPClient.h>  // Needed for the Bubble APP
+#include <WiFiManager.h> // Used to provide easy network connection  https://github.com/tzapu/WiFiManager
+#include <Wire.h>        // Used for i2c connections (Remote OLED Screen)
 
+#include "AiEsp32RotaryEncoder.h"
 #include "OSSM_Config.h" // START HERE FOR Configuration
 #include "OSSM_PinDef.h" // This is where you set pins specific for your board
 #include "OssmUi.h"      // Separate file that helps contain the OLED screen functions
 #include "Stroke_Engine_Helper.h"
 #include "Utilities.h" // Utility helper functions - wifi update and homing
+#include "services/encoder.h"
 
 // Homing
 volatile bool g_has_not_homed = true;
@@ -21,11 +23,11 @@ const char *ossmId = "OSSM1";
 volatile int encoderButtonPresses = 0; // increment for each click
 volatile long lastEncoderButtonPressMillis = 0;
 
-IRAM_ATTR void encoderPushButton()
+void encoderPushButton()
 {
     // TODO: Toggle position mode
-    // g_encoder.write(0);       // Reset on Button Push
-    // ossm.g_ui.NextFrame();         // Next Frame on Button Push
+    // g_encoder.setPosition(0);       // Reset on Button Push
+    // ossm->g_ui.NextFrame();         // Next Frame on Button Push
 
     // debounce check
     long currentTime = millis();
@@ -39,7 +41,7 @@ IRAM_ATTR void encoderPushButton()
 
 // Current command state
 // volatile float strokePercentage = 0;
-// volatile float ossm.speedPercentage = 0;
+// volatile float ossm->speedPercentage = 0;
 // volatile float deceleration = 0;
 
 // Create tasks for checking pot input or web server control, and task to handle
@@ -59,7 +61,7 @@ void motionCommandTask(void *pvParameters);
 void wifiConnectionTask(void *pvParameters);
 
 // create the OSSM hardware object
-OSSM ossm;
+OSSM *ossm;
 
 ///////////////////////////////////////////
 ////
@@ -67,15 +69,29 @@ OSSM ossm;
 ////
 ///////////////////////////////////////////
 
+
+void IRAM_ATTR readEncoderISR()
+{
+    g_encoder.readEncoder_ISR();
+}
+
 void setup()
 {
-    ossm.startLeds();
     Serial.begin(115200);
+
+    g_encoder.begin();
+    g_encoder.setup(readEncoderISR);
+    g_encoder.setBoundaries(0, 100, true);
+    g_encoder.disableAcceleration();
+
+    ossm = new OSSM();
+
+    ossm->startLeds();
     LogDebug("\n Starting");
     pinMode(ENCODER_SWITCH, INPUT_PULLDOWN); // Rotary Encoder Pushbutton
     attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoderPushButton, RISING);
 
-    ossm.setup();
+    ossm->setup();
 
     // start the WiFi connection task so we can be doing something while homing!
     xTaskCreatePinnedToCore(wifiConnectionTask,   /* Task function. */
@@ -87,9 +103,9 @@ void setup()
                             0);                   /* pin task to core 0 */
     delay(100);
 
-    ossm.findHome();
+    ossm->findHome();
 
-    ossm.setRunMode();
+    ossm->setRunMode();
 
     // Kick off the http and motion tasks - they begin executing as soon as they
     // are created here! Do not change the priority of the task, or do so with
@@ -112,7 +128,7 @@ void setup()
                             0);                  /* pin task to core 0 */
 
     delay(100);
-    ossm.g_ui.UpdateMessage("OSSM Ready to Play");
+    ossm->g_ui.UpdateMessage("OSSM Ready to Play");
 } // Void Setup()
 
 ///////////////////////////////////////////
@@ -125,35 +141,35 @@ void setup()
 
 void loop()
 {
-    switch (ossm.rightKnobMode)
+    switch (ossm->rightKnobMode)
     {
         case MODE_STROKE:
-            ossm.g_ui.UpdateState("STROKE", static_cast<int>(ossm.speedPercentage),
-                                  static_cast<int>(ossm.strokePercentage + 0.5f));
+            ossm->g_ui.UpdateState("STROKE", static_cast<int>(ossm->speedPercentage),
+                                   static_cast<int>(ossm->strokePercentage + 0.5f));
             break;
         case MODE_DEPTH:
-            ossm.g_ui.UpdateState("DEPTH", static_cast<int>(ossm.speedPercentage),
-                                  static_cast<int>(ossm.depthPercentage + 0.5f));
+            ossm->g_ui.UpdateState("DEPTH", static_cast<int>(ossm->speedPercentage),
+                                   static_cast<int>(ossm->depthPercentage + 0.5f));
             break;
         case MODE_SENSATION:
-            ossm.g_ui.UpdateState("SENSTN", static_cast<int>(ossm.speedPercentage),
-                                  static_cast<int>(ossm.sensationPercentage + 0.5f));
+            ossm->g_ui.UpdateState("SENSTN", static_cast<int>(ossm->speedPercentage),
+                                   static_cast<int>(ossm->sensationPercentage + 0.5f));
             break;
         case MODE_PATTERN:
-            ossm.g_ui.UpdateState("PATTRN", static_cast<int>(ossm.speedPercentage),
-                                  ossm.strokePattern * 100 / (ossm.strokePatternCount - 1));
+            ossm->g_ui.UpdateState("PATTRN", static_cast<int>(ossm->speedPercentage),
+                                   ossm->strokePattern * 100 / (ossm->strokePatternCount - 1));
             break;
     }
-    ossm.g_ui.UpdateScreen();
+    ossm->g_ui.UpdateScreen();
 
     // debug
     static bool is_connected = false;
-    if (!is_connected && ossm.g_ui.DisplayIsConnected())
+    if (!is_connected && ossm->g_ui.DisplayIsConnected())
     {
         LogDebug("Display Connected");
         is_connected = true;
     }
-    else if (is_connected && !ossm.g_ui.DisplayIsConnected())
+    else if (is_connected && !ossm->g_ui.DisplayIsConnected())
     {
         LogDebug("Display Disconnected");
         is_connected = false;
@@ -170,7 +186,7 @@ void loop()
 
 void wifiConnectionTask(void *pvParameters)
 {
-    ossm.wifiConnectOrHotspotNonBlocking();
+    ossm->wifiConnectOrHotspotNonBlocking();
 }
 
 // Task to read settings from server - only need to check this when in WiFi
@@ -183,51 +199,51 @@ void getUserInputTask(void *pvParameters)
     for (;;) // tasks should loop forever and not return - or will throw error in
              // OS
     {
-        // LogDebug("Speed: " + String(ossm.speedPercentage) + "\% Stroke: " + String(ossm.strokePercentage) +
-        //          "\% Distance to target: " + String(ossm.stepper.getDistanceToTargetSigned()) + " steps?");
+        // LogDebug("Speed: " + String(ossm->speedPercentage) + "\% Stroke: " + String(ossm->strokePercentage) +
+        //          "\% Distance to target: " + String(ossm->stepper.getDistanceToTargetSigned()) + " steps?");
 
-        ossm.updateAnalogInputs();
-        ossm.handleStopCondition();
+        ossm->updateAnalogInputs();
+        ossm->handleStopCondition();
 
         if (digitalRead(WIFI_CONTROL_TOGGLE_PIN) == HIGH) // TODO: check if wifi available and handle gracefully
         {
-            ossm.enableWifiControl();
+            ossm->enableWifiControl();
         }
         else
         {
-            if (ossm.wifiControlActive == true)
+            if (ossm->wifiControlActive == true)
             {
                 // this is a transition to local control, we should tell the server it cannot control
 
-                ossm.setInternetControl(false);
+                ossm->setInternetControl(false);
             }
         }
 
         // We should scale these values with initialized settings not hard coded
         // values!
-        if (ossm.speedPercentage > ossm.commandDeadzonePercentage)
+        if (ossm->speedPercentage > ossm->commandDeadzonePercentage)
         {
-            targetSpeedMmPerSecond = ossm.maxSpeedMmPerSecond * ossm.speedPercentage / 100.0;
-            if ((ossm.speedPercentage - previousSpeedPercentage) > 30)
+            targetSpeedMmPerSecond = ossm->maxSpeedMmPerSecond * ossm->speedPercentage / 100.0;
+            if ((ossm->speedPercentage - previousSpeedPercentage) > 30)
             {
                 targetSpeedMmPerSecond =
-                    0.5 * (ossm.speedPercentage + previousSpeedPercentage) * ossm.maxSpeedMmPerSecond / 100.0;
+                    0.5 * (ossm->speedPercentage + previousSpeedPercentage) * ossm->maxSpeedMmPerSecond / 100.0;
             }
             targetAccelerationMm =
-                ossm.maxSpeedMmPerSecond * ossm.speedPercentage * ossm.speedPercentage / ossm.accelerationScaling;
+                ossm->maxSpeedMmPerSecond * ossm->speedPercentage * ossm->speedPercentage / ossm->accelerationScaling;
 
-            ossm.stepper.setAccelerationInMillimetersPerSecondPerSecond(targetAccelerationMm);
-            if (targetSpeedMmPerSecond > ossm.stepper.getCurrentVelocityInMillimetersPerSecond())
+            ossm->stepper.setAccelerationInMillimetersPerSecondPerSecond(targetAccelerationMm);
+            if (targetSpeedMmPerSecond > ossm->stepper.getCurrentVelocityInMillimetersPerSecond())
             { // we are speeding up, we need to increase deccel rate!
-                ossm.stepper.setDecelerationInMillimetersPerSecondPerSecond(targetAccelerationMm);
+                ossm->stepper.setDecelerationInMillimetersPerSecondPerSecond(targetAccelerationMm);
             }
 
-            ossm.stepper.setSpeedInMillimetersPerSecond(targetSpeedMmPerSecond);
+            ossm->stepper.setSpeedInMillimetersPerSecond(targetSpeedMmPerSecond);
 
             // If target speed is lower than current, we do not update deccel as setting a low decel when going from
             // high to low speed causes the motor to travel a long distance before slowing.
         }
-        previousSpeedPercentage = ossm.speedPercentage;
+        previousSpeedPercentage = ossm->speedPercentage;
         vTaskDelay(50); // let other code run!
     }
 }
@@ -237,14 +253,14 @@ void motionCommandTask(void *pvParameters)
     for (;;) // tasks should loop forever and not return - or will throw error in
              // OS
     {
-        switch (ossm.activeRunMode)
+        switch (ossm->activeRunMode)
         {
-            case ossm.simpleMode:
-                ossm.runPenetrate();
+            case OSSM::simpleMode:
+                ossm->runPenetrate();
                 break;
 
-            case ossm.strokeEngineMode:
-                ossm.runStrokeEngine();
+            case OSSM::strokeEngineMode:
+                ossm->runStrokeEngine();
                 break;
         }
     }

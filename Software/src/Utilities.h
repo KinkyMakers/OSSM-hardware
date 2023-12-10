@@ -5,11 +5,12 @@
 #include <ArduinoJson.h>
 #include <EEPROM.h>
 #include <ESP_FlexyStepper.h> // Current Motion Control
-#include <Encoder.h>          // Used for the Remote Encoder Input
+// #include <Encoder.h>          // Used for the Remote Encoder Input
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
 #include <StrokeEngine.h>
 
+#include "AiEsp32RotaryEncoder.h"
 #include "FastLED.h" // Used for the LED on the Reference Board (or any other pixel LEDS you may add)
 #include "OSSM_Config.h"
 #include "OSSM_PinDef.h"
@@ -35,7 +36,6 @@ class OSSM
      */
     WiFiManager wm;
     ESP_FlexyStepper stepper;
-    Encoder g_encoder;
     OssmUi g_ui;
     CRGB ossmleds[NUM_LEDS];
 
@@ -81,16 +81,14 @@ class OSSM
     bool modeChanged = true; // initialize encoder state
     int rightKnobMode = 0;   // MODE_STROKE, MODE_DEPTH, MODE_SENSATION, MODE_PATTERN
 
-    OSSM()
-        : g_encoder(ENCODER_A, ENCODER_B),
-          g_ui(REMOTE_ADDRESS, REMOTE_SDA, REMOTE_CLK) // this just creates the objects with parameters
+    OSSM() : g_ui(REMOTE_ADDRESS, REMOTE_SDA, REMOTE_CLK) // this just creates the objects with parameters
     {
     }
 
     void setup();
-    void handleStopCondition(); // handles e-stop condition
-    [[noreturn]] void runPenetrate();        // runs actual penetration motion one cycle
-    [[noreturn]] void runStrokeEngine();     // runs stroke Engine
+    void handleStopCondition();          // handles e-stop condition
+    [[noreturn]] void runPenetrate();    // runs actual penetration motion one cycle
+    [[noreturn]] void runStrokeEngine(); // runs stroke Engine
     String getPatternJSON(StrokeEngine Stroker);
     void setRunMode();
 

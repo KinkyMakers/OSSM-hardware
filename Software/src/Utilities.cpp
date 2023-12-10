@@ -3,6 +3,7 @@
 #include <string>
 
 #include "Stroke_Engine_Helper.h"
+#include "services/encoder.h"
 
 void OSSM::setup()
 {
@@ -272,7 +273,7 @@ void OSSM::setRunMode()
     int encoderVal;
     while (initialEncoderFlag == encoderButtonPresses)
     {
-        encoderVal = abs(g_encoder.read());
+        encoderVal = abs(g_encoder.readEncoder());
         runModeVal = (encoderVal % (2 * runModeCount)) / 2; // scale by 2 because encoder counts by 2
         Serial.print("encoder: ");
         Serial.println(encoderVal);
@@ -296,7 +297,6 @@ void OSSM::setRunMode()
                 break;
         }
     }
-    g_encoder.write(0); // reset encoder to zero
 }
 
 void OSSM::wifiAutoConnect()
@@ -368,7 +368,7 @@ void OSSM::enableWifiControl()
         }
         setInternetControl(wifiControlActive);
     }
-    getInternetSettings(); // we load ossm.speedPercentage and ossm.strokePercentage in
+    getInternetSettings(); // we load ossm->speedPercentage and ossm->strokePercentage in
                            // this routine.
 }
 
@@ -395,13 +395,15 @@ bool OSSM::setInternetControl(bool setWifiControl)
 
     // Http request
     HTTPClient http;
-    http.begin(serverNameBubble);
+    WiFiClient client;
+    http.begin(client, serverNameBubble);
     http.addHeader("Content-Type", "application/json");
     // post and wait for response
     int httpResponseCode = http.POST(requestBody);
     String payload = "{}";
     payload = http.getString();
     http.end();
+    client.stop();
 
     // deserialize JSON
     StaticJsonDocument<200> bubbleResponse;
@@ -437,13 +439,15 @@ bool OSSM::getInternetSettings()
 
     // Http request
     HTTPClient http;
-    http.begin(serverNameBubble);
+    WiFiClient client;
+    http.begin(client, serverNameBubble);
     http.addHeader("Content-Type", "application/json");
     // post and wait for response
     int httpResponseCode = http.POST(requestBody);
     String payload = "{}";
     payload = http.getString();
     http.end();
+    client.stop();
 
     // deserialize JSON
     StaticJsonDocument<200> bubbleResponse;
@@ -522,7 +526,8 @@ bool OSSM::checkForUpdate()
 #endif
     LogDebug("about to hit http for update");
     HTTPClient http;
-    http.begin(serverNameBubble);
+    WiFiClient client;
+    http.begin(client, serverNameBubble);
     http.addHeader("Content-Type", "application/json");
     StaticJsonDocument<200> doc;
     // Add values in the document
@@ -551,6 +556,7 @@ bool OSSM::checkForUpdate()
         LogDebug("Failed to reach update server");
     }
     http.end();
+    client.stop();
     return response_needUpdate;
 }
 
@@ -787,8 +793,6 @@ void OSSM::updateLifeStats()
         writeEepromLifeStats();
         lastLifeWriteMillis = millis();
     }
-
-
 }
 
 void OSSM::startLeds()
@@ -887,22 +891,25 @@ void OSSM::setEncoderPercentage(float percentage)
     }
 
     int position = int(encoderFullScale * percentage / 100);
-    g_encoder.write(position);
+    g_encoder.setEncoderValue(position);
 }
 
 float OSSM::getEncoderPercentage()
 {
     const int encoderFullScale = 100;
-    int position = g_encoder.read();
+    int position = g_encoder.readEncoder();
+    // print the current position
+    Serial.print("Encoder Position: ");
+    Serial.println(position);
     float outputPositionPercentage;
     if (position < 0)
     {
-        g_encoder.write(0);
+        g_encoder.setEncoderValue(0);
         position = 0;
     }
     else if (position > encoderFullScale)
     {
-        g_encoder.write(encoderFullScale);
+        g_encoder.setEncoderValue(encoderFullScale);
         position = encoderFullScale;
     }
 
