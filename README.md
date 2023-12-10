@@ -42,6 +42,13 @@ It is driven by a Nema23 motor of **your** choosing, although we reccomend small
 <img src="https://user-images.githubusercontent.com/12459679/200219706-f93fa014-7fea-4f31-b5d0-d89d4e6ab130.png">
 </p>
 
+### Mounting
+We have a new stand design you can check out on onshape!
+[OnShape link](https://cad.onshape.com/documents/d520ea9a8cadb4ae8681f59b/w/00b211a6fa3b76c59ef28f4e/e/5f2c80d9d9c2433a7be7f789)
+
+![image](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/fa8a99c4-935e-4774-9f97-a4f88e453722)
+
+
 ### Safety
 
 The safety of the OSSM build is yet to be fully characterized as it is a work in progress. The OSSM is a framework for building your own sex machine and as such your specific combination may have risks not inherent to other builds. These risks may be undocumented or undiscovered. Please see the [Hazards](./Documentation/Hazards.md) file for more information.
