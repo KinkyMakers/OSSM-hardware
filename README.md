@@ -1,3 +1,5 @@
+[![discord](https://img.shields.io/discord/775177861665521725.svg)](https://discord.gg/5gNP5GBz)
+
 # OSSM - Open Source Sex Machine
 OSSM (pronounced like "Awesome") is a user friendly every day sex machine for the people.
 

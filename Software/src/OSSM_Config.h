@@ -46,7 +46,7 @@ const float hardcode_maxStrokeLengthMm = 100.f;
         Web Config
 */
 // This should be unique to your device. You will use this on the
-// web portal to interact with your OSSM.
+// web portal to interact with your ossm->
 // there is NO security other than knowing this name, make this unique to avoid
 // collisions with other users
 extern const char *ossmId;
