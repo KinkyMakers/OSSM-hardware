@@ -1,16 +1,9 @@
-#include <Arduino.h>          // Basic Needs
-#include <ArduinoJson.h>      // Needed for the Bubble APP
-#include <ESP_FlexyStepper.h> // Current Motion Control
-#include <Encoder.h>          // Used for the Remote Encoder Input
-#include <HTTPClient.h>       // Needed for the Bubble APP
-#include <WiFiManager.h>      // Used to provide easy network connection  https://github.com/tzapu/WiFiManager
-#include <Wire.h>             // Used for i2c connections (Remote OLED Screen)
+#include <Arduino.h> // Basic Needs
+#include <Wire.h>    // Used for i2c connections (Remote OLED Screen)
 
 #include "OSSM_Config.h" // START HERE FOR Configuration
 #include "OSSM_PinDef.h" // This is where you set pins specific for your board
-#include "OssmUi.h"      // Separate file that helps contain the OLED screen functions
-#include "Stroke_Engine_Helper.h"
-#include "Utilities.h" // Utility helper functions - wifi update and homing
+#include "Utilities.h"   // Utility helper functions - wifi update and homing
 
 // Homing
 volatile bool g_has_not_homed = true;
@@ -143,20 +136,6 @@ void loop()
             ossm.g_ui.UpdateState("PATTRN", static_cast<int>(ossm.speedPercentage),
                                   ossm.strokePattern * 100 / (ossm.strokePatternCount - 1));
             break;
-    }
-    ossm.g_ui.UpdateScreen();
-
-    // debug
-    static bool is_connected = false;
-    if (!is_connected && ossm.g_ui.DisplayIsConnected())
-    {
-        LogDebug("Display Connected");
-        is_connected = true;
-    }
-    else if (is_connected && !ossm.g_ui.DisplayIsConnected())
-    {
-        LogDebug("Display Disconnected");
-        is_connected = false;
     }
 }
 
