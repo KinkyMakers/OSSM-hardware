@@ -647,11 +647,11 @@ float OSSM::sensorlessHoming()
     {
         current = getAnalogAveragePercent(36, 25) - currentSensorOffset;
         limitSwitchActivated = digitalRead(LIMIT_SWITCH_PIN);
-        Serial.print(current);
-        Serial.print(",");
-        Serial.print(stepper.getCurrentPositionInMillimeters());
-        Serial.print(",");
-        Serial.println(limitSwitchActivated);
+//        Serial.print(current);
+//        Serial.print(",");
+//        Serial.print(stepper.getCurrentPositionInMillimeters());
+//        Serial.print(",");
+//        Serial.println(limitSwitchActivated);
     }
     if (limitSwitchActivated == 0)
     {

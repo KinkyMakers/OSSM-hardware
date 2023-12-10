@@ -7,11 +7,13 @@
 #include <Wire.h>        // Used for i2c connections (Remote OLED Screen)
 
 #include "AiEsp32RotaryEncoder.h"
+#include "NimBLEDevice.h"
 #include "OSSM_Config.h" // START HERE FOR Configuration
 #include "OSSM_PinDef.h" // This is where you set pins specific for your board
 #include "OssmUi.h"      // Separate file that helps contain the OLED screen functions
 #include "Stroke_Engine_Helper.h"
 #include "Utilities.h" // Utility helper functions - wifi update and homing
+#include "services/Controller.h"
 #include "services/encoder.h"
 
 // Homing
@@ -48,6 +50,7 @@ void encoderPushButton()
 // planning the motion profile (this task is high level only and does not pulse
 // the stepper!)
 TaskHandle_t wifiTask = nullptr;
+TaskHandle_t blueTask = nullptr;
 TaskHandle_t getInputTask = nullptr;
 TaskHandle_t motionTask = nullptr;
 TaskHandle_t estopTask = nullptr;
@@ -59,6 +62,7 @@ TaskHandle_t oledTask = nullptr;
 void getUserInputTask(void *pvParameters);
 void motionCommandTask(void *pvParameters);
 void wifiConnectionTask(void *pvParameters);
+void blueConnectionTask(void *pvParameters);
 
 // create the OSSM hardware object
 OSSM *ossm;
@@ -69,7 +73,6 @@ OSSM *ossm;
 ////
 ///////////////////////////////////////////
 
-
 void IRAM_ATTR readEncoderISR()
 {
     g_encoder.readEncoder_ISR();
@@ -78,6 +81,13 @@ void IRAM_ATTR readEncoderISR()
 void setup()
 {
     Serial.begin(115200);
+
+    Serial.println("Starting NimBLE Client");
+    /** Initialize NimBLE, no device name spcified as we are not advertising */
+    NimBLEDevice::init("");
+    NimBLEDevice::setOwnAddrType(BLE_OWN_ADDR_RANDOM);
+    NimBLEDevice::setSecurityAuth(true, true, true);
+    NimBLEDevice::setPower(ESP_PWR_LVL_P9); /** +9db */
 
     g_encoder.begin();
     g_encoder.setup(readEncoderISR);
@@ -101,6 +111,15 @@ void setup()
                             1,                    /* priority of the task */
                             &wifiTask,            /* Task handle to keep track of created task */
                             0);                   /* pin task to core 0 */
+
+    // start the WiFi connection task so we can be doing something while homing!
+    xTaskCreatePinnedToCore(blueConnectionTask, /* Task function. */
+                            "blueTask",         /* name of task. */
+                            10000,              /* Stack size of task */
+                            NULL,               /* parameter of the task */
+                            1,                  /* priority of the task */
+                            &blueTask,          /* Task handle to keep track of created task */
+                            0);                 /* pin task to core 0 */
     delay(100);
 
     ossm->findHome();
@@ -187,6 +206,38 @@ void loop()
 void wifiConnectionTask(void *pvParameters)
 {
     ossm->wifiConnectOrHotspotNonBlocking();
+}
+
+void blueConnectionTask(void *pvParameters)
+{
+    while (true)
+    {
+        if (!scanning && advDevice == nullptr)
+        {
+            startScan();
+        }
+        if (advDevice != nullptr)
+        {
+            if (connectToServer(advDevice))
+            {
+                Serial.println("Success! we should now be getting notifications");
+            }
+            else
+            {
+                Serial.println("Failed to connect");
+            }
+            advDevice = nullptr;
+        }
+
+        if (connected)
+        {
+            break;
+        }
+        vTaskDelay(2000);
+    }
+
+    // delete this task
+    vTaskDelete(NULL);
 }
 
 // Task to read settings from server - only need to check this when in WiFi
