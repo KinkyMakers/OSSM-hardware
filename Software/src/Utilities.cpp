@@ -10,7 +10,6 @@ void OSSM::setup()
     LogDebug("Software version");
     LogDebug(SW_VERSION);
     g_ui.Setup();
-    g_ui.UpdateOnly();
     delay(50);
     String message = "";
     message += "V";

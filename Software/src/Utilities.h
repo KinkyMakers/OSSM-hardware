@@ -13,7 +13,7 @@
 #include "FastLED.h" // Used for the LED on the Reference Board (or any other pixel LEDS you may add)
 #include "OSSM_Config.h"
 #include "OSSM_PinDef.h"
-#include "OssmUi.h" // Separate file that helps contain the OLED screen functions
+#include "OssmUi/OssmUi.h" // Separate file that helps contain the OLED screen functions
 #include "WiFi.h"
 #include "WiFiManager.h"
 
@@ -83,7 +83,7 @@ class OSSM
 
     OSSM()
         : g_encoder(ENCODER_A, ENCODER_B),
-          g_ui(REMOTE_ADDRESS, REMOTE_SDA, REMOTE_CLK) // this just creates the objects with parameters
+          g_ui() // this just creates the objects with parameters
     {
     }
 
