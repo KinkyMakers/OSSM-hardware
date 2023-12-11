@@ -12,7 +12,7 @@ void OssmUi::Setup()
     display.sendBuffer();
 }
 
-void OssmUi::UpdateMessage(String message_in)
+void OssmUi::UpdateMessage(const String& message_in)
 {
     // compute the string width to center it later.
     display.setFont(u8g2_font_helvR08_tf);
@@ -27,8 +27,22 @@ void OssmUi::UpdateMessage(String message_in)
 
     display.sendBuffer();
 }
-void OssmUi::UpdateState(String mode_label, const int speed_percentage, const int encoder_position)
+
+static String last_mode_label = "";
+static int last_speed_percentage = 0;
+static int last_encoder_position = 0;
+
+void OssmUi::UpdateState(const String& mode_label, const int speed_percentage, const int encoder_position)
 {
+    if (last_mode_label == mode_label && last_speed_percentage == speed_percentage &&
+        last_encoder_position == encoder_position)
+    {
+        return;
+    }
+    last_encoder_position = encoder_position;
+    last_speed_percentage = speed_percentage;
+    last_mode_label = mode_label;
+
     // clear the left area of the screen, below 12 px
     display.setColorIndex(0);
     display.drawBox(0, 12, 24, 64);
@@ -45,9 +59,8 @@ void OssmUi::UpdateState(String mode_label, const int speed_percentage, const in
     display.drawBox(0, 64 - speed_height, 24, speed_height);
 
     // draw the encoder position rect
-    int height = (64 - 12) * encoder_position / 100;
+    int height = constrain((64 - 12) * encoder_position / 100, 0, 64 - 12);
     display.drawBox(128 - 24, 64 - height, 24, height);
-
 
     display.setFont(u8g2_font_helvR08_tf);
     display.drawUTF8(0, 10, "SPEED");
