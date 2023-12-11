@@ -15,7 +15,7 @@ void OSSM::setup()
     message += "V";
     message += SW_VERSION;
     message += " Booting up!";
-    g_ui.UpdateMessage(message);
+    OssmUi::UpdateMessage(message);
 #ifdef INITIAL_SETUP
     FastLED.setBrightness(150);
     fill_rainbow(ossmleds, NUM_LEDS, 34, 1);
@@ -141,7 +141,7 @@ float calculateSensation(float sensationPercentage)
     Stroker.setStroke(0.01f * strokePercentage * abs(maxStrokeLengthMm), true);
     Stroker.moveToMax(10 * 3);
     Serial.println(Stroker.getState());
-    g_ui.UpdateMessage(Stroker.getPatternName(strokePattern));
+    //    OssmUi::UpdateMessage(Stroker.getPatternName(strokePattern));
 
     for (;;)
     {
@@ -234,7 +234,7 @@ float calculateSensation(float sensationPercentage)
             Serial.println(Stroker.getPatternName(strokePattern));
 
             Stroker.setPattern(int(strokePattern), false); // Pattern, index must be < Stroker.getNumberOfPattern()
-            g_ui.UpdateMessage(Stroker.getPatternName(strokePattern));
+            //            OssmUi::UpdateMessage(Stroker.getPatternName(strokePattern));
 
             modeChanged = true;
         }
@@ -280,17 +280,17 @@ void OSSM::setRunMode()
         switch (runModeVal)
         {
             case simpleMode:
-                g_ui.UpdateMessage("Simple Penetration");
+                OssmUi::UpdateMessage("Simple Penetration");
                 activeRunMode = simpleMode;
                 break;
 
             case strokeEngineMode:
-                g_ui.UpdateMessage("Stroke Engine");
+                OssmUi::UpdateMessage("Stroke Engine");
                 activeRunMode = strokeEngineMode;
                 break;
 
             default:
-                g_ui.UpdateMessage("Simple Penetration");
+                OssmUi::UpdateMessage("Simple Penetration");
                 activeRunMode = simpleMode;
                 break;
         }
@@ -474,7 +474,7 @@ void OSSM::updatePrompt()
     }
     //   Tell user we are updating!
 
-    g_ui.UpdateMessage("Press to update SW");
+    OssmUi::UpdateMessage("Press to update SW");
 
     if (!waitForAnyButtonPress(5000))
     {
@@ -489,7 +489,7 @@ void OSSM::updateFirmware()
     FastLED.setBrightness(150);
     fill_rainbow(ossmleds, NUM_LEDS, 192, 1);
     FastLED.show();
-    g_ui.UpdateMessage("Updating - 1 minute...");
+    OssmUi::UpdateMessage("Updating - 1 minute...");
 
     WiFiClient client;
     t_httpUpdate_return ret = httpUpdate.update(client, "http://d2sy3zdr3r1gt5.cloudfront.net/ossmfirmware2.bin");
@@ -615,7 +615,7 @@ float OSSM::sensorlessHoming()
     stepper.setAccelerationInMillimetersPerSecondPerSecond(1000);
     stepper.setDecelerationInMillimetersPerSecondPerSecond(10000);
 
-    g_ui.UpdateMessage("Finding Home Sensorless");
+    OssmUi::UpdateMessage("Finding Home Sensorless");
 
     // disable motor briefly in case we are against a hard stop.
     digitalWrite(MOTOR_ENABLE_PIN, HIGH);
@@ -659,7 +659,7 @@ float OSSM::sensorlessHoming()
     stepper.setTargetPositionToStop();
     stepper.moveRelativeInMillimeters(strokeZeroOffsetmm); //"move to" is blocking
     stepper.setCurrentPositionAsHomeAndStop();
-    g_ui.UpdateMessage("Checking Stroke");
+    OssmUi::UpdateMessage("Checking Stroke");
     delay(100);
 
     // find forward limit
@@ -686,7 +686,7 @@ float OSSM::sensorlessHoming()
     Serial.print("Sensorless Homing complete!  ");
     Serial.print(measuredStrokeMm);
     Serial.println(" mm");
-    g_ui.UpdateMessage("Homing Complete");
+    OssmUi::UpdateMessage("Homing Complete");
     // digitalWrite(MOTOR_ENABLE_PIN, HIGH);
     // delay(500);
     // digitalWrite(MOTOR_ENABLE_PIN, LOW);
@@ -701,11 +701,11 @@ void OSSM::sensorHoming()
     stepper.setDecelerationInMillimetersPerSecondPerSecond(10000);
 
     LogDebug("OSSM will now home");
-    g_ui.UpdateMessage("Finding Home Switch");
+    OssmUi::UpdateMessage("Finding Home Switch");
     stepper.setSpeedInMillimetersPerSecond(15);
     stepper.moveToHomeInMillimeters(1, 25, 300, LIMIT_SWITCH_PIN);
     LogDebug("OSSM has homed, will now move out to max length");
-    g_ui.UpdateMessage("Moving to Max");
+    OssmUi::UpdateMessage("Moving to Max");
     stepper.setSpeedInMillimetersPerSecond(10);
     stepper.moveToPositionInMillimeters((-1 * maxStrokeLengthMm) - strokeZeroOffsetmm);
     LogDebug("OSSM has moved out, will now set new home");
@@ -786,8 +786,6 @@ void OSSM::updateLifeStats()
         writeEepromLifeStats();
         lastLifeWriteMillis = millis();
     }
-
-
 }
 
 void OSSM::startLeds()

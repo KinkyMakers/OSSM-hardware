@@ -105,7 +105,7 @@ void setup()
                             0);                  /* pin task to core 0 */
 
     delay(100);
-    ossm.g_ui.UpdateMessage("OSSM Ready to Play");
+    OssmUi::UpdateMessage("OSSM Ready to Play");
 } // Void Setup()
 
 ///////////////////////////////////////////
@@ -121,19 +121,19 @@ void loop()
     switch (ossm.rightKnobMode)
     {
         case MODE_STROKE:
-            ossm.g_ui.UpdateState("STROKE", static_cast<int>(ossm.speedPercentage),
+            OssmUi::UpdateState("STROKE", static_cast<int>(ossm.speedPercentage),
                                   static_cast<int>(ossm.strokePercentage + 0.5f));
             break;
         case MODE_DEPTH:
-            ossm.g_ui.UpdateState("DEPTH", static_cast<int>(ossm.speedPercentage),
+            OssmUi::UpdateState("DEPTH", static_cast<int>(ossm.speedPercentage),
                                   static_cast<int>(ossm.depthPercentage + 0.5f));
             break;
         case MODE_SENSATION:
-            ossm.g_ui.UpdateState("SENSTN", static_cast<int>(ossm.speedPercentage),
+            OssmUi::UpdateState("SENSTN", static_cast<int>(ossm.speedPercentage),
                                   static_cast<int>(ossm.sensationPercentage + 0.5f));
             break;
         case MODE_PATTERN:
-            ossm.g_ui.UpdateState("PATTRN", static_cast<int>(ossm.speedPercentage),
+            OssmUi::UpdateState("PATTRN", static_cast<int>(ossm.speedPercentage),
                                   ossm.strokePattern * 100 / (ossm.strokePatternCount - 1));
             break;
     }

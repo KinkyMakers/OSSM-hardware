@@ -11,9 +11,9 @@ class OssmUi
    public:
     void Setup();
 
-    void UpdateState(String mode_label, const int speed_percentage, const int encoder_position);
+    static void UpdateState(const String& mode_label, int speed_percentage, int encoder_position);
 
-    void UpdateMessage(String message_in);
+    static void UpdateMessage(const String& message_in);
 };
 
 #endif
