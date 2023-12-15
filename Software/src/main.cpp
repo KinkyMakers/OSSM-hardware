@@ -4,6 +4,12 @@
 #include "OSSM_Config.h" // START HERE FOR Configuration
 #include "OSSM_PinDef.h" // This is where you set pins specific for your board
 #include "Utilities.h"   // Utility helper functions - wifi update and homing
+#include "boost/sml.hpp"
+#include "esp_log.h"
+#include "state/state.h"
+#include "utils/StateLogger.h"
+
+namespace sml = boost::sml;
 
 // Homing
 volatile bool g_has_not_homed = true;
@@ -53,6 +59,8 @@ void wifiConnectionTask(void *pvParameters);
 
 // create the OSSM hardware object
 OSSM ossm;
+StateLogger ossmLogger;
+OSSMState stateMachine{ossmLogger, ossm};
 
 ///////////////////////////////////////////
 ////
@@ -62,8 +70,9 @@ OSSM ossm;
 
 void setup()
 {
-    ossm.startLeds();
     Serial.begin(115200);
+
+    ossm.startLeds();
     LogDebug("\n Starting");
     pinMode(ENCODER_SWITCH, INPUT_PULLDOWN); // Rotary Encoder Pushbutton
     attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoderPushButton, RISING);
@@ -74,7 +83,7 @@ void setup()
     xTaskCreatePinnedToCore(wifiConnectionTask,   /* Task function. */
                             "wifiConnectionTask", /* name of task. */
                             10000,                /* Stack size of task */
-                            NULL,                 /* parameter of the task */
+                            nullptr,              /* parameter of the task */
                             1,                    /* priority of the task */
                             &wifiTask,            /* Task handle to keep track of created task */
                             0);                   /* pin task to core 0 */
@@ -91,7 +100,7 @@ void setup()
     xTaskCreatePinnedToCore(getUserInputTask,   /* Task function. */
                             "getUserInputTask", /* name of task. */
                             10000,              /* Stack size of task */
-                            NULL,               /* parameter of the task */
+                            nullptr,            /* parameter of the task */
                             1,                  /* priority of the task */
                             &getInputTask,      /* Task handle to keep track of created task */
                             0);                 /* pin task to core 0 */
@@ -99,7 +108,7 @@ void setup()
     xTaskCreatePinnedToCore(motionCommandTask,   /* Task function. */
                             "motionCommandTask", /* name of task. */
                             20000,               /* Stack size of task */
-                            NULL,                /* parameter of the task */
+                            nullptr,             /* parameter of the task */
                             1,                   /* priority of the task */
                             &motionTask,         /* Task handle to keep track of created task */
                             0);                  /* pin task to core 0 */
@@ -122,19 +131,19 @@ void loop()
     {
         case MODE_STROKE:
             OssmUi::UpdateState("STROKE", static_cast<int>(ossm.speedPercentage),
-                                  static_cast<int>(ossm.strokePercentage + 0.5f));
+                                static_cast<int>(ossm.strokePercentage + 0.5f));
             break;
         case MODE_DEPTH:
             OssmUi::UpdateState("DEPTH", static_cast<int>(ossm.speedPercentage),
-                                  static_cast<int>(ossm.depthPercentage + 0.5f));
+                                static_cast<int>(ossm.depthPercentage + 0.5f));
             break;
         case MODE_SENSATION:
             OssmUi::UpdateState("SENSTN", static_cast<int>(ossm.speedPercentage),
-                                  static_cast<int>(ossm.sensationPercentage + 0.5f));
+                                static_cast<int>(ossm.sensationPercentage + 0.5f));
             break;
         case MODE_PATTERN:
             OssmUi::UpdateState("PATTRN", static_cast<int>(ossm.speedPercentage),
-                                  ossm.strokePattern * 100 / (ossm.strokePatternCount - 1));
+                                ossm.strokePattern * 100 / (ossm.strokePatternCount - 1));
             break;
     }
 }
