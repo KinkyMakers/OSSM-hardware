@@ -13,22 +13,12 @@ using namespace sml;
 static const char* TAG = "StateLogger";
 
 /**
- * OSSM State Logger
+ * @brief Logs state machine events for the OSSM class.
  *
- * This class is used to log state machine events.
- *
- * It is used by the OSSM class in OSSM.h.
- * By default this project will only show "LOG_DEBUG" and above.
- * You can change this in the platformio.ini file, or by added one of the
- * following build flags:
- *
- * -D LOG_LEVEL=LOG_LEVEL_NONE
- * -D LOG_LEVEL=LOG_LEVEL_ERROR
- * -D LOG_LEVEL=LOG_LEVEL_WARN
- * -D LOG_LEVEL=LOG_LEVEL_INFO
- * -D LOG_LEVEL=LOG_LEVEL_DEBUG
- * -D LOG_LEVEL=LOG_LEVEL_TRACE
- *
+ * The StateLogger class is responsible for logging the events of the state machine used in the OSSM class.
+ * The logging level can be adjusted according to the project's needs. By default, only messages with a level of
+ * "LOG_DEBUG" or above are shown. This can be modified in the platformio.ini file or by adding one of the following
+ * build flags:
  */
 struct StateLogger
 {

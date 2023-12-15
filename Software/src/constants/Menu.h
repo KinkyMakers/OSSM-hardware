@@ -1,5 +1,6 @@
 #ifndef SOFTWARE_MENU_H
 #define SOFTWARE_MENU_H
+
 enum Menu
 {
     SimplePenetration,

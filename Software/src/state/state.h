@@ -12,6 +12,28 @@
 namespace sml = boost::sml;
 using namespace sml;
 
+/**
+ * @brief Defines the state machine for the OSSM project.
+ *
+ * The OSSMStateMachine class uses the Boost SML library to define a state machine
+ * for managing state transitions. It is designed to be thread-safe, so events can
+ * be processed in any thread or task.
+ *
+ * Here are the basics of boost SML:
+ *
+ * 1. Each row in the table is a transition.
+ * 2. Each transition has a source state, an event, a guard, an action, and a target state.
+ *   ex: "idle"_s + done / drawHello = "homing"_s,
+ *    - In this example, the source state is "idle", the event is "done", the guard is "none", the action is "drawHello", and the target state is "homing".
+ * 3. The source state is the state that the machine must be in for the transition to be valid.
+ * 4. (optional) The event is the event that triggers the transition.
+ * 5. (optional) The guard is a function that returns true or false. If it returns true, then the transition is valid.
+ * 6. (optional) The action is a function that is called when the transition is triggered, it can't block the main thread and cannot return a value.
+ * 7. The target state is the state that the machine will be in after the transition is complete.
+ *
+ * For more information, see the Boost SML documentation:
+ * https://boost-ext.github.io/sml/index.html
+ */
 class OSSMStateMachine
 {
    public:
