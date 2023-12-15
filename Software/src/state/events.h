@@ -1,7 +1,3 @@
-//
-// Created by Andrew Koenig on 2023-12-14.
-//
-
 #ifndef SOFTWARE_EVENTS_H
 #define SOFTWARE_EVENTS_H
 
