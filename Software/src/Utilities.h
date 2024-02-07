@@ -81,6 +81,8 @@ class OSSM
     bool modeChanged = true; // initialize encoder state
     int rightKnobMode = 0;   // MODE_STROKE, MODE_DEPTH, MODE_SENSATION, MODE_PATTERN
 
+    String strokerPatternName = "Default";  // The name of the current stroke engine pattern
+
     OSSM()
         : g_encoder(ENCODER_A, ENCODER_B),
           g_ui() // this just creates the objects with parameters

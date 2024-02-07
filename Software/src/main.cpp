@@ -142,7 +142,7 @@ void loop()
                                 static_cast<int>(ossm.sensationPercentage + 0.5f));
             break;
         case MODE_PATTERN:
-            OssmUi::UpdateState("PATTRN", static_cast<int>(ossm.speedPercentage),
+            OssmUi::UpdateState(ossm.strokerPatternName, static_cast<int>(ossm.speedPercentage),
                                 ossm.strokePattern * 100 / (ossm.strokePatternCount - 1));
             break;
     }
