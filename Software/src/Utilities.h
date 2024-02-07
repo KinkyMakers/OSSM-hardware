@@ -46,7 +46,7 @@ class OSSM
     };
     int runModeCount = 2;
 
-    runMode activeRunMode = simpleMode;
+    runMode activeRunMode = strokeEngineMode;
     float maxSpeedMmPerSecond = hardcode_maxSpeedMmPerSecond;
     float motorStepPerRevolution = hardcode_motorStepPerRevolution;
     float pulleyToothCount = hardcode_pulleyToothCount;

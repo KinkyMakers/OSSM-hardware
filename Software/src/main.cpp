@@ -91,7 +91,7 @@ void setup()
 
     ossm.findHome();
 
-    ossm.setRunMode();
+    //ossm.setRunMode();
 
     // Kick off the http and motion tasks - they begin executing as soon as they
     // are created here! Do not change the priority of the task, or do so with
