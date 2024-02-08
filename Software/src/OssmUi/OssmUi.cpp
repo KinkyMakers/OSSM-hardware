@@ -81,11 +81,7 @@ void OssmUi::UpdateState(const String& mode_label, const int speed_percentage, c
 
     display.setColorIndex(1);
     display.setFont(u8g2_font_helvR08_tf);
-    if(speed_percentage == 0){
-        display.drawUTF8(0, 10, "STOPPED");
-    } else {
-        display.drawUTF8(0, 10, "SPEED");
-    }
+    display.drawUTF8(0, 10, speed_percentage == 0 ? "STOPPED" : "SPEED");
 
     int width = display.getUTF8Width(mode_label.c_str());
     display.drawUTF8(128 - width, 10, mode_label.c_str());
