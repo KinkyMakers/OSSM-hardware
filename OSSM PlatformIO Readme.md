@@ -26,7 +26,7 @@ Why? More time for coding features and easier collaboration! OSSM is moving fast
 
 6. In the src directiory you should find main.cpp, click on that 
 
-![image]([https://github.com/KinkyMakers/OSSM-hardware/assets/33324586/4a687ec9-8110-4500-8ee7-f51c692e2403))
+![image](https://github.com/KinkyMakers/OSSM-hardware/assets/33324586/4a687ec9-8110-4500-8ee7-f51c692e2403)
 
 7. Near the bottom of the window look for a tick (compile) and an arrow (upload) 
 
