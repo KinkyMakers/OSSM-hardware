@@ -5,3 +5,5 @@ You can see the latest exploded views and BoM in our [OnShape Document!](https:/
 ![image](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/07003f26-f284-4976-8004-4d934077f287)
 
 ![image](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/4f6b1963-ff7a-4025-942c-cc19329aa11c)
+
+![image](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/7e6be5c2-67de-4902-acc6-ae1cc6a9b26a)
