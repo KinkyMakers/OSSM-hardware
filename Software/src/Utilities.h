@@ -46,7 +46,7 @@ class OSSM
     };
     int runModeCount = 2;
 
-    runMode activeRunMode = simpleMode;
+    runMode activeRunMode = strokeEngineMode;
     float maxSpeedMmPerSecond = hardcode_maxSpeedMmPerSecond;
     float motorStepPerRevolution = hardcode_motorStepPerRevolution;
     float pulleyToothCount = hardcode_pulleyToothCount;
@@ -80,6 +80,8 @@ class OSSM
     int changePattern = 0;   // -1 = prev, 1 = next
     bool modeChanged = true; // initialize encoder state
     int rightKnobMode = 0;   // MODE_STROKE, MODE_DEPTH, MODE_SENSATION, MODE_PATTERN
+
+    String strokerPatternName = "Default";  // The name of the current stroke engine pattern
 
     OSSM()
         : g_encoder(ENCODER_A, ENCODER_B),

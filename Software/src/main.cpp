@@ -91,7 +91,7 @@ void setup()
 
     ossm.findHome();
 
-    ossm.setRunMode();
+    //ossm.setRunMode();
 
     // Kick off the http and motion tasks - they begin executing as soon as they
     // are created here! Do not change the priority of the task, or do so with
@@ -142,7 +142,7 @@ void loop()
                                 static_cast<int>(ossm.sensationPercentage + 0.5f));
             break;
         case MODE_PATTERN:
-            OssmUi::UpdateState("PATTRN", static_cast<int>(ossm.speedPercentage),
+            OssmUi::UpdateState(ossm.strokerPatternName, static_cast<int>(ossm.speedPercentage),
                                 ossm.strokePattern * 100 / (ossm.strokePatternCount - 1));
             break;
     }
