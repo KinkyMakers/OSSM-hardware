@@ -4,6 +4,10 @@ on:
   push:
     paths:
       - 'Software/**'
+  pull_request:
+    branches:
+      - master
+      - release
 
 jobs:
   build:
@@ -29,15 +33,14 @@ jobs:
       - name: Build PlatformIO Project
         run: |
           cd Software
-          pio run -e esp32dev
+          pio run -e development
 
       - name: Check PlatformIO Project
         run: |
           cd Software
           pio check --skip-packages --fail-on-defect high -e esp32dev -f src
 
-
       - name: Unit Test PlatformIO Project
         run: |
           cd Software
-          pio test -e native
+          pio test -e test
