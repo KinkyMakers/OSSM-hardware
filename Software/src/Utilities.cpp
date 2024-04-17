@@ -141,7 +141,8 @@ float calculateSensation(float sensationPercentage)
     Stroker.setStroke(0.01f * strokePercentage * abs(maxStrokeLengthMm), true);
     Stroker.moveToMax(10 * 3);
     Serial.println(Stroker.getState());
-    //    OssmUi::UpdateMessage(Stroker.getPatternName(strokePattern));
+
+    strokerPatternName = Stroker.getPatternName(strokePattern); // Set the initial stroke engine pattern name
 
     for (;;)
     {
@@ -167,24 +168,33 @@ float calculateSensation(float sensationPercentage)
         {
             Serial.printf("switching mode pre: %i %i\n", rightKnobMode, buttonPressCount);
 
-            if (buttonPressCount > 1)
+            // If we are coming from the pattern selection, apply the new pattern upon switching out of it.
+            // This is to prevent sudden jarring pattern changes while scrolling through them "live".
+            if(rightKnobMode == MODE_PATTERN){
+                Stroker.setPattern(int(strokePattern), false); // Pattern, index must be < Stroker.getNumberOfPattern()
+            }
+
+            
+            if (buttonPressCount > 1)   // Enter pattern-selection mode if the button is pressed more than once
             {
                 rightKnobMode = MODE_PATTERN;
             }
-            else if (strokePattern == 0)
+            else if (strokePattern == 0)    // If the button was only pressed once and we're in the basic stroke engine pattern...
             {
+                // ..clamp the right knob mode so that we bypass the "sensation" mode
                 rightKnobMode += 1;
-                if (rightKnobMode > 1)
+                if (rightKnobMode > MODE_DEPTH)
                 {
-                    rightKnobMode = 0;
+                    rightKnobMode = MODE_STROKE;
                 }
             }
             else
             {
+                // Otherwise allow us to select the sensation control mode
                 rightKnobMode += 1;
-                if (rightKnobMode > 2)
+                if (rightKnobMode > MODE_SENSATION)
                 {
-                    rightKnobMode = 0;
+                    rightKnobMode = MODE_STROKE;
                 }
             }
 
@@ -233,8 +243,7 @@ float calculateSensation(float sensationPercentage)
 
             Serial.println(Stroker.getPatternName(strokePattern));
 
-            Stroker.setPattern(int(strokePattern), false); // Pattern, index must be < Stroker.getNumberOfPattern()
-            //            OssmUi::UpdateMessage(Stroker.getPatternName(strokePattern));
+            strokerPatternName = Stroker.getPatternName(strokePattern); // Update the stroke pattern name (used by the UI)
 
             modeChanged = true;
         }
