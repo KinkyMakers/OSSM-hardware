@@ -1,10 +1,9 @@
 name: PlatformIO CI
 
 on:
-  push:
+  pull_request:
     paths:
       - 'Software/**'
-  pull_request:
     branches:
       - master
       - release
