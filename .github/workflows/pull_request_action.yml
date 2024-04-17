@@ -1,25 +1,28 @@
 name: PlatformIO CI
 
 on:
-  push:
+  pull_request:
     paths:
       - 'Software/**'
+    branches:
+      - master
+      - release
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
             ~/.platformio/.cache
           key: ${{ runner.os }}-pio
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
@@ -29,15 +32,14 @@ jobs:
       - name: Build PlatformIO Project
         run: |
           cd Software
-          pio run -e esp32dev
+          pio run -e development
 
       - name: Check PlatformIO Project
         run: |
           cd Software
-          pio check --skip-packages --fail-on-defect high -e esp32dev -f src
-
+          pio check --skip-packages --fail-on-defect high -e development -f src
 
       - name: Unit Test PlatformIO Project
         run: |
           cd Software
-          pio test -e native
+          pio test -e test
