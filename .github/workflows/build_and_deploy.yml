@@ -1,0 +1,95 @@
+name: Build and Upload to S3
+
+on:
+  push:
+    paths:
+      - 'Software/**'
+    branches:
+      - master
+      - release
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set Build Env based on Branch
+        id: set_filename
+        run: |
+          if [ "${{ github.ref_name }}" = "release" ]; then
+            echo "build_env=production" >> "$GITHUB_ENV"
+            echo "bubble_version=live" >> "$GITHUB_ENV"
+          elif [ "${{ github.ref_name }}" = "master" ]; then
+            echo "build_env=staging" >> "$GITHUB_ENV"
+            echo "bubble_version=test" >> "$GITHUB_ENV"
+          else
+            echo "build_env=development" >> "$GITHUB_ENV"
+            echo "bubble_version=test" >> "$GITHUB_ENV"
+          fi
+
+      - name: Increment Build Number
+        run: |
+          response=$(
+            curl --location --request POST 'https://app.researchanddesire.com/version-${{ env.bubble_version }}/api/1.1/wf/increment-sw-version-ossm' \
+            --header 'Content-Type: application/json' \
+            --header 'Authorization: Bearer ${{ secrets.BUBBLE_API_KEY }}')
+          echo "SW_VERSION=$response" >> $GITHUB_ENV
+          echo "SW_VERSION=$response"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Build PlatformIO Project
+        run: |
+          export SW_VERSION="${{ env.SW_VERSION }}" && pio run -e ${{ env.build_env }}
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-artifact # Ensure this name is unique and correctly referenced
+          path: ./.pio/build/${{ env.build_env }}/firmware.bin
+
+      - name: Cleanup on failure
+        if: failure()
+        run: |
+          curl --location --request POST 'https://app.researchanddesire.com/version-${{ env.bubble_version }}/api/1.1/wf/decrement-sw-version-ossm' \
+          --header 'Content-Type: application/json' \
+          --header 'Authorization: Bearer ${{ secrets.BUBBLE_API_KEY }}'
+
+  upload:
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      firmware_filename: ${{ steps.set_filename.outputs.firmware_filename }}
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware-artifact
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Set Filename based on Branch
+        id: set_filename
+        run: |
+          if [ "${{ github.ref_name }}" = "release" ]; then
+            echo "firmware_filename=firmware.bin" >> "$GITHUB_ENV"
+          else
+            echo "firmware_filename=firmware-dev.bin" >> "$GITHUB_ENV"
+          fi
+
+      - name: Upload Binary to S3
+        run: aws s3 cp ./firmware.bin s3://${{ secrets.AWS_S3_BUCKET_NAME }}/$firmware_filename --acl public-read
