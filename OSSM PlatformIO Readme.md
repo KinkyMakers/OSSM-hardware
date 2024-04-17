@@ -24,9 +24,9 @@ Why? More time for coding features and easier collaboration! OSSM is moving fast
 
 ![image](https://user-images.githubusercontent.com/93972925/156352222-e3c6c412-248e-40d5-9e7c-d3a895dd0db7.png)
 
-6. You should now see something like this in the left hand pane.  Find and click on OSSM_Main.ino 
+6. In the src directiory you should find main.cpp, click on that 
 
-![image](https://user-images.githubusercontent.com/93972925/156352408-50a43fbc-9e38-4adf-a4b0-95a6e753903b.png)
+![image](https://github.com/KinkyMakers/OSSM-hardware/assets/33324586/4a687ec9-8110-4500-8ee7-f51c692e2403)
 
 7. Near the bottom of the window look for a tick (compile) and an arrow (upload) 
 
