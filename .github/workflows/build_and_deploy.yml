@@ -50,13 +50,14 @@ jobs:
 
       - name: Build PlatformIO Project
         run: |
+          cd Software
           export SW_VERSION="${{ env.SW_VERSION }}" && pio run -e ${{ env.build_env }}
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: firmware-artifact # Ensure this name is unique and correctly referenced
-          path: ./.pio/build/${{ env.build_env }}/firmware.bin
+          path: ./Software/.pio/build/${{ env.build_env }}/firmware.bin
 
       - name: Cleanup on failure
         if: failure()
