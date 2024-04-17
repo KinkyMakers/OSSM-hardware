@@ -2,6 +2,8 @@ name: Build and Upload to S3
 
 on:
   push:
+    paths:
+      - 'Software/**'
     branches:
       - master
       - release
