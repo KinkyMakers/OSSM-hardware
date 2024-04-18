@@ -73,7 +73,7 @@ void setup()
     Serial.begin(115200);
 
     ossm.startLeds();
-    LogDebug("\n Starting");
+    ESP_LOGD("UTILS", "Starting");
     pinMode(ENCODER_SWITCH, INPUT_PULLDOWN); // Rotary Encoder Pushbutton
     attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoderPushButton, RISING);
 
@@ -171,9 +171,6 @@ void getUserInputTask(void *pvParameters)
     for (;;) // tasks should loop forever and not return - or will throw error in
              // OS
     {
-        // LogDebug("Speed: " + String(ossm.speedPercentage) + "\% Stroke: " + String(ossm.strokePercentage) +
-        //          "\% Distance to target: " + String(ossm.stepper.getDistanceToTargetSigned()) + " steps?");
-
         ossm.updateAnalogInputs();
         ossm.handleStopCondition();
 

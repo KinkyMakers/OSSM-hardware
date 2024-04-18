@@ -3,14 +3,6 @@
 
 #define DEBUG
 
-#ifdef DEBUG
-#define LogDebug(...) Serial.println(__VA_ARGS__)
-#define LogDebugFormatted(...) Serial.printf(__VA_ARGS__)
-#else
-#define LogDebug(...) ((void)0)
-#define LogDebugFormatted(...) ((void)0)
-#endif
-
 #define SW_VERSION "0.23"
 #define HW_VERSION 22 // divide by 10 for real hw version
 #define EEPROM_SIZE 200
