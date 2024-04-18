@@ -16,6 +16,12 @@ If you aren't sure what ESP board to select in Arduino IDE, choose "ESP32 Dev Mo
 ![ESP32 Architecture](https://github.com/KinkyMakers/OSSM-hardware/blob/master/PlatformIO%20ESP32%20code/OSSM_ESP32/OSSM%20ESP32%20Architecture.png)
 
 
+### Logging
+
+This project uses ESP32's [native logging library](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/log.html).
+
+
+
 ### Commands
 
 **Upload and monitor**
@@ -27,3 +33,5 @@ pio run -t upload -t monitor
 ```bash
 pio test -e test
 ```
+
+

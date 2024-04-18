@@ -7,8 +7,8 @@
 void OSSM::setup()
 {
     WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
-    LogDebug("Software version");
-    LogDebug(SW_VERSION);
+    ESP_LOGD("UTILS", "Software version: %s", SW_VERSION);
+
     g_ui.Setup();
     delay(50);
     String message = "";
@@ -55,7 +55,6 @@ void OSSM::setup()
                                                                accelerationScaling);
         stepper.setTargetPositionInMillimeters(targetPosition);
         vTaskDelay(2);
-        // LogDebugFormatted("Moving stepper to position %ld \n", static_cast<long int>(targetPosition));
 
         while ((stepper.getDistanceToTargetSigned() != 0) || (strokePercentage <= commandDeadzonePercentage) ||
                (speedPercentage <= commandDeadzonePercentage))
@@ -64,7 +63,6 @@ void OSSM::setup()
                            // zero, don't care about stroke value
         }
         targetPosition = 0;
-        // Serial.printf("Moving stepper to position %ld \n", targetPosition);
         vTaskDelay(1);
         stepper.setDecelerationInMillimetersPerSecondPerSecond(maxSpeedMmPerSecond * speedPercentage * speedPercentage /
                                                                accelerationScaling);
@@ -83,10 +81,10 @@ void OSSM::handleStopCondition() // handles e-stop condition
     {
         if (!isStopped)
         {
-            LogDebug("Speed: " + String(speedPercentage) + "\% Stroke: " + String(strokePercentage) +
-                     "\% Distance to target: " + String(stepper.getDistanceToTargetSigned()) + " steps");
+            ESP_LOGD("UTILS", "Speed: %f Stroke: %f Distance to target: %d steps", speedPercentage, strokePercentage,
+                     stepper.getDistanceToTargetSigned());
             stepper.emergencyStop(true);
-            LogDebug("Emergency Stop");
+            ESP_LOGE("UTILS", "Emergency Stop");
             isStopped = true;
             delay(100);
         }
@@ -96,10 +94,10 @@ void OSSM::handleStopCondition() // handles e-stop condition
         // release emergency stop
         if (isStopped)
         {
-            LogDebug("Speed: " + String(speedPercentage) + "\% Stroke: " + String(strokePercentage) +
-                     "\% Distance to target: " + String(stepper.getDistanceToTargetSigned()) + " steps");
+            ESP_LOGD("UTILS", "Speed: %f Stroke: %f Distance to target: %d steps", speedPercentage, strokePercentage,
+                     stepper.getDistanceToTargetSigned());
             stepper.releaseEmergencyStop();
-            LogDebug("Emergency Stop Released");
+            ESP_LOGD("UTILS", "Emergency Stop Released");
             isStopped = false;
             delay(100);
         }
@@ -140,16 +138,17 @@ float calculateSensation(float sensationPercentage)
     Stroker.setDepth(0.01f * depthPercentage * abs(maxStrokeLengthMm), true);
     Stroker.setStroke(0.01f * strokePercentage * abs(maxStrokeLengthMm), true);
     Stroker.moveToMax(10 * 3);
-    Serial.println(Stroker.getState());
+
+    ESP_LOGD("UTILS", "Stroker State: %s", Stroker.getState());
 
     strokerPatternName = Stroker.getPatternName(strokePattern); // Set the initial stroke engine pattern name
 
     for (;;)
     {
-        Serial.println("looping");
+        ESP_LOGV("UTILS", "Looping");
         if (isChangeSignificant(lastSpeedPercentage, speedPercentage))
         {
-            Serial.printf("changing speed: %f\n", speedPercentage * 3);
+            ESP_LOGD("UTILS", "changing speed: %f", speedPercentage * 3);
             if (speedPercentage == 0)
             {
                 Stroker.stopMotion();
@@ -166,20 +165,21 @@ float calculateSensation(float sensationPercentage)
         int buttonPressCount = encoderButtonPresses - lastEncoderButtonPresses;
         if (!modeChanged && buttonPressCount > 0 && (millis() - lastEncoderButtonPressMillis) > 200)
         {
-            Serial.printf("switching mode pre: %i %i\n", rightKnobMode, buttonPressCount);
+            ESP_LOGD("UTILS", "switching mode pre: %i %i", rightKnobMode, buttonPressCount);
 
             // If we are coming from the pattern selection, apply the new pattern upon switching out of it.
             // This is to prevent sudden jarring pattern changes while scrolling through them "live".
-            if(rightKnobMode == MODE_PATTERN){
+            if (rightKnobMode == MODE_PATTERN)
+            {
                 Stroker.setPattern(int(strokePattern), false); // Pattern, index must be < Stroker.getNumberOfPattern()
             }
 
-            
-            if (buttonPressCount > 1)   // Enter pattern-selection mode if the button is pressed more than once
+            if (buttonPressCount > 1) // Enter pattern-selection mode if the button is pressed more than once
             {
                 rightKnobMode = MODE_PATTERN;
             }
-            else if (strokePattern == 0)    // If the button was only pressed once and we're in the basic stroke engine pattern...
+            else if (strokePattern ==
+                     0) // If the button was only pressed once and we're in the basic stroke engine pattern...
             {
                 // ..clamp the right knob mode so that we bypass the "sensation" mode
                 rightKnobMode += 1;
@@ -198,7 +198,7 @@ float calculateSensation(float sensationPercentage)
                 }
             }
 
-            Serial.printf("switching mode: %i\n", rightKnobMode);
+            ESP_LOGD("UTILS", "switching mode: %i", rightKnobMode);
 
             modeChanged = true;
             lastEncoderButtonPresses = encoderButtonPresses;
@@ -207,7 +207,7 @@ float calculateSensation(float sensationPercentage)
         if (lastStrokePercentage != strokePercentage)
         {
             float newStroke = 0.01f * strokePercentage * abs(maxStrokeLengthMm);
-            Serial.printf("change stroke: %f %f\n", strokePercentage, newStroke);
+            ESP_LOGD("UTILS", "change stroke: %f %f", strokePercentage, newStroke);
             Stroker.setStroke(newStroke, true);
             lastStrokePercentage = strokePercentage;
         }
@@ -215,7 +215,7 @@ float calculateSensation(float sensationPercentage)
         if (lastDepthPercentage != depthPercentage)
         {
             float newDepth = 0.01f * depthPercentage * abs(maxStrokeLengthMm);
-            Serial.printf("change depth: %f %f\n", depthPercentage, newDepth);
+            ESP_LOGD("UTILS", "change depth: %f %f", depthPercentage, newDepth);
             Stroker.setDepth(newDepth, false);
             lastDepthPercentage = depthPercentage;
         }
@@ -223,7 +223,7 @@ float calculateSensation(float sensationPercentage)
         if (lastSensationPercentage != sensationPercentage)
         {
             float newSensation = calculateSensation(sensationPercentage);
-            Serial.printf("change sensation: %f, %f\n", sensationPercentage, newSensation);
+            ESP_LOGD("UTILS", "change sensation: %f %f", sensationPercentage, newSensation);
             Stroker.setSensation(newSensation, false);
             lastSensationPercentage = sensationPercentage;
         }
@@ -241,9 +241,10 @@ float calculateSensation(float sensationPercentage)
                 strokePattern = 0;
             }
 
-            Serial.println(Stroker.getPatternName(strokePattern));
+            ESP_LOGD("UTILS", "change pattern: %i", strokePattern);
 
-            strokerPatternName = Stroker.getPatternName(strokePattern); // Update the stroke pattern name (used by the UI)
+            strokerPatternName =
+                Stroker.getPatternName(strokePattern); // Update the stroke pattern name (used by the UI)
 
             modeChanged = true;
         }
@@ -269,7 +270,7 @@ String getPatternJSON(StrokeEngine Stroker)
             JSON += "}]";
         }
     }
-    Serial.println(JSON);
+    ESP_LOGD("UTILS", "Pattern JSON: %s", JSON.c_str());
     return JSON;
 }
 
@@ -282,10 +283,9 @@ void OSSM::setRunMode()
     {
         encoderVal = abs(g_encoder.read());
         runModeVal = (encoderVal % (2 * runModeCount)) / 2; // scale by 2 because encoder counts by 2
-        Serial.print("encoder: ");
-        Serial.println(encoderVal);
-        Serial.printf("%d encoder count \n", encoderVal);
-        Serial.printf("%d runModeVal \n", runModeVal);
+
+        ESP_LOGD("UTILS", "encoder: %d; count: %d, runMode: %d", encoderVal, encoderVal, runModeVal);
+
         switch (runModeVal)
         {
             case simpleMode:
@@ -314,21 +314,22 @@ void OSSM::wifiAutoConnect()
     {
         // reset settings - for testing
         wm.resetSettings();
-        LogDebug("settings reset");
+        ESP_LOGD("UTILS", "settings reset");
+
         delay(100);
         wm.setConfigPortalTimeout(60);
         if (!wm.autoConnect("OSSM Setup"))
         {
-            LogDebug("failed to connect and hit timeout");
+            ESP_LOGD("UTILS", "failed to connect and hit timeout");
         }
     }
 
     wm.setConfigPortalTimeout(1);
     if (!wm.autoConnect("OSSM Setup"))
     {
-        LogDebug("failed to connect and hit timeout");
+        ESP_LOGD("UTILS", "failed to connect and hit timeout");
     }
-    LogDebug("exiting autoconnect");
+    ESP_LOGD("UTILS", "exiting autoconnect");
 }
 
 [[noreturn]] void OSSM::wifiConnectOrHotspotNonBlocking()
@@ -346,7 +347,7 @@ void OSSM::wifiAutoConnect()
         // TODO: Set Status LED to indicate failure
         message = "No connection, launching config portal";
     }
-    LogDebug(message);
+    ESP_LOGD("UTILS", "%s", message.c_str());
 
     for (;;)
     {
@@ -419,8 +420,8 @@ bool OSSM::setInternetControl(bool setWifiControl)
     // const char *status = bubbleResponse["status"]; // "success"
 
     const char *wifiEnabledStr = (wifiControlActive ? "true" : "false");
-    LogDebugFormatted("Setting Wifi Control: %s\n%s\n%s\n", wifiEnabledStr, requestBody.c_str(), payload.c_str());
-    LogDebugFormatted("HTTP Response code: %d\n", httpResponseCode);
+    ESP_LOGD("UTILS", "Setting Wifi Control: %s\n%s\n%s\n", wifiEnabledStr, requestBody.c_str(), payload.c_str());
+    ESP_LOGD("UTILS", "HTTP Response code: %d\n", httpResponseCode);
 
     return true;
 }
@@ -463,15 +464,15 @@ bool OSSM::getInternetSettings()
     speedPercentage = bubbleResponse["response"]["speed"];
 
     // debug info on the http payload
-    LogDebug(payload);
-    LogDebugFormatted("HTTP Response code: %d\n", httpResponseCode);
+    ESP_LOGD("UTILS", "payload: %s\n", payload.c_str());
+    ESP_LOGD("UTILS", "HTTP Response code: %d\n", httpResponseCode);
 
     return true;
 }
 
 void OSSM::updatePrompt()
 {
-    Serial.println("about to start httpOtaUpdate");
+    ESP_LOGD("UTILS", "about to start httpOtaUpdate");
     if (WiFi.status() != WL_CONNECTED)
     {
         // return if no WiFi
@@ -508,16 +509,16 @@ void OSSM::updateFirmware()
     switch (ret)
     {
         case HTTP_UPDATE_FAILED:
-            Serial.printf("HTTP_UPDATE_FAILED Error (%d): %s\n", httpUpdate.getLastError(),
-                          httpUpdate.getLastErrorString().c_str());
+            ESP_LOGD("UTILS", "HTTP_UPDATE_FAILED Error (%d): %s\n", httpUpdate.getLastError(),
+                     httpUpdate.getLastErrorString().c_str());
             break;
 
         case HTTP_UPDATE_NO_UPDATES:
-            Serial.println("HTTP_UPDATE_NO_UPDATES");
+            ESP_LOGD("UTILS", "HTTP_UPDATE_NO_UPDATES");
             break;
 
         case HTTP_UPDATE_OK:
-            Serial.println("HTTP_UPDATE_OK");
+            ESP_LOGD("UTILS", "HTTP_UPDATE_OK");
             break;
     }
 }
@@ -528,7 +529,7 @@ bool OSSM::checkForUpdate()
 #ifdef VERSIONTEST
     serverNameBubble = "http://d2oq8yqnezqh3r.cloudfront.net/check-for-ossm-update"; // version-test
 #endif
-    LogDebug("about to hit http for update");
+    ESP_LOGD("UTILS", "about to hit http for update");
     HTTPClient http;
     http.begin(serverNameBubble);
     http.addHeader("Content-Type", "application/json");
@@ -538,25 +539,23 @@ bool OSSM::checkForUpdate()
 
     String requestBody;
     serializeJson(doc, requestBody);
-    LogDebug("about to POST");
+    ESP_LOGD("UTILS", "about to POST");
     int httpResponseCode = http.POST(requestBody);
-    LogDebug("POSTed");
+    ESP_LOGD("UTILS", "POSTed");
     String payload = "{}";
-    // int httpResponseCode = http.POST("{\"trainerSwVersion\":\"96\"}");
     payload = http.getString();
-    LogDebug("HTTP Response code: ");
-    LogDebug(httpResponseCode);
-    LogDebug(payload);
+    ESP_LOGD("UTILS", "HTTP Response code: %s", httpResponseCode);
     StaticJsonDocument<200> bubbleResponse;
 
     deserializeJson(bubbleResponse, payload);
 
     bool response_needUpdate = bubbleResponse["response"]["needUpdate"];
-    LogDebug(payload);
+
+    ESP_LOGD("UTILS", "Payload: %s", payload.c_str());
 
     if (httpResponseCode <= 0)
     {
-        LogDebug("Failed to reach update server");
+        ESP_LOGD("UTILS", "Failed to reach update server");
     }
     http.end();
     return response_needUpdate;
@@ -606,7 +605,7 @@ bool OSSM::findHome()
     }
     return false;
 
-    LogDebug("Homing returning");
+    ESP_LOGD("UTILS", "Homing returning");
 }
 
 float OSSM::sensorlessHoming()
@@ -633,27 +632,23 @@ float OSSM::sensorlessHoming()
     delay(100);
 
     int limitSwitchActivated = digitalRead(LIMIT_SWITCH_PIN);
-    Serial.print(getAnalogAveragePercent(36, 500) - currentSensorOffset);
-    Serial.print(",");
-    Serial.print(stepper.getCurrentPositionInMillimeters());
-    Serial.print(",");
-    Serial.println(limitSwitchActivated);
+    current = getAnalogAveragePercent(36, 200) - currentSensorOffset;
+
+    ESP_LOGD("UTILS", "Sensorless Homing, current: %f, position: %f, limitSwitch: %d", current,
+             stepper.getCurrentPositionInMillimeters(), limitSwitchActivated);
 
     // find reverse limit
 
     stepper.setSpeedInMillimetersPerSecond(25);
     stepper.setTargetPositionInMillimeters(-400);
-    current = getAnalogAveragePercent(36, 200) - currentSensorOffset;
 
     while (current < currentLimit && limitSwitchActivated != 0)
     {
         current = getAnalogAveragePercent(36, 25) - currentSensorOffset;
         limitSwitchActivated = digitalRead(LIMIT_SWITCH_PIN);
-        Serial.print(current);
-        Serial.print(",");
-        Serial.print(stepper.getCurrentPositionInMillimeters());
-        Serial.print(",");
-        Serial.println(limitSwitchActivated);
+
+        ESP_LOGD("UTILS", "Sensorless Homing, current: %f, position: %f, limitSwitch: %d", current,
+                 stepper.getCurrentPositionInMillimeters(), limitSwitchActivated);
     }
     if (limitSwitchActivated == 0)
     {
@@ -661,7 +656,7 @@ float OSSM::sensorlessHoming()
         delay(100);
         stepper.setSpeedInMillimetersPerSecond(10);
         stepper.moveRelativeInMillimeters((1 * maxStrokeLengthMm) - strokeZeroOffsetmm);
-        LogDebug("OSSM has moved out, will now set new home?");
+        ESP_LOGD("UTILS", "OSSM has moved out, will now set new home?");
         stepper.setCurrentPositionAsHomeAndStop();
         return -maxStrokeLengthMm;
     }
@@ -682,9 +677,8 @@ float OSSM::sensorlessHoming()
         current = getAnalogAveragePercent(36, 25) - currentSensorOffset;
         if (stepper.getCurrentPositionInMillimeters() > 90)
         {
-            Serial.print(current);
-            Serial.print(",");
-            Serial.println(stepper.getCurrentPositionInMillimeters());
+            ESP_LOGD("UTILS", "Sensorless Homing, current: %f, position: %f", current,
+                     stepper.getCurrentPositionInMillimeters());
         }
     }
 
@@ -692,15 +686,16 @@ float OSSM::sensorlessHoming()
     stepper.moveRelativeInMillimeters(-strokeZeroOffsetmm);
     measuredStrokeMm = -stepper.getCurrentPositionInMillimeters();
     stepper.setCurrentPositionAsHomeAndStop();
-    Serial.print("Sensorless Homing complete!  ");
-    Serial.print(measuredStrokeMm);
-    Serial.println(" mm");
+
+    ESP_LOGD("UTILS", "Sensorless Homing complete!  %f mm", measuredStrokeMm);
+
     OssmUi::UpdateMessage("Homing Complete");
     // digitalWrite(MOTOR_ENABLE_PIN, HIGH);
     // delay(500);
     // digitalWrite(MOTOR_ENABLE_PIN, LOW);
-    Serial.print("Stroke: ");
-    Serial.println(measuredStrokeMm);
+
+    ESP_LOGD("UTILS", "Sensorless Homing complete!  %f mm", measuredStrokeMm);
+
     return measuredStrokeMm;
 }
 void OSSM::sensorHoming()
@@ -709,22 +704,22 @@ void OSSM::sensorHoming()
     stepper.setAccelerationInMillimetersPerSecondPerSecond(300);
     stepper.setDecelerationInMillimetersPerSecondPerSecond(10000);
 
-    LogDebug("OSSM will now home");
+    ESP_LOGD("UTILS", "OSSM will now home");
     OssmUi::UpdateMessage("Finding Home Switch");
     stepper.setSpeedInMillimetersPerSecond(15);
     stepper.moveToHomeInMillimeters(1, 25, 300, LIMIT_SWITCH_PIN);
-    LogDebug("OSSM has homed, will now move out to max length");
+    ESP_LOGD("UTILS", "OSSM has homed, will now move out to max length");
     OssmUi::UpdateMessage("Moving to Max");
     stepper.setSpeedInMillimetersPerSecond(10);
     stepper.moveToPositionInMillimeters((-1 * maxStrokeLengthMm) - strokeZeroOffsetmm);
-    LogDebug("OSSM has moved out, will now set new home");
+    ESP_LOGD("UTILS", "OSSM has moved out, will now set new home");
     stepper.setCurrentPositionAsHomeAndStop();
-    LogDebug("OSSM should now be home and happy");
+    ESP_LOGD("UTILS", "OSSM should now be home and happy");
 }
 
 int OSSM::readEepromSettings()
 {
-    LogDebug("read eeprom");
+    ESP_LOGD("UTILS", "read eeprom");
     EEPROM.begin(EEPROM_SIZE);
     EEPROM.get(0, hardwareVersion);
     EEPROM.get(4, numberStrokes);
@@ -746,26 +741,27 @@ int OSSM::readEepromSettings()
 void OSSM::writeEepromSettings()
 {
     // Be very careful with this so you don't break your configuration!
-    LogDebug("write eeprom");
+    ESP_LOGD("UTILS", "write eeprom");
     EEPROM.begin(EEPROM_SIZE);
     EEPROM.put(0, HW_VERSION);
     EEPROM.put(4, 0);
     EEPROM.put(12, 0);
     EEPROM.put(20, 0);
     EEPROM.commit();
-    LogDebug("eeprom written");
+    ESP_LOGD("UTILS", "eeprom written");
 }
 void OSSM::writeEepromLifeStats()
 {
     // Be very careful with this so you don't break your configuration!
-    LogDebug("writing eeprom life stats");
-    Serial.printf("\nwriting eeprom life stats...\n");
+    ESP_LOGD("UTILS", "writing eeprom life stats");
+    ESP_LOGD("UTILS", "writing eeprom life stats");
+
     EEPROM.begin(EEPROM_SIZE);
     EEPROM.put(4, numberStrokes);
     EEPROM.put(12, travelledDistanceMeters);
     EEPROM.put(20, lifeSecondsPowered);
     EEPROM.commit();
-    LogDebug("eeprom written");
+    ESP_LOGD("UTILS", "eeprom written");
 }
 
 void OSSM::updateLifeStats()
@@ -782,11 +778,12 @@ void OSSM::updateLifeStats()
     days = hours / 24;
     if ((millis() - lastLifeUpdateMillis) > 5000)
     {
-        Serial.printf("\n%dd %dh %dm %ds \n", ((int(days))), (int(hours) % 24), (int(minutes) % 60),
-                      (int(lifeSecondsPowered) % 60));
-        Serial.printf("%.0f strokes \n", numberStrokes);
-        Serial.printf("%.2f kilometers \n", travelledDistanceKilometers);
-        Serial.printf("%.2fA avg current \n", averageCurrent);
+        ESP_LOGD("UTILS", "%i %i %i %i", (int(days)), (int(hours) % 24), (int(minutes) % 60),
+                 (int(lifeSecondsPowered) % 60));
+        ESP_LOGD("UTILS", "Strokes: %.0f", numberStrokes);
+        ESP_LOGD("UTILS", "Distance: %.2f km", travelledDistanceKilometers);
+        ESP_LOGD("UTILS", "Current: %.2f A", averageCurrent);
+
         lastLifeUpdateMillis = millis();
     }
     if ((millis() - lastLifeWriteMillis) > 180000)
@@ -937,17 +934,17 @@ bool OSSM::waitForAnyButtonPress(float waitMilliseconds)
 {
     float timeStartMillis = millis();
     int initialEncoderFlag = encoderButtonPresses;
-    LogDebug("Waiting for button press");
+    ESP_LOGD("UTILS", "Waiting for button press");
     while ((digitalRead(WIFI_RESET_PIN) == LOW) && (initialEncoderFlag == encoderButtonPresses))
     {
         if ((millis() - timeStartMillis) > waitMilliseconds)
         {
-            LogDebug("button not pressed");
+            ESP_LOGD("UTILS", "button not pressed");
 
             return false;
         }
         delay(10);
     }
-    LogDebug("button pressed");
+    ESP_LOGD("UTILS", "button pressed");
     return true;
 }
