@@ -22,3 +22,8 @@ If you aren't sure what ESP board to select in Arduino IDE, choose "ESP32 Dev Mo
 ```bash
 pio run -t upload -t monitor
 ```
+
+**Run Unit Test tests**
+```bash
+pio test -e test
+```
