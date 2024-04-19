@@ -44,7 +44,8 @@ class OSSMStateMachine {
     auto operator()() const {
         return make_transition_table(
             // clang-format off
-            *"idle"_s + done / drawHello = "homing"_s,
+            *"idle"_s + on_entry<_> / initDevice,
+            "idle"_s + done / drawHello = "homing"_s,
 
             "homing"_s + done = "menu"_s,
             "homing"_s + error = "error"_s,

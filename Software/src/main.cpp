@@ -1,11 +1,8 @@
 #include <Arduino.h>  // Basic Needs
 #include <Wire.h>     // Used for i2c connections (Remote OLED Screen)
 
-#include "OSSM_Config.h"  // START HERE FOR Configuration
 #include "OSSM_PinDef.h"  // This is where you set pins specific for your board
 #include "Utilities.h"    // Utility helper functions - wifi update and homing
-#include "boost/sml.hpp"
-#include "esp_log.h"
 #include "state/state.h"
 #include "utils/StateLogger.h"
 
@@ -34,11 +31,6 @@ IRAM_ATTR void encoderPushButton() {
     }
 }
 
-// Current command state
-// volatile float strokePercentage = 0;
-// volatile float ossm.speedPercentage = 0;
-// volatile float deceleration = 0;
-
 // Create tasks for checking pot input or web server control, and task to handle
 // planning the motion profile (this task is high level only and does not pulse
 // the stepper!)
@@ -49,8 +41,6 @@ TaskHandle_t estopTask = nullptr;
 TaskHandle_t oledTask = nullptr;
 
 // Declarations
-// TODO: Document functions
-// void setLedRainbow(CRGB leds[]);
 void getUserInputTask(void *pvParameters);
 void motionCommandTask(void *pvParameters);
 void wifiConnectionTask(void *pvParameters);
@@ -242,20 +232,3 @@ void motionCommandTask(void *pvParameters) {
         }
     }
 }
-
-// float getAnalogVoltage(int pinNumber, int samples){
-
-// }
-
-// void setLedRainbow(CRGB leds[])
-// {
-//     // int power = 250;
-
-//     for (int hueShift = 0; hueShift < 350; hueShift++)
-//     {
-//         int gHue = hueShift % 255;
-//         fill_rainbow(leds, NUM_LEDS, gHue, 25);
-//         FastLED.show();
-//         delay(4);
-//     }
-// }

@@ -23,6 +23,10 @@
 
 #include "Utilities.h"
 // Action definitions
+auto initDevice = [](OSSM &o) {
+
+};
+
 auto drawHello = [](OSSM &o) {};
 auto drawError = []() {};
 auto drawGetHelp = []() {};
