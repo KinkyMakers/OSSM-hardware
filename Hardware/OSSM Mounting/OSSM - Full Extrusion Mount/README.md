@@ -7,3 +7,4 @@ You can view the 3D model at
 
 
 ![image](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/68e3e564-df99-465a-8d91-f74ca8b0cc89)
+![image](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/ec249886-0299-4e7d-bc24-8ccde2e86aa1)
