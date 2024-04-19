@@ -4,16 +4,16 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <EEPROM.h>
-#include <ESP_FlexyStepper.h> // Current Motion Control
-#include <Encoder.h>          // Used for the Remote Encoder Input
+#include <ESP_FlexyStepper.h>  // Current Motion Control
+#include <Encoder.h>           // Used for the Remote Encoder Input
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
 #include <StrokeEngine.h>
 
-#include "FastLED.h" // Used for the LED on the Reference Board (or any other pixel LEDS you may add)
+#include "FastLED.h"  // Used for the LED on the Reference Board (or any other pixel LEDS you may add)
 #include "OSSM_Config.h"
 #include "OSSM_PinDef.h"
-#include "OssmUi/OssmUi.h" // Separate file that helps contain the OLED screen functions
+#include "OssmUi/OssmUi.h"  // Separate file that helps contain the OLED screen functions
 #include "WiFi.h"
 #include "WiFiManager.h"
 
@@ -27,9 +27,8 @@
 #define MODE_SENSATION 2
 #define MODE_PATTERN 3
 
-class OSSM
-{
-   public:
+class OSSM {
+  public:
     /**
      * @brief Construct a new ossm object
      */
@@ -39,11 +38,7 @@ class OSSM
     OssmUi g_ui;
     CRGB ossmleds[NUM_LEDS];
 
-    enum runMode
-    {
-        simpleMode,
-        strokeEngineMode
-    };
+    enum runMode { simpleMode, strokeEngineMode };
     int runModeCount = 2;
 
     runMode activeRunMode = strokeEngineMode;
@@ -56,7 +51,7 @@ class OSSM
     float commandDeadzonePercentage = hardcode_commandDeadzonePercentage;
     float accelerationScaling = hardcode_accelerationScaling;
 
-    int hardwareVersion = 10; // V2.7 = integer value 27
+    int hardwareVersion = 10;  // V2.7 = integer value 27
     float currentSensorOffset = 0;
     float immediateCurrent = 0;
     double averageCurrent = 0;
@@ -70,29 +65,32 @@ class OSSM
 
     bool wifiControlActive = false;
 
-    float speedPercentage = 0;   // percentage 0-100
-    float depthPercentage = 100; // percentage 0-100
-    float strokePercentage = 10; // percentage 0-100
+    float speedPercentage = 0;    // percentage 0-100
+    float depthPercentage = 100;  // percentage 0-100
+    float strokePercentage = 10;  // percentage 0-100
     bool isStopped = false;
-    float sensationPercentage = 40; // percentage 0-100, maps to sensation -100 - 100, so 40 default = -20 sensation
+    float sensationPercentage = 40;  // percentage 0-100, maps to sensation -100
+                                     // - 100, so 40 default = -20 sensation
     unsigned int strokePattern = 0;
     unsigned int strokePatternCount = 0;
-    int changePattern = 0;   // -1 = prev, 1 = next
-    bool modeChanged = true; // initialize encoder state
-    int rightKnobMode = 0;   // MODE_STROKE, MODE_DEPTH, MODE_SENSATION, MODE_PATTERN
+    int changePattern = 0;    // -1 = prev, 1 = next
+    bool modeChanged = true;  // initialize encoder state
+    int rightKnobMode =
+        0;  // MODE_STROKE, MODE_DEPTH, MODE_SENSATION, MODE_PATTERN
 
-    String strokerPatternName = "Default";  // The name of the current stroke engine pattern
+    String strokerPatternName =
+        "Default";  // The name of the current stroke engine pattern
 
     OSSM()
         : g_encoder(ENCODER_A, ENCODER_B),
-          g_ui() // this just creates the objects with parameters
-    {
-    }
+          g_ui()  // this just creates the objects with parameters
+    {}
 
     void setup();
-    void handleStopCondition(); // handles e-stop condition
-    [[noreturn]] void runPenetrate();        // runs actual penetration motion one cycle
-    [[noreturn]] void runStrokeEngine();     // runs stroke Engine
+    void handleStopCondition();  // handles e-stop condition
+    [[noreturn]] void
+    runPenetrate();  // runs actual penetration motion one cycle
+    [[noreturn]] void runStrokeEngine();  // runs stroke Engine
     String getPatternJSON(StrokeEngine Stroker);
     void setRunMode();
 
