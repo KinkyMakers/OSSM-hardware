@@ -3,6 +3,7 @@
 #include <string>
 
 #include "Stroke_Engine_Helper.h"
+#include "esp_log.h"
 
 void OSSM::setup()
 {
@@ -139,7 +140,7 @@ float calculateSensation(float sensationPercentage)
     Stroker.setStroke(0.01f * strokePercentage * abs(maxStrokeLengthMm), true);
     Stroker.moveToMax(10 * 3);
 
-    ESP_LOGD("UTILS", "Stroker State: %s", Stroker.getState());
+    ESP_LOGD("UTILS", "Stroker State: %d", Stroker.getState());
 
     strokerPatternName = Stroker.getPatternName(strokePattern); // Set the initial stroke engine pattern name
 
@@ -148,7 +149,7 @@ float calculateSensation(float sensationPercentage)
         ESP_LOGV("UTILS", "Looping");
         if (isChangeSignificant(lastSpeedPercentage, speedPercentage))
         {
-            ESP_LOGD("UTILS", "changing speed: %f", speedPercentage * 3);
+             ESP_LOGD("UTILS", "changing speed: %f", speedPercentage * 3);
             if (speedPercentage == 0)
             {
                 Stroker.stopMotion();
@@ -165,7 +166,7 @@ float calculateSensation(float sensationPercentage)
         int buttonPressCount = encoderButtonPresses - lastEncoderButtonPresses;
         if (!modeChanged && buttonPressCount > 0 && (millis() - lastEncoderButtonPressMillis) > 200)
         {
-            ESP_LOGD("UTILS", "switching mode pre: %i %i", rightKnobMode, buttonPressCount);
+             ESP_LOGD("UTILS", "switching mode pre: %i %i", rightKnobMode, buttonPressCount);
 
             // If we are coming from the pattern selection, apply the new pattern upon switching out of it.
             // This is to prevent sudden jarring pattern changes while scrolling through them "live".
@@ -198,7 +199,7 @@ float calculateSensation(float sensationPercentage)
                 }
             }
 
-            ESP_LOGD("UTILS", "switching mode: %i", rightKnobMode);
+             ESP_LOGD("UTILS", "switching mode: %i", rightKnobMode);
 
             modeChanged = true;
             lastEncoderButtonPresses = encoderButtonPresses;
@@ -241,7 +242,7 @@ float calculateSensation(float sensationPercentage)
                 strokePattern = 0;
             }
 
-            ESP_LOGD("UTILS", "change pattern: %i", strokePattern);
+             ESP_LOGD("UTILS", "change pattern: %i", strokePattern);
 
             strokerPatternName =
                 Stroker.getPatternName(strokePattern); // Update the stroke pattern name (used by the UI)
@@ -270,7 +271,7 @@ String getPatternJSON(StrokeEngine Stroker)
             JSON += "}]";
         }
     }
-    ESP_LOGD("UTILS", "Pattern JSON: %s", JSON.c_str());
+     ESP_LOGD("UTILS", "Pattern JSON: %s", JSON.c_str());
     return JSON;
 }
 
@@ -284,7 +285,7 @@ void OSSM::setRunMode()
         encoderVal = abs(g_encoder.read());
         runModeVal = (encoderVal % (2 * runModeCount)) / 2; // scale by 2 because encoder counts by 2
 
-        ESP_LOGD("UTILS", "encoder: %d; count: %d, runMode: %d", encoderVal, encoderVal, runModeVal);
+         ESP_LOGD("UTILS", "encoder: %d; count: %d, runMode: %d", encoderVal, encoderVal, runModeVal);
 
         switch (runModeVal)
         {
@@ -347,7 +348,7 @@ void OSSM::wifiAutoConnect()
         // TODO: Set Status LED to indicate failure
         message = "No connection, launching config portal";
     }
-    ESP_LOGD("UTILS", "%s", message.c_str());
+     ESP_LOGD("UTILS", "%s", message.c_str());
 
     for (;;)
     {
@@ -464,8 +465,8 @@ bool OSSM::getInternetSettings()
     speedPercentage = bubbleResponse["response"]["speed"];
 
     // debug info on the http payload
-    ESP_LOGD("UTILS", "payload: %s\n", payload.c_str());
-    ESP_LOGD("UTILS", "HTTP Response code: %d\n", httpResponseCode);
+    ESP_LOGD("UTILS", "payload: %s", payload.c_str());
+    ESP_LOGD("UTILS", "HTTP Response code: %d", httpResponseCode);
 
     return true;
 }
@@ -544,14 +545,14 @@ bool OSSM::checkForUpdate()
     ESP_LOGD("UTILS", "POSTed");
     String payload = "{}";
     payload = http.getString();
-    ESP_LOGD("UTILS", "HTTP Response code: %s", httpResponseCode);
+     ESP_LOGD("UTILS", "HTTP Response code: %d", httpResponseCode);
     StaticJsonDocument<200> bubbleResponse;
 
     deserializeJson(bubbleResponse, payload);
 
     bool response_needUpdate = bubbleResponse["response"]["needUpdate"];
 
-    ESP_LOGD("UTILS", "Payload: %s", payload.c_str());
+     ESP_LOGD("UTILS", "Payload: %s", payload.c_str());
 
     if (httpResponseCode <= 0)
     {
@@ -634,7 +635,7 @@ float OSSM::sensorlessHoming()
     int limitSwitchActivated = digitalRead(LIMIT_SWITCH_PIN);
     current = getAnalogAveragePercent(36, 200) - currentSensorOffset;
 
-    ESP_LOGD("UTILS", "Sensorless Homing, current: %f, position: %f, limitSwitch: %d", current,
+    ESP_LOGV("UTILS", "Sensorless Homing, current: %f, position: %f, limitSwitch: %d", current,
              stepper.getCurrentPositionInMillimeters(), limitSwitchActivated);
 
     // find reverse limit
@@ -647,7 +648,7 @@ float OSSM::sensorlessHoming()
         current = getAnalogAveragePercent(36, 25) - currentSensorOffset;
         limitSwitchActivated = digitalRead(LIMIT_SWITCH_PIN);
 
-        ESP_LOGD("UTILS", "Sensorless Homing, current: %f, position: %f, limitSwitch: %d", current,
+        ESP_LOGV("UTILS", "Sensorless Homing, current: %f, position: %f, limitSwitch: %d", current,
                  stepper.getCurrentPositionInMillimeters(), limitSwitchActivated);
     }
     if (limitSwitchActivated == 0)
@@ -656,7 +657,7 @@ float OSSM::sensorlessHoming()
         delay(100);
         stepper.setSpeedInMillimetersPerSecond(10);
         stepper.moveRelativeInMillimeters((1 * maxStrokeLengthMm) - strokeZeroOffsetmm);
-        ESP_LOGD("UTILS", "OSSM has moved out, will now set new home?");
+         ESP_LOGD("UTILS", "OSSM has moved out, will now set new home?");
         stepper.setCurrentPositionAsHomeAndStop();
         return -maxStrokeLengthMm;
     }
@@ -675,11 +676,8 @@ float OSSM::sensorlessHoming()
     while (current < currentLimit)
     {
         current = getAnalogAveragePercent(36, 25) - currentSensorOffset;
-        if (stepper.getCurrentPositionInMillimeters() > 90)
-        {
-            ESP_LOGD("UTILS", "Sensorless Homing, current: %f, position: %f", current,
-                     stepper.getCurrentPositionInMillimeters());
-        }
+        ESP_LOGV("UTILS", "Sensorless Homing, current: %f, position: %f", current,
+                 stepper.getCurrentPositionInMillimeters());
     }
 
     stepper.setTargetPositionToStop();
@@ -687,14 +685,14 @@ float OSSM::sensorlessHoming()
     measuredStrokeMm = -stepper.getCurrentPositionInMillimeters();
     stepper.setCurrentPositionAsHomeAndStop();
 
-    ESP_LOGD("UTILS", "Sensorless Homing complete!  %f mm", measuredStrokeMm);
+     ESP_LOGD("UTILS", "Sensorless Homing complete!  %f mm", measuredStrokeMm);
 
     OssmUi::UpdateMessage("Homing Complete");
     // digitalWrite(MOTOR_ENABLE_PIN, HIGH);
     // delay(500);
     // digitalWrite(MOTOR_ENABLE_PIN, LOW);
 
-    ESP_LOGD("UTILS", "Sensorless Homing complete!  %f mm", measuredStrokeMm);
+     ESP_LOGD("UTILS", "Sensorless Homing complete!  %f mm", measuredStrokeMm);
 
     return measuredStrokeMm;
 }
@@ -708,11 +706,11 @@ void OSSM::sensorHoming()
     OssmUi::UpdateMessage("Finding Home Switch");
     stepper.setSpeedInMillimetersPerSecond(15);
     stepper.moveToHomeInMillimeters(1, 25, 300, LIMIT_SWITCH_PIN);
-    ESP_LOGD("UTILS", "OSSM has homed, will now move out to max length");
+     ESP_LOGD("UTILS", "OSSM has homed, will now move out to max length");
     OssmUi::UpdateMessage("Moving to Max");
     stepper.setSpeedInMillimetersPerSecond(10);
     stepper.moveToPositionInMillimeters((-1 * maxStrokeLengthMm) - strokeZeroOffsetmm);
-    ESP_LOGD("UTILS", "OSSM has moved out, will now set new home");
+     ESP_LOGD("UTILS", "OSSM has moved out, will now set new home");
     stepper.setCurrentPositionAsHomeAndStop();
     ESP_LOGD("UTILS", "OSSM should now be home and happy");
 }
@@ -778,11 +776,11 @@ void OSSM::updateLifeStats()
     days = hours / 24;
     if ((millis() - lastLifeUpdateMillis) > 5000)
     {
-        ESP_LOGD("UTILS", "%i %i %i %i", (int(days)), (int(hours) % 24), (int(minutes) % 60),
+         ESP_LOGD("UTILS", "%i %i %i %i", (int(days)), (int(hours) % 24), (int(minutes) % 60),
                  (int(lifeSecondsPowered) % 60));
-        ESP_LOGD("UTILS", "Strokes: %.0f", numberStrokes);
-        ESP_LOGD("UTILS", "Distance: %.2f km", travelledDistanceKilometers);
-        ESP_LOGD("UTILS", "Current: %.2f A", averageCurrent);
+         ESP_LOGD("UTILS", "Strokes: %.0f", numberStrokes);
+         ESP_LOGD("UTILS", "Distance: %.2f km", travelledDistanceKilometers);
+         ESP_LOGD("UTILS", "Current: %.2f A", averageCurrent);
 
         lastLifeUpdateMillis = millis();
     }
