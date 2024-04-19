@@ -8,20 +8,12 @@
 
 namespace sml = boost::sml;
 
-// Homing
-volatile bool g_has_not_homed = true;
-bool REMOTE_ATTACHED = false;
-
 // OSSM name setup
 const char *ossmId = "OSSM1";
 volatile int encoderButtonPresses = 0;  // increment for each click
 volatile long lastEncoderButtonPressMillis = 0;
 
 IRAM_ATTR void encoderPushButton() {
-    // TODO: Toggle position mode
-    // g_encoder.write(0);       // Reset on Button Push
-    // ossm.g_ui.NextFrame();         // Next Frame on Button Push
-
     // debounce check
     long currentTime = millis();
     if ((currentTime - lastEncoderButtonPressMillis) > 200) {
@@ -37,8 +29,6 @@ IRAM_ATTR void encoderPushButton() {
 TaskHandle_t wifiTask = nullptr;
 TaskHandle_t getInputTask = nullptr;
 TaskHandle_t motionTask = nullptr;
-TaskHandle_t estopTask = nullptr;
-TaskHandle_t oledTask = nullptr;
 
 // Declarations
 void getUserInputTask(void *pvParameters);
@@ -63,11 +53,8 @@ void setup() {
     attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoderPushButton,
                     RISING);
 
-    stateMachine.process_event(Done{});  // Start the state machine
+    stateMachine.process_event(Done{});
 
-    //    ossm.setup();
-
-    // start the WiFi connection task so we can be doing something while homing!
     xTaskCreatePinnedToCore(
         wifiConnectionTask,   /* Task function. */
         "wifiConnectionTask", /* name of task. */
@@ -77,8 +64,6 @@ void setup() {
         &wifiTask,            /* Task handle to keep track of created task */
         0);                   /* pin task to core 0 */
     delay(100);
-
-    // ossm.setRunMode();
 
     // Kick off the http and motion tasks - they begin executing as soon as they
     // are created here! Do not change the priority of the task, or do so with
@@ -92,7 +77,9 @@ void setup() {
         1,                  /* priority of the task */
         &getInputTask,      /* Task handle to keep track of created task */
         0);                 /* pin task to core 0 */
+
     delay(100);
+
     xTaskCreatePinnedToCore(
         motionCommandTask,   /* Task function. */
         "motionCommandTask", /* name of task. */
@@ -103,6 +90,7 @@ void setup() {
         0);                  /* pin task to core 0 */
 
     delay(100);
+
     OssmUi::UpdateMessage("OSSM Ready to Play");
 }  // Void Setup()
 
