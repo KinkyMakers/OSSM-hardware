@@ -758,19 +758,6 @@ void OSSM::updateLifeStats() {
     }
 }
 
-void OSSM::startLeds() {
-    // int power = 250;
-    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(ossmleds, NUM_LEDS)
-        .setCorrection(TypicalLEDStrip);
-    FastLED.setBrightness(100);
-    for (int hueShift = 0; hueShift < 350; hueShift++) {
-        int gHue = hueShift % 255;
-        fill_rainbow(ossmleds, NUM_LEDS, gHue, 25);
-        FastLED.show();
-        delay(4);
-    }
-}
-
 void OSSM::updateAnalogInputs() {
     speedPercentage = getAnalogAveragePercent(SPEED_POT_PIN, 50);
 

@@ -58,14 +58,14 @@ OSSMState stateMachine{ossmLogger, ossm};
 
 void setup() {
     Serial.begin(115200);
-
-    ossm.startLeds();
-    ESP_LOGD("UTILS", "Starting");
+    ESP_LOGD(STARTUP_TAG, "Starting");
     pinMode(ENCODER_SWITCH, INPUT_PULLDOWN);  // Rotary Encoder Pushbutton
     attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoderPushButton,
                     RISING);
 
-    ossm.setup();
+    stateMachine.process_event(Done{});  // Start the state machine
+
+    //    ossm.setup();
 
     // start the WiFi connection task so we can be doing something while homing!
     xTaskCreatePinnedToCore(
@@ -77,8 +77,6 @@ void setup() {
         &wifiTask,            /* Task handle to keep track of created task */
         0);                   /* pin task to core 0 */
     delay(100);
-
-    ossm.findHome();
 
     // ossm.setRunMode();
 

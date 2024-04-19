@@ -22,9 +22,12 @@
 #define SOFTWARE_ACTIONS_H
 
 #include "Utilities.h"
+
 // Action definitions
 auto initDevice = [](OSSM &o) {
-
+    ESP_LOGD("Action", "Initializing device...");
+    o.setup();
+    o.findHome();
 };
 
 auto drawHello = [](OSSM &o) {};
