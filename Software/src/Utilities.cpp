@@ -664,9 +664,6 @@ float OSSM::sensorlessHoming() {
     ESP_LOGD("UTILS", "Sensorless Homing complete!  %f mm", measuredStrokeMm);
 
     OssmUi::UpdateMessage("Homing Complete");
-    // digitalWrite(MOTOR_ENABLE_PIN, HIGH);
-    // delay(500);
-    // digitalWrite(MOTOR_ENABLE_PIN, LOW);
 
     ESP_LOGD("UTILS", "Sensorless Homing complete!  %f mm", measuredStrokeMm);
 
@@ -758,19 +755,6 @@ void OSSM::updateLifeStats() {
         // write eeprom every 3 minutes
         writeEepromLifeStats();
         lastLifeWriteMillis = millis();
-    }
-}
-
-void OSSM::startLeds() {
-    // int power = 250;
-    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(ossmleds, NUM_LEDS)
-        .setCorrection(TypicalLEDStrip);
-    FastLED.setBrightness(100);
-    for (int hueShift = 0; hueShift < 350; hueShift++) {
-        int gHue = hueShift % 255;
-        fill_rainbow(ossmleds, NUM_LEDS, gHue, 25);
-        FastLED.show();
-        delay(4);
     }
 }
 

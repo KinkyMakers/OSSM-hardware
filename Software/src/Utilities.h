@@ -36,7 +36,7 @@ class OSSM {
     ESP_FlexyStepper stepper;
     Encoder g_encoder;
     OssmUi g_ui;
-    CRGB ossmleds[NUM_LEDS];
+    CRGB ossmleds[NUM_LEDS]{};
 
     enum runMode { simpleMode, strokeEngineMode };
     int runModeCount = 2;
@@ -61,7 +61,7 @@ class OSSM {
     float lifeSecondsPoweredAtStartup = 0;
     float lastLifeUpdateMillis = 0;
     float lastLifeWriteMillis = 0;
-    char Id[20];
+    char Id[20]{};
 
     bool wifiControlActive = false;
 
@@ -84,7 +84,11 @@ class OSSM {
     OSSM()
         : g_encoder(ENCODER_A, ENCODER_B),
           g_ui()  // this just creates the objects with parameters
-    {}
+    {
+        CFastLED::addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(ossmleds, NUM_LEDS)
+            .setCorrection(TypicalLEDStrip);
+        FastLED.setBrightness(100);
+    }
 
     void setup();
     void handleStopCondition();  // handles e-stop condition

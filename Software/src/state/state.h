@@ -46,6 +46,7 @@ class OSSMStateMachine {
             // clang-format off
             *"idle"_s + done / drawHello = "homing"_s,
 
+            "homing"_s + on_entry<_> / initDevice,
             "homing"_s + done = "menu"_s,
             "homing"_s + error = "error"_s,
 
