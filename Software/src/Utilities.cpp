@@ -690,9 +690,6 @@ float OSSM::sensorlessHoming()
     ESP_LOGD("UTILS", "Sensorless Homing complete!  %f mm", measuredStrokeMm);
 
     OssmUi::UpdateMessage("Homing Complete");
-    // digitalWrite(MOTOR_ENABLE_PIN, HIGH);
-    // delay(500);
-    // digitalWrite(MOTOR_ENABLE_PIN, LOW);
 
     ESP_LOGD("UTILS", "Sensorless Homing complete!  %f mm", measuredStrokeMm);
 
