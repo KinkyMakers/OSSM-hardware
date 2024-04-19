@@ -3,8 +3,7 @@
 
 #include "constants/Images.h"
 
-void OssmUi::Setup()
-{
+void OssmUi::Setup() {
     display.begin();
 
     display.clearBuffer();
@@ -12,12 +11,13 @@ void OssmUi::Setup()
     display.sendBuffer();
 }
 
-void OssmUi::UpdateMessage(const String& message_in)
-{
+void OssmUi::UpdateMessage(const String& message_in) {
     // compute the string width to center it later.
     display.setFont(u8g2_font_helvR08_tf);
 
-    int x = (display.getDisplayWidth() - display.getUTF8Width(message_in.c_str())) / 2;
+    int x =
+        (display.getDisplayWidth() - display.getUTF8Width(message_in.c_str())) /
+        2;
 
     // draw inverted rectangle to clear the screen
     display.setColorIndex(0);
@@ -32,11 +32,11 @@ static String last_mode_label = "";
 static int last_speed_percentage = 0;
 static int last_encoder_position = 0;
 
-void OssmUi::UpdateState(const String& mode_label, const int speed_percentage, const int encoder_position)
-{
-    if (last_mode_label == mode_label && last_speed_percentage == speed_percentage &&
-        last_encoder_position == encoder_position)
-    {
+void OssmUi::UpdateState(const String& mode_label, const int speed_percentage,
+                         const int encoder_position) {
+    if (last_mode_label == mode_label &&
+        last_speed_percentage == speed_percentage &&
+        last_encoder_position == encoder_position) {
         return;
     }
     last_encoder_position = encoder_position;
@@ -59,25 +59,26 @@ void OssmUi::UpdateState(const String& mode_label, const int speed_percentage, c
     display.drawBox(0, 64 - speed_height, 24, speed_height);
 
     // Speed gradation
-    display.setColorIndex(2);   // XOR mode
-    display.drawLine(0, 12, 23, 12);    // 100%
-    display.drawLine(0, 25, 6, 25);    // 75%
-    display.drawLine(0, 38, 12, 38);    // 50%
-    display.drawLine(0, 51, 6, 51);    // 25%
-    display.drawLine(0, 63, 23, 63);    // 0%
+    display.setColorIndex(2);         // XOR mode
+    display.drawLine(0, 12, 23, 12);  // 100%
+    display.drawLine(0, 25, 6, 25);   // 75%
+    display.drawLine(0, 38, 12, 38);  // 50%
+    display.drawLine(0, 51, 6, 51);   // 25%
+    display.drawLine(0, 63, 23, 63);  // 0%
 
     // draw the encoder position rect
     display.setColorIndex(1);
     int height = constrain((64 - 12) * encoder_position / 100, 0, 64 - 12);
     display.drawBox(128 - 24, 64 - height, 24, height);
 
-    // Encoder position gradation (this should be obvious, but I want it symetrical!)
-    display.setColorIndex(2);   // XOR mode
-    display.drawLine(128, 12, 128-23, 12);    // 100%
-    display.drawLine(128, 25, 128-6, 25);    // 75%
-    display.drawLine(128, 38, 128-12, 38);    // 50%
-    display.drawLine(128, 51, 128-6, 51);    // 25%
-    display.drawLine(128, 63, 128-23, 63);    // 0%
+    // Encoder position gradation (this should be obvious, but I want it
+    // symetrical!)
+    display.setColorIndex(2);                 // XOR mode
+    display.drawLine(128, 12, 128 - 23, 12);  // 100%
+    display.drawLine(128, 25, 128 - 6, 25);   // 75%
+    display.drawLine(128, 38, 128 - 12, 38);  // 50%
+    display.drawLine(128, 51, 128 - 6, 51);   // 25%
+    display.drawLine(128, 63, 128 - 23, 63);  // 0%
 
     display.setColorIndex(1);
     display.setFont(u8g2_font_helvR08_tf);

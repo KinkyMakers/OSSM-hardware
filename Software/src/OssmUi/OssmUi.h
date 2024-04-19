@@ -6,12 +6,12 @@
 
 #include "services/display.h"
 
-class OssmUi
-{
-   public:
+class OssmUi {
+  public:
     void Setup();
 
-    static void UpdateState(const String& mode_label, int speed_percentage, int encoder_position);
+    static void UpdateState(const String& mode_label, int speed_percentage,
+                            int encoder_position);
 
     static void UpdateMessage(const String& message_in);
 };
