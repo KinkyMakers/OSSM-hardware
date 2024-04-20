@@ -16,8 +16,8 @@
 #include "OssmUi/OssmUi.h"  // Separate file that helps contain the OLED screen functions
 #include "WiFi.h"
 #include "WiFiManager.h"
+#include "state/type.h"
 
-#define BRIGHTNESS 170
 #define LED_TYPE WS2811
 #define COLOR_ORDER GRB
 #define LED_PIN 25
@@ -131,6 +131,9 @@ class OSSM {
     void setEncoderPercentage(float percentage);
     float getEncoderPercentage();
     bool waitForAnyButtonPress(float waitMilliseconds);
+
+    OSSMState* sm;
+    void setStateMachine(OSSMState* a) { sm = a; }
 };
 
 #endif

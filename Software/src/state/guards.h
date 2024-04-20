@@ -21,7 +21,10 @@
 #ifndef SOFTWARE_GUARDS_H
 #define SOFTWARE_GUARDS_H
 
-#include "Utilities.h"
+#pragma once
+
+class OSSM;  // Forward declaration of class OSSM
+
 // Guard definitions
 auto isPreflightSafe = [](OSSM &o) {
     // TODO: Implement this

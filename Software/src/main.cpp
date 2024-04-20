@@ -4,6 +4,7 @@
 #include "OSSM_PinDef.h"  // This is where you set pins specific for your board
 #include "Utilities.h"    // Utility helper functions - wifi update and homing
 #include "state/state.h"
+#include "state/type.h"
 #include "utils/StateLogger.h"
 
 namespace sml = boost::sml;
@@ -52,7 +53,7 @@ void setup() {
     pinMode(ENCODER_SWITCH, INPUT_PULLDOWN);  // Rotary Encoder Pushbutton
     attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoderPushButton,
                     RISING);
-
+    ossm.setStateMachine(&stateMachine);
     stateMachine.process_event(Done{});
 
     xTaskCreatePinnedToCore(
