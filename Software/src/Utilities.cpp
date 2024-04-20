@@ -4,6 +4,7 @@
 
 #include "Stroke_Engine_Helper.h"
 #include "esp_log.h"
+#include "utils/measurements.h"
 
 void OSSM::setup() {
     WiFi.mode(WIFI_STA);  // explicitly set mode, esp defaults to STA+AP
@@ -845,20 +846,6 @@ float OSSM::getEncoderPercentage() {
         100.0f * float(position) / float(encoderFullScale);
 
     return outputPositionPercentage;
-}
-
-float OSSM::getAnalogAveragePercent(int pinNumber, int samples) {
-    float sum = 0;
-    float average;
-    float percentage;
-    for (int i = 0; i < samples; i++) {
-        // TODO: Possibly use fancier filters?
-        sum += analogRead(pinNumber);
-    }
-    average = float(sum) / float(samples);
-    // TODO: Might want to add a deadband
-    percentage = 100.0f * average / 4096.0f;  // 12 bit resolution
-    return percentage;
 }
 
 bool OSSM::waitForAnyButtonPress(float waitMilliseconds) {

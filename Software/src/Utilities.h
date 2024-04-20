@@ -120,14 +120,12 @@ class OSSM {
     void writeEepromSettings();
     void writeEepromLifeStats();
     void updateLifeStats();
-    void startLeds();
 
     // inputs
     void updateAnalogInputs();
     float getCurrentReadingAmps(int samples);
     float getVoltageReading(int samples);
 
-    float getAnalogAveragePercent(int pinNumber, int samples);
     void setEncoderPercentage(float percentage);
     float getEncoderPercentage();
     bool waitForAnyButtonPress(float waitMilliseconds);
