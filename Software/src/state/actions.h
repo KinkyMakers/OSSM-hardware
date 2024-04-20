@@ -20,13 +20,13 @@
 
 #ifndef SOFTWARE_ACTIONS_H
 #define SOFTWARE_ACTIONS_H
+
 #pragma once
 
 class OSSM;  // Forward declaration of class OSSM
 
 // Action definitions
 auto initDevice = [](OSSM &o) {
-    ESP_LOGD("Action", "Initializing device...");
     o.setup();
     o.findHome();
 };
