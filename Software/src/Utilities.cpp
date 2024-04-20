@@ -4,10 +4,12 @@
 
 #include "Stroke_Engine_Helper.h"
 #include "esp_log.h"
+#include "utils/initializeInputs.h"
 #include "utils/measurements.h"
+#include "utils/update.h"
 
 void OSSM::setup() {
-    WiFi.mode(WIFI_STA);  // explicitly set mode, esp defaults to STA+AP
+    WiFiClass::mode(WIFI_STA);  // explicitly set mode, esp defaults to STA+AP
     ESP_LOGD("UTILS", "Software version: %s", SW_VERSION);
 
     g_ui.Setup();
@@ -247,22 +249,6 @@ float calculateSensation(float sensationPercentage) {
     }
 }
 
-String getPatternJSON(StrokeEngine Stroker) {
-    String JSON = "[{\"";
-    for (size_t i = 0; i < Stroker.getNumberOfPattern(); i++) {
-        JSON += String(Stroker.getPatternName(i));
-        JSON += "\": ";
-        JSON += String(i, DEC);
-        if (i < Stroker.getNumberOfPattern() - 1) {
-            JSON += "},{\"";
-        } else {
-            JSON += "}]";
-        }
-    }
-    ESP_LOGD("UTILS", "Pattern JSON: %s", JSON.c_str());
-    return JSON;
-}
-
 void OSSM::setRunMode() {
     int initialEncoderFlag = encoderButtonPresses;
     int runModeVal;
@@ -471,6 +457,7 @@ void OSSM::updatePrompt() {
 
     updateFirmware();
 }
+
 void OSSM::updateFirmware() {
     FastLED.setBrightness(150);
     fill_rainbow(ossmleds, NUM_LEDS, 192, 1);
@@ -480,9 +467,6 @@ void OSSM::updateFirmware() {
     WiFiClient client;
     t_httpUpdate_return ret = httpUpdate.update(
         client, "http://d2sy3zdr3r1gt5.cloudfront.net/ossmfirmware2.bin");
-    // Or:
-    // t_httpUpdate_return ret = httpUpdate.update(client, "server", 80,
-    // "file.bin");
 
     switch (ret) {
         case HTTP_UPDATE_FAILED:
@@ -501,53 +485,6 @@ void OSSM::updateFirmware() {
     }
 }
 
-bool OSSM::checkForUpdate() {
-    String serverNameBubble =
-        "http://d2g4f7zewm360.cloudfront.net/check-for-ossm-update";  // live
-                                                                      // url
-#ifdef VERSIONTEST
-    serverNameBubble =
-        "http://d2oq8yqnezqh3r.cloudfront.net/check-for-ossm-update";  // version-test
-#endif
-    ESP_LOGD("UTILS", "about to hit http for update");
-    HTTPClient http;
-    http.begin(serverNameBubble);
-    http.addHeader("Content-Type", "application/json");
-    StaticJsonDocument<200> doc;
-    // Add values in the document
-    doc["ossmSwVersion"] = SW_VERSION;
-
-    String requestBody;
-    serializeJson(doc, requestBody);
-    ESP_LOGD("UTILS", "about to POST");
-    int httpResponseCode = http.POST(requestBody);
-    ESP_LOGD("UTILS", "POSTed");
-    String payload = "{}";
-    payload = http.getString();
-    ESP_LOGD("UTILS", "HTTP Response code: %d", httpResponseCode);
-    StaticJsonDocument<200> bubbleResponse;
-
-    deserializeJson(bubbleResponse, payload);
-
-    bool response_needUpdate = bubbleResponse["response"]["needUpdate"];
-
-    ESP_LOGD("UTILS", "Payload: %s", payload.c_str());
-
-    if (httpResponseCode <= 0) {
-        ESP_LOGD("UTILS", "Failed to reach update server");
-    }
-    http.end();
-    return response_needUpdate;
-}
-
-bool OSSM::checkConnection() {
-    if (WiFi.status() != WL_CONNECTED) {
-        return false;
-    } else {
-        return true;
-    }
-}
-
 void OSSM::initializeStepperParameters() {
     stepper.connectToPins(MOTOR_STEP_PIN, MOTOR_DIRECTION_PIN);
     float stepsPerMm =
@@ -557,20 +494,6 @@ void OSSM::initializeStepperParameters() {
     stepper.startAsService();  // Kinky Makers - we have modified this function
     // from default library to run on core 1 and suggest you don't run anything
     // else on that core.
-}
-
-void OSSM::initializeInputs() {
-    pinMode(MOTOR_ENABLE_PIN, OUTPUT);
-    pinMode(WIFI_RESET_PIN, INPUT_PULLDOWN);
-    pinMode(WIFI_CONTROL_TOGGLE_PIN,
-            LOCAL_CONTROLLER);  // choose between WIFI_CONTROLLER and
-                                // LOCAL_CONTROLLER
-    // Set analog pots (control knobs)
-    pinMode(SPEED_POT_PIN, INPUT);
-    adcAttachPin(SPEED_POT_PIN);
-
-    analogReadResolution(12);
-    analogSetAttenuation(ADC_11db);  // allows us to read almost full 3.3V range
 }
 
 bool OSSM::findHome() {
@@ -669,24 +592,6 @@ float OSSM::sensorlessHoming() {
     ESP_LOGD("UTILS", "Sensorless Homing complete!  %f mm", measuredStrokeMm);
 
     return measuredStrokeMm;
-}
-void OSSM::sensorHoming() {
-    // find limit switch and then move to end of stroke and call it zero
-    stepper.setAccelerationInMillimetersPerSecondPerSecond(300);
-    stepper.setDecelerationInMillimetersPerSecondPerSecond(10000);
-
-    ESP_LOGD("UTILS", "OSSM will now home");
-    OssmUi::UpdateMessage("Finding Home Switch");
-    stepper.setSpeedInMillimetersPerSecond(15);
-    stepper.moveToHomeInMillimeters(1, 25, 300, LIMIT_SWITCH_PIN);
-    ESP_LOGD("UTILS", "OSSM has homed, will now move out to max length");
-    OssmUi::UpdateMessage("Moving to Max");
-    stepper.setSpeedInMillimetersPerSecond(10);
-    stepper.moveToPositionInMillimeters((-1 * maxStrokeLengthMm) -
-                                        strokeZeroOffsetmm);
-    ESP_LOGD("UTILS", "OSSM has moved out, will now set new home");
-    stepper.setCurrentPositionAsHomeAndStop();
-    ESP_LOGD("UTILS", "OSSM should now be home and happy");
 }
 
 int OSSM::readEepromSettings() {
@@ -816,7 +721,6 @@ float OSSM::getCurrentReadingAmps(int samples) {
     // percent full scale to amps.
     return current;
 }
-float OSSM::getVoltageReading(int samples) {}
 
 void OSSM::setEncoderPercentage(float percentage) {
     const int encoderFullScale = 100;

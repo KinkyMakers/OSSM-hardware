@@ -107,15 +107,11 @@ class OSSM {
 
     void updatePrompt();
     void updateFirmware();
-    bool checkForUpdate();
-    bool checkConnection();
 
     // hardware helper functions
     void initializeStepperParameters();
-    void initializeInputs();
-    bool findHome();
+    [[maybe_unused]] bool findHome();
     float sensorlessHoming();
-    void sensorHoming();
     int readEepromSettings();
     void writeEepromSettings();
     void writeEepromLifeStats();
@@ -124,7 +120,6 @@ class OSSM {
     // inputs
     void updateAnalogInputs();
     float getCurrentReadingAmps(int samples);
-    float getVoltageReading(int samples);
 
     void setEncoderPercentage(float percentage);
     float getEncoderPercentage();
