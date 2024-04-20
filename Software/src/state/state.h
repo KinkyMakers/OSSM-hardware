@@ -83,8 +83,4 @@ class OSSMStateMachine {
     }
 };
 
-using OSSMState =
-    sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
-            sml::logger<StateLogger>>;
-
 #endif  // SOFTWARE_STATE_H

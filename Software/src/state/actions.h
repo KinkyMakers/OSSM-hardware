@@ -20,8 +20,9 @@
 
 #ifndef SOFTWARE_ACTIONS_H
 #define SOFTWARE_ACTIONS_H
+#pragma once
 
-#include "Utilities.h"
+class OSSM;  // Forward declaration of class OSSM
 
 // Action definitions
 auto initDevice = [](OSSM &o) {
