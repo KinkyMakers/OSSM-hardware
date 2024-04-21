@@ -1,7 +1,7 @@
 #ifndef OSSM_SOFTWARE_EN_US_H
 #define OSSM_SOFTWARE_EN_US_H
 
-#include "struct/LanguageStruct.h"
+#include "structs/LanguageStruct.h"
 
 // English copy
 static const LanguageStruct enUs = {

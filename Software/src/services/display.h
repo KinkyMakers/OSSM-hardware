@@ -2,7 +2,7 @@
 #define OSSM_SOFTWARE_DISPLAY_H
 #include <U8g2lib.h>
 
-#include "OSSM_PinDef.h"
+#include "constants/Pins.h"
 
 #pragma once
 /**
@@ -17,7 +17,9 @@
  *
  * https://github.com/olikraus/u8g2/wiki/fntlistallplain
  */
-static U8G2_SSD1306_128X64_NONAME_F_HW_I2C display(U8G2_R0, -1, REMOTE_CLK,
-                                                   REMOTE_SDA);
+static U8G2_SSD1306_128X64_NONAME_F_HW_I2C display(U8G2_R0,
+                                                   Pins::Display::oledReset,
+                                                   Pins::Remote::displayClock,
+                                                   Pins::Remote::displayData);
 
 #endif  // OSSM_SOFTWARE_DISPLAY_H

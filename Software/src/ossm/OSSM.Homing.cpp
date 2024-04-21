@@ -1,11 +1,9 @@
 #include "OSSM.h"
 
-#include <DebugLog.h>
-
 #include "Events.h"
 #include "constants/UserConfig.h"
 #include "services/stepper.h"
-#include "utilities/analog.h"
+#include "utils/analog.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -17,7 +15,7 @@ using namespace sml;
  * organized.
  */
 void OSSM::clearHoming() {
-    LOG_TRACE("HomePage::homingStart");
+    ESP_LOGD("Homing", "Homing started");
     isForward = true;
 
     // Drop the speed and acceleration to something reasonable.
@@ -34,7 +32,6 @@ void OSSM::clearHoming() {
 };
 
 void OSSM::startHomingTask(void *pvParameters) {
-    LOG_TRACE("OSSM::startHomingTask :D");
     TickType_t xTaskStartTime = xTaskGetTickCount();
 
     // parse parameters to get OSSM reference
@@ -59,9 +56,7 @@ void OSSM::startHomingTask(void *pvParameters) {
         uint32_t msPassed = xTicksPassed * portTICK_PERIOD_MS;
 
         if (msPassed > 15000) {
-            LOG_ERROR(
-                "HomePage::homing, homing took too long. Check power and "
-                "restart.");
+            ESP_LOGE("Homing", "Homing took too long. Check power and restart");
             ossm->errorMessage = UserConfig::language.HomingTookTooLong;
             ossm->sm->process_event(Error{});
             break;
@@ -72,7 +67,7 @@ void OSSM::startHomingTask(void *pvParameters) {
                             SampleOnPin{Pins::Driver::currentSensorPin, 200}) -
                         ossm->currentSensorOffset;
 
-        LOG_TRACE("Homing current: " + String(current));
+        ESP_LOGE("Homing", "Current: %d", current);
 
         // If we have not detected a "bump" with a hard stop, then return and
         // let the loop continue.
@@ -84,7 +79,7 @@ void OSSM::startHomingTask(void *pvParameters) {
             continue;
         }
 
-        LOG_DEBUG("Homing Bump Detected!");
+        ESP_LOGD("Homing", "Homing bump detected");
 
         // Otherwise, if we have detected a bump, then we need to stop the
         // motor.
@@ -105,8 +100,7 @@ void OSSM::startHomingTask(void *pvParameters) {
                 min(abs(ossm->stepper.getCurrentPositionInMillimeters()),
                     Config::Driver::maxStrokeLengthMm);
 
-            LOG_DEBUG("HomePage::homing, measuredStrokeMm: " +
-                      String(ossm->measuredStrokeMm));
+            ESP_LOGD("Homing", "Measured stroke %d", ossm->measuredStrokeMm);
         }
 
         // And finally, we'll set the most forward position as the new "zero"

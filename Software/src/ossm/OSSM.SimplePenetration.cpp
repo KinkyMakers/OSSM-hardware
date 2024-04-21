@@ -69,7 +69,8 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
             targetPosition = 0;
         }
 
-        ESP_LOGD("SimplePenetration", "Moving to position %f", targetPosition);
+        ESP_LOGD("SimplePenetration", "Moving stepper to position %ld",
+                 static_cast<long int>(targetPosition));
 
         ossm->stepper.setTargetPositionInMillimeters(targetPosition);
 

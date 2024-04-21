@@ -2,8 +2,8 @@
 #include "OSSM.h"
 
 #include "extensions/u8g2Extensions.h"
-#include "utilities/analog.h"
-#include "utilities/format.h"
+#include "utils/analog.h"
+#include "utils/format.h"
 
 void OSSM::drawPlayControlsTask(void *pvParameters) {
     // parse ossm from the parameters

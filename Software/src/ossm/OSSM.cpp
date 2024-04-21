@@ -6,7 +6,6 @@
 #include "extensions/u8g2Extensions.h"
 #include "services/encoder.h"
 #include "services/stepper.h"
-#include "utils/StateLogger.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -15,12 +14,10 @@ using namespace sml;
 // fully defined
 OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
            AiEsp32RotaryEncoder &encoder)
-    : sm(std::make_unique<sml::sm<OSSMStateMachine, sml::logger<StateLogger>>>(
-          logger, *this)),
+    : display(display),
       encoder(encoder),
-      display(display) {
-    ESP_LOGD(STATE_MACHINE_TAG, "OSSM::OSSM");
-
+      sm(std::make_unique<sml::sm<OSSMStateMachine, sml::logger<StateLogger>>>(
+          logger, *this)) {
     initStepper(stepper);
 
     // All initializations are done, so start the state machine.
@@ -47,8 +44,8 @@ void OSSM::drawHelloTask(void *pvParameters) {
     int offsetY = 12;
 
     // Bounce the Y position from 0 to 32, up to 24 and down to 32
-    std::array framesY = {6, 12, 24, 48, 44, 42, 44, 48};
-    std::array heights = {0, 0, 0, 0};
+    std::array<int, 8> framesY = {6, 12, 24, 48, 44, 42, 44, 48};
+    std::array<int, 4> heights = {0, 0, 0, 0};
     int letterSpacing = 20;
 
     while (frameIdx < nFrames + 9) {
@@ -118,7 +115,7 @@ void OSSM::drawError() {
     try {
         stepper.emergencyStop();
     } catch (const std::exception &e) {
-        ESP_LOGE(STATE_MACHINE_TAG, "OSSM::drawError: %s", e.what());
+        ESP_LOGD("OSSM::drawError", "Caught exception: %s", e.what());
     }
 
     display.clearBuffer();

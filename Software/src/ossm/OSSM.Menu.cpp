@@ -1,9 +1,8 @@
 #include "OSSM.h"
 
-#include "DebugLog.h"
 #include "constants/Config.h"
 #include "extensions/u8g2Extensions.h"
-#include "utilities/analog.h"
+#include "utils/analog.h"
 
 void OSSM::drawMenuTask(void *pvParameters) {
     bool isFirstDraw = true;
@@ -48,7 +47,8 @@ void OSSM::drawMenuTask(void *pvParameters) {
 
         drawShape::scroll(100 * ossm->encoder.readEncoder() /
                           (clicksPerRow * Menu::NUM_OPTIONS - 1));
-        LOG_TRACE("Hovering Over State: " + menuStrings[menuOption]);
+        String menuName = menuStrings[menuOption];
+        ESP_LOGD("Menu", "Hovering over state: %s", menuName.c_str());
 
         // Loop around to make an infinite menu.
         int lastIdx =
@@ -72,8 +72,7 @@ void OSSM::drawMenuTask(void *pvParameters) {
 
         // Draw the current item
         ossm->display.setFont(Config::Font::bold);
-        ossm->display.drawUTF8(leftPadding, itemHeight * (2),
-                               menuStrings[menuOption].c_str());
+        ossm->display.drawUTF8(leftPadding, itemHeight * (2), menuName.c_str());
 
         // Draw a rounded rectangle around the center item
         ossm->display.drawRFrame(

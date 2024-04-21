@@ -1,7 +1,6 @@
 
 #include "OSSM.h"
 
-#include "constants/UserConfig.h"
 #include "extensions/u8g2Extensions.h"
 #include "qrcode.h"
 

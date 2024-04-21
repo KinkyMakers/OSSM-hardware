@@ -1,5 +1,5 @@
-#ifndef SOFTWARE_MENU_H
-#define SOFTWARE_MENU_H
+#ifndef OSSM_SOFTWARE_MENU_H
+#define OSSM_SOFTWARE_MENU_H
 
 #include <Arduino.h>
 
@@ -19,4 +19,4 @@ static String menuStrings[Menu::NUM_OPTIONS] = {
     UserConfig::language.DeepThroatTrainerSync, UserConfig::language.GetHelp,
     UserConfig::language.Restart};
 
-#endif  // SOFTWARE_MENU_H
+#endif  // OSSM_SOFTWARE_MENU_H

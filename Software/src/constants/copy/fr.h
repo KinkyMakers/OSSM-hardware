@@ -1,7 +1,7 @@
 #ifndef OSSM_SOFTWARE_FR_H
 #define OSSM_SOFTWARE_FR_H
 
-#include "abstract/LanguageStruct.h"
+#include "structs/LanguageStruct.h"
 
 // TODO: Requires validation by a native french speaker.
 //  These have been translated by Google Translate.
