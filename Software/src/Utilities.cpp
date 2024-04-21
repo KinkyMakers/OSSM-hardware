@@ -1,3 +1,4 @@
+// #include "state/state.h"
 #include "Utilities.h"
 
 #include <string>
@@ -496,14 +497,11 @@ void OSSM::initializeStepperParameters() {
     // else on that core.
 }
 
-bool OSSM::findHome() {
+void OSSM::findHome() {
     maxStrokeLengthMm = sensorlessHoming();
     if (maxStrokeLengthMm > 20) {
-        return true;
+        return;
     }
-    return false;
-
-    ESP_LOGD("UTILS", "Homing returning");
 }
 
 float OSSM::sensorlessHoming() {

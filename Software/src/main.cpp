@@ -53,8 +53,9 @@ void setup() {
     pinMode(ENCODER_SWITCH, INPUT_PULLDOWN);  // Rotary Encoder Pushbutton
     attachInterrupt(digitalPinToInterrupt(ENCODER_SWITCH), encoderPushButton,
                     RISING);
+
     ossm.setStateMachine(&stateMachine);
-    stateMachine.process_event(Done{});
+    ossm.sm->process_event(Done{});
 
     xTaskCreatePinnedToCore(
         wifiConnectionTask,   /* Task function. */
@@ -90,9 +91,6 @@ void setup() {
         &motionTask,         /* Task handle to keep track of created task */
         0);                  /* pin task to core 0 */
 
-    delay(100);
-
-    OssmUi::UpdateMessage("OSSM Ready to Play");
 }  // Void Setup()
 
 ///////////////////////////////////////////
@@ -104,27 +102,31 @@ void setup() {
 ///////////////////////////////////////////
 
 void loop() {
-    switch (ossm.rightKnobMode) {
-        case MODE_STROKE:
-            OssmUi::UpdateState("STROKE",
-                                static_cast<int>(ossm.speedPercentage),
-                                static_cast<int>(ossm.strokePercentage + 0.5f));
-            break;
-        case MODE_DEPTH:
-            OssmUi::UpdateState("DEPTH", static_cast<int>(ossm.speedPercentage),
-                                static_cast<int>(ossm.depthPercentage + 0.5f));
-            break;
-        case MODE_SENSATION:
-            OssmUi::UpdateState(
-                "SENSTN", static_cast<int>(ossm.speedPercentage),
-                static_cast<int>(ossm.sensationPercentage + 0.5f));
-            break;
-        case MODE_PATTERN:
-            OssmUi::UpdateState(
-                ossm.strokerPatternName, static_cast<int>(ossm.speedPercentage),
-                ossm.strokePattern * 100 / (ossm.strokePatternCount - 1));
-            break;
-    }
+    //    switch (ossm.rightKnobMode) {
+    //        case MODE_STROKE:
+    //            OssmUi::UpdateState("STROKE",
+    //                                static_cast<int>(ossm.speedPercentage),
+    //                                static_cast<int>(ossm.strokePercentage +
+    //                                0.5f));
+    //            break;
+    //        case MODE_DEPTH:
+    //            OssmUi::UpdateState("DEPTH",
+    //            static_cast<int>(ossm.speedPercentage),
+    //                                static_cast<int>(ossm.depthPercentage +
+    //                                0.5f));
+    //            break;
+    //        case MODE_SENSATION:
+    //            OssmUi::UpdateState(
+    //                "SENSTN", static_cast<int>(ossm.speedPercentage),
+    //                static_cast<int>(ossm.sensationPercentage + 0.5f));
+    //            break;
+    //        case MODE_PATTERN:
+    //            OssmUi::UpdateState(
+    //                ossm.strokerPatternName,
+    //                static_cast<int>(ossm.speedPercentage), ossm.strokePattern
+    //                * 100 / (ossm.strokePatternCount - 1));
+    //            break;
+    //    }
 }
 
 ///////////////////////////////////////////

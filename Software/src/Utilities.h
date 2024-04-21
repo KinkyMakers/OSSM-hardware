@@ -16,6 +16,7 @@
 #include "OssmUi/OssmUi.h"  // Separate file that helps contain the OLED screen functions
 #include "WiFi.h"
 #include "WiFiManager.h"
+#include "state/events.h"
 #include "state/type.h"
 
 #define LED_TYPE WS2811
@@ -110,7 +111,7 @@ class OSSM {
 
     // hardware helper functions
     void initializeStepperParameters();
-    [[maybe_unused]] bool findHome();
+    [[maybe_unused]] void findHome();
     float sensorlessHoming();
     int readEepromSettings();
     void writeEepromSettings();
@@ -126,7 +127,7 @@ class OSSM {
     bool waitForAnyButtonPress(float waitMilliseconds);
 
     OSSMState* sm;
-    void setStateMachine(OSSMState* a) { sm = a; }
+    void setStateMachine(OSSMState* stateMachine) { sm = stateMachine; }
 };
 
 #endif
