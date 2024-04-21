@@ -1,11 +1,11 @@
 #include "mock.h"
 #include "unity.h"
-#include "utils/measurements.h"
+#include "utils/analog.h"
 
 // Test all readings zero
 void test_allReadingsZero() {
     prepareAnalogReadData({0, 0, 0, 0, 0});  // 5 samples, all zero
-    float result = getAnalogAveragePercent(0, 5);
+    float result = getAnalogAveragePercent({0, 5});
     TEST_ASSERT_FLOAT_WITHIN(0.001, 0.0f, result);
 }
 
@@ -13,14 +13,14 @@ void test_allReadingsZero() {
 void test_allReadingsMaximum() {
     prepareAnalogReadData(
         {4096, 4096, 4096, 4096, 4096});  // 5 samples, all at max
-    float result = getAnalogAveragePercent(0, 5);
+    float result = getAnalogAveragePercent({0, 5});
     TEST_ASSERT_FLOAT_WITHIN(0.001, 100.0f, result);
 }
 
 // Test mixed readings
 void test_mixedReadings() {
     prepareAnalogReadData({1024, 2048, 3072, 4096, 0});  // Mixed values
-    float result = getAnalogAveragePercent(0, 5);
+    float result = getAnalogAveragePercent({0, 5});
     TEST_ASSERT_FLOAT_WITHIN(
         0.001, 50.0f,
         result);  // Expected: (1024+2048+3072+4096+0)/5 / 4096 * 100

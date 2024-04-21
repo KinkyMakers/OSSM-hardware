@@ -1,7 +1,7 @@
 #ifndef OSSM_SOFTWARE_ANALOG_H
 #define OSSM_SOFTWARE_ANALOG_H
 
-#include <esp32-hal-adc.h>
+#include "Arduino.h"
 
 typedef struct {
     int pinNumber;
