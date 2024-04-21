@@ -188,6 +188,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 
     // Clean up!
     ossm->encoder.setAcceleration(0);
+    ossm->encoder.disableAcceleration();
 
     vTaskDelete(nullptr);
 }

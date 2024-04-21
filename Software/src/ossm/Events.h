@@ -24,4 +24,9 @@ struct Done {};
 
 struct Error {};
 
+// Definitions to make the table easier to read.
+static auto buttonPress = sml::event<ButtonPress>;
+static auto done = sml::event<Done>;
+static auto error = sml::event<Error>;
+
 #endif  // OSSM_SOFTWARE_EVENTS_H

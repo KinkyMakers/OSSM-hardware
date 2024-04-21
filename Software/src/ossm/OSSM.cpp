@@ -1,6 +1,5 @@
 #include "OSSM.h"
 
-#include "Events.h"
 #include "constants/Images.h"
 #include "constants/UserConfig.h"
 #include "extensions/u8g2Extensions.h"
@@ -16,9 +15,16 @@ OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
            AiEsp32RotaryEncoder &encoder)
     : display(display),
       encoder(encoder),
-      sm(std::make_unique<sml::sm<OSSMStateMachine, sml::logger<StateLogger>>>(
-          logger, *this)) {
+      sm(std::make_unique<
+          sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
+                  sml::logger<StateLogger>>>(logger, *this)) {
     initStepper(stepper);
+
+    wm.setConfigPortalTimeout(1);
+    if (!wm.autoConnect("OSSM Setup")) {
+        ESP_LOGD("UTILS", "failed to connect and hit timeout");
+    }
+    ESP_LOGD("UTILS", "exiting autoconnect");
 
     // All initializations are done, so start the state machine.
     sm->process_event(Done{});
@@ -101,11 +107,6 @@ void OSSM::drawHelloTask(void *pvParameters) {
 }
 
 void OSSM::drawHello() {
-    // Use the handle to delete the task.
-    //    if (displayTask != nullptr) {
-    //        vTaskDelete(displayTask);
-    //    }
-    // Create a task to draw the hello world screen.
     xTaskCreatePinnedToCore(drawHelloTask, "drawHello", 10000, this, 1,
                             &displayTask, 0);
 }

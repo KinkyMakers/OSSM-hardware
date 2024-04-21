@@ -1,4 +1,5 @@
 #include "Arduino.h"
+#include "WiFi.h"
 #include "ossm/Events.h"
 #include "ossm/OSSM.h"
 #include "services/board.h"

@@ -20,6 +20,9 @@ static void initEncoder() {
         0, 99, false);  // minValue, maxValue, circleValues true|false (when max
                         // go to min and vice versa)
     encoder.setAcceleration(0);
+
+    // really disabled acceleration
+    encoder.disableAcceleration();
 }
 
 #endif  // OSSM_SOFTWARE_ENCODER_H

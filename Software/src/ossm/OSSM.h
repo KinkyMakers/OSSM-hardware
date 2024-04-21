@@ -3,13 +3,17 @@
 
 #include <memory>
 
+#include "Actions.h"
 #include "AiEsp32RotaryEncoder.h"
 #include "ESP_FlexyStepper.h"
 #include "Events.h"
+#include "Guard.h"
 #include "U8g2lib.h"
+#include "WiFiManager.h"
 #include "boost/sml.hpp"
 #include "constants/Menu.h"
 #include "services/tasks.h"
+#include "utils/RecusiveMutex.h"
 #include "utils/StateLogger.h"
 
 namespace sml = boost::sml;
@@ -48,16 +52,9 @@ class OSSM {
      */
     struct OSSMStateMachine {
         auto operator()() const {
-            // Definitions to make the table easier to read.
-            static auto buttonPress = sml::event<ButtonPress>;
-            static auto done = sml::event<Done>;
-            static auto error = sml::event<Error>;
-
             // Action definitions to make the table easier to read.
             auto drawHello = [](OSSM &o) { o.drawHello(); };
-
             auto drawMenu = [](OSSM &o) { o.drawMenu(); };
-
             auto startHoming = [](OSSM &o) {
                 o.clearHoming();
                 o.startHoming();
@@ -66,33 +63,26 @@ class OSSM {
                 o.isForward = false;
                 o.startHoming();
             };
-
             auto drawPlayControls = [](OSSM &o) { o.drawPlayControls(); };
-
             auto startSimplePenetration = [](OSSM &o) {
                 o.startSimplePenetration();
             };
-
             auto emergencyStop = [](OSSM &o) { o.stepper.emergencyStop(); };
-
             auto drawHelp = [](OSSM &o) { o.drawHelp(); };
             auto drawError = [](OSSM &o) { o.drawError(); };
-
-            auto restart = [] { ESP.restart(); };
 
             // Guard definitions to make the table easier to read.
             auto isStrokeTooShort = [](OSSM &o) {
                 return o.isStrokeTooShort();
             };
+
             auto isOption = [](Menu option) {
                 return [option](OSSM &o) { return o.menuOption == option; };
             };
 
-            static auto isDoubleClick = [](auto e) { return e.isDouble; };
-
             return make_transition_table(
                 // clang-format off
-                    *"idle"_s + done / drawHello = "homing"_s,
+                    *"idle"_s + done / (startWifi, drawHello) = "homing"_s,
 
                     "homing"_s / startHoming = "homing.idle"_s,
                     "homing.idle"_s + error = "error"_s,
@@ -205,8 +195,12 @@ class OSSM {
     explicit OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
                   AiEsp32RotaryEncoder &rotaryEncoder);
 
-    std::unique_ptr<sml::sm<OSSMStateMachine, sml::logger<StateLogger>>> sm =
-        nullptr;  // The state machine
+    std::unique_ptr<
+        sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
+                sml::logger<StateLogger>>>
+        sm = nullptr;  // The state machine
+
+    WiFiManager wm;
 };
 
 #endif  // OSSM_SOFTWARE_OSSM_H
