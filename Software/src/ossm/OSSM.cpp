@@ -84,7 +84,7 @@ void OSSM::drawHelloTask(void *pvParameters) {
 
     ossm->wm.setConfigPortalTimeout(1);
     ossm->wm.setConnectRetries(0);
-    ossm->wm.setConnectTimeout(2);
+    ossm->wm.setConnectTimeout(1);
     ossm->wm.setDisableConfigPortal(true);
     if (!ossm->wm.autoConnect()) {
         ESP_LOGD("OSSM::drawHelloTask", "Failed to connect to WiFi");

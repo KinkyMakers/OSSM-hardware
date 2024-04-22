@@ -9,9 +9,11 @@ void OSSM::drawMenuTask(void *pvParameters) {
     bool isFirstDraw = true;
     OSSM *ossm = (OSSM *)pvParameters;
 
-    int clicksPerRow = 4;
-
-    ossm->encoder.setBoundaries(0, clicksPerRow * (Menu::NUM_OPTIONS)-1, true);
+    int lastEncoderValue = ossm->encoder.readEncoder();
+    int currentEncoderValue;
+    int clicksPerRow = 3;
+    const int maxClicks = clicksPerRow * (Menu::NUM_OPTIONS)-1;
+    ossm->encoder.setBoundaries(0, maxClicks, true);
     ossm->encoder.setAcceleration(0);
 
     ossm->menuOption = (Menu)floor(ossm->encoder.readEncoder() / clicksPerRow);
@@ -33,30 +35,9 @@ void OSSM::drawMenuTask(void *pvParameters) {
         }
 
         isFirstDraw = false;
+        currentEncoderValue = ossm->encoder.readEncoder();
 
         ossm->display.clearBuffer();
-
-        // Display the appropriate Wi-Fi icon based on the current Wi-Fi status
-        switch (WiFiClass::status()) {
-            case WL_CONNECTED:
-                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
-                                       WifiIcon::h, WifiIcon::Connected);
-                break;
-            case WL_NO_SSID_AVAIL:
-            case WL_CONNECT_FAILED:
-            case WL_DISCONNECTED:
-                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
-                                       WifiIcon::h, WifiIcon::Error);
-                break;
-            case WL_IDLE_STATUS:
-                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
-                                       WifiIcon::h, WifiIcon::First);
-                break;
-            default:
-                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
-                                       WifiIcon::h, WifiIcon::Error);
-                break;
-        }
 
         // Drawing Variables.
         int leftPadding = 6;  // Padding on the left side of the screen
@@ -64,9 +45,19 @@ void OSSM::drawMenuTask(void *pvParameters) {
         int itemHeight = 20;   // Height of each item
         int visibleItems = 3;  // Number of items visible on the screen
 
-        auto menuOption =
-            (Menu)floor(ossm->encoder.readEncoder() / clicksPerRow);
-        ossm->menuOption = menuOption;
+        auto menuOption = ossm->menuOption;
+        if (abs(currentEncoderValue % maxClicks -
+                lastEncoderValue % maxClicks) >= clicksPerRow) {
+            lastEncoderValue = currentEncoderValue % maxClicks;
+            menuOption = (Menu)floor(lastEncoderValue / clicksPerRow);
+
+            ossm->menuOption = menuOption;
+        }
+
+        ESP_LOGD(
+            "Menu",
+            "currentEncoderValue: %d, lastEncoderValue: %d, menuOption: %d",
+            currentEncoderValue, lastEncoderValue, menuOption);
 
         drawShape::scroll(100 * ossm->encoder.readEncoder() /
                           (clicksPerRow * Menu::NUM_OPTIONS - 1));
@@ -107,6 +98,30 @@ void OSSM::drawMenuTask(void *pvParameters) {
                                2 + fontSize / 2 + 2 * itemHeight);
         ossm->display.drawLine(120, 4 + fontSize / 2 + itemHeight, 120,
                                1 + fontSize / 2 + 2 * itemHeight);
+
+        // Draw the wifi icon
+
+        // Display the appropriate Wi-Fi icon based on the current Wi-Fi status
+        switch (WiFiClass::status()) {
+            case WL_CONNECTED:
+                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
+                                       WifiIcon::h, WifiIcon::Connected);
+                break;
+            case WL_NO_SSID_AVAIL:
+            case WL_CONNECT_FAILED:
+            case WL_DISCONNECTED:
+                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
+                                       WifiIcon::h, WifiIcon::Error);
+                break;
+            case WL_IDLE_STATUS:
+                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
+                                       WifiIcon::h, WifiIcon::First);
+                break;
+            default:
+                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
+                                       WifiIcon::h, WifiIcon::Error);
+                break;
+        }
 
         ossm->display.sendBuffer();
 
