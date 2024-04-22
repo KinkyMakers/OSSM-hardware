@@ -26,6 +26,10 @@ static const LanguageStruct enUs = {
     .Stroke = "Stroke",
     .StrokeEngine = "Stroke Engine",
     .StrokeTooShort = "Stroke too short. Please check you drive belt.",
+    .WiFi = "Wi-Fi",
+    .WiFiSetup = "Wi-Fi Setup",
+    .WiFiSetupLine1 = "Connect to",
+    .WiFiSetupLine2 = "'Ossm Setup'",
     .YouShouldNotBeHere = "You should not be here.",
 
 };

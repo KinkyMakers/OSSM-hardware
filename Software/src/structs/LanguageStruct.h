@@ -22,6 +22,10 @@ struct LanguageStruct {
     String Stroke;
     String StrokeEngine;
     String StrokeTooShort;
+    String WiFi;
+    String WiFiSetup;
+    String WiFiSetupLine1;
+    String WiFiSetupLine2;
     String YouShouldNotBeHere;
 };
 

@@ -20,12 +20,6 @@ OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
                   sml::logger<StateLogger>>>(logger, *this)) {
     initStepper(stepper);
 
-    wm.setConfigPortalTimeout(1);
-    if (!wm.autoConnect("OSSM Setup")) {
-        ESP_LOGD("UTILS", "failed to connect and hit timeout");
-    }
-    ESP_LOGD("UTILS", "exiting autoconnect");
-
     // All initializations are done, so start the state machine.
     sm->process_event(Done{});
 }
@@ -88,14 +82,21 @@ void OSSM::drawHelloTask(void *pvParameters) {
     ossm->display.drawXBMP(35, 14, 57, 50, Images::RDLogo);
     ossm->display.sendBuffer();
 
-    vTaskDelay(1500);
+    ossm->wm.setConfigPortalTimeout(1);
+    ossm->wm.setConnectRetries(0);
+    ossm->wm.setConnectTimeout(2);
+    ossm->wm.setDisableConfigPortal(true);
+    if (!ossm->wm.autoConnect()) {
+        ESP_LOGD("OSSM::drawHelloTask", "Failed to connect to WiFi");
+    }
+    vTaskDelay(500);
 
     ossm->display.clearBuffer();
     drawStr::title("Kinky Makers");
     ossm->display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
     ossm->display.sendBuffer();
 
-    vTaskDelay(1500);
+    vTaskDelay(1000);
 
     ossm->display.clearBuffer();
     drawStr::title(UserConfig::language.MeasuringStroke);

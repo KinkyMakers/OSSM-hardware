@@ -69,7 +69,21 @@ class OSSM {
             };
             auto emergencyStop = [](OSSM &o) { o.stepper.emergencyStop(); };
             auto drawHelp = [](OSSM &o) { o.drawHelp(); };
+            auto drawWiFi = [](OSSM &o) { o.drawWiFi(); };
+            auto stopWifiPortal = [](OSSM &o) { o.wm.stopConfigPortal(); };
             auto drawError = [](OSSM &o) { o.drawError(); };
+
+            auto startWifi = [](OSSM &o) {
+                // Start the wifi task.
+
+                // If you have saved wifi credentials then connect to wifi
+                // immediately.
+                o.wm.setConfigPortalTimeout(1);
+                if (!o.wm.autoConnect("OSSM Setup")) {
+                    ESP_LOGD("UTILS", "failed to connect and hit timeout");
+                }
+                ESP_LOGD("UTILS", "exiting autoconnect");
+            };
 
             // Guard definitions to make the table easier to read.
             auto isStrokeTooShort = [](OSSM &o) {
@@ -82,7 +96,7 @@ class OSSM {
 
             return make_transition_table(
                 // clang-format off
-                    *"idle"_s + done / (startWifi, drawHello) = "homing"_s,
+                    *"idle"_s + done / drawHello = "homing"_s,
 
                     "homing"_s / startHoming = "homing.idle"_s,
                     "homing.idle"_s + error = "error"_s,
@@ -93,12 +107,16 @@ class OSSM {
 
                     "menu"_s / drawMenu = "menu.idle"_s,
                     "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
+                    "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
                     "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
                     "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
 
                     "simplePenetration"_s / drawPlayControls = "simplePenetration.preflight"_s,
                     "simplePenetration.preflight"_s + done / startSimplePenetration = "simplePenetration.idle"_s,
                     "simplePenetration.idle"_s + event<ButtonPress>[(isDoubleClick)] / emergencyStop = "menu"_s,
+
+                    "wifi"_s / drawWiFi = "wifi.idle"_s,
+                    "wifi.idle"_s + event<ButtonPress> / stopWifiPortal = "menu"_s,
 
                     "help"_s / drawHelp = "help.idle"_s,
                     "help.idle"_s + event<ButtonPress> = "menu"_s,
@@ -169,6 +187,8 @@ class OSSM {
     void drawHello();
 
     void drawHelp();
+
+    void drawWiFi();
 
     void drawMenu();
 

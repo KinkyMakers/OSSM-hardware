@@ -67,7 +67,7 @@ void OSSM::startHomingTask(void *pvParameters) {
                             SampleOnPin{Pins::Driver::currentSensorPin, 200}) -
                         ossm->currentSensorOffset;
 
-        ESP_LOGE("Homing", "Current: %d", current);
+        ESP_LOGV("Homing", "Current: %f", current);
 
         // If we have not detected a "bump" with a hard stop, then return and
         // let the loop continue.

@@ -4,10 +4,6 @@
 // include the ESP
 #include "Esp.h"
 
-auto startWifi = []() {
-    // Start the wifi task.
-};
-
-auto restart = [] { ESP.restart(); };
+auto restart = []() { ESP.restart(); };
 
 #endif  // SOFTWARE_ACTIONS_H

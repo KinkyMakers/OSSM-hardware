@@ -1,6 +1,7 @@
 #include "OSSM.h"
 
 #include "constants/Config.h"
+#include "constants/Images.h"
 #include "extensions/u8g2Extensions.h"
 #include "utils/analog.h"
 
@@ -8,7 +9,7 @@ void OSSM::drawMenuTask(void *pvParameters) {
     bool isFirstDraw = true;
     OSSM *ossm = (OSSM *)pvParameters;
 
-    int clicksPerRow = 3;
+    int clicksPerRow = 4;
 
     ossm->encoder.setBoundaries(0, clicksPerRow * (Menu::NUM_OPTIONS)-1, true);
     ossm->encoder.setAcceleration(0);
@@ -34,6 +35,28 @@ void OSSM::drawMenuTask(void *pvParameters) {
         isFirstDraw = false;
 
         ossm->display.clearBuffer();
+
+        // Display the appropriate Wi-Fi icon based on the current Wi-Fi status
+        switch (WiFiClass::status()) {
+            case WL_CONNECTED:
+                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
+                                       WifiIcon::h, WifiIcon::Connected);
+                break;
+            case WL_NO_SSID_AVAIL:
+            case WL_CONNECT_FAILED:
+            case WL_DISCONNECTED:
+                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
+                                       WifiIcon::h, WifiIcon::Error);
+                break;
+            case WL_IDLE_STATUS:
+                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
+                                       WifiIcon::h, WifiIcon::First);
+                break;
+            default:
+                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
+                                       WifiIcon::h, WifiIcon::Error);
+                break;
+        }
 
         // Drawing Variables.
         int leftPadding = 6;  // Padding on the left side of the screen
@@ -94,10 +117,6 @@ void OSSM::drawMenuTask(void *pvParameters) {
 }
 
 void OSSM::drawMenu() {
-    // Use the handle to delete the task.
-    //    if (displayTask != nullptr) {
-    //        vTaskDelete(displayTask);
-    //    }
     // start the draw menu task
     xTaskCreatePinnedToCore(drawMenuTask, "drawMenuTask", 2048, this, 1,
                             &displayTask, 0);

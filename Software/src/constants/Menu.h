@@ -5,10 +5,18 @@
 
 #include "constants/UserConfig.h"
 
-enum Menu { SimplePenetration, StrokeEngine, Help, Restart, NUM_OPTIONS };
+enum Menu {
+    SimplePenetration,
+    StrokeEngine,
+    WiFiSetup,
+    Help,
+    Restart,
+    NUM_OPTIONS
+};
 
 static String menuStrings[Menu::NUM_OPTIONS] = {
     UserConfig::language.SimplePenetration, UserConfig::language.StrokeEngine,
-    UserConfig::language.GetHelp, UserConfig::language.Restart};
+    UserConfig::language.WiFiSetup, UserConfig::language.GetHelp,
+    UserConfig::language.Restart};
 
 #endif  // OSSM_SOFTWARE_MENU_H

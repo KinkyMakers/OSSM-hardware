@@ -74,4 +74,26 @@ namespace Images {
         0x1f, 0x00};
 }
 
+namespace WifiIcon {
+
+    const int x = 120;
+    const int y = 0;
+    const int w = 8;
+    const int h = 8;
+    const unsigned char Connected[] PROGMEM = {
+        // 'wifi, 8x8px
+        0x00, 0x0f, 0x10, 0x27, 0x48, 0x53, 0x54, 0x55};
+
+    const unsigned char First[] PROGMEM = {
+        // 'wifi, 8x8px
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x04, 0x05};
+    const unsigned char Second[] PROGMEM = {
+        // 'wifi, 8x8px
+        0x00, 0x00, 0x00, 0x07, 0x08, 0x13, 0x14, 0x15,
+    };
+    const unsigned char Error[] PROGMEM = {
+        // 'error, 8x8px
+        0x00, 0x20, 0x20, 0x20, 0x20, 0x03, 0x24, 0x05};
+}
+
 #endif  // OSSM_SOFTWARE_IMAGES_H
