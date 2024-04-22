@@ -1,4 +1,4 @@
-#ifndef SOFTWARE_MOCK_H
+#ifndef SOFTWARE_HTTPCLIENT_H
 #define SOFTWARE_MOCK_H
 
 #include <unity.h>
@@ -28,4 +28,4 @@ void prepareAnalogReadData(const std::vector<int>& readings) {
     }
 }
 
-#endif  // SOFTWARE_MOCK_H
+#endif  // SOFTWARE_HTTPCLIENT_H
