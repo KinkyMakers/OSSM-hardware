@@ -31,12 +31,13 @@ static const LanguageStruct fr = {
     .StrokeTooShort =
         "Course trop courte. Veuillez vérifier votre courroie d'entraînement.",
     .Update = "Mettre à jour",
+    .UpdateMessage =
+        "La mise à jour est en cours. Ça peut prendre jusqu'à 60 secondes.",
     .WiFi = "Wi-Fi",
     .WiFiSetup = "Config. Wi-Fi",
     .WiFiSetupLine1 = "Se connecter à",
     .WiFiSetupLine2 = "'Ossm Setup'",
     .YouShouldNotBeHere = "Vous ne devriez pas être ici.",
-
 };
 
 #endif  // OSSM_SOFTWARE_FR_H

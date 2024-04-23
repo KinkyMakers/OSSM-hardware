@@ -24,11 +24,13 @@ struct LanguageStruct {
     String StrokeEngine;
     String StrokeTooShort;
     String Update;
+    String UpdateMessage;
     String WiFi;
     String WiFiSetup;
     String WiFiSetupLine1;
     String WiFiSetupLine2;
     String YouShouldNotBeHere;
+
 };
 
 #endif  // OSSM_SOFTWARE_LANGUAGESTRUCT_H

@@ -28,6 +28,7 @@ static const LanguageStruct enUs = {
     .StrokeEngine = "Stroke Engine",
     .StrokeTooShort = "Stroke too short. Please check you drive belt.",
     .Update = "Update",
+    .UpdateMessage = "Update is in progress. This may take up to 60s.",
     .WiFi = "Wi-Fi",
     .WiFiSetup = "Wi-Fi Setup",
     .WiFiSetupLine1 = "Connect to",

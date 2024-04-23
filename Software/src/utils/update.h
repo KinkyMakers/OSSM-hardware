@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <HTTPClient.h>
+#include <HTTPUpdate.h>
 
 #include "ArduinoJson.h"
 #include "constants/LogTags.h"
@@ -11,7 +12,7 @@
 #define SW_VERSION "0.0.0"
 #endif
 
-bool isUpdateAvailable() {
+static auto isUpdateAvailable = []() {
     // check if we're online
     if (WiFiClass::status() != WL_CONNECTED) {
         ESP_LOGD(UPDATE_TAG, "Not connected to WiFi");
@@ -21,12 +22,12 @@ bool isUpdateAvailable() {
     String serverNameBubble =
         "http://d2g4f7zewm360.cloudfront.net/check-for-ossm-update";  // live
                                                                       // url
-#ifdef VERSIONTEST
+#ifdef VERSIONDEV
     serverNameBubble =
         "http://d2oq8yqnezqh3r.cloudfront.net/check-for-ossm-update";  // version-test
 #endif
 
-#ifdef VERSIONSTAGIN
+#ifdef VERSIONSTAGING
     serverNameBubble =
         "http://d2oq8yqnezqh3r.cloudfront.net/check-for-ossm-update";  // version-test
 #endif
@@ -36,7 +37,8 @@ bool isUpdateAvailable() {
 
     // Making the POST request to the bubble server
     HTTPClient http;
-    http.begin(serverNameBubble);
+    WiFiClient client;
+    http.begin(client, serverNameBubble);
     http.addHeader("Content-Type", "application/json");
     StaticJsonDocument<200> doc;
     // Add values in the document
@@ -59,7 +61,41 @@ bool isUpdateAvailable() {
         ESP_LOGD("UTILS", "Failed to reach update server");
     }
     http.end();
+    client.stop();
     return response_needUpdate;
-}
+};
+
+auto updateOSSM = []() {
+    // check if we're online
+
+    WiFiClient client;
+    String url = "http://d2sy3zdr3r1gt5.cloudfront.net/firmware.bin";
+
+#ifdef VERSIONDEV
+    url = "http://d2sy3zdr3r1gt5.cloudfront.net/firmware-dev.bin";
+#endif
+#ifdef VERSIONSTAGING
+    url = "http://d2sy3zdr3r1gt5.cloudfront.net/firmware-dev.bin";
+#endif
+
+    t_httpUpdate_return ret = httpUpdate.update(
+        client, url);
+
+    switch (ret) {
+        case HTTP_UPDATE_FAILED:
+            ESP_LOGD("UTILS", "HTTP_UPDATE_FAILED Error (%d): %s\n",
+                     httpUpdate.getLastError(),
+                     httpUpdate.getLastErrorString().c_str());
+            break;
+
+        case HTTP_UPDATE_NO_UPDATES:
+            ESP_LOGD("UTILS", "HTTP_UPDATE_NO_UPDATES");
+            break;
+
+        case HTTP_UPDATE_OK:
+            ESP_LOGD("UTILS", "HTTP_UPDATE_OK");
+            break;
+    }
+};
 
 #endif  // SOFTWARE_UPDATE_H
