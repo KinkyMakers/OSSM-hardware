@@ -15,7 +15,11 @@ Disanvantages:
 - More efficient (this causes more regenerated power in some motion conditions which requires additional capacitance and handling on the PCB)
 - Digital comms over RS485 (Not worse than current RS232, just current boards don't have the needed adapter)
 - Requires software setup to see full benefits (default FW settings disable motor in over-torque condition
+- Requires additional capacitance (recommend 1500uF) - see mounting below
+  
 
 ![IMG_1049](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/7bec39aa-364f-446a-8b29-4f9390e9d71e)
 
 ![image](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/37d83251-a305-4a17-a2c6-f16c2b8f5547)
+
+![OSSM Capacitor view](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/edfe7a90-74a8-4c3e-a55a-6b22099aafb8)
