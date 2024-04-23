@@ -56,19 +56,12 @@ void loop() {
 
         // detect if a double click occurred
         if (millis() - lastPressed < 300) {
-            isDouble = true;
+            ossm->sm->process_event(DoublePress{});
         } else {
-            isDouble = false;
+            ossm->sm->process_event(ButtonPress{});
         }
         lastPressed = millis();
 
-        ESP_LOGD("Loop", "Button Press: %d", isDouble);
-
-        ossm->sm->process_event(ButtonPress{.isDouble = isDouble});
-    }
-
-    // Print the status of the operationTask handler from FREERTOS
-    if (operationTask != nullptr) {
-        ESP_LOGD("Loop", "operationTask: %d", eTaskGetState(operationTask));
+        ESP_LOGD("Loop", "%sButton Press", isDouble ? "Double " : "");
     }
 };

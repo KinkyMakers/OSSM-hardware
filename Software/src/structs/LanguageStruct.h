@@ -10,6 +10,7 @@ struct LanguageStruct {
     String Homing;
     String HomingTookTooLong;
     String Idle;
+    String InDevelopment;
     String MeasuringStroke;
     String NoInternalLoop;
     String Restart;
@@ -22,6 +23,7 @@ struct LanguageStruct {
     String Stroke;
     String StrokeEngine;
     String StrokeTooShort;
+    String Update;
     String WiFi;
     String WiFiSetup;
     String WiFiSetupLine1;

@@ -16,6 +16,7 @@ static const LanguageStruct fr = {
         "Le homing a pris trop de temps.Veuillez vérifier votre câblage et "
         "réessayer.",
     .Idle = "Inactif",
+    .InDevelopment = "Ceci est en développement.",
     .MeasuringStroke = "Mesure de la course",
     .NoInternalLoop = "Aucun gestionnaire d'affichage implémenté.",
     .Restart = "Redémarrage",
@@ -29,6 +30,7 @@ static const LanguageStruct fr = {
     .StrokeEngine = "Stroke Engine",
     .StrokeTooShort =
         "Course trop courte. Veuillez vérifier votre courroie d'entraînement.",
+    .Update = "Mettre à jour",
     .WiFi = "Wi-Fi",
     .WiFiSetup = "Config. Wi-Fi",
     .WiFiSetupLine1 = "Se connecter à",

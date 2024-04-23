@@ -19,7 +19,7 @@ void OSSM::drawMenuTask(void *pvParameters) {
     ossm->menuOption = (Menu)floor(ossm->encoder.readEncoder() / clicksPerRow);
 
     ossm->encoder.setAcceleration(0);
-    ossm->encoder.setEncoderValue(0);
+    //    ossm->encoder.setEncoderValue(0);
 
     // get the encoder position
 

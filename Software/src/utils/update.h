@@ -26,7 +26,7 @@ bool isUpdateAvailable() {
         "http://d2oq8yqnezqh3r.cloudfront.net/check-for-ossm-update";  // version-test
 #endif
 
-#ifdef VERSIONSTAGING
+#ifdef VERSIONSTAGIN
     serverNameBubble =
         "http://d2oq8yqnezqh3r.cloudfront.net/check-for-ossm-update";  // version-test
 #endif

@@ -82,14 +82,7 @@ void OSSM::drawHelloTask(void *pvParameters) {
     ossm->display.drawXBMP(35, 14, 57, 50, Images::RDLogo);
     ossm->display.sendBuffer();
 
-    ossm->wm.setConfigPortalTimeout(1);
-    ossm->wm.setConnectRetries(0);
-    ossm->wm.setConnectTimeout(1);
-    ossm->wm.setDisableConfigPortal(true);
-    if (!ossm->wm.autoConnect()) {
-        ESP_LOGD("OSSM::drawHelloTask", "Failed to connect to WiFi");
-    }
-    vTaskDelay(500);
+    vTaskDelay(1000);
 
     ossm->display.clearBuffer();
     drawStr::title("Kinky Makers");

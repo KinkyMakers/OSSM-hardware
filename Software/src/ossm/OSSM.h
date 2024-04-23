@@ -20,6 +20,7 @@ namespace sml = boost::sml;
 
 class OSSM {
   private:
+    void drawUpdate();
     /**
      * ///////////////////////////////////////////
      * ////
@@ -67,19 +68,27 @@ class OSSM {
             auto startSimplePenetration = [](OSSM &o) {
                 o.startSimplePenetration();
             };
+            auto startStrokeEngine = [](OSSM &o) { o.startStrokeEngine(); };
             auto emergencyStop = [](OSSM &o) { o.stepper.emergencyStop(); };
             auto drawHelp = [](OSSM &o) { o.drawHelp(); };
             auto drawWiFi = [](OSSM &o) { o.drawWiFi(); };
+            auto drawUpdate = [](OSSM &o) { o.drawUpdate(); };
             auto stopWifiPortal = [](OSSM &o) { o.wm.stopConfigPortal(); };
             auto drawError = [](OSSM &o) { o.drawError(); };
 
             auto startWifi = [](OSSM &o) {
+                if (WiFiClass::status() == WL_CONNECTED) {
+                    return;
+                }
                 // Start the wifi task.
 
                 // If you have saved wifi credentials then connect to wifi
                 // immediately.
                 o.wm.setConfigPortalTimeout(1);
-                if (!o.wm.autoConnect("OSSM Setup")) {
+                o.wm.setConnectTimeout(1);
+                o.wm.setConnectRetries(1);
+                o.wm.setConfigPortalBlocking(false);
+                if (!o.wm.autoConnect()) {
                     ESP_LOGD("UTILS", "failed to connect and hit timeout");
                 }
                 ESP_LOGD("UTILS", "exiting autoconnect");
@@ -105,25 +114,34 @@ class OSSM {
                     "homing.backward"_s + done[(isStrokeTooShort)] = "error"_s,
                     "homing.backward"_s + done = "menu"_s,
 
-                    "menu"_s / drawMenu = "menu.idle"_s,
+                    "menu"_s / (drawMenu, startWifi) = "menu.idle"_s,
                     "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
+                    "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
+                    "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
                     "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
                     "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
                     "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
 
                     "simplePenetration"_s / drawPlayControls = "simplePenetration.preflight"_s,
                     "simplePenetration.preflight"_s + done / startSimplePenetration = "simplePenetration.idle"_s,
-                    "simplePenetration.idle"_s + event<ButtonPress>[(isDoubleClick)] / emergencyStop = "menu"_s,
+                    "simplePenetration.idle"_s + doublePress / emergencyStop = "menu"_s,
+
+                    "strokeEngine"_s + on_entry<_> / startStrokeEngine,
+                    "strokeEngine"_s + buttonPress = "menu"_s,
+
+                    "update"_s [isOnline] / drawUpdate = "update.idle"_s,
+                    "update"_s = "wifi"_s,
+                    "update.idle"_s + buttonPress = "menu"_s,
 
                     "wifi"_s / drawWiFi = "wifi.idle"_s,
-                    "wifi.idle"_s + event<ButtonPress> / stopWifiPortal = "menu"_s,
+                    "wifi.idle"_s + buttonPress / stopWifiPortal = "menu"_s,
 
                     "help"_s / drawHelp = "help.idle"_s,
-                    "help.idle"_s + event<ButtonPress> = "menu"_s,
+                    "help.idle"_s + buttonPress = "menu"_s,
 
                     "error"_s / drawError = "error.idle"_s,
-                    "error.idle"_s + event<ButtonPress> / drawHelp = "error.help"_s,
-                    "error.help"_s + event<ButtonPress> / restart = X,
+                    "error.idle"_s + buttonPress / drawHelp = "error.help"_s,
+                    "error.help"_s + buttonPress / restart = X,
 
                     "restart"_s / restart = X);
             // clang-format on
@@ -221,6 +239,7 @@ class OSSM {
         sm = nullptr;  // The state machine
 
     WiFiManager wm;
+    void startStrokeEngine();
 };
 
 #endif  // OSSM_SOFTWARE_OSSM_H

@@ -14,6 +14,7 @@ static const LanguageStruct enUs = {
     .HomingTookTooLong =
         "Homing took too long. Please check your wiring and try again.",
     .Idle = "Initializing",
+    .InDevelopment = "This feature is in development.",
     .MeasuringStroke = "Measuring Stroke",
     .NoInternalLoop = "No display handler implemented.",
     .Restart = "Restart",
@@ -26,6 +27,7 @@ static const LanguageStruct enUs = {
     .Stroke = "Stroke",
     .StrokeEngine = "Stroke Engine",
     .StrokeTooShort = "Stroke too short. Please check you drive belt.",
+    .Update = "Update",
     .WiFi = "Wi-Fi",
     .WiFiSetup = "Wi-Fi Setup",
     .WiFiSetupLine1 = "Connect to",

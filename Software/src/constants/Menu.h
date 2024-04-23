@@ -8,6 +8,7 @@
 enum Menu {
     SimplePenetration,
     StrokeEngine,
+    UpdateOSSM,
     WiFiSetup,
     Help,
     Restart,
@@ -15,8 +16,11 @@ enum Menu {
 };
 
 static String menuStrings[Menu::NUM_OPTIONS] = {
-    UserConfig::language.SimplePenetration, UserConfig::language.StrokeEngine,
-    UserConfig::language.WiFiSetup, UserConfig::language.GetHelp,
+    UserConfig::language.SimplePenetration,
+    UserConfig::language.StrokeEngine,
+    UserConfig::language.Update,
+    UserConfig::language.WiFiSetup,
+    UserConfig::language.GetHelp,
     UserConfig::language.Restart};
 
 #endif  // OSSM_SOFTWARE_MENU_H
