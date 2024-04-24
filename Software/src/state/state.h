@@ -169,8 +169,13 @@ class SM {
             "homing.backward"_s + done[(isStrokeTooShort)] = "error"_s,
             "homing.idle"_s = X,
 
-            "menu"_s = X,
-            "menu.idle"_s = X,
+            "menu"_s / (startWifi) = "menu.idle"_s,
+            "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
+            "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
+            "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
+            "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
+            "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
+            "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
 
             "simplePenetration"_s = X,
             "simplePenetration.preflight"_s = X,

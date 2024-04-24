@@ -109,8 +109,6 @@ class OSSM : public OSSMI {
 
   public:
     explicit OSSM() {}
-
-    WiFiManager wm;
     void startStrokeEngine();
 };
 

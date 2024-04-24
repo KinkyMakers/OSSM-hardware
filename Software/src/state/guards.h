@@ -6,9 +6,9 @@
 #include "ossmi.h"
 static auto isOnline = []() { return WiFiClass::status() == WL_CONNECTED; };
 
-//auto isOption = [](Menu option) {
-//    return [option](OSSMI &o) { return o.getMenuOption() == option; };
-//};
+auto isOption = [](Menu option) {
+    return [option](OSSMI &o) { return o.getMenuOption() == option; };
+};
 
 auto isStrokeTooShort = [](OSSMI &o) { return o.isStrokeTooShort(); };
 
