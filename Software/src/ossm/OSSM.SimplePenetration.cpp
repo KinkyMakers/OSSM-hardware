@@ -69,14 +69,15 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
             targetPosition = 0;
         }
 
-        ESP_LOGD("SimplePenetration", "Moving stepper to position %ld",
+        ESP_LOGD("SimplePenetration", "Moving stepper to position %d",
                  static_cast<long int>(targetPosition));
 
         ossm->stepper.setTargetPositionInMillimeters(targetPosition);
 
         // TODO: update life states.
         //        updateLifeStats();
-        vTaskDelay(1);
+        // Delay task for 1/20 seconds
+        vTaskDelay(80);
     }
     vTaskDelete(nullptr);
 }
