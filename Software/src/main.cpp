@@ -1,12 +1,11 @@
 #include "Arduino.h"
 #include "ossm/Events.h"
 #include "ossm/OSSM.h"
-#include "state/globalState.h"
-#include "state/ossmtest.h"
-#include "state/state.h"
 #include "services/board.h"
 #include "services/display.h"
 #include "services/encoder.h"
+#include "state/globalState.h"
+#include "state/state.h"
 /*
  *  ██████╗ ███████╗███████╗███╗   ███╗
  * ██╔═══██╗██╔════╝██╔════╝████╗ ████║
@@ -24,7 +23,6 @@
  * contribute, fork, branch and share!
  */
 
-OSSMTEST *ossmtest;
 OSSM *ossm;
 
 // TODO: Move this to a service
@@ -36,8 +34,6 @@ long lastPressed = 0;
 void IRAM_ATTR encoderPressed() { handlePress = true; }
 
 void setup() {
-
-//    sm2->process_event(Done{});
     /** Board setup */
     initBoard();
     /** Service setup */
@@ -45,8 +41,6 @@ void setup() {
     initEncoder();
     // Display
     display.begin();
-
-    ossm = new OSSM(display, encoder);
 
     attachInterrupt(digitalPinToInterrupt(Pins::Remote::encoderSwitch),
                     encoderPressed, RISING);
@@ -59,9 +53,9 @@ void loop() {
 
         // detect if a double click occurred
         if (millis() - lastPressed < 300) {
-            ossm->sm->process_event(DoublePress{});
+            stateMachine->process_event(DoublePress{});
         } else {
-            ossm->sm->process_event(ButtonPress{});
+            stateMachine->process_event(ButtonPress{});
         }
         lastPressed = millis();
 

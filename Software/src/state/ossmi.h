@@ -3,6 +3,5 @@
 class OSSMI {
   public:
     virtual ~OSSMI() = default;
-    virtual void action() = 0;
 };
 #endif  // SOFTWARE_OSSMI_H

@@ -10,7 +10,7 @@ namespace sml = boost::sml;
  * access to an OSSM state machine
  *
  * For Example:
- *  ossm->sm.process_event(ButtonPress{});
+ *  stateMachine.process_event(ButtonPress{});
  *
  *
  * There's nothing special about these events, they are just structs.

@@ -11,18 +11,13 @@ using namespace sml;
 
 // Now we can define the OSSM constructor since OSSMStateMachine::operator() is
 // fully defined
-OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
-           AiEsp32RotaryEncoder &encoder)
-    : display(display),
-      encoder(encoder),
-      sm(std::make_unique<
-          sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
-                  sml::logger<StateLogger>>>(logger, *this)) {
-    initStepper(stepper);
+//OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
+//           AiEsp32RotaryEncoder &encoder)
+//    : display(display),
+//      encoder(encoder) {
+//    initStepper(stepper);
+//}
 
-    // All initializations are done, so start the state machine.
-    sm->process_event(Done{});
-}
 
 /**
  * This task will write the word "OSSM" to the screen
@@ -64,37 +59,37 @@ void OSSM::drawHelloTask(void *pvParameters) {
         // increment the frame index
         frameIdx++;
 
-        ossm->display.clearBuffer();
-        ossm->display.setFont(u8g2_font_maniac_tf);
-        ossm->display.drawUTF8(startX, heights[0], "O");
-        ossm->display.drawUTF8(startX + letterSpacing, heights[1], "S");
-        ossm->display.drawUTF8(startX + letterSpacing * 2, heights[2], "S");
-        ossm->display.drawUTF8(startX + letterSpacing * 3, heights[3], "M");
-        ossm->display.sendBuffer();
+        display.clearBuffer();
+        display.setFont(u8g2_font_maniac_tf);
+        display.drawUTF8(startX, heights[0], "O");
+        display.drawUTF8(startX + letterSpacing, heights[1], "S");
+        display.drawUTF8(startX + letterSpacing * 2, heights[2], "S");
+        display.drawUTF8(startX + letterSpacing * 3, heights[3], "M");
+        display.sendBuffer();
         // Saying hi to the watchdog :).
         vTaskDelay(1);
     };
 
     // Delay for a second, then show the RDLogo.
     vTaskDelay(1500);
-    ossm->display.clearBuffer();
+    display.clearBuffer();
     drawStr::title("Research and Desire");
-    ossm->display.drawXBMP(35, 14, 57, 50, Images::RDLogo);
-    ossm->display.sendBuffer();
+    display.drawXBMP(35, 14, 57, 50, Images::RDLogo);
+    display.sendBuffer();
 
     vTaskDelay(1000);
 
-    ossm->display.clearBuffer();
+    display.clearBuffer();
     drawStr::title("Kinky Makers");
-    ossm->display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
-    ossm->display.sendBuffer();
+    display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
+    display.sendBuffer();
 
     vTaskDelay(1000);
 
-    ossm->display.clearBuffer();
+    display.clearBuffer();
     drawStr::title(UserConfig::language.MeasuringStroke);
-    ossm->display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
-    ossm->display.sendBuffer();
+    display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
+    display.sendBuffer();
 
     // delete the task
     vTaskDelete(nullptr);

@@ -1,6 +1,8 @@
 #include "OSSM.h"
 
 #include "constants/Config.h"
+#include "services/stepper.h"
+#include "state/globalstate.h"
 
 void OSSM::startSimplePenetrationTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
@@ -8,8 +10,8 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
 
     auto isInCorrectState = [](OSSM *ossm) {
         // Add any states that you want to support here.
-        return ossm->sm->is("simplePenetration"_s) ||
-               ossm->sm->is("simplePenetration.idle"_s);
+        return stateMachine->is("simplePenetration"_s) ||
+               stateMachine->is("simplePenetration.idle"_s);
     };
 
     double lastSpeed = 0;
@@ -30,14 +32,14 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
                 Config::Advanced::commandDeadZonePercentage) {
             lastSpeed = speed;
 
-            ossm->stepper.setSpeedInMillimetersPerSecond(speed);
-            ossm->stepper.setAccelerationInMillimetersPerSecondPerSecond(
+            stepper.setSpeedInMillimetersPerSecond(speed);
+            stepper.setAccelerationInMillimetersPerSecondPerSecond(
                 acceleration);
-            ossm->stepper.setDecelerationInMillimetersPerSecondPerSecond(
+            stepper.setDecelerationInMillimetersPerSecondPerSecond(
                 acceleration);
         }
 
-        if (ossm->stepper.getDistanceToTargetSigned() != 0) {
+        if (stepper.getDistanceToTargetSigned() != 0) {
             vTaskDelay(1);
             // more than zero
             continue;
@@ -72,7 +74,7 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
         ESP_LOGD("SimplePenetration", "Moving stepper to position %ld",
                  static_cast<long int>(targetPosition));
 
-        ossm->stepper.setTargetPositionInMillimeters(targetPosition);
+        stepper.setTargetPositionInMillimeters(targetPosition);
 
         // TODO: update life states.
         //        updateLifeStats();

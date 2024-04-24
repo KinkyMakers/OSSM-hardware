@@ -5,7 +5,7 @@
 
 #include "constants/Config.h"
 #include "constants/Pins.h"
-
+static ESP_FlexyStepper stepper;
 /**
  * Here are all the initialization steps for the flexyStepper motor.
  *

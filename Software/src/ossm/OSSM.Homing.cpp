@@ -3,6 +3,7 @@
 #include "Events.h"
 #include "constants/UserConfig.h"
 #include "services/stepper.h"
+#include "state/globalstate.h"
 #include "utils/analog.h"
 
 namespace sml = boost::sml;
@@ -38,15 +39,16 @@ void OSSM::startHomingTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
 
     float target = ossm->isForward ? -400 : 400;
-    ossm->stepper.setTargetPositionInMillimeters(target);
+    stepper.setTargetPositionInMillimeters(target);
 
-    auto isInCorrectState = [](OSSM *ossm) {
+    auto isInCorrectState = []() {
         // Add any states that you want to support here.
-        return ossm->sm->is("homing"_s) || ossm->sm->is("homing.idle"_s) ||
-               ossm->sm->is("homing.backward"_s);
+        return stateMachine->is("homing"_s) ||
+               stateMachine->is("homing.idle"_s) ||
+               stateMachine->is("homing.backward"_s);
     };
     // run loop for 15second or until loop exits
-    while (isInCorrectState(ossm)) {
+    while (isInCorrectState()) {
         TickType_t xCurrentTickCount = xTaskGetTickCount();
         // Calculate the time in ticks that the task has been running.
         TickType_t xTicksPassed = xCurrentTickCount - xTaskStartTime;
@@ -58,7 +60,7 @@ void OSSM::startHomingTask(void *pvParameters) {
         if (msPassed > 15000) {
             ESP_LOGE("Homing", "Homing took too long. Check power and restart");
             ossm->errorMessage = UserConfig::language.HomingTookTooLong;
-            ossm->sm->process_event(Error{});
+            stateMachine->process_event(Error{});
             break;
         }
 
@@ -72,7 +74,7 @@ void OSSM::startHomingTask(void *pvParameters) {
         // If we have not detected a "bump" with a hard stop, then return and
         // let the loop continue.
         if (current < Config::Driver::sensorlessCurrentLimit &&
-            ossm->stepper.getCurrentPositionInMillimeters() <
+            stepper.getCurrentPositionInMillimeters() <
                 Config::Driver::maxStrokeLengthMm) {
             // Saying hi to the watchdog :).
             vTaskDelay(1);
@@ -83,13 +85,13 @@ void OSSM::startHomingTask(void *pvParameters) {
 
         // Otherwise, if we have detected a bump, then we need to stop the
         // motor.
-        ossm->stepper.setTargetPositionToStop();
+        stepper.setTargetPositionToStop();
 
         // And then move the motor back by the configured offset.
         // This offset will be positive for reverse homing and negative for
         // forward homing.
         float sign = ossm->isForward ? 1.0f : -1.0f;
-        ossm->stepper.moveRelativeInMillimeters(
+        stepper.moveRelativeInMillimeters(
             sign *
             Config::Advanced::strokeZeroOffsetMm);  //"move to" is blocking
 
@@ -97,7 +99,7 @@ void OSSM::startHomingTask(void *pvParameters) {
             // If we are homing backward, then we need to measure the stroke
             // length before resetting the home position.
             ossm->measuredStrokeMm =
-                min(abs(ossm->stepper.getCurrentPositionInMillimeters()),
+                min(abs(stepper.getCurrentPositionInMillimeters()),
                     Config::Driver::maxStrokeLengthMm);
 
             ESP_LOGD("Homing", "Measured stroke %d", ossm->measuredStrokeMm);
@@ -105,11 +107,11 @@ void OSSM::startHomingTask(void *pvParameters) {
 
         // And finally, we'll set the most forward position as the new "zero"
         // position.
-        ossm->stepper.setCurrentPositionAsHomeAndStop();
+        stepper.setCurrentPositionAsHomeAndStop();
 
         // Set the event to done so that the machine will move to the next
         // state.
-        ossm->sm->process_event(Done{});
+        stateMachine->process_event(Done{});
         break;
     };
 

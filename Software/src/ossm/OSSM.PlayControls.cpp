@@ -2,6 +2,9 @@
 #include "OSSM.h"
 
 #include "extensions/u8g2Extensions.h"
+#include "services/encoder.h"
+#include "services/stepper.h"
+#include "state/globalstate.h"
 #include "utils/analog.h"
 #include "utils/format.h"
 
@@ -17,9 +20,9 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     ossm->strokePercentage = 0;
 
     // Set the stepper to the home position
-    ossm->stepper.setAccelerationInMillimetersPerSecondPerSecond(1000);
-    ossm->stepper.setAccelerationInMillimetersPerSecondPerSecond(10000);
-    ossm->stepper.setTargetPositionInMillimeters(0);
+    stepper.setAccelerationInMillimetersPerSecondPerSecond(1000);
+    stepper.setAccelerationInMillimetersPerSecondPerSecond(10000);
+    stepper.setTargetPositionInMillimeters(0);
 
     /**
      * /////////////////////////////////////////////
@@ -33,25 +36,25 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 
     auto isInPreflight = [](OSSM *ossm) {
         // Add your preflight checks states here.
-        return ossm->sm->is("simplePenetration.preflight"_s);
+        return stateMachine->is("simplePenetration.preflight"_s);
     };
 
     do {
         speedPercentage =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
         if (speedPercentage < 0.5) {
-            ossm->sm->process_event(Done{});
+            stateMachine->process_event(Done{});
             break;
         };
 
-        ossm->display.clearBuffer();
+        display.clearBuffer();
         drawStr::title(menuString);
         String speedString = UserConfig::language.Speed + ": " +
                              String((int)speedPercentage) + "%";
         drawStr::centered(25, speedString);
         drawStr::multiLine(0, 40, UserConfig::language.SpeedWarning);
 
-        ossm->display.sendBuffer();
+        display.sendBuffer();
         vTaskDelay(100);
     } while (isInPreflight(ossm));
 
@@ -66,14 +69,14 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
      */
     auto isInCorrectState = [](OSSM *ossm) {
         // Add any states that you want to support here.
-        return ossm->sm->is("simplePenetration"_s) ||
-               ossm->sm->is("simplePenetration.idle"_s);
+        return stateMachine->is("simplePenetration"_s) ||
+               stateMachine->is("simplePenetration.idle"_s);
     };
 
     // Prepare the encoder
-    ossm->encoder.setBoundaries(0, 100, false);
-    ossm->encoder.setAcceleration(25);
-    ossm->encoder.setEncoderValue(0);
+    encoder.setBoundaries(0, 100, false);
+    encoder.setAcceleration(25);
+    encoder.setEncoderValue(0);
 
     // TODO: prepare the stepper with safe values.
 
@@ -99,7 +102,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     while (isInCorrectState(ossm)) {
         speedPercentage =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
-        strokePercentage = ossm->encoder.readEncoder();
+        strokePercentage = encoder.readEncoder();
         currentTime = floor(millis() / 1000);
 
         if (ossm->speedPercentage != speedPercentage ||
@@ -115,8 +118,8 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
             continue;
         }
 
-        ossm->display.clearBuffer();
-        ossm->display.setFont(Config::Font::base);
+        display.clearBuffer();
+        display.setFont(Config::Font::base);
 
         drawStr::title(menuString);
 
@@ -129,15 +132,15 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
          */
         x = 0;
         h = ceil(64 * speedPercentage / 100);
-        ossm->display.drawBox(x, y - h, w, h);
-        ossm->display.drawFrame(x, 0, w, 64);
+        display.drawBox(x, y - h, w, h);
+        display.drawFrame(x, 0, w, 64);
         String speedString = String((int)speedPercentage) + "%";
-        ossm->display.setFont(Config::Font::base);
-        ossm->display.drawUTF8(x + w + padding, lh1,
+        display.setFont(Config::Font::base);
+        display.drawUTF8(x + w + padding, lh1,
                                UserConfig::language.Speed.c_str());
-        ossm->display.drawUTF8(x + w + padding, lh2, speedString.c_str());
-        ossm->display.setFont(Config::Font::small);
-        ossm->display.drawUTF8(
+        display.drawUTF8(x + w + padding, lh2, speedString.c_str());
+        display.setFont(Config::Font::small);
+        display.drawUTF8(
             x + w + padding, lh3,
             formatTime(currentTime - ossm->sessionStartTime).c_str());
 
@@ -149,46 +152,46 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
          * These controls are associated with stroke and distance
          */
         x = 124;
-        h = ceil(64 * ossm->encoder.readEncoder() / 100);
-        ossm->display.drawBox(x - w, y - h, w, h);
-        ossm->display.drawFrame(x - w, 0, w, 64);
+        h = ceil(64 * encoder.readEncoder() / 100);
+        display.drawBox(x - w, y - h, w, h);
+        display.drawFrame(x - w, 0, w, 64);
 
         // The word "stroke"
-        ossm->display.setFont(Config::Font::base);
+        display.setFont(Config::Font::base);
 
         String strokeString = UserConfig::language.Stroke;
-        auto stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-        ossm->display.drawUTF8(x - w - stringWidth - padding, lh1,
+        auto stringWidth = display.getUTF8Width(strokeString.c_str());
+        display.drawUTF8(x - w - stringWidth - padding, lh1,
                                strokeString.c_str());
 
         // The stroke percent
-        strokeString = String(ossm->encoder.readEncoder()) + "%";
-        stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-        ossm->display.drawUTF8(x - w - stringWidth - padding, lh2,
+        strokeString = String(encoder.readEncoder()) + "%";
+        stringWidth = display.getUTF8Width(strokeString.c_str());
+        display.drawUTF8(x - w - stringWidth - padding, lh2,
                                strokeString.c_str());
 
         // The stroke count
-        ossm->display.setFont(Config::Font::small);
+        display.setFont(Config::Font::small);
         strokeString = "# " + String(ossm->sessionStrokeCount);
-        stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-        ossm->display.drawUTF8(x - w - stringWidth - padding, lh3,
+        stringWidth = display.getUTF8Width(strokeString.c_str());
+        display.drawUTF8(x - w - stringWidth - padding, lh3,
                                strokeString.c_str());
 
         // The Session travel distance
         strokeString = formatDistance(ossm->sessionDistanceMeters);
-        stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-        ossm->display.drawUTF8(x - w - stringWidth - padding, lh4,
+        stringWidth = display.getUTF8Width(strokeString.c_str());
+        display.drawUTF8(x - w - stringWidth - padding, lh4,
                                strokeString.c_str());
 
-        ossm->display.sendBuffer();
+        display.sendBuffer();
 
         // Saying hi to the watchdog :).
         vTaskDelay(200);
     }
 
     // Clean up!
-    ossm->encoder.setAcceleration(0);
-    ossm->encoder.disableAcceleration();
+    encoder.setAcceleration(0);
+    encoder.disableAcceleration();
 
     vTaskDelete(nullptr);
 }
