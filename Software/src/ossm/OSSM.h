@@ -63,9 +63,11 @@ class OSSM : public OSSMI {
      * ////
      * ///////////////////////////////////////////
      */
-    void clearHoming();
+    void clearHoming() override;
 
-    void startHoming();
+    void startHoming() override;
+
+    void reverseHoming() override;
 
     void startSimplePenetration();
 
@@ -106,6 +108,8 @@ class OSSM : public OSSMI {
     static void drawPlayControlsTask(void *pvParameters);
 
     static void startSimplePenetrationTask(void *pvParameters);
+
+    void setStateMachine() {}
 
   public:
     explicit OSSM() {}

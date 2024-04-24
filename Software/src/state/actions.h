@@ -8,6 +8,10 @@
 #include "esp_log.h"
 #include "ossmi.h"
 #include "services/wm.h"
+#include "services/board.h"
+#include "services/display.h"
+#include "services/encoder.h"
+#include "services/stepper.h"
 
 auto restart = []() { ESP.restart(); };
 
@@ -28,4 +32,16 @@ auto startWifi = []() {
     }
     ESP_LOGD("UTILS", "exiting autoconnect");
 };
+
+auto stopWifiPortal = []() { wm.stopConfigPortal(); };
+
+auto startHoming = [](OSSMI &o) {
+    o.clearHoming();
+    o.startHoming();
+};
+
+auto reverseHoming = [](OSSMI &o) {
+    o.reverseHoming();
+};
+
 #endif  // SOFTWARE_ACTIONS_H

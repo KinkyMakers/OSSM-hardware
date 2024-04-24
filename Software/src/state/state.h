@@ -4,14 +4,8 @@
 #pragma once
 namespace sml = boost::sml;
 
-struct event_trigger {};
-
 class SM {
-//    OSSMI& osmi;
-
   public:
-//    explicit SM(OSSMI& ossmi) : osmi(ossmi) {}
-
     //   /*
     //    *//**
     //     * ///////////////////////////////////////////
@@ -74,29 +68,7 @@ class SM {
     //            stopWifiPortal = [](OSSM &o) { o.wm.stopConfigPortal(); };
     //            auto drawError = [](OSSM &o) { o.drawError(); };
     //
-    //            auto startWifi = [](OSSM &o) {
-    //                if (WiFiClass::status() == WL_CONNECTED) {
-    //                    return;
-    //                }
-    //                // Start the wifi task.
     //
-    //                // If you have saved wifi credentials then connect to wifi
-    //                // immediately.
-    //                o.wm.setConfigPortalTimeout(1);
-    //                o.wm.setConnectTimeout(1);
-    //                o.wm.setConnectRetries(1);
-    //                o.wm.setConfigPortalBlocking(false);
-    //                if (!o.wm.autoConnect()) {
-    //                    ESP_LOGD("UTILS", "failed to connect and hit
-    //                    timeout");
-    //                }
-    //                ESP_LOGD("UTILS", "exiting autoconnect");
-    //            };
-    //
-    //            // Guard definitions to make the table easier to read.
-    //            auto isStrokeTooShort = [](OSSM &o) {
-    //                return o.isStrokeTooShort();
-    //            };
     //
     //            auto isOption = [](Menu option) {
     //                return [option](OSSM &o) { return o.menuOption == option;
@@ -165,9 +137,12 @@ class SM {
             // clang-format off
             *"idle"_s + done = "homing"_s,
 
-            "homing"_s = X,
+            "homing"_s / startHoming = "homing.idle"_s,
+            "homing.idle"_s + error = "error"_s,
+            "homing.idle"_s + done / reverseHoming = "homing.backward"_s,
+            "homing.backward"_s + error = "error"_s,
             "homing.backward"_s + done[(isStrokeTooShort)] = "error"_s,
-            "homing.idle"_s = X,
+            "homing.backward"_s + done = "menu"_s,
 
             "menu"_s / (startWifi) = "menu.idle"_s,
             "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,

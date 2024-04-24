@@ -8,7 +8,7 @@
 /**
  * This file changes the configuration of the board.
  */
-void initBoard() {
+static void initBoard() {
     Serial.begin(115200);
 
     pinMode(Pins::Remote::encoderSwitch,

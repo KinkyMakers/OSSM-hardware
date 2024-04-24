@@ -10,8 +10,8 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
 
     auto isInCorrectState = [](OSSM *ossm) {
         // Add any states that you want to support here.
-        return stateMachine->is("simplePenetration"_s) ||
-               stateMachine->is("simplePenetration.idle"_s);
+        return stateMachine.is("simplePenetration"_s) ||
+               stateMachine.is("simplePenetration.idle"_s);
     };
 
     double lastSpeed = 0;

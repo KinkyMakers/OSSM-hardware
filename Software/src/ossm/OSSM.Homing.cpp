@@ -9,6 +9,11 @@
 namespace sml = boost::sml;
 using namespace sml;
 
+struct TaskData {
+    OSSM *ossm;
+    ESP_FlexyStepper *stepper;
+};
+
 /** OSSM Homing methods
  *
  * This is a collection of methods that are associated with the homing state on
@@ -27,15 +32,16 @@ void OSSM::clearHoming() {
     // Clear the stored values.
     this->measuredStrokeMm = 0;
 
-    // Recalibrate the current sensor offset.
+    //     Recalibrate the current sensor offset.
     this->currentSensorOffset = (getAnalogAveragePercent(
         SampleOnPin{Pins::Driver::currentSensorPin, 1000}));
 };
 
 void OSSM::startHomingTask(void *pvParameters) {
+    ESP_LOGD("Homing", "Homing task started");
     TickType_t xTaskStartTime = xTaskGetTickCount();
 
-    // parse parameters to get OSSM reference
+    // convert params to TaskData
     OSSM *ossm = (OSSM *)pvParameters;
 
     float target = ossm->isForward ? -400 : 400;
@@ -43,10 +49,16 @@ void OSSM::startHomingTask(void *pvParameters) {
 
     auto isInCorrectState = []() {
         // Add any states that you want to support here.
-        return stateMachine->is("homing"_s) ||
-               stateMachine->is("homing.idle"_s) ||
-               stateMachine->is("homing.backward"_s);
+        return stateMachine.is("homing"_s) ||
+               stateMachine.is("homing.idle"_s) ||
+               stateMachine.is("homing.backward"_s) ||
+               stateMachine.is("idle"_s);
     };
+
+    // visit current state
+    stateMachine.visit_current_states([](auto state) {
+        ESP_LOGD("Homing", "Current state B: %s", state.c_str());
+    });
     // run loop for 15second or until loop exits
     while (isInCorrectState()) {
         TickType_t xCurrentTickCount = xTaskGetTickCount();
@@ -60,7 +72,7 @@ void OSSM::startHomingTask(void *pvParameters) {
         if (msPassed > 15000) {
             ESP_LOGE("Homing", "Homing took too long. Check power and restart");
             ossm->errorMessage = UserConfig::language.HomingTookTooLong;
-            stateMachine->process_event(Error{});
+            stateMachine.process_event(Error{});
             break;
         }
 
@@ -111,9 +123,11 @@ void OSSM::startHomingTask(void *pvParameters) {
 
         // Set the event to done so that the machine will move to the next
         // state.
-        stateMachine->process_event(Done{});
+        stateMachine.process_event(Done{});
         break;
     };
+
+    ESP_LOGD("Homing", "Homing task ended");
 
     vTaskDelete(nullptr);
 }
@@ -122,6 +136,15 @@ void OSSM::startHoming() {
     // Create task
     xTaskCreatePinnedToCore(startHomingTask, "startHomingTask", 10000, this, 1,
                             &operationTask, 0);
+
+    stateMachine.visit_current_states([](auto state) {
+        ESP_LOGD("Homing", "Current state C: %s", state.c_str());
+    });
+}
+
+void OSSM::reverseHoming() {
+    isForward = false;
+    startHoming();
 }
 
 auto OSSM::isStrokeTooShort() -> bool {

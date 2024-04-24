@@ -1,11 +1,10 @@
 #include "Arduino.h"
-#include "ossm/OSSM.h"
 #include "services/board.h"
 #include "services/display.h"
 #include "services/encoder.h"
+#include "services/stepper.h"
 #include "state/events.h"
 #include "state/globalState.h"
-#include "state/state.h"
 /*
  *  ██████╗ ███████╗███████╗███╗   ███╗
  * ██╔═══██╗██╔════╝██╔════╝████╗ ████║
@@ -32,16 +31,20 @@ long lastPressed = 0;
 void IRAM_ATTR encoderPressed() { handlePress = true; }
 
 void setup() {
-    /** Board setup */
     initBoard();
-    /** Service setup */
-    // Encoder
     initEncoder();
-    // Display
+    initStepper();
     display.begin();
 
     attachInterrupt(digitalPinToInterrupt(Pins::Remote::encoderSwitch),
                     encoderPressed, RISING);
+    stateMachine.visit_current_states([](auto state) {
+        ESP_LOGD("Homing", "Current state A: %s", state.c_str());
+    });
+    stateMachine.process_event(Done{});
+    stateMachine.visit_current_states([](auto state) {
+        ESP_LOGD("Homing", "Current state D: %s", state.c_str());
+    });
 };
 
 void loop() {
@@ -51,9 +54,9 @@ void loop() {
 
         // detect if a double click occurred
         if (millis() - lastPressed < 300) {
-            stateMachine->process_event(DoublePress{});
+            stateMachine.process_event(DoublePress{});
         } else {
-            stateMachine->process_event(ButtonPress{});
+            stateMachine.process_event(ButtonPress{});
         }
         lastPressed = millis();
 

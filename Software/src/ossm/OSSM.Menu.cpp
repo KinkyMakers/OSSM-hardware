@@ -27,7 +27,7 @@ void OSSM::drawMenuTask(void *pvParameters) {
 
     auto isInCorrectState = [](OSSM *ossm) {
         // Add any states that you want to support here.
-        return stateMachine->is("menu"_s) || stateMachine->is("menu.idle"_s);
+        return stateMachine.is("menu"_s) || stateMachine.is("menu.idle"_s);
     };
 
     while (isInCorrectState(ossm)) {

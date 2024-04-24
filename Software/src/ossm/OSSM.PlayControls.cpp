@@ -36,14 +36,14 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 
     auto isInPreflight = [](OSSM *ossm) {
         // Add your preflight checks states here.
-        return stateMachine->is("simplePenetration.preflight"_s);
+        return stateMachine.is("simplePenetration.preflight"_s);
     };
 
     do {
         speedPercentage =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
         if (speedPercentage < 0.5) {
-            stateMachine->process_event(Done{});
+            stateMachine.process_event(Done{});
             break;
         };
 
@@ -69,8 +69,8 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
      */
     auto isInCorrectState = [](OSSM *ossm) {
         // Add any states that you want to support here.
-        return stateMachine->is("simplePenetration"_s) ||
-               stateMachine->is("simplePenetration.idle"_s);
+        return stateMachine.is("simplePenetration"_s) ||
+               stateMachine.is("simplePenetration.idle"_s);
     };
 
     // Prepare the encoder
@@ -137,7 +137,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         String speedString = String((int)speedPercentage) + "%";
         display.setFont(Config::Font::base);
         display.drawUTF8(x + w + padding, lh1,
-                               UserConfig::language.Speed.c_str());
+                         UserConfig::language.Speed.c_str());
         display.drawUTF8(x + w + padding, lh2, speedString.c_str());
         display.setFont(Config::Font::small);
         display.drawUTF8(
@@ -162,26 +162,26 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         String strokeString = UserConfig::language.Stroke;
         auto stringWidth = display.getUTF8Width(strokeString.c_str());
         display.drawUTF8(x - w - stringWidth - padding, lh1,
-                               strokeString.c_str());
+                         strokeString.c_str());
 
         // The stroke percent
         strokeString = String(encoder.readEncoder()) + "%";
         stringWidth = display.getUTF8Width(strokeString.c_str());
         display.drawUTF8(x - w - stringWidth - padding, lh2,
-                               strokeString.c_str());
+                         strokeString.c_str());
 
         // The stroke count
         display.setFont(Config::Font::small);
         strokeString = "# " + String(ossm->sessionStrokeCount);
         stringWidth = display.getUTF8Width(strokeString.c_str());
         display.drawUTF8(x - w - stringWidth - padding, lh3,
-                               strokeString.c_str());
+                         strokeString.c_str());
 
         // The Session travel distance
         strokeString = formatDistance(ossm->sessionDistanceMeters);
         stringWidth = display.getUTF8Width(strokeString.c_str());
         display.drawUTF8(x - w - stringWidth - padding, lh4,
-                               strokeString.c_str());
+                         strokeString.c_str());
 
         display.sendBuffer();
 
