@@ -6,6 +6,8 @@
 #include "ossmtest.h"
 #include "state.h"
 #include "utils/RecusiveMutex.h"
+#include "utils/StateLogger.h"
+
 namespace di = boost::di;
 
 auto injector = di::make_injector(di::bind<OSSMI>.to<OSSMTEST>().in(
