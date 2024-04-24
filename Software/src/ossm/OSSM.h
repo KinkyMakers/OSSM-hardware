@@ -3,16 +3,16 @@
 
 #include <memory>
 
-#include "Actions.h"
 #include "AiEsp32RotaryEncoder.h"
 #include "ESP_FlexyStepper.h"
-#include "Events.h"
-#include "Guard.h"
 #include "U8g2lib.h"
 #include "WiFiManager.h"
 #include "boost/sml.hpp"
 #include "constants/Menu.h"
 #include "services/tasks.h"
+#include "state/actions.h"
+#include "state/events.h"
+#include "state/guards.h"
 #include "state/ossmi.h"
 #include "utils/RecusiveMutex.h"
 #include "utils/StateLogger.h"
@@ -20,9 +20,8 @@
 
 namespace sml = boost::sml;
 
-class OSSM: public OSSMI {
+class OSSM : public OSSMI {
   private:
-
     /**
      * ///////////////////////////////////////////
      * ////
@@ -30,7 +29,7 @@ class OSSM: public OSSMI {
      * ////
      * ///////////////////////////////////////////
      */
-//    AiEsp32RotaryEncoder &encoder;
+    //    AiEsp32RotaryEncoder &encoder;
 
     /**
      * ///////////////////////////////////////////
@@ -70,7 +69,8 @@ class OSSM: public OSSMI {
 
     void startSimplePenetration();
 
-    bool isStrokeTooShort();
+    bool isStrokeTooShort() override;
+    Menu getMenuOption() override { return menuOption; }
 
     void drawError();
 
@@ -112,7 +112,6 @@ class OSSM: public OSSMI {
 
     WiFiManager wm;
     void startStrokeEngine();
-
 };
 
 #endif  // OSSM_SOFTWARE_OSSM_H

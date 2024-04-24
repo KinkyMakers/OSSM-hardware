@@ -1,9 +1,9 @@
 #include "Arduino.h"
-#include "ossm/Events.h"
 #include "ossm/OSSM.h"
 #include "services/board.h"
 #include "services/display.h"
 #include "services/encoder.h"
+#include "state/events.h"
 #include "state/globalState.h"
 #include "state/state.h"
 /*
@@ -22,8 +22,6 @@
  * But our biggest sponsor is you! If you want to support this project, please
  * contribute, fork, branch and share!
  */
-
-OSSM *ossm;
 
 // TODO: Move this to a service
 bool handlePress = false;

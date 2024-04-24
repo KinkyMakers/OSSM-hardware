@@ -7,10 +7,10 @@ namespace sml = boost::sml;
 struct event_trigger {};
 
 class SM {
-    OSSMI& osmi;
+//    OSSMI& osmi;
 
   public:
-    explicit SM(OSSMI& osmi) : osmi(osmi) {}
+//    explicit SM(OSSMI& ossmi) : osmi(ossmi) {}
 
     //   /*
     //    *//**
@@ -166,7 +166,7 @@ class SM {
             *"idle"_s + done = "homing"_s,
 
             "homing"_s = X,
-            "homing.backward"_s = X,
+            "homing.backward"_s + done[(isStrokeTooShort)] = "error"_s,
             "homing.idle"_s = X,
 
             "menu"_s = X,

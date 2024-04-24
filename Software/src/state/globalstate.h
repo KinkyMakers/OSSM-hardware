@@ -14,10 +14,13 @@ auto injector = di::make_injector(di::bind<OSSMI>.to<OSSM>().in(
     di::singleton)  // OSSM as singleton if shared state is desired
 );
 
+// create OSSM instance with injector
+
+static OSSMI &ossm = injector.create<OSSMI &>();
 static StateLogger stateLogger;
 
 static auto stateMachine =
     std::make_unique<sml::sm<SM, sml::thread_safe<ESP32RecursiveMutex>,
                              sml::logger<StateLogger>>>(injector.create<SM>(),
-                                                        stateLogger);
+                                                        stateLogger, ossm);
 #endif  // SOFTWARE_GLOBALSTATE_H
