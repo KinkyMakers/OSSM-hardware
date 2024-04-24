@@ -72,7 +72,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 
     // Prepare the encoder
     ossm->encoder.setBoundaries(0, 100, false);
-    ossm->encoder.setAcceleration(25);
+    ossm->encoder.setAcceleration(10);
     ossm->encoder.setEncoderValue(0);
 
     // TODO: prepare the stepper with safe values.
@@ -97,8 +97,9 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     bool valueChanged = false;
 
     while (isInCorrectState(ossm)) {
-        speedPercentage =
-            getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
+        speedPercentage = 0.3 * getAnalogAveragePercent(SampleOnPin{
+                                    Pins::Remote::speedPotPin, 50}) +
+                          0.7 * speedPercentage;
         strokePercentage = ossm->encoder.readEncoder();
         currentTime = floor(millis() / 1000);
 
