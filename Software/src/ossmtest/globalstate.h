@@ -12,6 +12,7 @@ auto injector = di::make_injector(di::bind<OSSMI>.to<OSSMTEST>().in(
     di::singleton)  // OSSM as singleton if shared state is desired
 );
 
-
-static auto sm = std::make_unique<sml::sm<SM, sml::thread_safe<ESP32RecursiveMutex>>>(injector.create<SM>());
+static auto sm2 =
+    std::make_unique<sml::sm<SM, sml::thread_safe<ESP32RecursiveMutex>>>(
+        injector.create<SM>());
 #endif  // SOFTWARE_GLOBALSTATE_H
