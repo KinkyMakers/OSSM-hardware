@@ -21,7 +21,6 @@ namespace sml = boost::sml;
 
 class OSSM {
   private:
-    void drawUpdate();
     /**
      * ///////////////////////////////////////////
      * ////
@@ -218,6 +217,12 @@ class OSSM {
 
     void drawPlayControls();
 
+    void drawUpdate();
+
+    void drawNoUpdate();
+
+    void drawUpdating();
+
     /**
      * ///////////////////////////////////////////
      * ////
@@ -246,8 +251,7 @@ class OSSM {
 
     WiFiManager wm;
     void startStrokeEngine();
-    void drawNoUpdate();
-    void drawUpdating();
+
 };
 
 #endif  // OSSM_SOFTWARE_OSSM_H

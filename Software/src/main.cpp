@@ -1,11 +1,12 @@
 #include "Arduino.h"
-#include "WiFi.h"
 #include "ossm/Events.h"
 #include "ossm/OSSM.h"
+#include "ossmtest/globalState.h"
+#include "ossmtest/ossmtest.h"
+#include "ossmtest/state.h"
 #include "services/board.h"
 #include "services/display.h"
 #include "services/encoder.h"
-
 /*
  *  ██████╗ ███████╗███████╗███╗   ███╗
  * ██╔═══██╗██╔════╝██╔════╝████╗ ████║
@@ -23,6 +24,7 @@
  * contribute, fork, branch and share!
  */
 
+OSSMTEST *ossmtest;
 OSSM *ossm;
 
 // TODO: Move this to a service
@@ -34,9 +36,10 @@ long lastPressed = 0;
 void IRAM_ATTR encoderPressed() { handlePress = true; }
 
 void setup() {
+
+//    sm2->process_event(Done{});
     /** Board setup */
     initBoard();
-
     /** Service setup */
     // Encoder
     initEncoder();
