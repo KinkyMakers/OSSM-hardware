@@ -5,6 +5,7 @@
 #include "ossmi.h"
 #include "ossmtest.h"
 #include "state.h"
+#include "utils/RecusiveMutex.h"
 namespace di = boost::di;
 
 auto injector = di::make_injector(di::bind<OSSMI>.to<OSSMTEST>().in(
@@ -12,5 +13,5 @@ auto injector = di::make_injector(di::bind<OSSMI>.to<OSSMTEST>().in(
 );
 
 
-static auto sm = std::make_unique<sml::sm<SM>>(injector.create<SM>());
+static auto sm = std::make_unique<sml::sm<SM, sml::thread_safe<ESP32RecursiveMutex>>>(injector.create<SM>());
 #endif  // SOFTWARE_GLOBALSTATE_H
