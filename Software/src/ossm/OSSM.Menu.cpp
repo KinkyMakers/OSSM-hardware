@@ -134,5 +134,5 @@ void OSSM::drawMenuTask(void *pvParameters) {
 void OSSM::drawMenu() {
     // start the draw menu task
     xTaskCreatePinnedToCore(drawMenuTask, "drawMenuTask", 2048, this, 1,
-                            &displayTask, 0);
+                            &displayTask, displayTaskCore);
 }

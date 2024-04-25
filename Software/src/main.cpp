@@ -5,6 +5,7 @@
 #include "services/board.h"
 #include "services/display.h"
 #include "services/encoder.h"
+#include "utils/StrokeEngineHelper.h"
 
 /*
  *  ██████╗ ███████╗███████╗███╗   ███╗

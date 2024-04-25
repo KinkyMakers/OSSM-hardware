@@ -197,5 +197,5 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 
 void OSSM::drawPlayControls() {
     xTaskCreatePinnedToCore(drawPlayControlsTask, "drawPlayControlsTask", 2048,
-                            this, 1, &displayTask, 0);
+                            this, 1, &displayTask, displayTaskCore);
 }

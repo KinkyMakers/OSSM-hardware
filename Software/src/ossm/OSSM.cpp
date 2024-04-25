@@ -102,7 +102,7 @@ void OSSM::drawHelloTask(void *pvParameters) {
 
 void OSSM::drawHello() {
     xTaskCreatePinnedToCore(drawHelloTask, "drawHello", 10000, this, 1,
-                            &displayTask, 0);
+                            &displayTask, displayTaskCore);
 }
 
 void OSSM::drawError() {
