@@ -128,6 +128,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
          *
          * These controls are associated with speed and time.
          */
+
         x = 0;
         h = ceil(64 * speedPercentage / 100);
         ossm->display.drawBox(x, y - h, w, h);
