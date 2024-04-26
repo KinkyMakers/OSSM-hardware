@@ -91,9 +91,9 @@ class OSSM {
                 o.wm.setConnectTimeout(1);
                 o.wm.setConnectRetries(1);
                 o.wm.setConfigPortalBlocking(false);
-                if (!o.wm.autoConnect()) {
-                    ESP_LOGD("UTILS", "failed to connect and hit timeout");
-                }
+//                if (!o.wm.autoConnect()) {
+//                    ESP_LOGD("UTILS", "failed to connect and hit timeout");
+//                }
                 ESP_LOGD("UTILS", "exiting autoconnect");
             };
 

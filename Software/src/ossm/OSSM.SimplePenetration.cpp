@@ -83,7 +83,10 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
 }
 
 void OSSM::startSimplePenetration() {
-    xTaskCreatePinnedToCore(
-        startSimplePenetrationTask, "startSimplePenetrationTask", 2048, this,
-        configMAX_PRIORITIES - 1, &operationTask, operationTaskCore);
+    int stackSize = 15 * configMINIMAL_STACK_SIZE;
+
+    xTaskCreatePinnedToCore(startSimplePenetrationTask,
+                            "startSimplePenetrationTask", stackSize, this,
+                            configMAX_PRIORITIES - 1,
+                            &runSimplePenetrationTaskH, operationTaskCore);
 }

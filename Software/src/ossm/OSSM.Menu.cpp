@@ -132,7 +132,6 @@ void OSSM::drawMenuTask(void *pvParameters) {
 }
 
 void OSSM::drawMenu() {
-    // start the draw menu task
-    xTaskCreatePinnedToCore(drawMenuTask, "drawMenuTask", 2048, this, 1,
-                            &displayTask, displayTaskCore);
+    int stackSize = 5 * configMINIMAL_STACK_SIZE;
+    xTaskCreate(drawMenuTask, "drawMenuTask", stackSize, this, 1, &drawMenuTaskH);
 }

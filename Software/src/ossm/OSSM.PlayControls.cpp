@@ -88,6 +88,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     short lh2 = 37;
     short lh3 = 56;
     short lh4 = 64;
+    static int speedKnobPercent = 0;
 
     // record session start time rounded to the nearest second
     ossm->sessionStartTime = floor(millis() / 1000);
@@ -97,8 +98,9 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     bool valueChanged = false;
 
     while (isInCorrectState(ossm)) {
-        speedPercentage = 0.3 * getAnalogAveragePercent(SampleOnPin{
-                                    Pins::Remote::speedPotPin, 50}) +
+        speedKnobPercent = getAnalogAveragePercent(SampleOnPin{
+            Pins::Remote::speedPotPin, 50});
+        speedPercentage = 0.3 * speedKnobPercent +
                           0.7 * speedPercentage;
         strokePercentage = ossm->encoder.readEncoder();
         currentTime = floor(millis() / 1000);
@@ -130,10 +132,10 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
          */
 
         x = 0;
-        h = ceil(64 * speedPercentage / 100);
+        h = ceil(64 * speedKnobPercent / 100);
         ossm->display.drawBox(x, y - h, w, h);
         ossm->display.drawFrame(x, 0, w, 64);
-        String speedString = String((int)speedPercentage) + "%";
+        String speedString = String((int)speedKnobPercent) + "%";
         ossm->display.setFont(Config::Font::base);
         ossm->display.drawUTF8(x + w + padding, lh1,
                                UserConfig::language.Speed.c_str());
@@ -196,6 +198,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 }
 
 void OSSM::drawPlayControls() {
-    xTaskCreatePinnedToCore(drawPlayControlsTask, "drawPlayControlsTask", 2048,
-                            this, 1, &displayTask, displayTaskCore);
+    int stackSize = 3 * configMINIMAL_STACK_SIZE;
+    xTaskCreate(drawPlayControlsTask, "drawPlayControlsTask", stackSize,
+                            this, 1, &drawPlayControlsTaskH);
 }

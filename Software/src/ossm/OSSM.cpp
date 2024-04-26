@@ -101,8 +101,10 @@ void OSSM::drawHelloTask(void *pvParameters) {
 }
 
 void OSSM::drawHello() {
-    xTaskCreatePinnedToCore(drawHelloTask, "drawHello", 10000, this, 1,
-                            &displayTask, displayTaskCore);
+    // 3 x minimum stack
+    int stackSize = 3 * configMINIMAL_STACK_SIZE;
+    xTaskCreate(drawHelloTask, "drawHello", stackSize, this, 1,
+                            &drawHelloTaskH);
 }
 
 void OSSM::drawError() {
