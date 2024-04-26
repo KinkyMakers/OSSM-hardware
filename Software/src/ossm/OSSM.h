@@ -11,17 +11,19 @@
 #include "U8g2lib.h"
 #include "WiFiManager.h"
 #include "boost/sml.hpp"
+#include "constants/Config.h"
 #include "constants/Menu.h"
+#include "constants/Pins.h"
 #include "services/tasks.h"
 #include "utils/RecusiveMutex.h"
 #include "utils/StateLogger.h"
+#include "utils/analog.h"
 #include "utils/update.h"
 
 namespace sml = boost::sml;
 
 class OSSM {
   private:
-    void drawUpdate();
     /**
      * ///////////////////////////////////////////
      * ////
@@ -66,6 +68,7 @@ class OSSM {
                 o.startHoming();
             };
             auto drawPlayControls = [](OSSM &o) { o.drawPlayControls(); };
+            auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
             auto startSimplePenetration = [](OSSM &o) {
                 o.startSimplePenetration();
             };
@@ -89,11 +92,11 @@ class OSSM {
                 // immediately.
                 o.wm.setConfigPortalTimeout(1);
                 o.wm.setConnectTimeout(1);
-                o.wm.setConnectRetries(1);
+                o.wm.setConnectRetries(2);
                 o.wm.setConfigPortalBlocking(false);
-//                if (!o.wm.autoConnect()) {
-//                    ESP_LOGD("UTILS", "failed to connect and hit timeout");
-//                }
+                if (!o.wm.autoConnect()) {
+                    ESP_LOGD("UTILS", "failed to connect and hit timeout");
+                }
                 ESP_LOGD("UTILS", "exiting autoconnect");
             };
 
@@ -104,6 +107,12 @@ class OSSM {
 
             auto isOption = [](Menu option) {
                 return [option](OSSM &o) { return o.menuOption == option; };
+            };
+
+            auto isPreflightSafe = [](OSSM &o) {
+                return getAnalogAveragePercent(
+                           {Pins::Remote::speedPotPin, 50}) <
+                       Config::Advanced::commandDeadZonePercentage;
             };
 
             return make_transition_table(
@@ -125,12 +134,15 @@ class OSSM {
                 "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
 
-                "simplePenetration"_s / drawPlayControls = "simplePenetration.preflight"_s,
-                "simplePenetration.preflight"_s + done / startSimplePenetration = "simplePenetration.idle"_s,
+                "simplePenetration"_s [isPreflightSafe] / (drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
+                "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
+                "simplePenetration.preflight"_s + done / (drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration.idle"_s + doublePress / emergencyStop = "menu"_s,
 
-                "strokeEngine"_s + on_entry<_> / startStrokeEngine,
-                "strokeEngine"_s + buttonPress = "menu"_s,
+                "strokeEngine"_s [isPreflightSafe] / (drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
+                "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
+                "strokeEngine.preflight"_s + done / (drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
+                "strokeEngine.idle"_s + doublePress / emergencyStop = "menu"_s,
 
                 "update"_s [isOnline] / drawUpdate = "update.checking"_s,
                 "update"_s = "wifi"_s,
@@ -150,6 +162,7 @@ class OSSM {
                 "error.help"_s + buttonPress / restart = X,
 
                 "restart"_s / restart = X);
+
             // clang-format on
         }
     };
@@ -227,11 +240,21 @@ class OSSM {
      */
     static void startHomingTask(void *pvParameters);
 
+    [[noreturn]] void startStrokeEngine();
+
     static void drawHelloTask(void *pvParameters);
 
     static void drawMenuTask(void *pvParameters);
 
     static void drawPlayControlsTask(void *pvParameters);
+
+    void drawUpdate();
+    void drawNoUpdate();
+
+    void drawUpdating();
+
+    void drawPreflight();
+    static void drawPreflightTask(void *pvParameters);
 
     static void startSimplePenetrationTask(void *pvParameters);
 
@@ -245,9 +268,6 @@ class OSSM {
         sm = nullptr;  // The state machine
 
     WiFiManager wm;
-    void startStrokeEngine();
-    void drawNoUpdate();
-    void drawUpdating();
 };
 
 #endif  // OSSM_SOFTWARE_OSSM_H

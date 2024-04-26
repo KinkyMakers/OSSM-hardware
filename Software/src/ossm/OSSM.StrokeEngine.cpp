@@ -5,7 +5,7 @@
 #include "extensions/u8g2Extensions.h"
 #include "utils/StrokeEngineHelper.h"
 
-void OSSM::startStrokeEngine() {
+[[noreturn]] void OSSM::startStrokeEngine() {
     display.clearBuffer();
 
     drawStr::title(UserConfig::language.StrokeEngine);
@@ -17,16 +17,15 @@ void OSSM::startStrokeEngine() {
     String strokerPatternName = "";
     static int strokePattern = 0;
     static int strokePatternCount = 0;
-    static int depthPercentage = 50;
-    static int strokePercentage = 50;
-    static int speedPercentage = 50;
-    static int sensationPercentage = 50;
+    static float depthPercentage = 50;
+
+    static float sensationPercentage = 50;
     static int encoderButtonPresses = 0;
     static long lastEncoderButtonPressMillis = 0;
     static bool modeChanged = false;
 
     float lastSpeedPercentage = speedPercentage;
-    float lastStrokePercentage = strokePercentage;
+    long lastStrokePercentage = strokePercentage;
     float lastDepthPercentage = depthPercentage;
     float lastSensationPercentage = sensationPercentage;
     int lastEncoderButtonPresses = encoderButtonPresses;

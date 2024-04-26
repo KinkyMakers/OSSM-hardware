@@ -33,13 +33,14 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 
     auto isInPreflight = [](OSSM *ossm) {
         // Add your preflight checks states here.
-        return ossm->sm->is("simplePenetration.preflight"_s);
+        return ossm->sm->is("simplePenetration.preflight"_s) ||
+               ossm->sm->is("strokeEngine.preflight"_s);
     };
 
     do {
         speedPercentage =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
-        if (speedPercentage < 0.5) {
+        if (speedPercentage < Config::Advanced::commandDeadZonePercentage) {
             ossm->sm->process_event(Done{});
             break;
         };
@@ -67,7 +68,9 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     auto isInCorrectState = [](OSSM *ossm) {
         // Add any states that you want to support here.
         return ossm->sm->is("simplePenetration"_s) ||
-               ossm->sm->is("simplePenetration.idle"_s);
+               ossm->sm->is("simplePenetration.idle"_s) ||
+               ossm->sm->is("strokeEngine"_s) ||
+               ossm->sm->is("strokeEngine.idle"_s);
     };
 
     // Prepare the encoder
@@ -88,7 +91,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     short lh2 = 37;
     short lh3 = 56;
     short lh4 = 64;
-    static int speedKnobPercent = 0;
+    static float speedKnobPercent = 0;
 
     // record session start time rounded to the nearest second
     ossm->sessionStartTime = floor(millis() / 1000);
@@ -98,10 +101,9 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     bool valueChanged = false;
 
     while (isInCorrectState(ossm)) {
-        speedKnobPercent = getAnalogAveragePercent(SampleOnPin{
-            Pins::Remote::speedPotPin, 50});
-        speedPercentage = 0.3 * speedKnobPercent +
-                          0.7 * speedPercentage;
+        speedKnobPercent =
+            getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
+        speedPercentage = 0.3 * speedKnobPercent + 0.7 * speedPercentage;
         strokePercentage = ossm->encoder.readEncoder();
         currentTime = floor(millis() / 1000);
 
@@ -195,10 +197,73 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     ossm->encoder.disableAcceleration();
 
     vTaskDelete(nullptr);
-}
+};
+
+
+void OSSM::drawPreflightTask(void *pvParameters) {
+    // parse ossm from the parameters
+    OSSM *ossm = (OSSM *)pvParameters;
+    auto menuString = menuStrings[ossm->menuOption];
+    float speedPercentage;
+
+    ossm->speedPercentage = 0;
+    ossm->strokePercentage = 0;
+
+    // Set the stepper to the home position
+    ossm->stepper.setAccelerationInMillimetersPerSecondPerSecond(1000);
+    ossm->stepper.setAccelerationInMillimetersPerSecondPerSecond(10000);
+    ossm->stepper.setTargetPositionInMillimeters(0);
+
+    /**
+     * /////////////////////////////////////////////
+     * //// Safely Block High Speeds on Startup ///
+     * /////////////////////////////////////////////
+     *
+     * This is a safety feature to prevent the user from accidentally beginning
+     * a session at max speed. After the user decreases the speed to 0.5% or
+     * less, the state machine will be allowed to continue.
+     */
+
+    auto isInPreflight = [](OSSM *ossm) {
+        // Add your preflight checks states here.
+        return ossm->sm->is("simplePenetration.preflight"_s) ||
+               ossm->sm->is("strokeEngine.preflight"_s);
+    };
+
+    do {
+        speedPercentage =
+            getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
+        if (speedPercentage < Config::Advanced::commandDeadZonePercentage) {
+            ossm->sm->process_event(Done{});
+            break;
+        };
+
+        ossm->display.clearBuffer();
+        drawStr::title(menuString);
+        String speedString = UserConfig::language.Speed + ": " +
+                             String((int)speedPercentage) + "%";
+        drawStr::centered(25, speedString);
+        drawStr::multiLine(0, 40, UserConfig::language.SpeedWarning);
+
+        ossm->display.sendBuffer();
+        vTaskDelay(100);
+    } while (isInPreflight(ossm));
+
+    vTaskDelete(nullptr);
+};
+
 
 void OSSM::drawPlayControls() {
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
-    xTaskCreate(drawPlayControlsTask, "drawPlayControlsTask", stackSize,
-                            this, 1, &drawPlayControlsTaskH);
+    xTaskCreate(drawPlayControlsTask, "drawPlayControlsTask", stackSize, this,
+                1, &drawPlayControlsTaskH);
 }
+
+
+void OSSM::drawPreflight() {
+    int stackSize = 3 * configMINIMAL_STACK_SIZE;
+    xTaskCreate(drawPreflightTask, "drawPlayControlsTask", stackSize, this,
+                1, &drawPreflightTaskH);
+}
+
+
