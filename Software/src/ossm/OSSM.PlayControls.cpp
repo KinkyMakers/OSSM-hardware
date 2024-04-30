@@ -45,6 +45,8 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
             break;
         };
 
+
+        displayMutex.lock();
         ossm->display.clearBuffer();
         drawStr::title(menuString);
         String speedString = UserConfig::language.Speed + ": " +
@@ -53,6 +55,8 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         drawStr::multiLine(0, 40, UserConfig::language.SpeedWarning);
 
         ossm->display.sendBuffer();
+        displayMutex.unlock();
+
         vTaskDelay(100);
     } while (isInPreflight(ossm));
 
@@ -120,6 +124,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
             continue;
         }
 
+        displayMutex.lock();
         ossm->display.clearBuffer();
         ossm->display.setFont(Config::Font::base);
 
@@ -187,7 +192,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
                                strokeString.c_str());
 
         ossm->display.sendBuffer();
-
+        displayMutex.unlock();
         // Saying hi to the watchdog :).
         vTaskDelay(200);
     }

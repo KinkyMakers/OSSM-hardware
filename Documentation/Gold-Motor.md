@@ -16,7 +16,8 @@ Disanvantages:
 - Digital comms over RS485 (Not worse than current RS232, just current boards don't have the needed adapter)
 - Requires software setup to see full benefits (default FW settings disable motor in over-torque condition
 - Requires additional capacitance (recommend 1500uF) - see mounting below
-  
+
+![OSSM Gold Motor Wiring](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/10072632-6e04-495e-b95d-b963d1662924)
 
 ![IMG_1049](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/7bec39aa-364f-446a-8b29-4f9390e9d71e)
 

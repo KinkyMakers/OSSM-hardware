@@ -64,6 +64,7 @@ void OSSM::drawHelloTask(void *pvParameters) {
         // increment the frame index
         frameIdx++;
 
+        displayMutex.lock();
         ossm->display.clearBuffer();
         ossm->display.setFont(u8g2_font_maniac_tf);
         ossm->display.drawUTF8(startX, heights[0], "O");
@@ -71,30 +72,38 @@ void OSSM::drawHelloTask(void *pvParameters) {
         ossm->display.drawUTF8(startX + letterSpacing * 2, heights[2], "S");
         ossm->display.drawUTF8(startX + letterSpacing * 3, heights[3], "M");
         ossm->display.sendBuffer();
+        displayMutex.unlock();
         // Saying hi to the watchdog :).
         vTaskDelay(1);
     };
 
     // Delay for a second, then show the RDLogo.
     vTaskDelay(1500);
+
+    displayMutex.lock();
     ossm->display.clearBuffer();
     drawStr::title("Research and Desire");
     ossm->display.drawXBMP(35, 14, 57, 50, Images::RDLogo);
     ossm->display.sendBuffer();
+    displayMutex.unlock();
 
     vTaskDelay(1000);
 
+    displayMutex.lock();
     ossm->display.clearBuffer();
     drawStr::title("Kinky Makers");
     ossm->display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
     ossm->display.sendBuffer();
+    displayMutex.unlock();
 
     vTaskDelay(1000);
 
+    displayMutex.lock();
     ossm->display.clearBuffer();
     drawStr::title(UserConfig::language.MeasuringStroke);
     ossm->display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
     ossm->display.sendBuffer();
+    displayMutex.unlock();
 
     // delete the task
     vTaskDelete(nullptr);
