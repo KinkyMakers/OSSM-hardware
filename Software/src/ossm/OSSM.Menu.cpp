@@ -37,6 +37,7 @@ void OSSM::drawMenuTask(void *pvParameters) {
         isFirstDraw = false;
         currentEncoderValue = ossm->encoder.readEncoder();
 
+        displayMutex.lock();
         ossm->display.clearBuffer();
 
         // Drawing Variables.
@@ -124,6 +125,8 @@ void OSSM::drawMenuTask(void *pvParameters) {
         }
 
         ossm->display.sendBuffer();
+        displayMutex.unlock();
+
 
         vTaskDelay(1);
     };

@@ -26,7 +26,7 @@ struct Error {};
 
 // Definitions to make the table easier to read.
 static auto buttonPress = sml::event<ButtonPress>;
-static auto doublePress = sml::event<ButtonPress>;
+static auto doublePress = sml::event<DoublePress>;
 static auto done = sml::event<Done>;
 static auto error = sml::event<Error>;
 
