@@ -5,6 +5,7 @@
 #include "qrcode.h"
 
 void OSSM::drawWiFi() {
+    displayMutex.lock();
     display.clearBuffer();
 
     static QRCode qrcode;
@@ -43,6 +44,7 @@ void OSSM::drawWiFi() {
     display.drawUTF8(0, 38, UserConfig::language.WiFiSetupLine2.c_str());
     display.drawUTF8(0, 62, UserConfig::language.Restart.c_str());
     display.sendBuffer();
+    displayMutex.unlock();
 
     wm.setConfigPortalTimeout(120);
     wm.setDisableConfigPortal(false);
