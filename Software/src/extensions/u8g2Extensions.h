@@ -1,8 +1,11 @@
 #ifndef OSSM_SOFTWARE_U8G2EXTENSIONS_H
 #define OSSM_SOFTWARE_U8G2EXTENSIONS_H
 
+#include <Arduino.h>
+
 #include <utility>
 
+#include "U8g2lib.h"
 #include "constants/Config.h"
 #include "services/display.h"
 
@@ -164,6 +167,11 @@ namespace drawStr {
     }
 };
 
+enum Alignment {
+    LEFT_ALIGNED,  // Bar on the left of the text
+    RIGHT_ALIGNED  // Bar on the right of the text
+};
+
 namespace drawShape {
     static void scroll(long position) {
         int topMargin = 10;  // Margin at the top of the screen
@@ -188,6 +196,64 @@ namespace drawShape {
         // Draw the rectangle to represent the current position
         display.drawBox(scrollbarX, rectY, scrollbarWidth, scrollbarWidth);
     };
+
+    // Function to draw a setting bar with label and percentage
+    static void settingBar(const String &name, float value, int x = 0,
+                           int y = 0, Alignment alignment = LEFT_ALIGNED,
+                           float minValue = 0, float maxValue = 100) {
+        int w = 10;
+        int h = 64;
+        int padding = 4;  // Padding after the bar for text
+        int lh1 = 22;     // Line height position for first line of text
+        int lh2 = 34;     // Line height position for second line of text
+
+        // Calculate height of the bar based on the value and potential min/max
+        float scaledValue =
+            constrain(value, minValue, maxValue) / maxValue * 100;
+        int boxHeight = ceil(h * scaledValue / 100);
+
+        // Position calculations based on alignment
+        int barStartX = (alignment == LEFT_ALIGNED) ? x : x - w;
+        int textStartX =
+            (alignment == LEFT_ALIGNED)
+                ? x + w + padding
+                : x - display.getUTF8Width(name.c_str()) - padding - w;
+
+        // Draw the bar and its frame
+        display.drawBox(barStartX, h - boxHeight, w, boxHeight);
+        display.drawFrame(barStartX, 0, w, h);
+
+        // Set font for label and draw it
+        display.setFont(
+            Config::Font::base);  // Make sure Config::Font::base is defined
+        display.drawUTF8(textStartX, y + lh1, name.c_str());
+
+        // Format and draw the percentage next to the bar
+        String percentageString = String(int(value)) + "%";
+        textStartX = (alignment == LEFT_ALIGNED)
+                         ? x + w + padding
+                         : x - display.getUTF8Width(percentageString.c_str()) -
+                               padding - w;
+        display.drawUTF8(textStartX, y + lh2, percentageString.c_str());
+    }
+
+    static void settingBarSmall(float value, int x = 0, int y = 0,
+                                float minValue = 0, float maxValue = 100) {
+        int w = 3;
+        int mid = (w - 1) / 2;
+        int h = 64;
+
+        // Calculate height of the bar based on the value and potential min/max
+        float scaledValue =
+            constrain(value, minValue, maxValue) / maxValue * 100;
+        int boxHeight = ceil(h * scaledValue / 100);
+        // draw a single pixel line
+        int lineH = boxHeight > 0 ? constrain(64 - boxHeight - 2, 0, 64) : 64;
+        display.drawVLine(x + mid, y, lineH);
+
+        // draw a box 3px wide
+        display.drawBox(x, 64 - boxHeight, w, boxHeight);
+    }
 
 }
 

@@ -45,7 +45,6 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
             break;
         };
 
-
         displayMutex.lock();
         ossm->display.clearBuffer();
         drawStr::title(menuString);
@@ -84,15 +83,11 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 
     // TODO: prepare the stepper with safe values.
 
-    int16_t y = 64;
     int16_t w = 10;
     int16_t x;
-    int16_t h;
     int16_t padding = 4;
 
     // Line heights
-    short lh1 = 25;
-    short lh2 = 37;
     short lh3 = 56;
     short lh4 = 64;
     static float speedKnobPercent = 0;
@@ -124,33 +119,32 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
             continue;
         }
 
+        String strokeString = UserConfig::language.Stroke;
+        auto stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
+
         displayMutex.lock();
         ossm->display.clearBuffer();
         ossm->display.setFont(Config::Font::base);
 
         drawStr::title(menuString);
+//        drawShape::settingBar("Speed", speedKnobPercent);
+        drawShape::settingBarSmall(speedKnobPercent);
+        drawShape::settingBarSmall(ossm->encoder.readEncoder(), 5);
+
+        drawShape::settingBar(strokeString, ossm->encoder.readEncoder(), 128, 0,
+                              RIGHT_ALIGNED);
 
         /**
          * /////////////////////////////////////////////
-         * /////////// Play Controls Left  /////////////
+         * /////////// Play Controls Left  ////////////
          * /////////////////////////////////////////////
          *
-         * These controls are associated with speed and time.
+         * These controls are associated with stroke and distance
          */
-
-        x = 0;
-        h = ceil(64 * speedKnobPercent / 100);
-        ossm->display.drawBox(x, y - h, w, h);
-        ossm->display.drawFrame(x, 0, w, 64);
-        String speedString = String((int)speedKnobPercent) + "%";
-        ossm->display.setFont(Config::Font::base);
-        ossm->display.drawUTF8(x + w + padding, lh1,
-                               UserConfig::language.Speed.c_str());
-        ossm->display.drawUTF8(x + w + padding, lh2, speedString.c_str());
         ossm->display.setFont(Config::Font::small);
-        ossm->display.drawUTF8(
-            x + w + padding, lh3,
-            formatTime(currentTime - ossm->sessionStartTime).c_str());
+        strokeString = "# " + String(ossm->sessionStrokeCount);
+        ossm->display.drawUTF8(14, lh4, strokeString.c_str());
+
 
         /**
          * /////////////////////////////////////////////
@@ -159,41 +153,17 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
          *
          * These controls are associated with stroke and distance
          */
-        x = 124;
-        h = ceil(64 * ossm->encoder.readEncoder() / 100);
-        ossm->display.drawBox(x - w, y - h, w, h);
-        ossm->display.drawFrame(x - w, 0, w, 64);
-
-        // The word "stroke"
-        ossm->display.setFont(Config::Font::base);
-
-        String strokeString = UserConfig::language.Stroke;
-        auto stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-        ossm->display.drawUTF8(x - w - stringWidth - padding, lh1,
-                               strokeString.c_str());
-
-        // The stroke percent
-        strokeString = String(ossm->encoder.readEncoder()) + "%";
+        strokeString = formatTime(currentTime - ossm->sessionStartTime).c_str();
         stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-        ossm->display.drawUTF8(x - w - stringWidth - padding, lh2,
-                               strokeString.c_str());
+        ossm->display.drawUTF8(114 - stringWidth, lh3, strokeString.c_str());
 
-        // The stroke count
-        ossm->display.setFont(Config::Font::small);
-        strokeString = "# " + String(ossm->sessionStrokeCount);
-        stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-        ossm->display.drawUTF8(x - w - stringWidth - padding, lh3,
-                               strokeString.c_str());
-
-        // The Session travel distance
         strokeString = formatDistance(ossm->sessionDistanceMeters);
         stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-        ossm->display.drawUTF8(x - w - stringWidth - padding, lh4,
-                               strokeString.c_str());
+        ossm->display.drawUTF8(114 - stringWidth, lh4, strokeString.c_str());
 
         ossm->display.sendBuffer();
         displayMutex.unlock();
-        // Saying hi to the watchdog :).
+
         vTaskDelay(200);
     }
 
@@ -203,7 +173,6 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 
     vTaskDelete(nullptr);
 };
-
 
 void OSSM::drawPreflightTask(void *pvParameters) {
     // parse ossm from the parameters
@@ -243,6 +212,7 @@ void OSSM::drawPreflightTask(void *pvParameters) {
             break;
         };
 
+        displayMutex.lock();
         ossm->display.clearBuffer();
         drawStr::title(menuString);
         String speedString = UserConfig::language.Speed + ": " +
@@ -251,12 +221,13 @@ void OSSM::drawPreflightTask(void *pvParameters) {
         drawStr::multiLine(0, 40, UserConfig::language.SpeedWarning);
 
         ossm->display.sendBuffer();
+        displayMutex.unlock();
+
         vTaskDelay(100);
     } while (isInPreflight(ossm));
 
     vTaskDelete(nullptr);
 };
-
 
 void OSSM::drawPlayControls() {
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
@@ -264,11 +235,8 @@ void OSSM::drawPlayControls() {
                 1, &drawPlayControlsTaskH);
 }
 
-
 void OSSM::drawPreflight() {
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
-    xTaskCreate(drawPreflightTask, "drawPlayControlsTask", stackSize, this,
-                1, &drawPreflightTaskH);
+    xTaskCreate(drawPreflightTask, "drawPlayControlsTask", stackSize, this, 1,
+                &drawPreflightTaskH);
 }
-
-

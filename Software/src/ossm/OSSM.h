@@ -117,7 +117,11 @@ class OSSM {
 
             return make_transition_table(
                 // clang-format off
+#ifdef DEBUG_SKIP_HOMING
+                *"idle"_s + done / drawHello = "menu"_s,
+#else
                 *"idle"_s + done / drawHello = "homing"_s,
+#endif
 
                 "homing"_s / startHoming = "homing.idle"_s,
                 "homing.idle"_s + error = "error"_s,
