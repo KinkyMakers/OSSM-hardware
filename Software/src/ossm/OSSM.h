@@ -17,6 +17,7 @@
 #include "services/tasks.h"
 #include "utils/RecusiveMutex.h"
 #include "utils/StateLogger.h"
+#include "utils/StrokeEngineHelper.h"
 #include "utils/analog.h"
 #include "utils/update.h"
 
@@ -69,6 +70,12 @@ class OSSM {
             };
             auto drawPlayControls = [](OSSM &o) { o.drawPlayControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
+
+            auto incrementControl = [](OSSM &o) {
+                o.strokeEngineControl = static_cast<StrokeEngineControl>(
+                    (o.strokeEngineControl + 1) % 3);
+            };
+
             auto startSimplePenetration = [](OSSM &o) {
                 o.startSimplePenetration();
             };
@@ -116,7 +123,7 @@ class OSSM {
             };
 
             return make_transition_table(
-                // clang-format off
+            // clang-format off
 #ifdef DEBUG_SKIP_HOMING
                 *"idle"_s + done / drawHello = "menu"_s,
 #else
@@ -141,11 +148,13 @@ class OSSM {
                 "simplePenetration"_s [isPreflightSafe] / (drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
                 "simplePenetration.preflight"_s + done / (drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
+                "simplePenetration.idle"_s + buttonPress / incrementControl = "simplePenetration.idle"_s,
                 "simplePenetration.idle"_s + doublePress / emergencyStop = "menu"_s,
 
                 "strokeEngine"_s [isPreflightSafe] / (drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
                 "strokeEngine.preflight"_s + done / (drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
+                "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + doublePress / emergencyStop = "menu"_s,
 
                 "update"_s [isOnline] / drawUpdate = "update.checking"_s,
@@ -208,6 +217,8 @@ class OSSM {
     int sessionStrokeCount = 0;
     double sessionDistanceMeters = 0;
 
+    StrokeEngineControl strokeEngineControl = StrokeEngineControl::STROKE;
+
     /**
      * ///////////////////////////////////////////
      * ////
@@ -244,7 +255,7 @@ class OSSM {
      */
     static void startHomingTask(void *pvParameters);
 
-    [[noreturn]] void startStrokeEngine();
+    void startStrokeEngine();
 
     static void drawHelloTask(void *pvParameters);
 

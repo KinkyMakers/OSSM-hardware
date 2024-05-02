@@ -99,6 +99,9 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 
     bool valueChanged = false;
 
+    bool isStrokeEngine =
+        ossm->sm->is("strokeEngine"_s) || ossm->sm->is("strokeEngine.idle"_s);
+
     while (isInCorrectState(ossm)) {
         speedKnobPercent =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
@@ -126,13 +129,38 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         ossm->display.clearBuffer();
         ossm->display.setFont(Config::Font::base);
 
-        drawStr::title(menuString);
-//        drawShape::settingBar("Speed", speedKnobPercent);
-        drawShape::settingBarSmall(speedKnobPercent);
-        drawShape::settingBarSmall(ossm->encoder.readEncoder(), 5);
+        drawShape::settingBar(UserConfig::language.Speed, speedKnobPercent);
 
-        drawShape::settingBar(strokeString, ossm->encoder.readEncoder(), 128, 0,
-                              RIGHT_ALIGNED);
+        if (isStrokeEngine) {
+            switch (ossm->strokeEngineControl) {
+                case StrokeEngineControl::STROKE:
+                    drawShape::settingBarSmall(speedKnobPercent, 125);
+                    drawShape::settingBarSmall(speedKnobPercent, 120);
+                    drawShape::settingBar(strokeString,
+                                          ossm->encoder.readEncoder(), 118, 0,
+                                          RIGHT_ALIGNED);
+                    break;
+                case StrokeEngineControl::SENSATION:
+                    drawShape::settingBarSmall(speedKnobPercent, 125);
+                    drawShape::settingBar(strokeString,
+                                          ossm->encoder.readEncoder(), 123, 0,
+                                          RIGHT_ALIGNED, 5);
+                    drawShape::settingBarSmall(speedKnobPercent, 108);
+
+                    break;
+                case StrokeEngineControl::DEPTH:
+                    drawShape::settingBar(strokeString,
+                                          ossm->encoder.readEncoder(), 128, 0,
+                                          RIGHT_ALIGNED, 10);
+                    drawShape::settingBarSmall(speedKnobPercent, 113);
+                    drawShape::settingBarSmall(speedKnobPercent, 108);
+
+                    break;
+            }
+        } else {
+            drawShape::settingBar(strokeString, ossm->encoder.readEncoder(),
+                                  118, 0, RIGHT_ALIGNED);
+        }
 
         /**
          * /////////////////////////////////////////////
@@ -145,7 +173,6 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         strokeString = "# " + String(ossm->sessionStrokeCount);
         ossm->display.drawUTF8(14, lh4, strokeString.c_str());
 
-
         /**
          * /////////////////////////////////////////////
          * /////////// Play Controls Right  ////////////
@@ -155,11 +182,11 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
          */
         strokeString = formatTime(currentTime - ossm->sessionStartTime).c_str();
         stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-        ossm->display.drawUTF8(114 - stringWidth, lh3, strokeString.c_str());
+        ossm->display.drawUTF8(104 - stringWidth, lh3, strokeString.c_str());
 
         strokeString = formatDistance(ossm->sessionDistanceMeters);
         stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-        ossm->display.drawUTF8(114 - stringWidth, lh4, strokeString.c_str());
+        ossm->display.drawUTF8(104 - stringWidth, lh4, strokeString.c_str());
 
         ossm->display.sendBuffer();
         displayMutex.unlock();

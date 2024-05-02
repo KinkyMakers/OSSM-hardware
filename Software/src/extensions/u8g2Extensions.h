@@ -200,12 +200,13 @@ namespace drawShape {
     // Function to draw a setting bar with label and percentage
     static void settingBar(const String &name, float value, int x = 0,
                            int y = 0, Alignment alignment = LEFT_ALIGNED,
-                           float minValue = 0, float maxValue = 100) {
+                           int textPadding = 0, float minValue = 0,
+                           float maxValue = 100) {
         int w = 10;
         int h = 64;
         int padding = 4;  // Padding after the bar for text
-        int lh1 = 22;     // Line height position for first line of text
-        int lh2 = 34;     // Line height position for second line of text
+        int lh1 = 10;     // Line height position for first line of text
+        int lh2 = 22;     // Line height position for second line of text
 
         // Calculate height of the bar based on the value and potential min/max
         float scaledValue =
@@ -216,8 +217,8 @@ namespace drawShape {
         int barStartX = (alignment == LEFT_ALIGNED) ? x : x - w;
         int textStartX =
             (alignment == LEFT_ALIGNED)
-                ? x + w + padding
-                : x - display.getUTF8Width(name.c_str()) - padding - w;
+                ? x + w + padding + textPadding
+                : x - display.getUTF8Width(name.c_str()) - padding - w - textPadding;
 
         // Draw the bar and its frame
         display.drawBox(barStartX, h - boxHeight, w, boxHeight);
@@ -225,16 +226,35 @@ namespace drawShape {
 
         // Set font for label and draw it
         display.setFont(
-            Config::Font::base);  // Make sure Config::Font::base is defined
+            Config::Font::bold);  // Make sure Config::Font::base is defined
         display.drawUTF8(textStartX, y + lh1, name.c_str());
 
-        // Format and draw the percentage next to the bar
-        String percentageString = String(int(value)) + "%";
-        textStartX = (alignment == LEFT_ALIGNED)
-                         ? x + w + padding
-                         : x - display.getUTF8Width(percentageString.c_str()) -
-                               padding - w;
-        display.drawUTF8(textStartX, y + lh2, percentageString.c_str());
+        int firstQuartile = y + h * 3 / 4;
+        int half = y + h / 2;
+        int thirdQuartile = y + h / 4;
+
+        if (scaledValue >= 75) {
+            display.setDrawColor(0);
+        };
+
+        display.drawPixel(barStartX + 3, thirdQuartile);
+        display.drawPixel(barStartX + 6, thirdQuartile);
+
+        if (scaledValue >= 50) {
+            display.setDrawColor(0);
+        };
+
+        display.drawPixel(barStartX + 3, half);
+        display.drawPixel(barStartX + 6, half);
+
+        if (scaledValue >= 25) {
+            display.setDrawColor(0);
+        };
+
+        display.drawPixel(barStartX + 3, firstQuartile);
+        display.drawPixel(barStartX + 6, firstQuartile);
+
+        display.setDrawColor(1);
     }
 
     static void settingBarSmall(float value, int x = 0, int y = 0,

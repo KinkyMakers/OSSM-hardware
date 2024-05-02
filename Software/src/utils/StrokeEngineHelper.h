@@ -23,6 +23,13 @@
 #define MAX_SPEED ((MAX_RPM / 60.0) * PULLEY_TEETH * BELT_PITCH)
 #define DEBUG_TALKATIVE
 
+// enum of stroke engine states
+enum StrokeEngineControl {
+    STROKE,
+    SENSATION,
+    DEPTH
+};
+
 static motorProperties servoMotor{
     .maxSpeed =
         60 * (Config::Driver::maxSpeedMmPerSecond /
