@@ -124,8 +124,10 @@ void OSSM::drawError() {
         ESP_LOGD("OSSM::drawError", "Caught exception: %s", e.what());
     }
 
+    displayMutex.lock();
     display.clearBuffer();
     drawStr::title(UserConfig::language.Error);
     drawStr::multiLine(0, 20, errorMessage);
     display.sendBuffer();
+    displayMutex.unlock();
 }

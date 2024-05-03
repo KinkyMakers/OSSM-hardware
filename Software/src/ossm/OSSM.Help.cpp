@@ -5,6 +5,7 @@
 #include "qrcode.h"
 
 void OSSM::drawHelp() {
+    displayMutex.lock();
     display.clearBuffer();
 
     static QRCode qrcode;
@@ -43,4 +44,5 @@ void OSSM::drawHelp() {
     display.drawUTF8(0, 38, UserConfig::language.GetHelpLine2.c_str());
     display.drawUTF8(0, 62, UserConfig::language.Skip.c_str());
     display.sendBuffer();
+    displayMutex.unlock();
 }
