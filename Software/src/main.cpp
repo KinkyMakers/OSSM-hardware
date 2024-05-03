@@ -5,7 +5,6 @@
 #include "services/board.h"
 #include "services/display.h"
 #include "services/encoder.h"
-#include "utils/StrokeEngineHelper.h"
 
 /*
  *  ██████╗ ███████╗███████╗███╗   ███╗
@@ -92,12 +91,9 @@ void loop() {
         }
 
         unsigned long pressTime = riseTime - fallTime;
-        ESP_LOGD("Encoder", "Press time: %d, %d", pressTime,
-                 millis() - lastPressed);
 
         // detect if a double click occurred
         if (millis() - lastPressed < 300) {
-            ESP_LOGD("Encoder", "Double Press");
             ossm->sm->process_event(DoublePress{});
         } else {
             ossm->sm->process_event(ButtonPress{});
