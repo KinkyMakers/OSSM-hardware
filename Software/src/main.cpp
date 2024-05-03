@@ -32,6 +32,7 @@ static unsigned long fallTime = millis();
 static unsigned long riseTime = millis();
 static bool handlePress = false;
 static bool watchForLongPress = false;
+static bool ignoreNextRise = false;
 static unsigned long lastPressed = millis();
 
 void IRAM_ATTR handleEncoder() {
@@ -80,16 +81,23 @@ void loop() {
             ossm->sm->process_event(LongPress{});
             fallTime = millis();
             lastPressed = millis();
+            watchForLongPress = false;
+            ignoreNextRise = true;
         }
-    }
-
-    if (handlePress) {
+    } else if (handlePress) {
         handlePress = false;
+        if (ignoreNextRise) {
+            ignoreNextRise = false;
+            return;
+        }
+
         unsigned long pressTime = riseTime - fallTime;
-        ESP_LOGD("Encoder", "Press time: %d, %d", pressTime, millis() - lastPressed);
+        ESP_LOGD("Encoder", "Press time: %d, %d", pressTime,
+                 millis() - lastPressed);
 
         // detect if a double click occurred
         if (millis() - lastPressed < 300) {
+            ESP_LOGD("Encoder", "Double Press");
             ossm->sm->process_event(DoublePress{});
         } else {
             ossm->sm->process_event(ButtonPress{});
