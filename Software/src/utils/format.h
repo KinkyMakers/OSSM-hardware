@@ -5,7 +5,7 @@
 
 #include "constants/UserConfig.h"
 
-String formatTime(unsigned int totalMillis) {
+static String formatTime(unsigned int totalMillis) {
     int totalSeconds = totalMillis / 1000;
     String formattedTime = "";
 
@@ -50,7 +50,7 @@ String formatTime(unsigned int totalMillis) {
     return formattedTime;
 }
 
-String formatImperial(double meters) {
+static String formatImperial(double meters) {
     // Convert meters to feet
     float feet = meters * 3.28084f;
 
@@ -67,7 +67,7 @@ String formatImperial(double meters) {
     }
 }
 
-String formatMetric(double meters) {
+static String formatMetric(double meters) {
     String sign = meters >= 0 ? "" : "-";
     meters = abs(meters);
 
@@ -88,7 +88,7 @@ String formatMetric(double meters) {
     }
 }
 
-String formatDistance(double meters) {
+static String formatDistance(double meters) {
     if (UserConfig::displayMetric) {
         return formatMetric(meters);
     } else {

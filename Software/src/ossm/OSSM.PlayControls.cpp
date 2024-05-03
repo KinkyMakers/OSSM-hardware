@@ -1,4 +1,3 @@
-
 #include "OSSM.h"
 
 #include "extensions/u8g2Extensions.h"
@@ -30,29 +29,11 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
                ossm->sm->is("strokeEngine.idle"_s);
     };
 
-    // Prepare the encoder
-    ossm->encoder.setBoundaries(0, 100, false);
-    ossm->encoder.setAcceleration(10);
-    ossm->encoder.setEncoderValue(0);
-
-    // TODO: prepare the stepper with safe values.
-
-    int16_t w = 10;
-    int16_t x;
-    int16_t padding = 4;
-
     // Line heights
     short lh3 = 56;
     short lh4 = 64;
     static float knob = 0;
     static float encoder = 0;
-
-    // record session start time rounded to the nearest second
-    ossm->sessionStartTime = millis();
-    ossm->sessionStrokeCount = 0;
-    ossm->sessionDistanceMeters = 0;
-
-    bool valueChanged = false;
 
     bool isStrokeEngine =
         ossm->sm->is("strokeEngine"_s) || ossm->sm->is("strokeEngine.idle"_s);
@@ -118,28 +99,21 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         if (isStrokeEngine) {
             switch (ossm->playControl) {
                 case PlayControls::STROKE:
-
-                    // speedPercentage
-                    // depthPercentage
-                    // sensationPercentage
                     drawShape::settingBarSmall(ossm->setting.sensation, 125);
                     drawShape::settingBarSmall(ossm->setting.depth, 120);
-                    drawShape::settingBar(strokeString,
-                                          ossm->setting.stroke, 118, 0,
-                                          RIGHT_ALIGNED);
+                    drawShape::settingBar(strokeString, ossm->setting.stroke,
+                                          118, 0, RIGHT_ALIGNED);
                     break;
                 case PlayControls::SENSATION:
-                    drawShape::settingBar("Sensation",
-                                          ossm->setting.sensation, 128, 0,
-                                          RIGHT_ALIGNED, 10);
+                    drawShape::settingBar("Sensation", ossm->setting.sensation,
+                                          128, 0, RIGHT_ALIGNED, 10);
                     drawShape::settingBarSmall(ossm->setting.depth, 113);
                     drawShape::settingBarSmall(ossm->setting.stroke, 108);
 
                     break;
                 case PlayControls::DEPTH:
                     drawShape::settingBarSmall(ossm->setting.sensation, 125);
-                    drawShape::settingBar("Depth",
-                                          ossm->setting.depth, 123, 0,
+                    drawShape::settingBar("Depth", ossm->setting.depth, 123, 0,
                                           RIGHT_ALIGNED, 5);
                     drawShape::settingBarSmall(ossm->setting.stroke, 108);
 
@@ -194,62 +168,4 @@ void OSSM::drawPlayControls() {
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawPlayControlsTask, "drawPlayControlsTask", stackSize, this,
                 1, &drawPlayControlsTaskH);
-}
-
-void OSSM::drawPreflightTask(void *pvParameters) {
-    // parse ossm from the parameters
-    OSSM *ossm = (OSSM *)pvParameters;
-    auto menuString = menuStrings[ossm->menuOption];
-    float speedPercentage;
-
-    // Set the stepper to the home position
-    ossm->stepper.setAccelerationInMillimetersPerSecondPerSecond(1000);
-    ossm->stepper.setAccelerationInMillimetersPerSecondPerSecond(10000);
-    ossm->stepper.setTargetPositionInMillimeters(0);
-
-    /**
-     * /////////////////////////////////////////////
-     * //// Safely Block High Speeds on Startup ///
-     * /////////////////////////////////////////////
-     *
-     * This is a safety feature to prevent the user from accidentally beginning
-     * a session at max speed. After the user decreases the speed to 0.5% or
-     * less, the state machine will be allowed to continue.
-     */
-
-    auto isInPreflight = [](OSSM *ossm) {
-        // Add your preflight checks states here.
-        return ossm->sm->is("simplePenetration.preflight"_s) ||
-               ossm->sm->is("strokeEngine.preflight"_s);
-    };
-
-    do {
-        speedPercentage =
-            getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
-        if (speedPercentage < Config::Advanced::commandDeadZonePercentage) {
-            ossm->sm->process_event(Done{});
-            break;
-        };
-
-        displayMutex.lock();
-        ossm->display.clearBuffer();
-        drawStr::title(menuString);
-        String speedString = UserConfig::language.Speed + ": " +
-                             String((int)speedPercentage) + "%";
-        drawStr::centered(25, speedString);
-        drawStr::multiLine(0, 40, UserConfig::language.SpeedWarning);
-
-        ossm->display.sendBuffer();
-        displayMutex.unlock();
-
-        vTaskDelay(100);
-    } while (isInPreflight(ossm));
-
-    vTaskDelete(nullptr);
-};
-
-void OSSM::drawPreflight() {
-    int stackSize = 3 * configMINIMAL_STACK_SIZE;
-    xTaskCreate(drawPreflightTask, "drawPlayControlsTask", stackSize, this, 1,
-                &drawPreflightTaskH);
 }

@@ -8,6 +8,7 @@
 #include "U8g2lib.h"
 #include "constants/Config.h"
 #include "services/display.h"
+#include "structs/Points.h"
 
 // NOLINTBEGIN(hicpp-signed-bitwise)
 static int getUTF8CharLength(const unsigned char c) {
@@ -215,10 +216,10 @@ namespace drawShape {
 
         // Position calculations based on alignment
         int barStartX = (alignment == LEFT_ALIGNED) ? x : x - w;
-        int textStartX =
-            (alignment == LEFT_ALIGNED)
-                ? x + w + padding + textPadding
-                : x - display.getUTF8Width(name.c_str()) - padding - w - textPadding;
+        int textStartX = (alignment == LEFT_ALIGNED)
+                             ? x + w + padding + textPadding
+                             : x - display.getUTF8Width(name.c_str()) -
+                                   padding - w - textPadding;
 
         // Draw the bar and its frame
         display.drawBox(barStartX, h - boxHeight, w, boxHeight);
@@ -273,6 +274,21 @@ namespace drawShape {
 
         // draw a box 3px wide
         display.drawBox(x, 64 - boxHeight, w, boxHeight);
+    }
+
+    // Function to draw lines between a variadic number of points
+    template <typename... Points>
+    void lines(std::initializer_list<Point> points) {
+        auto it = points.begin();
+        Point start = *it;
+        Point end;
+
+        // Begin a picture loop and draw each line
+        for (++it; it != points.end(); ++it) {
+            end = *it;
+            display.drawLine(start.x, start.y, end.x, end.y);
+            start = end;  // Move to the next point
+        }
     }
 
 }

@@ -70,6 +70,7 @@ class OSSM {
                 o.startHoming();
             };
             auto drawPlayControls = [](OSSM &o) { o.drawPlayControls(); };
+            auto drawPatternControls = [](OSSM &o) { o.drawPatternControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
             auto resetSettings = [](OSSM &o) {
                 o.setting.speed = 0;
@@ -77,6 +78,16 @@ class OSSM {
                 o.setting.depth = 0;
                 o.setting.sensation = 0;
                 o.playControl = PlayControls::STROKE;
+
+                // Prepare the encoder
+                o.encoder.setBoundaries(0, 100, false);
+                o.encoder.setAcceleration(10);
+                o.encoder.setEncoderValue(0);
+
+                // record session start time rounded to the nearest second
+                o.sessionStartTime = millis();
+                o.sessionStrokeCount = 0;
+                o.sessionDistanceMeters = 0;
             };
 
             auto incrementControl = [](OSSM &o) {
@@ -174,6 +185,9 @@ class OSSM {
                 "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
                 "strokeEngine.preflight"_s + done / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
+                "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
+                "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
+                "strokeEngine.pattern"_s + longPress / emergencyStop = "menu"_s,
                 "strokeEngine.idle"_s + longPress / emergencyStop = "menu"_s,
 
                 "update"_s [isOnline] / drawUpdate = "update.checking"_s,
@@ -228,7 +242,7 @@ class OSSM {
     Menu menuOption = Menu::SimplePenetration;
     String errorMessage = "";
 
-    SettingPercents setting = {0, 0, 0, 0};
+    SettingPercents setting = {0, 0, 0, 0, 0};
 
     unsigned long sessionStartTime = 0;
     int sessionStrokeCount = 0;
@@ -262,6 +276,7 @@ class OSSM {
     void drawMenu();
 
     void drawPlayControls();
+    void drawPatternControls();
 
     /**
      * ///////////////////////////////////////////
@@ -279,6 +294,7 @@ class OSSM {
     static void drawMenuTask(void *pvParameters);
 
     static void drawPlayControlsTask(void *pvParameters);
+    static void drawPatternControlsTask(void *pvParameters);
 
     void drawUpdate();
     void drawNoUpdate();

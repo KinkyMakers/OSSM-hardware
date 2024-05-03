@@ -38,6 +38,15 @@ static const LanguageStruct fr = {
     .WiFiSetupLine1 = "Se connecter à",
     .WiFiSetupLine2 = "'Ossm Setup'",
     .YouShouldNotBeHere = "Vous ne devriez pas être ici.",
-};
+    .StrokeEngineDescriptions = {
+        "Accélération, roulement, décélération également répartis ; sans sensation.",
+        "La vitesse change avec la sensation ; équilibre les coups rapides.",
+        "La sensation varie l'accélération ; de robotique à progressive.",
+        "Alternance de coups pleins et à demi-profondeur ; la sensation affecte la vitesse.",
+        "La profondeur des coups augmente à chaque cycle ; la sensation définit le nombre.",
+        "Pauses entre les coups ; la sensation ajuste la longueur.",
+        "Modifie la longueur, maintient la vitesse ; la sensation influe sur la direction.",
+    }};
+
 
 #endif  // OSSM_SOFTWARE_FR_H
