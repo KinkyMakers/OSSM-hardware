@@ -72,14 +72,11 @@ class OSSM {
             auto drawPlayControls = [](OSSM &o) { o.drawPlayControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
             auto resetSettings = [](OSSM &o) {
-
                 o.setting.speed = 0;
                 o.setting.stroke = 0;
                 o.setting.depth = 0;
                 o.setting.sensation = 0;
                 o.playControl = PlayControls::STROKE;
-
-
             };
 
             auto incrementControl = [](OSSM &o) {
@@ -171,13 +168,13 @@ class OSSM {
                 "simplePenetration"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
                 "simplePenetration.preflight"_s + done / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
-                "simplePenetration.idle"_s + doublePress / emergencyStop = "menu"_s,
+                "simplePenetration.idle"_s + longPress / emergencyStop = "menu"_s,
 
                 "strokeEngine"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
                 "strokeEngine.preflight"_s + done / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
-                "strokeEngine.idle"_s + doublePress / emergencyStop = "menu"_s,
+                "strokeEngine.idle"_s + longPress / emergencyStop = "menu"_s,
 
                 "update"_s [isOnline] / drawUpdate = "update.checking"_s,
                 "update"_s = "wifi"_s,

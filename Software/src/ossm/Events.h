@@ -17,6 +17,7 @@ namespace sml = boost::sml;
  * They just happen to be defined inside of the OSSM State Machine class.
  */
 struct ButtonPress {};
+struct LongPress {};
 
 struct DoublePress {};
 
@@ -26,6 +27,7 @@ struct Error {};
 
 // Definitions to make the table easier to read.
 static auto buttonPress = sml::event<ButtonPress>;
+static auto longPress = sml::event<LongPress>;
 static auto doublePress = sml::event<DoublePress>;
 static auto done = sml::event<Done>;
 static auto error = sml::event<Error>;
