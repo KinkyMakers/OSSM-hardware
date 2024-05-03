@@ -12,7 +12,7 @@ void test_SingleMinute(void) {
 void test_MultipleUnits(void) {
     TEST_ASSERT_EQUAL_STRING(
         "2d 3h",
-        formatTime(18360000).c_str());  // 2 days and 3 hours
+        formatTime(183600000).c_str());  // 2 days and 3 hours
 }
 
 void test_EdgeOfUnits(void) {
