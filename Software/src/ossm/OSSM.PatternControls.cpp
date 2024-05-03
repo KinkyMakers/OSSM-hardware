@@ -63,8 +63,6 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
         vTaskDelay(200);
     }
 
-
-
     vTaskDelete(nullptr);
 };
 
