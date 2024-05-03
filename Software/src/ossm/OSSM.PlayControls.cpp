@@ -7,6 +7,21 @@
 void OSSM::drawPlayControlsTask(void *pvParameters) {
     // parse ossm from the parameters
     OSSM *ossm = (OSSM *)pvParameters;
+    ossm->encoder.setAcceleration(10);
+    ossm->encoder.setBoundaries(0, 100, true);
+    // Clean up!
+    switch (ossm->playControl) {
+        case PlayControls::STROKE:
+            ossm->encoder.setEncoderValue(ossm->setting.stroke);
+            break;
+        case PlayControls::SENSATION:
+            ossm->encoder.setEncoderValue(ossm->setting.sensation);
+            break;
+        case PlayControls::DEPTH:
+            ossm->encoder.setEncoderValue(ossm->setting.depth);
+            break;
+    }
+    
     auto menuString = menuStrings[ossm->menuOption];
 
     SettingPercents next = {0, 0, 0, 0};
@@ -39,6 +54,9 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         ossm->sm->is("strokeEngine"_s) || ossm->sm->is("strokeEngine.idle"_s);
 
     bool shouldUpdateDisplay = false;
+
+    // This small break gives the encoder a minute to settle.
+    vTaskDelay(100);
 
     while (isInCorrectState(ossm)) {
         // Always assume the display should not update.
@@ -156,10 +174,6 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 
         vTaskDelay(200);
     }
-
-    // Clean up!
-    ossm->encoder.setAcceleration(0);
-    ossm->encoder.disableAcceleration();
 
     vTaskDelete(nullptr);
 };

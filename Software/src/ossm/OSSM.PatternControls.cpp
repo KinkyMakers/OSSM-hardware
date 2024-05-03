@@ -63,21 +63,7 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
         vTaskDelay(200);
     }
 
-    // Clean up!
-    ossm->encoder.setAcceleration(10);
-    ossm->encoder.setBoundaries(0, 100, false);
 
-    switch (ossm->playControl) {
-        case PlayControls::STROKE:
-            ossm->encoder.setEncoderValue(savedSettings.stroke);
-            break;
-        case PlayControls::SENSATION:
-            ossm->encoder.setEncoderValue(savedSettings.sensation);
-            break;
-        case PlayControls::DEPTH:
-            ossm->encoder.setEncoderValue(savedSettings.depth);
-            break;
-    }
 
     vTaskDelete(nullptr);
 };

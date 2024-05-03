@@ -62,6 +62,7 @@ class OSSM {
             auto drawHello = [](OSSM &o) { o.drawHello(); };
             auto drawMenu = [](OSSM &o) { o.drawMenu(); };
             auto startHoming = [](OSSM &o) {
+
                 o.clearHoming();
                 o.startHoming();
             };
