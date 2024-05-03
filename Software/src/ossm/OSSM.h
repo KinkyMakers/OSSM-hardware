@@ -15,6 +15,7 @@
 #include "constants/Menu.h"
 #include "constants/Pins.h"
 #include "services/tasks.h"
+#include "structs/SettingPercents.h"
 #include "utils/RecusiveMutex.h"
 #include "utils/StateLogger.h"
 #include "utils/StrokeEngineHelper.h"
@@ -70,10 +71,32 @@ class OSSM {
             };
             auto drawPlayControls = [](OSSM &o) { o.drawPlayControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
+            auto resetSettings = [](OSSM &o) {
+
+                o.setting.speed = 0;
+                o.setting.stroke = 0;
+                o.setting.depth = 0;
+                o.setting.sensation = 0;
+                o.playControl = PlayControls::STROKE;
+
+
+            };
 
             auto incrementControl = [](OSSM &o) {
-                o.strokeEngineControl = static_cast<StrokeEngineControl>(
-                    (o.strokeEngineControl + 1) % 3);
+                o.playControl =
+                    static_cast<PlayControls>((o.playControl + 1) % 3);
+
+                switch (o.playControl) {
+                    case PlayControls::STROKE:
+                        o.encoder.setEncoderValue(o.setting.stroke);
+                        break;
+                    case PlayControls::DEPTH:
+                        o.encoder.setEncoderValue(o.setting.depth);
+                        break;
+                    case PlayControls::SENSATION:
+                        o.encoder.setEncoderValue(o.setting.sensation);
+                        break;
+                }
             };
 
             auto startSimplePenetration = [](OSSM &o) {
@@ -145,15 +168,14 @@ class OSSM {
                 "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
 
-                "simplePenetration"_s [isPreflightSafe] / (drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
+                "simplePenetration"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
-                "simplePenetration.preflight"_s + done / (drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
-                "simplePenetration.idle"_s + buttonPress / incrementControl = "simplePenetration.idle"_s,
+                "simplePenetration.preflight"_s + done / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration.idle"_s + doublePress / emergencyStop = "menu"_s,
 
-                "strokeEngine"_s [isPreflightSafe] / (drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
+                "strokeEngine"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
-                "strokeEngine.preflight"_s + done / (drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
+                "strokeEngine.preflight"_s + done / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + doublePress / emergencyStop = "menu"_s,
 
@@ -209,15 +231,13 @@ class OSSM {
     Menu menuOption = Menu::SimplePenetration;
     String errorMessage = "";
 
-    // Session Variables
-    float speedPercentage = 0;
-    long strokePercentage = 0;
+    SettingPercents setting = {0, 0, 0, 0};
 
     unsigned long sessionStartTime = 0;
     int sessionStrokeCount = 0;
     double sessionDistanceMeters = 0;
 
-    StrokeEngineControl strokeEngineControl = StrokeEngineControl::STROKE;
+    PlayControls playControl = PlayControls::STROKE;
 
     /**
      * ///////////////////////////////////////////
@@ -272,6 +292,8 @@ class OSSM {
     static void drawPreflightTask(void *pvParameters);
 
     static void startSimplePenetrationTask(void *pvParameters);
+
+    static void startStrokeEngineTask(void *pvParameters);
 
   public:
     explicit OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,

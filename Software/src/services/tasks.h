@@ -18,6 +18,7 @@ static TaskHandle_t drawPreflightTaskH = nullptr;
 
 static TaskHandle_t runHomingTaskH = nullptr;
 static TaskHandle_t runSimplePenetrationTaskH = nullptr;
+static TaskHandle_t runStrokeEngineTaskH = nullptr;
 
 static const int displayTaskCore = 1;
 static const int operationTaskCore = 0;

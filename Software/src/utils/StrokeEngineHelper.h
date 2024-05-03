@@ -24,10 +24,10 @@
 #define DEBUG_TALKATIVE
 
 // enum of stroke engine states
-enum StrokeEngineControl {
+enum PlayControls {
     STROKE,
-    SENSATION,
-    DEPTH
+    DEPTH,
+    SENSATION
 };
 
 static motorProperties servoMotor{

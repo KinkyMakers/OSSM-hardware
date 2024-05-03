@@ -6,25 +6,26 @@ void test_ZeroSeconds(void) {
 }
 
 void test_SingleMinute(void) {
-    TEST_ASSERT_EQUAL_STRING("01:00", formatTime(60).c_str());
+    TEST_ASSERT_EQUAL_STRING("01:00", formatTime(6000).c_str());
 }
 
 void test_MultipleUnits(void) {
-    TEST_ASSERT_EQUAL_STRING("2d 3h",
-                             formatTime(183600).c_str());  // 2 days and 3 hours
+    TEST_ASSERT_EQUAL_STRING(
+        "2d 3h",
+        formatTime(18360000).c_str());  // 2 days and 3 hours
 }
 
 void test_EdgeOfUnits(void) {
-    TEST_ASSERT_EQUAL_STRING("59s", formatTime(59).c_str());
+    TEST_ASSERT_EQUAL_STRING("59s", formatTime(5900).c_str());
     TEST_ASSERT_EQUAL_STRING(
         "59:59",
-        formatTime(3599).c_str());  // 59 minutes, 59 seconds
+        formatTime(359900).c_str());  // 59 minutes, 59 seconds
 }
 
 void test_CombinedUnits(void) {
     TEST_ASSERT_EQUAL_STRING(
         "1d 1h 1:01",
-        formatTime(90061).c_str());  // 1 day, 1 hour, 1 minute, 1 second
+        formatTime(9006100).c_str());  // 1 day, 1 hour, 1 minute, 1 second
 }
 
 void test_Zero(void) {

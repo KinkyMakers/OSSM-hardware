@@ -5,7 +5,8 @@
 
 #include "constants/UserConfig.h"
 
-String formatTime(unsigned int totalSeconds) {
+String formatTime(unsigned int totalMillis) {
+    int totalSeconds = totalMillis / 1000;
     String formattedTime = "";
 
     // Calculate time components

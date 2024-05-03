@@ -3,9 +3,31 @@
 // #include "StrokeEngine.h"
 // #include "utils/StrokeEngineHelper.h"
 
+void OSSM::startStrokeEngineTask(void *pvParameters) {
+    OSSM *ossm = (OSSM *)pvParameters;
+    ossm->stepper.stopService();
+
+    int fullStrokeCount = 0;
+
+    auto isInCorrectState = [](OSSM *ossm) {
+        // Add any states that you want to support here.
+        return ossm->sm->is("strokeEngine"_s) ||
+               ossm->sm->is("strokeEngine.idle"_s);
+    };
+
+    while (isInCorrectState(ossm)) {
+    }
+
+    vTaskDelete(nullptr);
+}
+
 void OSSM::startStrokeEngine() {
-    //    stepper.stopService();
-    //
+    int stackSize = 15 * configMINIMAL_STACK_SIZE;
+
+//    xTaskCreatePinnedToCore(startStrokeEngineTask, "startStrokeEngineTask",
+//                            stackSize, this, configMAX_PRIORITIES - 1,
+//                            &runStrokeEngineTaskH, operationTaskCore);
+
     //    String strokerPatternName = "";
     //    static int strokePattern = 0;
     //    static int strokePatternCount = 0;
@@ -175,5 +197,4 @@ void OSSM::startStrokeEngine() {
     //
     //        vTaskDelay(400);
     //    }
-    return;
 }

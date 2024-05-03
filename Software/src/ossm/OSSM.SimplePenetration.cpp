@@ -4,6 +4,7 @@
 
 void OSSM::startSimplePenetrationTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
+
     int fullStrokeCount = 0;
 
     auto isInCorrectState = [](OSSM *ossm) {
@@ -15,16 +16,16 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
     double lastSpeed = 0;
 
     while (isInCorrectState(ossm)) {
-        auto speed =
-            Config::Driver::maxSpeedMmPerSecond * ossm->speedPercentage / 100.0;
-        auto acceleration = Config::Driver::maxSpeedMmPerSecond *
-                            ossm->speedPercentage * ossm->speedPercentage /
-                            Config::Advanced::accelerationScaling;
+        auto speed = Config::Driver::maxSpeedMmPerSecond *
+                     ossm->setting.speed / 100.0;
+        auto acceleration =
+            Config::Driver::maxSpeedMmPerSecond * ossm->setting.speed *
+            ossm->setting.speed / Config::Advanced::accelerationScaling;
 
         // If the speed is greater than the dead-zone, and the speed has changed
         // by more than the dead-zone, then update the stepper.
         // This must be done in the same task that the stepper is running in.
-        if (ossm->speedPercentage >
+        if (ossm->setting.speed >
                 Config::Advanced::commandDeadZonePercentage &&
             abs(speed - lastSpeed) >
                 Config::Advanced::commandDeadZonePercentage) {
@@ -45,9 +46,9 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
 
         ossm->isForward = !ossm->isForward;
 
-        if (ossm->speedPercentage >
+        if (ossm->setting.speed >
                 Config::Advanced::commandDeadZonePercentage &&
-            ossm->strokePercentage >
+            ossm->setting.stroke >
                 (long)Config::Advanced::commandDeadZonePercentage) {
             fullStrokeCount++;
             ossm->sessionStrokeCount = floor(fullStrokeCount / 2);
@@ -55,16 +56,17 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
             // This calculation assumes that at the end of every stroke you have
             // a whole positive distance, equal to maximum target position.
             ossm->sessionDistanceMeters +=
-                (0.002 * ((float)ossm->strokePercentage / 100.0) *
+                (0.002 * ((float)ossm->setting.stroke / 100.0) *
                  ossm->measuredStrokeMm);
         }
 
         double targetPosition =
-            ossm->isForward ? -abs(((float)ossm->strokePercentage / 100.0) *
-                                   ossm->measuredStrokeMm)
-                            : 0;
+            ossm->isForward
+                ? -abs(((float)ossm->setting.stroke / 100.0) *
+                       ossm->measuredStrokeMm)
+                : 0;
 
-        if (ossm->speedPercentage <
+        if (ossm->setting.speed <
             Config::Advanced::commandDeadZonePercentage) {
             targetPosition = 0;
         }
