@@ -89,6 +89,9 @@ class OSSM {
                 o.sessionStartTime = millis();
                 o.sessionStrokeCount = 0;
                 o.sessionDistanceMeters = 0;
+
+                // disable auto connect
+                o.wm.setWiFiAutoReconnect(false);
             };
 
             auto incrementControl = [](OSSM &o) {
@@ -188,8 +191,8 @@ class OSSM {
                 "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
                 "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
-                "strokeEngine.pattern"_s + longPress / emergencyStop = "menu"_s,
-                "strokeEngine.idle"_s + longPress / emergencyStop = "menu"_s,
+                "strokeEngine.pattern"_s + longPress / emergencyStop = "restart"_s,
+                "strokeEngine.idle"_s + longPress / emergencyStop = "restart"_s,
 
                 "update"_s [isOnline] / drawUpdate = "update.checking"_s,
                 "update"_s = "wifi"_s,

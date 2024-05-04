@@ -8,7 +8,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     // parse ossm from the parameters
     OSSM *ossm = (OSSM *)pvParameters;
     ossm->encoder.setAcceleration(10);
-    ossm->encoder.setBoundaries(0, 100, true);
+    ossm->encoder.setBoundaries(0, 100, false);
     // Clean up!
     switch (ossm->playControl) {
         case PlayControls::STROKE:
@@ -21,7 +21,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
             ossm->encoder.setEncoderValue(ossm->setting.depth);
             break;
     }
-    
+
     auto menuString = menuStrings[ossm->menuOption];
 
     SettingPercents next = {0, 0, 0, 0};
