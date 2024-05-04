@@ -21,7 +21,7 @@ static TaskHandle_t runHomingTaskH = nullptr;
 static TaskHandle_t runSimplePenetrationTaskH = nullptr;
 static TaskHandle_t runStrokeEngineTaskH = nullptr;
 
-static const int displayTaskCore = 1;
+static const int stepperCore = 1;
 static const int operationTaskCore = 0;
 
 #endif  // OSSM_SOFTWARE_TASKS_H

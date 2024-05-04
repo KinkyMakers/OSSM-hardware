@@ -13,6 +13,7 @@ void OSSM::drawPreflightTask(void *pvParameters) {
     // Set the stepper to the home position
     ossm->stepper.setAccelerationInMillimetersPerSecondPerSecond(1000);
     ossm->stepper.setAccelerationInMillimetersPerSecondPerSecond(10000);
+    ossm->stepper.setSpeedInMillimetersPerSecond(25);
     ossm->stepper.setTargetPositionInMillimeters(0);
 
     /**
