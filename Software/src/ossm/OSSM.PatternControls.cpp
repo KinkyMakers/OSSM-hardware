@@ -56,6 +56,7 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
         // Draw the title
         drawStr::title(patternName);
         drawStr::multiLine(0, 20, patternDescription);
+        drawShape::scroll(100* nextPattern / numberOfPatterns);
 
         ossm->display.sendBuffer();
         displayMutex.unlock();

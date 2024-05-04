@@ -5,6 +5,7 @@
 
 #include "constants/Config.h"
 #include "constants/Pins.h"
+#include "services/tasks.h"
 
 /**
  * Here are all the initialization steps for the flexyStepper motor.
@@ -27,7 +28,7 @@ static void initStepper(ESP_FlexyStepper &flexyStepper) {
 
     // This stepper must start on core 1, otherwise it may cause jitter.
     // https://github.com/pkerspe/ESP-FlexyStepper#a-view-words-on-jitter-in-the-generated-step-signals
-    flexyStepper.startAsService(1);
+    flexyStepper.startAsService(stepperCore);
 }
 
 #endif  // OSSM_SOFTWARE_STEPPER_H

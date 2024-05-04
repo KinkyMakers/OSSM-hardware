@@ -60,6 +60,7 @@ void setup() {
     // Encoder
     initEncoder();
     // Display
+    display.setBusClock(100);
     display.begin();
 
     ossm = new OSSM(display, encoder);

@@ -62,7 +62,6 @@ class OSSM {
             auto drawHello = [](OSSM &o) { o.drawHello(); };
             auto drawMenu = [](OSSM &o) { o.drawMenu(); };
             auto startHoming = [](OSSM &o) {
-
                 o.clearHoming();
                 o.startHoming();
             };
@@ -76,8 +75,8 @@ class OSSM {
             auto resetSettings = [](OSSM &o) {
                 o.setting.speed = 0;
                 o.setting.stroke = 0;
-                o.setting.depth = 0;
-                o.setting.sensation = 0;
+                o.setting.depth = 50;
+                o.setting.sensation = 50;
                 o.playControl = PlayControls::STROKE;
 
                 // Prepare the encoder
@@ -246,7 +245,8 @@ class OSSM {
     Menu menuOption = Menu::SimplePenetration;
     String errorMessage = "";
 
-    SettingPercents setting = {0, 0, 0, 0, 0};
+    SettingPercents setting = {
+        .speed = 0, .stroke = 0, .sensation = 50, .depth = 50, .pattern = 0};
 
     unsigned long sessionStartTime = 0;
     int sessionStrokeCount = 0;
