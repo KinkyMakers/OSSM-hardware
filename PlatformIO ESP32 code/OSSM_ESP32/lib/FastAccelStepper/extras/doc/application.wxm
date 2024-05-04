@@ -1,0 +1,44 @@
+/* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
+/* [ Created with wxMaxima version 21.11.0 ] */
+/* [wxMaxima: input   start ] */
+/*
+With the parameters a_ref and T² and the function f with derivatives and inverses, the formulas are:
+*/
+s_max = a_ref * T²;
+t = T * f_inv(s / s_max);
+s(t,T) := s_max * f(t/T);
+v(s,T) := s_max / T * (1 / f_inv_1(s / s_max));
+p(s,T) := T / s_max * f_inv_1(s / s_max);
+a(t,T) := a_ref * f_2(t/T);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+It is important, that f_inv_1(x) can be calculated stable for x<<<1 over several decades well.
+
+Due to this a segmental definition could be useful.
+For example x³ and cubic root can be calculated easily for several decades close to 0.
+*/
+a:0.5 $
+b:1.46 $
+select(x) := x < a $
+seg1(x) :=1.295* x^3 $
+seg2(x) := 1-(1-seg1(a))*sin((1-x)*%pi/b)/sin((1-a)*%pi/b) $
+seg1_1(x):=diff(seg1(x),x)$
+seg2_1(x):=diff(seg2(x),x)$
+seg1_2(x):=diff(seg1(x),x,2)$
+seg2_2(x):=diff(seg2(x),x,2)$
+f(x) := if select(x) then seg1(x) else seg2(x) $
+[seg1_1(x),seg2_1(x)];wxplot2d([f(x),%[1],%[2]],[x,0,1]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+[seg1_2(x),seg2_2(x)];wxplot2d([%[1],%[2]],[x,0,1]);
+/* [wxMaxima: input   end   ] */
+
+
+
+/* Old versions of Maxima abort on loading files that end in a comment. */
+"Created with wxMaxima 21.11.0"$

@@ -1,0 +1,10 @@
+---
+BasedOnStyle: google
+IndentWidth: 4
+ColumnLimit: 120
+---
+Language: Cpp
+BreakBeforeBraces: Allman
+SpacesBeforeTrailingComments: 1
+AllowShortFunctionsOnASingleLine: Empty
+---

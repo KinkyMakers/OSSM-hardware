@@ -1,0 +1,8 @@
+    DirA:        1*L->H,        0*H->L
+    DirB:        1*L->H,        0*H->L
+ EnableA:        1*L->H,        0*H->L
+ EnableB:        1*L->H,        0*H->L
+   StepA:        0*L->H,        0*H->L, Max High=0us Total High=0us
+   StepB:        0*L->H,        0*H->L, Max High=0us Total High=0us
+Time in FillISR  max=27 us, total=5946 us
+

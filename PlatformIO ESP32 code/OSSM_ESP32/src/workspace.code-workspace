@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "OSSM Remote Testing",
+			"path": "../../../../../PlatformIO/Projects/OSSM Remote Testing"
+		}
+	],
+	"settings": {}
+}

@@ -1,0 +1,24 @@
+#######################################
+# Syntax Coloring Map For AccelStepper
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+FastAccelStepper	KEYWORD1
+Speed KEYWORD1
+Acceleration KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+disableOutputs	KEYWORD2
+enableOutputs	KEYWORD2
+setEnablePin	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+ 
