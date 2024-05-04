@@ -1,0 +1,62 @@
+StepperISR_esp32.cpp
+
+The driver makes use of mcpwm module(s) and pcnt modules.
+The mcpwm generates the timing of the pulses.
+The pcnt module counts fast pulses.
+
+The io-matrix of esp32 is configured, that the mcpwm generated
+pulses are routed to the GPIO pad and those pulses are
+fed back into the pulse counter.
+
+If the command queue contains a command with 0 steps aka pause,
+then there is nothing to count and thus the mcpwm module interrupt
+is enabled. Otherwise the mcpwm module interrupt is disabled
+and the a pcnt interrupt is generated, when the number of steps is completed.
+
+Thereof the interrupt rate is max(n,1)*p ticks,
+where n is the number of steps and p the ticks - as defined in the command.
+
+Timing:
+
+For steps = 0: ===========================================================================
+
+Timer   0 1 2 3 4 ... ticks-1 ticks ticks-1 ... 1 0 1 2 3
+TEA       X                                     X   X
+TEP                             X
+STEP    0 0 0 0 0       0       0     0         0 ...
+PWMint    |---|                                (|-----|) in case of another pause
+PCNTint
+
+Only PWM interrupt is triggered on time == 1. On down counting, a second event is generated two clock cycles later: too fast for two interrupts.
+
+
+For steps = 1: ===========================================================================
+
+Timer   0 1 2 3 4 ... ticks-1 ticks ticks-1 ... 1 0 1 2 3
+CMPA      X                                         X
+TEP                             X
+STEP    0 1 1 1 1       1       0     0         0.....
+PCNT    0 1 1 1 1   ............................  
+PWMint
+PCNTint   |---|
+
+PCNT interrupt is triggered on time == 1.
+On time == 1, the step output is triggered high and transition to 0 on ticks
+
+For steps = 2 ===========================================================================
+
+Timer   0 1 2 3 4 ... ticks ... 1 0 1 2 3...ticks ... 1 0
+CMPA      X                         X            
+TEP                     X                    X
+STEP    0 1 1 1 1       0       0 0 1 1 1... 0        0 0...
+PCNT    0 1 1 1 1       1       1 1 2 2 2...
+PWMint
+PCNTint                             |---|
+
+PCNT interrupt is triggered on time == 1 and counter value 2.
+
+Important: mcpwm update method at TEZ
+
+Consequently: The ticks wait time is AFTER the pulse and started from L->H transition.
+Thus the pulse of the following command starts after this command's period
+
