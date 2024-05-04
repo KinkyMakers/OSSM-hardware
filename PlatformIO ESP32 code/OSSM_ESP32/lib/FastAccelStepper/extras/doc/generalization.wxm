@@ -1,0 +1,338 @@
+/* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
+/* [ Created with wxMaxima version 21.11.0 ] */
+/* [wxMaxima: input   start ] */
+/*
+For a constant acceleration ramp the steps and speed at time t can be calculated by:
+*/
+s(t,a) := 1/2 * a * t^2;
+v(t,a) := a * t;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+The time at a given step is then
+*/
+t(s,a) := sqrt(2 * s / a);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+and the speed at a given step is then
+*/
+v(s,a) := sqrt(2 * s * a);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+and finally the step rate R (time distance between two pulses):
+*/
+R(s,a) := 1 / sqrt(2 * s * a);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+With s_ramp being the number of steps to accelerate or decelerate and s_total being the number of the steps for the total ramp including acceleration and deceleration, the complete ramp with acceleration, coasting and deceleration can be written as
+*/
+v(s,a, s_ramp, s_total) := if s < s_ramp then sqrt(2 * s * a) else if s < s_total-s_ramp then sqrt(2 * s_ramp * a) else if s < s_total then sqrt(2 * (s_total-s) * a) else 0 $
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+And the acceleration over steps is simply
+*/
+a(s,a, s_ramp, s_total) := if s < s_ramp then a else if s < s_total-s_ramp then 0 else if s < s_total then -a else 0 $
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+As an example the acceleration over steps for acceleration = 5 m/s², ramp steps = 100 and total ramp steps = 1000:
+*/
+wxplot2d([a(s,5,100,1000)],[s,0,1000]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([v(s,5,100,1000)],[s,0,1000]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+In order to generalize the ramp function, we introduce a dimensionless function f, which translates from range [0,1] into the range [0,1].
+*/
+v(s) := v_max * f(s/s_ramp);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+The first derivate of v aka v_1 is with df/fx = f_1:
+*/
+v_1(s) := v_max/s_ramp * f_1(s/s_ramp);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+Using this definition, the acceleration a(s) can be approximated at steps s:
+*/
+a(s) := v_1(s) * v(s);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+With these two functions a(s) is:
+*/
+a(s);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+Now we need a mathematical function, which can be used to define a smooth acceleration ramp without jumps.
+tanh(x) poses problem for the x-range. The smoothstep function starts at x=0 too slow. As we are controlling the speed,
+we already get one factor of x. So idea is to have a function coming out linearly from x with a maximum at x=1.
+
+This time sine function with its first derivative to be used:
+*/
+f(x) := sin(x * %pi/2);
+diff(f(x),x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+So the first derivative is simply
+*/
+f_1(x) :=%pi*cos(%pi*x/2)/2;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+Drawn over the x-range from 0 to 1:
+*/
+wxplot2d([f(x),f_1(x)],[x,0,1]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+How does this apply to our functions v and a as dependent from step s ?
+*/
+fundef(v); fundef(a);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+With this the function to calculate the acceleration is (with constant factors eliminated):
+*/
+expand(a(s));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+The shape of a(s) is:     
+*/
+wxplot2d([f(x)*f_1(x)],[x,0,1]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+The maximum of this function is c at x_c
+*/
+x_c : 0.5;
+c : f(x_c)*f_1(x_c);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+The maximum value of the function is pi/4
+*/
+float(c);float(%pi/4);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+Consequently the maximum acceleration is:
+*/
+a_max = v_max² / s_ramp * %pi/4;
+
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+In FastAccelStepper maximum acceleration and maximum speed are configured, so this equation can be used to determine s_ramp.
+*/
+ref: s_ramp = %pi/4 * v_max² / a_max;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+The speed at step s = 1 is:
+*/
+ev(v(s), s=1,ref);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+As sin(x) ~ x for x << 1 the speed at step s=1 is:
+*/
+2*a_max/v_max;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+For reference: with constant acceleration the speed at step s=1 is independent of v_max
+*/
+v = sqrt(2*a);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+The issue is, that the relation v(s) in this manner cannot be applied, if the speed shall change from v_max to -v_max. In this scenario, the acceleration at v = 0 aka the turn point shall be at maximum during deceleration/acceleration phase.
+
+Second problem is an adequate forecast, if at turnpoint the acceleration needs to be reduced in order to not overshoot the targetted speed.
+*/;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+From application point of view, it is better to define acceleration as dependent of time and mathematically being a second derivative:
+*/
+a(t,T) := a_ref * f_2(t/T);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+Using this approach speed and distance can be deducted easily:
+*/
+v(t,T) := T * a_ref * f_1(t/T);
+s(t,T) := T² * a_ref * f(t/T);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+with f_inv(x) = y as solution for f(y) = x, time can be derived as dependent of distance:
+*/
+t = T * f_inv(s / (a_ref*T²));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+Using this approach v(t,T) can be stated as dependent of s:
+*/
+v(s,T) := T * a_ref * f_1(f_inv(s / (a_ref*T²)));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+Analyzing the first derivative as function of its inverse:
+*/
+F_1(F_inv(y)) = d/dx * F(x = F_inv(y)) ;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+F_1(F_inv(y)) = d/dy * dy/dx* F(x = F_inv(y)) $
+d/dy * F(x = F_inv(y)) = 1 $
+F_1(F_inv(y)) = dy/dx $
+F_1(F_inv(y)) = 1/F_inv_1(y) ;
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+Applied to v(s,T):
+*/
+v(s,T) := T * a_ref / f_inv_1(s / (a_ref*T²));
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+And for the period being 1/v:
+*/
+p(s,T) := f_inv_1(s / (a_ref*T²)) / (T*a_ref);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+Using s_max = a_ref * T² this can be rewritten to:
+*/
+p(s,T) := T / s_max * f_inv_1(s / s_max);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+cross check with constant acceleration. => OK
+*/
+f_2(x) = 1;
+f(x) = x²/2;
+f_inv(x) = sqrt(2*x);
+f_inv_1(x) = 1/sqrt(2*x);
+p(s,T) := 1/sqrt(2*s/a_ref/T²)/(T*a_ref) $
+p(s,T) := sqrt(a_ref*T²)/sqrt(2*s)/(T*a_ref) $
+p(s,T) := 1/sqrt(2*s *a_ref);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+as the math is ok. So try the sine function for ramp up of the speed
+*/
+f(x) := sin(x*%pi/2);
+wxplot2d([f(x)],[x,0,1]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+solve(y=f(x),x);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+diff(rhs(%[1]),y);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+wxplot2d([%],[y,0.1,0.9]);
+/* [wxMaxima: input   end   ] */
+
+
+/* [wxMaxima: input   start ] */
+/*
+Looks ok, too. Just the cosine will generate maximum acceleration at ramp start and end. So another function is needed.
+The smoothstep function would be interesting, but the inverse is algebraically very complex.
+*/
+/* [wxMaxima: input   end   ] */
+
+
+
+/* Old versions of Maxima abort on loading files that end in a comment. */
+"Created with wxMaxima 21.11.0"$

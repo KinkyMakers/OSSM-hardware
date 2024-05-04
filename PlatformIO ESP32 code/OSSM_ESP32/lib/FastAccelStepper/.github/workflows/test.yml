@@ -1,0 +1,17 @@
+name: Run tests
+
+on:
+  push:
+    branches: [ master, esp32 ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: make
+      run: make -C extras/tests/pc_based
