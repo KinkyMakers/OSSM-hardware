@@ -28,8 +28,6 @@ OSSM *ossm;
 
 OneButton button(Pins::Remote::encoderSwitch, false);
 
-void Click() { ossm->sm->process_event(ButtonPress{}); }
-
 void setup() {
     /** Board setup */
     initBoard();
@@ -44,15 +42,9 @@ void setup() {
     ossm = new OSSM(display, encoder);
 
     // link functions to be called on events.
-    button.attachClick([]() {
-        ossm->sm->process_event(ButtonPress{});
-    });
-    button.attachDoubleClick([]() {
-        ossm->sm->process_event(DoublePress{});
-    });
-    button.attachLongPressStart([]() {
-        ossm->sm->process_event(LongPress{});
-    });
+    button.attachClick([]() { ossm->sm->process_event(ButtonPress{}); });
+    button.attachDoubleClick([]() { ossm->sm->process_event(DoublePress{}); });
+    button.attachLongPressStart([]() { ossm->sm->process_event(LongPress{}); });
 };
 
 void loop() { button.tick(); };
