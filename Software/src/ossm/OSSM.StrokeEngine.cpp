@@ -30,7 +30,6 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
     };
 
     while (isInCorrectState(ossm)) {
-        ESP_LOGV("UTILS", "Looping");
 
         if (isChangeSignificant(lastSetting.speed, ossm->setting.speed)) {
             if (ossm->setting.speed == 0) {
@@ -38,6 +37,7 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
             } else if (Stroker.getState() == READY) {
                 Stroker.startPattern();
             }
+            
             Stroker.setSpeed(ossm->setting.speed * 3, true);
             lastSetting.speed = ossm->setting.speed;
         }
