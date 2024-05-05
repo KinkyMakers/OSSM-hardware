@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 #include "constants/Pins.h"
+#include "services/preferences.h"
 
 /**
  * This file changes the configuration of the board.
@@ -25,6 +26,11 @@ void initBoard() {
 
     analogReadResolution(12);
     analogSetAttenuation(ADC_11db);  // allows us to read almost full 3.3V range
+
+    bool perfsStarted = perfs.begin("ossm");
+    if (!perfsStarted) {
+        ESP_LOGE("Preferences", "Failed to open preferences");
+    }
 }
 
 #endif  // OSSM_SOFTWARE_BOARD_H

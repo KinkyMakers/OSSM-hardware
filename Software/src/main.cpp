@@ -1,3 +1,4 @@
+
 #include "Arduino.h"
 #include "WiFi.h"
 #include "ossm/Events.h"
@@ -5,6 +6,8 @@
 #include "services/board.h"
 #include "services/display.h"
 #include "services/encoder.h"
+#include "utils/uniqueIdentity.h"
+
 
 /*
  *  ██████╗ ███████╗███████╗███╗   ███╗
@@ -67,6 +70,10 @@ void setup() {
 
     attachInterrupt(digitalPinToInterrupt(Pins::Remote::encoderSwitch),
                     handleEncoder, CHANGE);
+
+
+    String id = getUniqueIdentity();
+    ESP_LOGD("Unique Identity", "Unique Identity: %s", id.c_str());
 };
 
 void loop() {
