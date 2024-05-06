@@ -6,6 +6,7 @@
 #include "services/board.h"
 #include "services/display.h"
 #include "services/encoder.h"
+#include "utils/uniqueId.h"
 
 /*
  *  ██████╗ ███████╗███████╗███╗   ███╗
@@ -32,19 +33,15 @@ void setup() {
     /** Board setup */
     initBoard();
 
-    /** Service setup */
-    // Encoder
-    initEncoder();
-    // Display
-    display.setBusClock(400000);
-    display.begin();
-
     ossm = new OSSM(display, encoder);
 
     // link functions to be called on events.
     button.attachClick([]() { ossm->sm->process_event(ButtonPress{}); });
     button.attachDoubleClick([]() { ossm->sm->process_event(DoublePress{}); });
     button.attachLongPressStart([]() { ossm->sm->process_event(LongPress{}); });
+
+    String id = getId();
+    ESP_LOGD("ID", "ID: %s", id.c_str());
 };
 
 void loop() { button.tick(); };
