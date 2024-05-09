@@ -20,6 +20,7 @@
 #include "utils/StateLogger.h"
 #include "utils/StrokeEngineHelper.h"
 #include "utils/analog.h"
+#include "utils/dashboard.h"
 #include "utils/update.h"
 
 namespace sml = boost::sml;
@@ -138,7 +139,8 @@ class OSSM {
                 if (!o.wm.autoConnect()) {
                     ESP_LOGD("UTILS", "failed to connect and hit timeout");
                 }
-                ESP_LOGD("UTILS", "exiting autoconnect");
+
+                postToDashboard();
             };
 
             // Guard definitions to make the table easier to read.
