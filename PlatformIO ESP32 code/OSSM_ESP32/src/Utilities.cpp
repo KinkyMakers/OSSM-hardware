@@ -62,7 +62,7 @@ void OSSM::runPenetrate()
                (speedPercentage <= commandDeadzonePercentage))
         {
             vTaskDelay(5); // wait for motion to complete, since we are going back to
-                           // zero, don't care about stroke value
+            // zero, don't care about stroke value
         }
         targetPosition = 0;
         // Serial.printf("Moving stepper to position %ld \n", targetPosition);
@@ -310,7 +310,7 @@ void OSSM::wifiAutoConnect()
         }
     }
 
-    wm.setConfigPortalTimeout(1);
+    wm.setConfigPortalTimeout(50);
     if (!wm.autoConnect("OSSM Setup"))
     {
         LogDebug("failed to connect and hit timeout");
@@ -356,7 +356,7 @@ void OSSM::wifiConnectOrHotspotNonBlocking()
 void OSSM::enableWifiControl()
 {
     if (wifiControlActive == false)
-    // this is a transition to WiFi, we should tell the server it has control
+        // this is a transition to WiFi, we should tell the server it has control
     {
         wifiControlActive = true;
         if (WiFi.status() != WL_CONNECTED)
@@ -366,7 +366,7 @@ void OSSM::enableWifiControl()
         setInternetControl(wifiControlActive);
     }
     getInternetSettings(); // we load ossm.speedPercentage and ossm.strokePercentage in
-                           // this routine.
+    // this routine.
 }
 
 bool OSSM::setInternetControl(bool setWifiControl)
