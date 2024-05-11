@@ -2,10 +2,10 @@
 
 void OSSM::startStrokeEngineTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
-    ossm->stepper.stopService();
+//    ossm->stepper.stopService();
 
     machineGeometry strokingMachine = {
-        .physicalTravel = abs(ossm->measuredStrokeMm), .keepoutBoundary = 6.0};
+        .physicalTravel = abs(ossm->measuredStrokeSteps), .keepoutBoundary = 6.0};
     SettingPercents lastSetting = ossm->setting;
 
     class StrokeEngine Stroker;
@@ -16,10 +16,10 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
     Stroker.setSensation(calculateSensation(ossm->setting.sensation), true);
 
     Stroker.setPattern(int(ossm->setting.pattern), true);
-    Stroker.setDepth(0.01f * ossm->setting.depth * abs(ossm->measuredStrokeMm),
+    Stroker.setDepth(0.01f * ossm->setting.depth * abs(ossm->measuredStrokeSteps),
                      true);
     Stroker.setStroke(
-        0.01f * ossm->setting.stroke * abs(ossm->measuredStrokeMm), true);
+        0.01f * ossm->setting.stroke * abs(ossm->measuredStrokeSteps), true);
     Stroker.moveToMax(10 * 3);
 
     auto isInCorrectState = [](OSSM *ossm) {
@@ -44,7 +44,7 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
 
         if (lastSetting.stroke != ossm->setting.stroke) {
             float newStroke =
-                0.01f * ossm->setting.stroke * abs(ossm->measuredStrokeMm);
+                0.01f * ossm->setting.stroke * abs(ossm->measuredStrokeSteps);
             ESP_LOGD("UTILS", "change stroke: %f %f", ossm->setting.stroke,
                      newStroke);
             Stroker.setStroke(newStroke, true);
@@ -53,7 +53,7 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
 
         if (lastSetting.depth != ossm->setting.depth) {
             float newDepth =
-                0.01f * ossm->setting.depth * abs(ossm->measuredStrokeMm);
+                0.01f * ossm->setting.depth * abs(ossm->measuredStrokeSteps);
             ESP_LOGD("UTILS", "change depth: %f %f", ossm->setting.depth,
                      newDepth);
             Stroker.setDepth(newDepth, false);

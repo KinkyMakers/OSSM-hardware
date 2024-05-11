@@ -2,7 +2,6 @@
 
 #include "Events.h"
 #include "constants/UserConfig.h"
-#include "services/stepper.h"
 #include "utils/analog.h"
 
 namespace sml = boost::sml;
@@ -18,13 +17,13 @@ void OSSM::clearHoming() {
     ESP_LOGD("Homing", "Homing started");
     isForward = true;
 
-    // Drop the speed and acceleration to something reasonable.
-    stepper.setAccelerationInMillimetersPerSecondPerSecond(1000);
-    stepper.setDecelerationInMillimetersPerSecondPerSecond(10000);
-    stepper.setSpeedInMillimetersPerSecond(25);
+    // Set acceleration and deceleration in steps/s^2
+    stepper->setAcceleration(1000_mm);
+    // Set speed in steps/s
+    stepper->setSpeedInHz(25_mm);
 
     // Clear the stored values.
-    this->measuredStrokeMm = 0;
+    this->measuredStrokeSteps = 0;
 
     // Recalibrate the current sensor offset.
     this->currentSensorOffset = (getAnalogAveragePercent(
@@ -37,14 +36,20 @@ void OSSM::startHomingTask(void *pvParameters) {
     // parse parameters to get OSSM reference
     OSSM *ossm = (OSSM *)pvParameters;
 
-    float target = ossm->isForward ? -400 : 400;
-    ossm->stepper.setTargetPositionInMillimeters(target);
+    int16_t sign = ossm->sm->is("homing.backward"_s) ? 1 : -1;
+
+    int32_t targetPositionInSteps =
+        _round(sign * Config::Driver::maxStrokeSteps);
+
+    ESP_LOGD("Homing", "Target position in steps: %d", targetPositionInSteps);
+    ossm->stepper->moveTo(targetPositionInSteps, false);
 
     auto isInCorrectState = [](OSSM *ossm) {
         // Add any states that you want to support here.
-        return ossm->sm->is("homing"_s) || ossm->sm->is("homing.idle"_s) ||
+        return ossm->sm->is("homing"_s) || ossm->sm->is("homing.forward"_s) ||
                ossm->sm->is("homing.backward"_s);
     };
+
     // run loop for 15second or until loop exits
     while (isInCorrectState(ossm)) {
         TickType_t xCurrentTickCount = xTaskGetTickCount();
@@ -69,46 +74,29 @@ void OSSM::startHomingTask(void *pvParameters) {
 
         ESP_LOGV("Homing", "Current: %f", current);
 
-        // If we have not detected a "bump" with a hard stop, then return and
-        // let the loop continue.
-        if (current < Config::Driver::sensorlessCurrentLimit &&
-            ossm->stepper.getCurrentPositionInMillimeters() <
-                Config::Driver::maxStrokeLengthMm) {
-            // Saying hi to the watchdog :).
+        bool isCurrentOverLimit =
+            current > Config::Driver::sensorlessCurrentLimit;
+
+        if (!isCurrentOverLimit) {
             vTaskDelay(1);
             continue;
         }
 
-        ESP_LOGD("Homing", "Homing bump detected");
+        ESP_LOGD("Homing", "Current over limit: %f", current);
+        ossm->stepper->stopMove();
 
-        // Otherwise, if we have detected a bump, then we need to stop the
-        // motor.
-        ossm->stepper.setTargetPositionToStop();
+        // step away from the hard stop, with your hands in the air!
+        int32_t currentPosition = ossm->stepper->getCurrentPosition();
+        ossm->stepper->moveTo(currentPosition - sign * 10_mm, true);
 
-        // And then move the motor back by the configured offset.
-        // This offset will be positive for reverse homing and negative for
-        // forward homing.
-        float sign = ossm->isForward ? 1.0f : -1.0f;
-        ossm->stepper.moveRelativeInMillimeters(
-            sign *
-            Config::Advanced::strokeZeroOffsetMm);  //"move to" is blocking
+        // measure and save the current position
+        ossm->measuredStrokeSteps =
+            min(float(abs(ossm->stepper->getCurrentPosition())),
+                Config::Driver::maxStrokeSteps);
 
-        if (!ossm->isForward) {
-            // If we are homing backward, then we need to measure the stroke
-            // length before resetting the home position.
-            ossm->measuredStrokeMm =
-                min(abs(ossm->stepper.getCurrentPositionInMillimeters()),
-                    Config::Driver::maxStrokeLengthMm);
+        ossm->stepper->setCurrentPosition(0);
+        ossm->stepper->forceStopAndNewPosition(0);
 
-            ESP_LOGD("Homing", "Measured stroke %d", ossm->measuredStrokeMm);
-        }
-
-        // And finally, we'll set the most forward position as the new "zero"
-        // position.
-        ossm->stepper.setCurrentPositionAsHomeAndStop();
-
-        // Set the event to done so that the machine will move to the next
-        // state.
         ossm->sm->process_event(Done{});
         break;
     };
@@ -124,7 +112,7 @@ void OSSM::startHoming() {
 }
 
 auto OSSM::isStrokeTooShort() -> bool {
-    if (measuredStrokeMm > Config::Driver::minStrokeLengthMm) {
+    if (measuredStrokeSteps > Config::Driver::minStrokeLengthMm) {
         return false;
     }
     this->errorMessage = UserConfig::language.StrokeTooShort;

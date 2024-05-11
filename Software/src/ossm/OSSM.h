@@ -5,8 +5,8 @@
 
 #include "Actions.h"
 #include "AiEsp32RotaryEncoder.h"
-#include "ESP_FlexyStepper.h"
 #include "Events.h"
+#include "FastAccelStepper.h"
 #include "Guard.h"
 #include "U8g2lib.h"
 #include "WiFiManager.h"
@@ -65,10 +65,6 @@ class OSSM {
                 o.clearHoming();
                 o.startHoming();
             };
-            auto reverseHoming = [](OSSM &o) {
-                o.isForward = false;
-                o.startHoming();
-            };
             auto drawPlayControls = [](OSSM &o) { o.drawPlayControls(); };
             auto drawPatternControls = [](OSSM &o) { o.drawPatternControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
@@ -114,7 +110,7 @@ class OSSM {
                 o.startSimplePenetration();
             };
             auto startStrokeEngine = [](OSSM &o) { o.startStrokeEngine(); };
-            auto emergencyStop = [](OSSM &o) { o.stepper.emergencyStop(); };
+            auto emergencyStop = [](OSSM &o) { o.stepper->forceStop(); };
             auto drawHelp = [](OSSM &o) { o.drawHelp(); };
             auto drawWiFi = [](OSSM &o) { o.drawWiFi(); };
             auto drawUpdate = [](OSSM &o) { o.drawUpdate(); };
@@ -164,9 +160,9 @@ class OSSM {
                 *"idle"_s + done / drawHello = "homing"_s,
 #endif
 
-                "homing"_s / startHoming = "homing.idle"_s,
-                "homing.idle"_s + error = "error"_s,
-                "homing.idle"_s + done / reverseHoming = "homing.backward"_s,
+                "homing"_s / startHoming = "homing.forward"_s,
+                "homing.forward"_s + error = "error"_s,
+                "homing.forward"_s + done / startHoming = "homing.backward"_s,
                 "homing.backward"_s + error = "error"_s,
                 "homing.backward"_s + done[(isStrokeTooShort)] = "error"_s,
                 "homing.backward"_s + done = "menu"_s,
@@ -224,7 +220,9 @@ class OSSM {
      * ////
      * ///////////////////////////////////////////
      */
-    ESP_FlexyStepper stepper;
+    FastAccelStepperEngine engine = FastAccelStepperEngine();
+    FastAccelStepper *stepper = nullptr;
+
     U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display;
     StateLogger logger;
     AiEsp32RotaryEncoder &encoder;
@@ -238,7 +236,7 @@ class OSSM {
      */
     // Calibration Variables
     float currentSensorOffset = 0;
-    float measuredStrokeMm = 0;
+    float measuredStrokeSteps = 0;
 
     // Homing Variables
     bool isForward = true;

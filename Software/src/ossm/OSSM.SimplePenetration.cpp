@@ -6,6 +6,7 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
 
     int fullStrokeCount = 0;
+    static int32_t targetPosition = 0;
 
     auto isInCorrectState = [](OSSM *ossm) {
         // Add any states that you want to support here.
@@ -15,10 +16,12 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
 
     double lastSpeed = 0;
 
+    bool stopped = false;
+
     while (isInCorrectState(ossm)) {
-        auto speed =
-            Config::Driver::maxSpeedMmPerSecond * ossm->setting.speed / 100.0;
-        auto acceleration = Config::Driver::maxSpeedMmPerSecond *
+        auto speed = (1_mm) * Config::Driver::maxSpeedMmPerSecond *
+                     ossm->setting.speed / 100.0;
+        auto acceleration = (1_mm) * Config::Driver::maxSpeedMmPerSecond *
                             ossm->setting.speed * ossm->setting.speed /
                             Config::Advanced::accelerationScaling;
 
@@ -27,13 +30,18 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
         bool isSpeedChanged =
             !isSpeedZero && abs(speed - lastSpeed) >
                                 5 * Config::Advanced::commandDeadZonePercentage;
-        bool isAtTarget = ossm->stepper.getDistanceToTargetSigned() == 0;
+        bool isAtTarget =
+            abs(targetPosition - ossm->stepper->getCurrentPosition()) == 0;
 
         // If the speed is zero, then stop the stepper and wait for the next
         if (isSpeedZero) {
-            ossm->stepper.emergencyStop();
-            vTaskDelay(50);
+            ossm->stepper->stopMove();
+            stopped = true;
+            vTaskDelay(100);
             continue;
+        } else if (stopped) {
+            ossm->stepper->moveTo(targetPosition, false);
+            stopped = false;
         }
 
         // If the speed is greater than the dead-zone, and the speed has changed
@@ -41,12 +49,8 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
         // This must be done in the same task that the stepper is running in.
         if (isSpeedChanged) {
             lastSpeed = speed;
-
-            ossm->stepper.setSpeedInMillimetersPerSecond(speed);
-            ossm->stepper.setAccelerationInMillimetersPerSecondPerSecond(
-                acceleration);
-            ossm->stepper.setDecelerationInMillimetersPerSecondPerSecond(
-                acceleration);
+            ossm->stepper->setAcceleration(acceleration);
+            ossm->stepper->setSpeedInHz(speed);
         }
 
         // If the stepper is not at the target, then wait for the next loop
@@ -59,15 +63,17 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
         bool nextDirection = !ossm->isForward;
         ossm->isForward = nextDirection;
 
-        double targetPosition =
-            ossm->isForward ? -abs(((float)ossm->setting.stroke / 100.0) *
-                                   ossm->measuredStrokeMm)
-                            : 0;
+        if (ossm->isForward) {
+            targetPosition = -abs(((float)ossm->setting.stroke / 100.0) *
+                                  ossm->measuredStrokeSteps);
+        } else {
+            targetPosition = 0;
+        }
 
         ESP_LOGV("SimplePenetration", "target: %f,\tspeed: %f,\tacc: %f",
                  targetPosition, speed, acceleration);
 
-        ossm->stepper.setTargetPositionInMillimeters(targetPosition);
+        ossm->stepper->moveTo(targetPosition, false);
 
         if (ossm->setting.speed > Config::Advanced::commandDeadZonePercentage &&
             ossm->setting.stroke >
@@ -78,8 +84,8 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
             // This calculation assumes that at the end of every stroke you have
             // a whole positive distance, equal to maximum target position.
             ossm->sessionDistanceMeters +=
-                (0.002 * ((float)ossm->setting.stroke / 100.0) *
-                 ossm->measuredStrokeMm);
+                (((float)ossm->setting.stroke / 100.0) *
+                 ossm->measuredStrokeSteps / (1_mm)) / 1000.0;
         }
 
         vTaskDelay(1);
