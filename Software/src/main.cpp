@@ -47,4 +47,7 @@ void setup() {
     button.attachLongPressStart([]() { ossm->sm->process_event(LongPress{}); });
 };
 
-void loop() { button.tick(); };
+void loop() {
+    button.tick();
+    ossm->wm.process();
+};

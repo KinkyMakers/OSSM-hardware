@@ -13,6 +13,9 @@ void OSSM::drawMenuTask(void *pvParameters) {
     int currentEncoderValue;
     int clicksPerRow = 3;
     const int maxClicks = clicksPerRow * (Menu::NUM_OPTIONS)-1;
+    // Last Wifi STate
+    wl_status_t wifiState = WL_IDLE_STATUS;
+
     ossm->encoder.setBoundaries(0, maxClicks, true);
     ossm->encoder.setAcceleration(0);
 
@@ -29,10 +32,13 @@ void OSSM::drawMenuTask(void *pvParameters) {
     };
 
     while (isInCorrectState(ossm)) {
-        if (!isFirstDraw && !ossm->encoder.encoderChanged()) {
-            vTaskDelay(1);
+        wl_status_t newWifiState = WiFiClass::status();
+        if (!isFirstDraw && !ossm->encoder.encoderChanged() && wifiState == newWifiState) {
+            vTaskDelay(50);
             continue;
         }
+
+        wifiState = newWifiState;
 
         isFirstDraw = false;
         currentEncoderValue = ossm->encoder.readEncoder();

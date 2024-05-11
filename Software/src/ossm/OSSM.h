@@ -84,9 +84,6 @@ class OSSM {
                 o.sessionStartTime = millis();
                 o.sessionStrokeCount = 0;
                 o.sessionDistanceMeters = 0;
-
-                // disable auto connect
-                o.wm.setWiFiAutoReconnect(false);
             };
 
             auto incrementControl = [](OSSM &o) {
@@ -127,13 +124,13 @@ class OSSM {
 
                 // If you have saved wifi credentials then connect to wifi
                 // immediately.
-                o.wm.setConfigPortalTimeout(1);
-                o.wm.setConnectTimeout(1);
-                o.wm.setConnectRetries(2);
-                o.wm.setConfigPortalBlocking(false);
-                if (!o.wm.autoConnect()) {
-                    ESP_LOGD("UTILS", "failed to connect and hit timeout");
-                }
+
+                String ssid = o.wm.getWiFiSSID(true);
+                String pass = o.wm.getWiFiPass(true);
+                ESP_LOGD("UTILS", "connecting to wifi %s", ssid.c_str());
+
+                WiFi.begin(ssid.c_str(), pass.c_str());
+
                 ESP_LOGD("UTILS", "exiting autoconnect");
             };
 
@@ -198,6 +195,7 @@ class OSSM {
                 "update.updating"_s  = X,
 
                 "wifi"_s / drawWiFi = "wifi.idle"_s,
+                "wifi.idle"_s + done / stopWifiPortal = "menu"_s,
                 "wifi.idle"_s + buttonPress / stopWifiPortal = "menu"_s,
 
                 "help"_s / drawHelp = "help.idle"_s,
