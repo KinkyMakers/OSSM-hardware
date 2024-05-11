@@ -5,8 +5,8 @@
 
 #include "Actions.h"
 #include "AiEsp32RotaryEncoder.h"
-#include "ESP_FlexyStepper.h"
 #include "Events.h"
+#include "FastAccelStepper.h"
 #include "Guard.h"
 #include "U8g2lib.h"
 #include "WiFiManager.h"
@@ -20,7 +20,6 @@
 #include "utils/StateLogger.h"
 #include "utils/StrokeEngineHelper.h"
 #include "utils/analog.h"
-#include "utils/dashboard.h"
 #include "utils/update.h"
 
 namespace sml = boost::sml;
@@ -66,10 +65,6 @@ class OSSM {
                 o.clearHoming();
                 o.startHoming();
             };
-            auto reverseHoming = [](OSSM &o) {
-                o.isForward = false;
-                o.startHoming();
-            };
             auto drawPlayControls = [](OSSM &o) { o.drawPlayControls(); };
             auto drawPatternControls = [](OSSM &o) { o.drawPatternControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
@@ -89,9 +84,6 @@ class OSSM {
                 o.sessionStartTime = millis();
                 o.sessionStrokeCount = 0;
                 o.sessionDistanceMeters = 0;
-
-                // disable auto connect
-                o.wm.setWiFiAutoReconnect(false);
             };
 
             auto incrementControl = [](OSSM &o) {
@@ -115,7 +107,7 @@ class OSSM {
                 o.startSimplePenetration();
             };
             auto startStrokeEngine = [](OSSM &o) { o.startStrokeEngine(); };
-            auto emergencyStop = [](OSSM &o) { o.stepper.emergencyStop(); };
+            auto emergencyStop = [](OSSM &o) { o.stepper->forceStop(); };
             auto drawHelp = [](OSSM &o) { o.drawHelp(); };
             auto drawWiFi = [](OSSM &o) { o.drawWiFi(); };
             auto drawUpdate = [](OSSM &o) { o.drawUpdate(); };
@@ -132,15 +124,14 @@ class OSSM {
 
                 // If you have saved wifi credentials then connect to wifi
                 // immediately.
-                o.wm.setConfigPortalTimeout(1);
-                o.wm.setConnectTimeout(1);
-                o.wm.setConnectRetries(2);
-                o.wm.setConfigPortalBlocking(false);
-                if (!o.wm.autoConnect()) {
-                    ESP_LOGD("UTILS", "failed to connect and hit timeout");
-                }
 
-                postToDashboard();
+                String ssid = o.wm.getWiFiSSID(true);
+                String pass = o.wm.getWiFiPass(true);
+                ESP_LOGD("UTILS", "connecting to wifi %s", ssid.c_str());
+
+                WiFi.begin(ssid.c_str(), pass.c_str());
+
+                ESP_LOGD("UTILS", "exiting autoconnect");
             };
 
             // Guard definitions to make the table easier to read.
@@ -166,9 +157,9 @@ class OSSM {
                 *"idle"_s + done / drawHello = "homing"_s,
 #endif
 
-                "homing"_s / startHoming = "homing.idle"_s,
-                "homing.idle"_s + error = "error"_s,
-                "homing.idle"_s + done / reverseHoming = "homing.backward"_s,
+                "homing"_s / startHoming = "homing.forward"_s,
+                "homing.forward"_s + error = "error"_s,
+                "homing.forward"_s + done / startHoming = "homing.backward"_s,
                 "homing.backward"_s + error = "error"_s,
                 "homing.backward"_s + done[(isStrokeTooShort)] = "error"_s,
                 "homing.backward"_s + done = "menu"_s,
@@ -192,8 +183,9 @@ class OSSM {
                 "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
                 "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
-                "strokeEngine.pattern"_s + longPress / emergencyStop = "restart"_s,
-                "strokeEngine.idle"_s + longPress / emergencyStop = "restart"_s,
+                "strokeEngine.pattern"_s + doublePress / drawPlayControls = "strokeEngine.idle"_s,
+                "strokeEngine.pattern"_s + longPress / emergencyStop = "menu"_s,
+                "strokeEngine.idle"_s + longPress / emergencyStop = "menu"_s,
 
                 "update"_s [isOnline] / drawUpdate = "update.checking"_s,
                 "update"_s = "wifi"_s,
@@ -203,6 +195,7 @@ class OSSM {
                 "update.updating"_s  = X,
 
                 "wifi"_s / drawWiFi = "wifi.idle"_s,
+                "wifi.idle"_s + done / stopWifiPortal = "menu"_s,
                 "wifi.idle"_s + buttonPress / stopWifiPortal = "menu"_s,
 
                 "help"_s / drawHelp = "help.idle"_s,
@@ -225,7 +218,9 @@ class OSSM {
      * ////
      * ///////////////////////////////////////////
      */
-    ESP_FlexyStepper stepper;
+    FastAccelStepperEngine engine = FastAccelStepperEngine();
+    FastAccelStepper *stepper = nullptr;
+
     U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display;
     StateLogger logger;
     AiEsp32RotaryEncoder &encoder;
@@ -239,7 +234,7 @@ class OSSM {
      */
     // Calibration Variables
     float currentSensorOffset = 0;
-    float measuredStrokeMm = 0;
+    float measuredStrokeSteps = 0;
 
     // Homing Variables
     bool isForward = true;

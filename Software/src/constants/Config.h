@@ -30,21 +30,39 @@ namespace Config {
         // GT2 belt has 2mm tooth pitch)
         constexpr float beltPitchMm = 2.0f;
 
+        // This is the measured current that use to infer when the device has
+        // reached the end of its stroke. during "Homing".
+        constexpr float sensorlessCurrentLimit = 1.5f;
+
+        constexpr float stepsPerMM =
+            motorStepPerRevolution / (pulleyToothCount * beltPitchMm);
+
+        namespace Operator {
+            // Define user-defined literal for unsigned integer values
+            constexpr long long operator"" _mm(unsigned long long x) {
+                return x * stepsPerMM;
+            }
+
+            // Define user-defined literal for floating-point values
+            constexpr long double operator"" _mm(long double x) {
+                return x * stepsPerMM;
+            }
+        }
+
+        using namespace Operator;
+
+
         // This is in millimeters, and is what's used to define how much of
         // your rail is usable.
         // The absolute max your OSSM would have is the distance between the
         // belt attachments subtract the linear block holder length (75mm on
         // OSSM) Recommended to also subtract e.g. 20mm to keep the backstop
         // well away from the device.
-        constexpr float maxStrokeLengthMm = 300.f;
+        constexpr float maxStrokeSteps = 300.0_mm;
 
         // If the stroke length is less than this value, then the stroke is
         // likely the result of a poor homing.
-        constexpr float minStrokeLengthMm = 50.0f;
-
-        // This is the measured current that use to infer when the device has
-        // reached the end of its stroke. during "Homing".
-        constexpr float sensorlessCurrentLimit = 1.5f;
+        constexpr float minStrokeLengthMm = 50.0_mm;
     }
 
     /**
@@ -88,5 +106,8 @@ namespace Config {
     }
 
 }
+
+// Alias for "_mm" operator
+using namespace Config::Driver::Operator;
 
 #endif  // OSSM_SOFTWARE_CONFIG_H

@@ -2,10 +2,11 @@
 
 void OSSM::startStrokeEngineTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
-    ossm->stepper.stopService();
+    float measuredStrokeMm = ossm->measuredStrokeSteps / (1_mm);
 
     machineGeometry strokingMachine = {
-        .physicalTravel = abs(ossm->measuredStrokeMm), .keepoutBoundary = 6.0};
+        .physicalTravel = abs(ossm->measuredStrokeSteps / (1_mm)),
+        .keepoutBoundary = 6.0};
     SettingPercents lastSetting = ossm->setting;
 
     class StrokeEngine Stroker;
@@ -16,10 +17,9 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
     Stroker.setSensation(calculateSensation(ossm->setting.sensation), true);
 
     Stroker.setPattern(int(ossm->setting.pattern), true);
-    Stroker.setDepth(0.01f * ossm->setting.depth * abs(ossm->measuredStrokeMm),
-                     true);
-    Stroker.setStroke(
-        0.01f * ossm->setting.stroke * abs(ossm->measuredStrokeMm), true);
+    Stroker.setDepth(0.01f * ossm->setting.depth * abs(measuredStrokeMm), true);
+    Stroker.setStroke(0.01f * ossm->setting.stroke * abs(measuredStrokeMm),
+                      true);
     Stroker.moveToMax(10 * 3);
 
     auto isInCorrectState = [](OSSM *ossm) {
@@ -30,21 +30,20 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
     };
 
     while (isInCorrectState(ossm)) {
-
         if (isChangeSignificant(lastSetting.speed, ossm->setting.speed)) {
             if (ossm->setting.speed == 0) {
                 Stroker.stopMotion();
             } else if (Stroker.getState() == READY) {
                 Stroker.startPattern();
             }
-            
+
             Stroker.setSpeed(ossm->setting.speed * 3, true);
             lastSetting.speed = ossm->setting.speed;
         }
 
         if (lastSetting.stroke != ossm->setting.stroke) {
             float newStroke =
-                0.01f * ossm->setting.stroke * abs(ossm->measuredStrokeMm);
+                0.01f * ossm->setting.stroke * abs(measuredStrokeMm);
             ESP_LOGD("UTILS", "change stroke: %f %f", ossm->setting.stroke,
                      newStroke);
             Stroker.setStroke(newStroke, true);
@@ -53,7 +52,7 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
 
         if (lastSetting.depth != ossm->setting.depth) {
             float newDepth =
-                0.01f * ossm->setting.depth * abs(ossm->measuredStrokeMm);
+                0.01f * ossm->setting.depth * abs(measuredStrokeMm);
             ESP_LOGD("UTILS", "change depth: %f %f", ossm->setting.depth,
                      newDepth);
             Stroker.setDepth(newDepth, false);
@@ -73,11 +72,9 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
             Stroker.setPattern(ossm->setting.pattern, false);
             lastSetting.pattern = ossm->setting.pattern;
         }
-
+        
         vTaskDelay(400);
     }
-
-    Stroker.stopMotion();
 
     vTaskDelete(nullptr);
 }

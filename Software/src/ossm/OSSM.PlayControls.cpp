@@ -1,6 +1,7 @@
 #include "OSSM.h"
 
 #include "extensions/u8g2Extensions.h"
+#include "services/tasks.h"
 #include "utils/analog.h"
 #include "utils/format.h"
 #include "services/tasks.h"
@@ -48,7 +49,6 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     // Line heights
     short lh3 = 56;
     short lh4 = 64;
-    static float knob = 0;
     static float encoder = 0;
 
     bool isStrokeEngine =
@@ -63,11 +63,12 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         // Always assume the display should not update.
         shouldUpdateDisplay = false;
 
-        knob =
+        next.speedKnob =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
+        ossm->setting.speedKnob = next.speedKnob;
         encoder = ossm->encoder.readEncoder();
 
-        next.speed = 0.3 * knob + 0.7 * next.speed;
+        next.speed = 0.3 * next.speedKnob + 0.7 * next.speed;
 
         if (next.speed != ossm->setting.speed) {
             shouldUpdateDisplay = true;
@@ -113,7 +114,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         ossm->display.clearBuffer();
         ossm->display.setFont(Config::Font::base);
 
-        drawShape::settingBar(UserConfig::language.Speed, knob);
+        drawShape::settingBar(UserConfig::language.Speed, next.speedKnob);
 
         if (isStrokeEngine) {
             switch (ossm->playControl) {
@@ -161,14 +162,20 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
          *
          * These controls are associated with stroke and distance
          */
+
+        if(!isStrokeEngine) {
+            strokeString = formatDistance(ossm->sessionDistanceMeters);
+            stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
+            ossm->display.drawUTF8(104 - stringWidth, lh3,
+                                   strokeString.c_str());
+        }
+
         strokeString =
             formatTime(displayLastUpdated - ossm->sessionStartTime).c_str();
         stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-        ossm->display.drawUTF8(104 - stringWidth, lh3, strokeString.c_str());
-
-        strokeString = formatDistance(ossm->sessionDistanceMeters);
-        stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
         ossm->display.drawUTF8(104 - stringWidth, lh4, strokeString.c_str());
+
+
 
         ossm->display.sendBuffer();
         displayMutex.unlock();

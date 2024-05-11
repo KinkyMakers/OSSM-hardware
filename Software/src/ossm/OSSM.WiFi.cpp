@@ -1,4 +1,3 @@
-
 #include "OSSM.h"
 
 #include "extensions/u8g2Extensions.h"
@@ -46,11 +45,5 @@ void OSSM::drawWiFi() {
     display.sendBuffer();
     displayMutex.unlock();
 
-    wm.resetSettings();
-    wm.setConfigPortalTimeout(120);
-    wm.setConnectTimeout(30);
-    wm.setConnectRetries(1);
-    wm.setDisableConfigPortal(false);
-    wm.setConfigPortalBlocking(false);
-    wm.autoConnect("OSSM Setup");
+    wm.startConfigPortal("OSSM Setup");
 }

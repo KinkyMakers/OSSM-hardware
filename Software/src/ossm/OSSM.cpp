@@ -4,7 +4,6 @@
 #include "constants/UserConfig.h"
 #include "extensions/u8g2Extensions.h"
 #include "services/encoder.h"
-#include "services/stepper.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -18,7 +17,21 @@ OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
       sm(std::make_unique<
           sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
                   sml::logger<StateLogger>>>(logger, *this)) {
-    initStepper(stepper);
+    engine.init();
+    stepper = engine.stepperConnectToPin(Pins::Driver::motorStepPin);
+    if (stepper) {
+        stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
+        stepper->setEnablePin(Pins::Driver::motorEnablePin, true);
+        stepper->setAutoEnable(false);
+        stepper->disableOutputs();
+    }
+
+    // NOTE: This wifi manager call loads the saved wifi credentials.
+    // This is a hack to get the wifi credentials loaded early.
+    wm.setConfigPortalBlocking(false);
+    wm.startConfigPortal();
+    wm.process();
+    wm.stopConfigPortal();
 
     // All initializations are done, so start the state machine.
     sm->process_event(Done{});
@@ -113,13 +126,13 @@ void OSSM::drawHello() {
     // 3 x minimum stack
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawHelloTask, "drawHello", stackSize, this, 1,
-                            &drawHelloTaskH);
+                &drawHelloTaskH);
 }
 
 void OSSM::drawError() {
     // Throw the e-break on the stepper
     try {
-        stepper.emergencyStop();
+        stepper->forceStop();
     } catch (const std::exception &e) {
         ESP_LOGD("OSSM::drawError", "Caught exception: %s", e.what());
     }
