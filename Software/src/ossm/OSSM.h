@@ -187,8 +187,8 @@ class OSSM {
                 "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
                 "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
                 "strokeEngine.pattern"_s + doublePress / drawPlayControls = "strokeEngine.idle"_s,
-                "strokeEngine.pattern"_s + longPress / emergencyStop = "restart"_s,
-                "strokeEngine.idle"_s + longPress / emergencyStop = "restart"_s,
+                "strokeEngine.pattern"_s + longPress / emergencyStop = "menu"_s,
+                "strokeEngine.idle"_s + longPress / emergencyStop = "menu"_s,
 
                 "update"_s [isOnline] / drawUpdate = "update.checking"_s,
                 "update"_s = "wifi"_s,
