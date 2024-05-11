@@ -72,13 +72,9 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
             Stroker.setPattern(ossm->setting.pattern, false);
             lastSetting.pattern = ossm->setting.pattern;
         }
-
+        
         vTaskDelay(400);
     }
-
-    Stroker.stopMotion();
-    // set the encoder value to the "MenuItem StrokeEngine"
-    ossm->encoder.setEncoderValue(Menu::StrokeEngine);
 
     vTaskDelete(nullptr);
 }

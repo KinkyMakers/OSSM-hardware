@@ -92,9 +92,6 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
         vTaskDelay(1);
     }
 
-    // set the encoder value to the "MenuItem StrokeEngine"
-    ossm->encoder.setEncoderValue(Menu::SimplePenetration);
-
     vTaskDelete(nullptr);
 }
 
