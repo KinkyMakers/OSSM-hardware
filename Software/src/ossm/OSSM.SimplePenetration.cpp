@@ -85,11 +85,16 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
             // a whole positive distance, equal to maximum target position.
             ossm->sessionDistanceMeters +=
                 (((float)ossm->setting.stroke / 100.0) *
-                 ossm->measuredStrokeSteps / (1_mm)) / 1000.0;
+                 ossm->measuredStrokeSteps / (1_mm)) /
+                1000.0;
         }
 
         vTaskDelay(1);
     }
+
+    // set the encoder value to the "MenuItem StrokeEngine"
+    ossm->encoder.setEncoderValue(Menu::SimplePenetration);
+
     vTaskDelete(nullptr);
 }
 
