@@ -25,7 +25,7 @@ This project uses ESP32's [native logging library](https://docs.espressif.com/pr
 
 **Upload and monitor**
 ```bash
-pio run -t upload -t monitor
+pio run -t upload -t monitor -e developmentS3
 ```
 
 **Run Unit Test tests**
