@@ -39,7 +39,7 @@ void OSSM::startHomingTask(void *pvParameters) {
     int16_t sign = ossm->sm->is("homing.backward"_s) ? 1 : -1;
 
     int32_t targetPositionInSteps =
-        _round(sign * Config::Driver::maxStrokeSteps);
+        round(sign * Config::Driver::maxStrokeSteps);
 
     ESP_LOGD("Homing", "Target position in steps: %d", targetPositionInSteps);
     ossm->stepper->moveTo(targetPositionInSteps, false);
