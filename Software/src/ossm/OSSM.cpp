@@ -21,7 +21,7 @@ OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
     stepper = engine.stepperConnectToPin(Pins::Driver::motorStepPin);
     if (stepper) {
         stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
-        stepper->setEnablePin(Pins::Driver::motorEnablePin, true);
+        stepper->setEnablePin(Pins::Driver::motorEnablePin, false);
         stepper->setAutoEnable(false);
         stepper->disableOutputs();
     }

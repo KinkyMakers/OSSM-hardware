@@ -72,9 +72,11 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
             Stroker.setPattern(ossm->setting.pattern, false);
             lastSetting.pattern = ossm->setting.pattern;
         }
-        
+
         vTaskDelay(400);
     }
+
+    Stroker.stopMotion();
 
     vTaskDelete(nullptr);
 }

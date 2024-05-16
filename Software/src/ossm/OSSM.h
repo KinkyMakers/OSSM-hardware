@@ -107,7 +107,9 @@ class OSSM {
                 o.startSimplePenetration();
             };
             auto startStrokeEngine = [](OSSM &o) { o.startStrokeEngine(); };
-            auto emergencyStop = [](OSSM &o) { o.stepper->forceStop(); };
+            auto emergencyStop = [](OSSM &o) {
+                o.stepper->forceStop();
+            };
             auto drawHelp = [](OSSM &o) { o.drawHelp(); };
             auto drawWiFi = [](OSSM &o) { o.drawWiFi(); };
             auto drawUpdate = [](OSSM &o) { o.drawUpdate(); };
