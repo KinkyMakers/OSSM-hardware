@@ -250,7 +250,7 @@ class OSSM {
     // Homing Variables
     bool isForward = true;
 
-    Menu menuOption = Menu::SimplePenetration;
+    Menu menuOption;
     String errorMessage = "";
 
     SettingPercents setting = {
