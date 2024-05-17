@@ -36,6 +36,9 @@ void OSSM::startHomingTask(void *pvParameters) {
     // parse parameters to get OSSM reference
     OSSM *ossm = (OSSM *)pvParameters;
 
+    // Stroke Engine and Simple Penetration treat this differently.
+    ossm->stepper->enableOutputs();
+    ossm->stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
     int16_t sign = ossm->sm->is("homing.backward"_s) ? 1 : -1;
 
     int32_t targetPositionInSteps =

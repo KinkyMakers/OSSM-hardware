@@ -50,6 +50,4 @@ void setup() {
 void loop() {
     button.tick();
     ossm->wm.process();
-
-//    digitalWrite(Pins::Driver::motorEnablePin, LOW);
 };

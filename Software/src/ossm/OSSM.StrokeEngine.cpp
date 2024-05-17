@@ -1,5 +1,7 @@
 #include "OSSM.h"
 
+#include "../../lib/StrokeEngine/src/StrokeEngine.h"
+
 void OSSM::startStrokeEngineTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
     float measuredStrokeMm = ossm->measuredStrokeSteps / (1_mm);
@@ -11,7 +13,7 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
 
     class StrokeEngine Stroker;
 
-    Stroker.begin(&strokingMachine, &servoMotor);
+    Stroker.begin(&strokingMachine, &servoMotor, ossm->engine, ossm->stepper);
     Stroker.thisIsHome();
 
     Stroker.setSensation(calculateSensation(ossm->setting.sensation), true);
