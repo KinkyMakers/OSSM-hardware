@@ -7,6 +7,7 @@ on:
     branches:
       - master
       - release
+      - aj/development
 
 permissions:
   id-token: write # This is required for requesting the JWT
@@ -33,6 +34,7 @@ jobs:
           fi
 
       - name: Increment Build Number
+        if: github.ref_name == 'master' || github.ref_name == 'release'
         run: |
           response=$(
             curl --location --request POST 'https://app.researchanddesire.com/version-${{ env.bubble_version }}/api/1.1/wf/increment-sw-version-ossm' \
@@ -60,7 +62,7 @@ jobs:
           path: ./Software/.pio/build/${{ env.build_env }}/firmware.bin
 
       - name: Cleanup on failure
-        if: failure()
+        if: failure() && (github.ref_name == 'master' || github.ref_name == 'release')
         run: |
           curl --location --request POST 'https://app.researchanddesire.com/version-${{ env.bubble_version }}/api/1.1/wf/decrement-sw-version-ossm' \
           --header 'Content-Type: application/json' \
@@ -88,8 +90,10 @@ jobs:
         run: |
           if [ "${{ github.ref_name }}" = "release" ]; then
             echo "firmware_filename=firmware.bin" >> "$GITHUB_ENV"
-          else
+          elif [ "${{ github.ref_name }}" = "master" ]; then
             echo "firmware_filename=firmware-dev.bin" >> "$GITHUB_ENV"
+          else
+            echo "firmware_filename=firmware-alpha.bin" >> "$GITHUB_ENV"
           fi
 
       - name: Upload Binary to S3

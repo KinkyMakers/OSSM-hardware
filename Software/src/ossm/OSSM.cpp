@@ -23,11 +23,15 @@ OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
         stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
         stepper->setEnablePin(Pins::Driver::motorEnablePin, true);
         stepper->setAutoEnable(false);
-        stepper->disableOutputs();
     }
 
-    // NOTE: This wifi manager call loads the saved wifi credentials.
-    // This is a hack to get the wifi credentials loaded early.
+    // disable motor briefly in case we are against a hard stop.
+    digitalWrite(Pins::Driver::motorEnablePin, HIGH);
+    delay(600);
+    digitalWrite(Pins::Driver::motorEnablePin, LOW);
+    delay(100);
+
+    // NOTE: This is a hack to get the wifi credentials loaded early.
     wm.setConfigPortalBlocking(false);
     wm.startConfigPortal();
     wm.process();

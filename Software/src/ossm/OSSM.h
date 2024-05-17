@@ -107,7 +107,10 @@ class OSSM {
                 o.startSimplePenetration();
             };
             auto startStrokeEngine = [](OSSM &o) { o.startStrokeEngine(); };
-            auto emergencyStop = [](OSSM &o) { o.stepper->forceStop(); };
+            auto emergencyStop = [](OSSM &o) {
+                o.stepper->forceStop();
+                o.stepper->disableOutputs();
+            };
             auto drawHelp = [](OSSM &o) { o.drawHelp(); };
             auto drawWiFi = [](OSSM &o) { o.drawWiFi(); };
             auto drawUpdate = [](OSSM &o) { o.drawUpdate(); };
@@ -149,6 +152,10 @@ class OSSM {
                        Config::Advanced::commandDeadZonePercentage;
             };
 
+            auto isNotHomed = [](OSSM &o) { return o.isHomed == false;};
+            auto setHomed = [](OSSM &o) { o.isHomed = true; };
+            auto setNotHomed = [](OSSM &o) { o.isHomed = false; };
+
             return make_transition_table(
             // clang-format off
 #ifdef DEBUG_SKIP_HOMING
@@ -162,7 +169,9 @@ class OSSM {
                 "homing.forward"_s + done / startHoming = "homing.backward"_s,
                 "homing.backward"_s + error = "error"_s,
                 "homing.backward"_s + done[(isStrokeTooShort)] = "error"_s,
-                "homing.backward"_s + done = "menu"_s,
+                "homing.backward"_s + done[(isOption(Menu::SimplePenetration))] / setHomed = "simplePenetration"_s,
+                "homing.backward"_s + done[(isOption(Menu::StrokeEngine))] / setHomed = "strokeEngine"_s,
+                "homing.backward"_s + done / setHomed = "menu"_s,
 
                 "menu"_s / (drawMenu, startWifi) = "menu.idle"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
@@ -172,11 +181,13 @@ class OSSM {
                 "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
 
+                "simplePenetration"_s [isNotHomed] = "homing"_s,
                 "simplePenetration"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
                 "simplePenetration.preflight"_s + done / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
-                "simplePenetration.idle"_s + longPress / emergencyStop = "menu"_s,
+                "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
+                "strokeEngine"_s [isNotHomed] = "homing"_s,
                 "strokeEngine"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
                 "strokeEngine.preflight"_s + done / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
@@ -184,8 +195,8 @@ class OSSM {
                 "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
                 "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
                 "strokeEngine.pattern"_s + doublePress / drawPlayControls = "strokeEngine.idle"_s,
-                "strokeEngine.pattern"_s + longPress / emergencyStop = "menu"_s,
-                "strokeEngine.idle"_s + longPress / emergencyStop = "menu"_s,
+                "strokeEngine.pattern"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+                "strokeEngine.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
                 "update"_s [isOnline] / drawUpdate = "update.checking"_s,
                 "update"_s = "wifi"_s,
@@ -239,7 +250,7 @@ class OSSM {
     // Homing Variables
     bool isForward = true;
 
-    Menu menuOption = Menu::SimplePenetration;
+    Menu menuOption;
     String errorMessage = "";
 
     SettingPercents setting = {
@@ -308,6 +319,8 @@ class OSSM {
     static void startSimplePenetrationTask(void *pvParameters);
 
     static void startStrokeEngineTask(void *pvParameters);
+
+    bool isHomed;
 
   public:
     explicit OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,

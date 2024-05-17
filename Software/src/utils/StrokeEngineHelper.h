@@ -1,8 +1,8 @@
 #ifndef STROKE_ENGINE_HELPER_H
 #define STROKE_ENGINE_HELPER_H
-#include <StrokeEngine.h>
 #include <config.h>
 
+#include "../../lib/StrokeEngine/src/StrokeEngine.h"
 #include "constants/Config.h"
 #include "constants/Pins.h"
 
