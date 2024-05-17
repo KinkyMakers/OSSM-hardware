@@ -23,7 +23,6 @@ OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
         stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
         stepper->setEnablePin(Pins::Driver::motorEnablePin, false);
         stepper->setAutoEnable(false);
-        stepper->disableOutputs();
     }
 
     // NOTE: This wifi manager call loads the saved wifi credentials.
