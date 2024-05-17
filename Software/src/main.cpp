@@ -39,6 +39,7 @@ void setup() {
     display.setBusClock(400000);
     display.begin();
 
+
     ossm = new OSSM(display, encoder);
 
     // link functions to be called on events.
