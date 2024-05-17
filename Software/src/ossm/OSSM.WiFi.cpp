@@ -1,3 +1,4 @@
+
 #include "OSSM.h"
 
 #include "extensions/u8g2Extensions.h"
@@ -7,7 +8,7 @@ void OSSM::drawWiFi() {
     displayMutex.lock();
     display.clearBuffer();
 
-    static QRCode qrcode;
+    QRCode qrcode;
     const int scale = 2;
     // This Version of QR Codes can handle ~61 alphanumeric characters with ECC
     // LEVEL M

@@ -55,7 +55,6 @@ void OSSM::startHomingTask(void *pvParameters) {
 
     // run loop for 15second or until loop exits
     while (isInCorrectState(ossm)) {
-        vTaskDelay(1);
         TickType_t xCurrentTickCount = xTaskGetTickCount();
         // Calculate the time in ticks that the task has been running.
         TickType_t xTicksPassed = xCurrentTickCount - xTaskStartTime;

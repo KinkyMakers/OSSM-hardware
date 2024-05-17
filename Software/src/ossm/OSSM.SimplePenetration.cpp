@@ -1,14 +1,16 @@
 #include "OSSM.h"
 
-#include "constants/Config.h"
+#include "ArduinoJson.h"
+#include "PubSubClient.h"
+#include "utils/dashboard.hpp"
 
-void OSSM::startSimplePenetrationTask(void *pvParameters) {
-    OSSM *ossm = (OSSM *)pvParameters;
+void OSSM::startSimplePenetrationTask(void* pvParameters) {
+    OSSM* ossm = (OSSM*)pvParameters;
 
     int fullStrokeCount = 0;
-    static int32_t targetPosition = 0;
+    int32_t targetPosition = 0;
 
-    auto isInCorrectState = [](OSSM *ossm) {
+    auto isInCorrectState = [](OSSM* ossm) {
         // Add any states that you want to support here.
         return ossm->sm->is("simplePenetration"_s) ||
                ossm->sm->is("simplePenetration.idle"_s);
@@ -53,7 +55,8 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
             ossm->stepper->setSpeedInHz(speed);
         }
 
-        // If the stepper is not at the target, then wait for the next loop
+        // If the stepper is not at the target, then wait for the next lo
+
         if (!isAtTarget) {
             vTaskDelay(1);
             // more than zero
@@ -96,10 +99,68 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
 }
 
 void OSSM::startSimplePenetration() {
-    int stackSize = 30 * configMINIMAL_STACK_SIZE;
+    int stackSize = 10 * configMINIMAL_STACK_SIZE;
 
     xTaskCreatePinnedToCore(startSimplePenetrationTask,
                             "startSimplePenetrationTask", stackSize, this,
                             configMAX_PRIORITIES - 1,
                             &runSimplePenetrationTaskH, operationTaskCore);
+
+    xTaskCreate(
+        [](void* pvParameters) {
+            AuthResponse token = getAuthToken();
+            WiFiClient wiFiClient;
+            PubSubClient client(wiFiClient);
+            String sessionId = "";
+            const char* mqtt_broker = MQTT_BROKER;
+            const int mqtt_port = MQTT_PORT;
+
+            sessionId = token.sessionId;
+            // Connect to MQTT
+            client.setServer(mqtt_broker, mqtt_port);
+            // increase packet size
+            client.setBufferSize(1024);
+            while (!client.connected()) {
+                Serial.println("Connecting to MQTT...");
+                vTaskDelay(1000 / portTICK_PERIOD_MS);
+                if (client.connect(token.clientId.c_str(),
+                                   token.username.c_str(),
+                                   token.password.c_str())) {
+                    ESP_LOGD("MQTT", "Connected to MQTT");
+                } else {
+                    ESP_LOGD("MQTT", "Failed with state: %d", client.state());
+                    vTaskDelay(5000 / portTICK_PERIOD_MS);
+                }
+            }
+
+            int i = 0;
+            StaticJsonDocument<200> doc;
+
+            vTaskDelay(5000 / portTICK_PERIOD_MS);
+            while (true) {
+                // if WIFI not connected then wait
+                if (WiFi.status() != WL_CONNECTED || !client.connected()) {
+                    vTaskDelay(5000 / portTICK_PERIOD_MS);
+                    continue;
+                }
+
+                i++;
+                client.loop();
+
+                doc["x"] = random(0, 100);
+                doc["ms"] = millis();
+                doc["meta"] = "{}";
+
+                String output;
+                serializeJson(doc, output);
+
+                // SERIAL LOG VALUE
+                ESP_LOGD("MQTT", "Sending: %s", output.c_str());
+                client.publish(String("ossm/" + sessionId).c_str(),
+                               output.c_str());
+
+                vTaskDelay(5000 / portTICK_PERIOD_MS);
+            }
+        },
+        "mqtt", 6 * configMINIMAL_STACK_SIZE, nullptr, 1, nullptr);
 }

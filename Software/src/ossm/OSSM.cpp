@@ -11,26 +11,13 @@ using namespace sml;
 // Now we can define the OSSM constructor since OSSMStateMachine::operator() is
 // fully defined
 OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
-           AiEsp32RotaryEncoder &encoder)
+           AiEsp32RotaryEncoder &encoder, FastAccelStepper *stepper)
     : display(display),
       encoder(encoder),
+      stepper(stepper),
       sm(std::make_unique<
           sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
                   sml::logger<StateLogger>>>(logger, *this)) {
-    engine.init();
-    stepper = engine.stepperConnectToPin(Pins::Driver::motorStepPin);
-    if (stepper) {
-        stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
-        stepper->setEnablePin(Pins::Driver::motorEnablePin, true);
-        stepper->setAutoEnable(false);
-    }
-
-    // disable motor briefly in case we are against a hard stop.
-    digitalWrite(Pins::Driver::motorEnablePin, HIGH);
-    delay(600);
-    digitalWrite(Pins::Driver::motorEnablePin, LOW);
-    delay(100);
-
     // NOTE: This is a hack to get the wifi credentials loaded early.
     wm.setConfigPortalBlocking(false);
     wm.startConfigPortal();
