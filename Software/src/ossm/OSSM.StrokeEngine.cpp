@@ -17,7 +17,6 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
     Stroker.thisIsHome();
 
     Stroker.setSensation(calculateSensation(ossm->setting.sensation), true);
-
     Stroker.setPattern(int(ossm->setting.pattern), true);
     Stroker.setDepth(0.01f * ossm->setting.depth * abs(measuredStrokeMm), true);
     Stroker.setStroke(0.01f * ossm->setting.stroke * abs(measuredStrokeMm),

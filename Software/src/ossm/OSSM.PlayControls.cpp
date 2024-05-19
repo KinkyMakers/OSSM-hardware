@@ -10,6 +10,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
     ossm->encoder.setAcceleration(10);
     ossm->encoder.setBoundaries(0, 100, false);
+    ossm->encoder.setEncoderValue(0);
     // Clean up!
     switch (ossm->playControl) {
         case PlayControls::STROKE:
@@ -162,7 +163,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
          * These controls are associated with stroke and distance
          */
 
-        if(!isStrokeEngine) {
+        if (!isStrokeEngine) {
             strokeString = formatDistance(ossm->sessionDistanceMeters);
             stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
             ossm->display.drawUTF8(104 - stringWidth, lh3,
@@ -173,8 +174,6 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
             formatTime(displayLastUpdated - ossm->sessionStartTime).c_str();
         stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
         ossm->display.drawUTF8(104 - stringWidth, lh4, strokeString.c_str());
-
-
 
         ossm->display.sendBuffer();
         displayMutex.unlock();
