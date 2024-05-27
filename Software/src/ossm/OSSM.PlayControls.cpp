@@ -68,7 +68,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         ossm->setting.speedKnob = next.speedKnob;
         encoder = ossm->encoder.readEncoder();
 
-        next.speed = 0.3 * next.speedKnob + 0.7 * next.speed;
+        next.speed = next.speedKnob;
 
         if (next.speed != ossm->setting.speed) {
             shouldUpdateDisplay = true;
