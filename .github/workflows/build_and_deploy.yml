@@ -26,8 +26,8 @@ jobs:
             echo "build_env=production" >> "$GITHUB_ENV"
             echo "bubble_version=live" >> "$GITHUB_ENV"
           elif [ "${{ github.ref_name }}" = "master" ]; then
-            echo "build_env=staging" >> "$GITHUB_ENV"
-            echo "bubble_version=test" >> "$GITHUB_ENV"
+            echo "build_env=production" >> "$GITHUB_ENV"
+            echo "bubble_version=live" >> "$GITHUB_ENV"
           else
             echo "build_env=development" >> "$GITHUB_ENV"
             echo "bubble_version=test" >> "$GITHUB_ENV"
@@ -45,7 +45,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.12'
 
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
@@ -91,7 +91,7 @@ jobs:
           if [ "${{ github.ref_name }}" = "release" ]; then
             echo "firmware_filename=firmware.bin" >> "$GITHUB_ENV"
           elif [ "${{ github.ref_name }}" = "master" ]; then
-            echo "firmware_filename=firmware-dev.bin" >> "$GITHUB_ENV"
+            echo "firmware_filename=firmware.bin" >> "$GITHUB_ENV"
           else
             echo "firmware_filename=firmware-alpha.bin" >> "$GITHUB_ENV"
           fi
