@@ -57,11 +57,6 @@ namespace Pins {
         // Pin for the toggle for Wi-Fi control (Can be targeted alone if no
         // hardware toggle is required)
         constexpr int controlTogglePin = 22;
-
-        // TODO: #OSSM-21 No toggle switch should be required for control. The
-        // OSSM should always listen for commands and should decide whether to
-        // act on them based on the current control mode. constexpr int
-        // control_default = LOCAL_CONTROLLER;
     }
 
     /** These are configured for the OSSM Remote - which has a screen, a
