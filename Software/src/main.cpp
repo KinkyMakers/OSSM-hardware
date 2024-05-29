@@ -39,15 +39,20 @@ void setup() {
     display.setBusClock(400000);
     display.begin();
 
-    ossm = new OSSM(display, encoder);
-
+    ossm = new OSSM(display, encoder, stepper);
     // link functions to be called on events.
     button.attachClick([]() { ossm->sm->process_event(ButtonPress{}); });
     button.attachDoubleClick([]() { ossm->sm->process_event(DoublePress{}); });
     button.attachLongPressStart([]() { ossm->sm->process_event(LongPress{}); });
+
+    xTaskCreate(
+        [](void* pvParameters) {
+            while (true) {
+                button.tick();
+                vTaskDelay(10);
+            }
+        },
+        "buttonTask", 4 * configMINIMAL_STACK_SIZE, nullptr, 1, nullptr);
 };
 
-void loop() {
-    button.tick();
-    ossm->wm.process();
-};
+void loop() { vTaskDelete(nullptr); };

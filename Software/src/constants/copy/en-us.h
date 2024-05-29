@@ -42,7 +42,16 @@ static const LanguageStruct enUs = {
         "Stroke depth increases per cycle; sensation sets count.",
         "Pauses between strokes; sensation adjusts length.",
         "Modifies length, maintains speed; sensation influences direction."
-    }
+    },
+    .StrokeEngineNames = {
+        "Simple Stroke",
+        "Teasing Pounding",
+        "Robo Stroke",
+        "Half'n'Half",
+        "Deeper",
+        "Stop'n'Go",
+        "Insist"
+    },
 };
 
 #endif  // OSSM_SOFTWARE_EN_US_H

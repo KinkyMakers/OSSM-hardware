@@ -96,6 +96,8 @@ auto updateOSSM = []() {
             ESP_LOGD("UTILS", "HTTP_UPDATE_OK");
             break;
     }
+
+    client.stop();
 };
 
 #endif  // SOFTWARE_UPDATE_H
