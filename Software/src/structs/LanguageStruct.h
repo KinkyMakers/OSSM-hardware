@@ -23,6 +23,7 @@ struct LanguageStruct {
     String Stroke;
     String StrokeEngine;
     String StrokeTooShort;
+    String Pair;
     String Update;
     String UpdateMessage;
     String WiFi;

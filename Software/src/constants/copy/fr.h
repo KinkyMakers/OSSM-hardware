@@ -30,6 +30,7 @@ static const LanguageStruct fr = {
     .StrokeEngine = "Stroke Engine",
     .StrokeTooShort =
         "Course trop courte. Veuillez vérifier votre courroie d'entraînement.",
+    .Pair = "Jumeler l'appareil",
     .Update = "Mettre à jour",
     .UpdateMessage =
         "La mise à jour est en cours. Ça peut prendre jusqu'à 60 secondes.",
