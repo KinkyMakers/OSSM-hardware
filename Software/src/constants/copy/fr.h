@@ -46,7 +46,17 @@ static const LanguageStruct fr = {
         "La profondeur des coups augmente à chaque cycle ; la sensation définit le nombre.",
         "Pauses entre les coups ; la sensation ajuste la longueur.",
         "Modifie la longueur, maintient la vitesse ; la sensation influe sur la direction.",
-    }};
+    },
+    .StrokeEngineNames = {
+        "Simple Stroke",
+        "Teasing Pounding",
+        "Robo Stroke",
+        "Half'n'Half",
+        "Deeper",
+        "Stop'n'Go",
+        "Insist",
+    }
+};
 
 
 #endif  // OSSM_SOFTWARE_FR_H
