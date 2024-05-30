@@ -7,7 +7,7 @@
 size_t numberOfDescriptions =
     sizeof(UserConfig::language.StrokeEngineDescriptions) /
     sizeof(UserConfig::language.StrokeEngineDescriptions[0]);
-size_t numberOfPatterns = sizeof(patternTable) / sizeof(patternTable[0]);
+size_t numberOfPatterns = 7;
 
 void OSSM::drawPatternControlsTask(void *pvParameters) {
     // parse ossm from the parameters
@@ -19,9 +19,9 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
         return ossm->sm->is("strokeEngine.pattern"_s);
     };
 
-    int nextPattern = ossm->setting.pattern;
+    int nextPattern = (int)ossm->setting.pattern;
     bool shouldUpdateDisplay = true;
-    String patternName = patternTable[nextPattern]->getName();
+    String patternName = "nextPattern";
     String patternDescription =
         UserConfig::language.StrokeEngineDescriptions[nextPattern];
 
@@ -33,13 +33,13 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
     while (isInCorrectState(ossm)) {
         nextPattern = ossm->encoder.readEncoder() / 3;
         shouldUpdateDisplay =
-            shouldUpdateDisplay || ossm->setting.pattern != nextPattern;
+            shouldUpdateDisplay || (int)ossm->setting.pattern != nextPattern;
         if (!shouldUpdateDisplay) {
             vTaskDelay(100);
             continue;
         }
 
-        patternName = patternTable[nextPattern]->getName();
+        patternName = UserConfig::language.StrokeEngineNames[nextPattern];
 
         if (nextPattern < numberOfDescriptions) {
             patternDescription =
@@ -48,7 +48,7 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
             patternDescription = "No description available";
         }
 
-        ossm->setting.pattern = nextPattern;
+        ossm->setting.pattern = (StrokePatterns)nextPattern;
 
         displayMutex.lock();
         ossm->display.clearBuffer();
@@ -56,7 +56,7 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
         // Draw the title
         drawStr::title(patternName);
         drawStr::multiLine(0, 20, patternDescription);
-        drawShape::scroll(100* nextPattern / numberOfPatterns);
+        drawShape::scroll(100 * nextPattern / numberOfPatterns);
 
         ossm->display.sendBuffer();
         displayMutex.unlock();

@@ -1,34 +1,27 @@
-#ifndef OSSM_SOFTWARE_STEPPER_H
-#define OSSM_SOFTWARE_STEPPER_H
+#ifndef SOFTWARE_STEPPER_H
+#define SOFTWARE_STEPPER_H
 
-#include <ESP_FlexyStepper.h>
-
-#include "constants/Config.h"
+#include "FastAccelStepper.h"
 #include "constants/Pins.h"
-#include "services/tasks.h"
 
-/**
- * Here are all the initialization steps for the flexyStepper motor.
- *
- * It is useful the call this function again if the motor is in an unknown
- * state.
- *
- * @param flexyStepper
- */
-static void initStepper(ESP_FlexyStepper &flexyStepper) {
-    flexyStepper.connectToPins(Pins::Driver::motorStepPin,
-                               Pins::Driver::motorDirectionPin);
-    flexyStepper.setLimitSwitchActive(Pins::Driver::limitSwitchPin);
+static FastAccelStepperEngine stepperEngine = FastAccelStepperEngine();
+static FastAccelStepper *stepper = nullptr;
+static class StrokeEngine Stroker;
 
-    float stepsPerMm =
-        Config::Driver::motorStepPerRevolution /
-        (Config::Driver::pulleyToothCount * Config::Driver::beltPitchMm);
+static void initStepper() {
+    stepperEngine.init();
+    stepper = stepperEngine.stepperConnectToPin(Pins::Driver::motorStepPin);
+    if (stepper) {
+        stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
+        stepper->setEnablePin(Pins::Driver::motorEnablePin, true);
+        stepper->setAutoEnable(false);
+    }
 
-    flexyStepper.setStepsPerMillimeter(stepsPerMm);
-
-    // This stepper must start on core 1, otherwise it may cause jitter.
-    // https://github.com/pkerspe/ESP-FlexyStepper#a-view-words-on-jitter-in-the-generated-step-signals
-    flexyStepper.startAsService(stepperCore);
+    // disable motor briefly in case we are against a hard stop.
+    digitalWrite(Pins::Driver::motorEnablePin, HIGH);
+    delay(600);
+    digitalWrite(Pins::Driver::motorEnablePin, LOW);
+    delay(100);
 }
 
-#endif  // OSSM_SOFTWARE_STEPPER_H
+#endif  // SOFTWARE_STEPPER_H
