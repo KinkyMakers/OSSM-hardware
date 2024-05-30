@@ -49,6 +49,7 @@ void setup() {
         [](void* pvParameters) {
             while (true) {
                 button.tick();
+                ossm->wm.process();
                 vTaskDelay(10);
             }
         },

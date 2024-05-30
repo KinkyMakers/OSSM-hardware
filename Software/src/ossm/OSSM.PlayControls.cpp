@@ -4,10 +4,12 @@
 #include "services/tasks.h"
 #include "utils/analog.h"
 #include "utils/format.h"
+#include "utils/uniqueId.h"
+#include "constants/URLs.h"
 
 void OSSM::drawPlayControlsTask(void *pvParameters) {
     // parse ossm from the parameters
-    OSSM *ossm = (OSSM *)pvParameters;
+    OSSM *ossm = (OSSM *) pvParameters;
     ossm->encoder.setAcceleration(10);
     ossm->encoder.setBoundaries(0, 100, false);
     ossm->encoder.setEncoderValue(0);
@@ -52,7 +54,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     static float encoder = 0;
 
     bool isStrokeEngine =
-        ossm->sm->is("strokeEngine"_s) || ossm->sm->is("strokeEngine.idle"_s);
+            ossm->sm->is("strokeEngine"_s) || ossm->sm->is("strokeEngine.idle"_s);
 
     bool shouldUpdateDisplay = false;
 
@@ -64,7 +66,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         shouldUpdateDisplay = false;
 
         next.speedKnob =
-            getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
+                getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
         ossm->setting.speedKnob = next.speedKnob;
         encoder = ossm->encoder.readEncoder();
 
@@ -85,8 +87,8 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
             case PlayControls::SENSATION:
                 next.sensation = encoder;
                 shouldUpdateDisplay =
-                    shouldUpdateDisplay ||
-                    next.sensation - ossm->setting.sensation >= 1;
+                        shouldUpdateDisplay ||
+                        next.sensation - ossm->setting.sensation >= 1;
                 ossm->setting.sensation = next.sensation;
                 break;
             case PlayControls::DEPTH:
@@ -98,7 +100,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         }
 
         shouldUpdateDisplay =
-            shouldUpdateDisplay || millis() - displayLastUpdated > 1000;
+                shouldUpdateDisplay || millis() - displayLastUpdated > 1000;
 
         if (!shouldUpdateDisplay) {
             vTaskDelay(100);
@@ -171,7 +173,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         }
 
         strokeString =
-            formatTime(displayLastUpdated - ossm->sessionStartTime).c_str();
+                formatTime(displayLastUpdated - ossm->sessionStartTime).c_str();
         stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
         ossm->display.drawUTF8(104 - stringWidth, lh4, strokeString.c_str());
 
@@ -189,4 +191,3 @@ void OSSM::drawPlayControls() {
     xTaskCreate(drawPlayControlsTask, "drawPlayControlsTask", stackSize, this,
                 1, &drawPlayControlsTaskH);
 }
-

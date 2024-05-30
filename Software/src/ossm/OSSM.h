@@ -20,6 +20,8 @@
 #include "utils/analog.h"
 #include "utils/update.h"
 
+#pragma once
+
 namespace sml = boost::sml;
 
 class OSSM {
