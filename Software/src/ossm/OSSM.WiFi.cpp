@@ -101,7 +101,7 @@ void OSSM::drawPairing() {
                     int timeElapsed = millis() - taskStart;
                     if (timeElapsed > 300000) {
                         // 5 minutes have passed
-                        ossm->errorMessage = "Pairing timed out. Please try again.";
+                        ossm->errorMessage = UserConfig::language.PairingTookTooLong;
                         ossm->sm->process_event(Error{});
                         break;
                     }
