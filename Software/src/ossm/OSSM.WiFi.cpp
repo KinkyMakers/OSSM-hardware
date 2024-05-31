@@ -28,6 +28,30 @@ void OSSM::drawWiFi() {
     wm.startConfigPortal("OSSM Setup");
 }
 
+auto pairingTask = [](void *pvParameters) {
+    OSSM *ossm = (OSSM *) pvParameters;
+    int taskStart = millis();
+    auto isInCorrectState = [](OSSM *ossm) {
+        // Add any states that you want to support here.
+        return ossm->sm->is("pair"_s) || ossm->sm->is("pair.idle"_s);
+    };
+
+    while (isInCorrectState(ossm)) {
+        vTaskDelay(10);
+        int timeElapsed = millis() - taskStart;
+        if (timeElapsed > 300000) {
+// 5 minutes have passed
+            ossm->errorMessage = UserConfig::language.PairingTookTooLong;
+            ossm->sm->process_event(Error{});
+            break;
+        }
+
+    }
+
+    vTaskDelete(nullptr);
+
+};
+
 void OSSM::drawPairing() {
 
     String id = getId();
@@ -51,6 +75,10 @@ void OSSM::drawPairing() {
     // TODO - Add a spinner here
     display.sendBuffer();
     displayMutex.unlock();
+
+    // start a task to wait 5 minutes then throw an error:
+    xTaskCreate(pairingTask,
+                "pairingTask", 3 * configMINIMAL_STACK_SIZE, this, 1, nullptr);
 
 
     // prepare the payload.
@@ -78,39 +106,15 @@ void OSSM::drawPairing() {
     http.addHeader("Authorization", "Bearer cchzYsEaUEy7zoqfYZO2loHg4pKIcIQAvCo3LW9aKYg=");
     int httpCode = http.POST(payload);
 
-    if (httpCode > 0) {
+    if (httpCode == HTTP_CODE_OK) {
         ESP_LOGD("PAIRING", "Response: %s", payload.c_str());
     } else {
         ESP_LOGE("PAIRING", "Error: %s", http.errorToString(httpCode).c_str());
+        errorMessage = String(UserConfig::language.PairingFailed) + " Code: " + httpCode;
+        sm->process_event(Error{});
     }
 
     http.end();
 
-    // start a task to wait 5 minutes then throw an error:
-    xTaskCreate(
-            [](void *pvParameters) {
-                OSSM *ossm = (OSSM *) pvParameters;
-                int taskStart = millis();
-                auto isInCorrectState = [](OSSM *ossm) {
-                    // Add any states that you want to support here.
-                    return ossm->sm->is("pair"_s) || ossm->sm->is("pair.idle"_s);
-                };
-
-                while (isInCorrectState(ossm)) {
-                    vTaskDelay(10);
-                    int timeElapsed = millis() - taskStart;
-                    if (timeElapsed > 300000) {
-                        // 5 minutes have passed
-                        ossm->errorMessage = UserConfig::language.PairingTookTooLong;
-                        ossm->sm->process_event(Error{});
-                        break;
-                    }
-
-                }
-
-                vTaskDelete(nullptr);
-
-            },
-            "buttonTask", 3 * configMINIMAL_STACK_SIZE, this, 1, nullptr);
 
 }

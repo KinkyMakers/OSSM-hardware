@@ -46,14 +46,15 @@ void setup() {
     button.attachLongPressStart([]() { ossm->sm->process_event(LongPress{}); });
 
     xTaskCreate(
-        [](void* pvParameters) {
-            while (true) {
-                button.tick();
-                ossm->wm.process();
-                vTaskDelay(10);
-            }
-        },
-        "buttonTask", 4 * configMINIMAL_STACK_SIZE, nullptr, 1, nullptr);
+            [](void *pvParameters) {
+                while (true) {
+                    button.tick();
+                    vTaskDelay(10);
+                    ossm->wm.process();
+                    vTaskDelay(10);
+                }
+            },
+            "buttonTask", 5 * configMINIMAL_STACK_SIZE, nullptr, 1, nullptr);
 };
 
 void loop() { vTaskDelete(nullptr); };

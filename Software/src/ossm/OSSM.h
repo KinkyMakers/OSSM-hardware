@@ -258,7 +258,6 @@ private:
     bool isForward = true;
 
     Menu menuOption;
-    String errorMessage = "";
 
     SettingPercents setting = {.speed = 0,
             .stroke = 0,
@@ -347,6 +346,7 @@ public:
             sm = nullptr;  // The state machine
 
     WiFiManager wm;
+    String errorMessage = "";
 };
 
 #endif  // OSSM_SOFTWARE_OSSM_H
