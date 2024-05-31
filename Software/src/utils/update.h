@@ -37,8 +37,7 @@ static auto isUpdateAvailable = []() {
 
     // Making the POST request to the bubble server
     HTTPClient http;
-    WiFiClient client;
-    http.begin(client, serverNameBubble);
+    http.begin(serverNameBubble);
     http.addHeader("Content-Type", "application/json");
     StaticJsonDocument<200> doc;
     // Add values in the document
@@ -61,7 +60,6 @@ static auto isUpdateAvailable = []() {
         ESP_LOGD("UTILS", "Failed to reach update server");
     }
     http.end();
-    client.stop();
     return response_needUpdate;
 };
 

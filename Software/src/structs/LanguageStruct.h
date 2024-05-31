@@ -25,6 +25,7 @@ struct LanguageStruct {
     String StrokeTooShort;
     String Pair;
     String PairingInstructions;
+//    String PairingTookTooLong;
     String Update;
     String UpdateMessage;
     String WiFi;

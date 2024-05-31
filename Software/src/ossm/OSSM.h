@@ -209,6 +209,7 @@ private:
                     "pair"_s[isOnline] / drawPairing = "pair.idle"_s,
                     "pair"_s = "wifi"_s,
                     "pair.idle"_s + buttonPress = "menu"_s,
+                    "pair.idle"_s + error = "error"_s,
 
                     "update"_s[isOnline] / drawUpdate = "update.checking"_s,
                     "update"_s = "wifi"_s,

@@ -32,6 +32,7 @@ static const LanguageStruct fr = {
         "Course trop courte. Veuillez vérifier votre courroie d'entraînement.",
     .Pair = "Jumeler l'appareil",
     .PairingInstructions = "Entrez le code suivant sur le tableau de bord",
+//    .PairingTookTooLong = "Votre session de jumelage a expiré. Réessayez.",
     .Update = "Mettre à jour",
     .UpdateMessage =
         "La mise à jour est en cours. Ça peut prendre jusqu'à 60 secondes.",
