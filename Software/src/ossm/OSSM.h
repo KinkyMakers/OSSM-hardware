@@ -160,76 +160,72 @@ private:
             auto setNotHomed = [](OSSM &o) { o.isHomed = false; };
 
             return make_transition_table(
-                    // clang-format off
+        // clang-format off
 #ifdef DEBUG_SKIP_HOMING
                     *"idle"_s + done / drawHello = "menu"_s,
 #else
-                    *"idle"_s + done / drawHello = "homing"_s,
+        *"idle"_s + done / drawHello = "homing"_s,
 #endif
 
-                    "homing"_s / startHoming = "homing.forward"_s,
-                    "homing.forward"_s + error = "error"_s,
-                    "homing.forward"_s + done / startHoming = "homing.backward"_s,
-                    "homing.backward"_s + error = "error"_s,
-                    "homing.backward"_s + done[(isStrokeTooShort)] = "error"_s,
-                    "homing.backward"_s + done[(isOption(Menu::SimplePenetration))] / setHomed = "simplePenetration"_s,
-                    "homing.backward"_s + done[(isOption(Menu::StrokeEngine))] / setHomed = "strokeEngine"_s,
-                    "homing.backward"_s + done / setHomed = "menu"_s,
+        "homing"_s / startHoming = "homing.forward"_s,
+        "homing.forward"_s + error = "error"_s,
+        "homing.forward"_s + done / startHoming = "homing.backward"_s,
+        "homing.backward"_s + error = "error"_s,
+        "homing.backward"_s + done[(isStrokeTooShort)] = "error"_s,
+        "homing.backward"_s + done[(isOption(Menu::SimplePenetration))] / setHomed = "simplePenetration"_s,
+        "homing.backward"_s + done[(isOption(Menu::StrokeEngine))] / setHomed = "strokeEngine"_s,
+        "homing.backward"_s + done / setHomed = "menu"_s,
 
-                    "menu"_s / (drawMenu, startWifi) = "menu.idle"_s,
-                    "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
-                    "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
-                    "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
-                    "menu.idle"_s + buttonPress[(isOption(Menu::PairOSSM))] = "pair"_s,
-                    "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
-                    "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
-                    "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
+        "menu"_s / (drawMenu, startWifi) = "menu.idle"_s,
+        "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
+        "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
+        "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
+        "menu.idle"_s + buttonPress[(isOption(Menu::PairOSSM))] = "pair"_s,
+        "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
+        "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
+        "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
 
-                    "simplePenetration"_s[isNotHomed] = "homing"_s,
-                    "simplePenetration"_s[isPreflightSafe] /
-                    (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
-                    "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
-                    "simplePenetration.preflight"_s +
-                    done / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
-                    "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+        "simplePenetration"_s[isNotHomed] = "homing"_s,
+        "simplePenetration"_s[isPreflightSafe] / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
+        "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
+        "simplePenetration.preflight"_s + done / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
+        "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
-                    "strokeEngine"_s[isNotHomed] = "homing"_s,
-                    "strokeEngine"_s[isPreflightSafe] /
-                    (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
-                    "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
-                    "strokeEngine.preflight"_s +
-                    done / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
-                    "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
-                    "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
-                    "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
-                    "strokeEngine.pattern"_s + doublePress / drawPlayControls = "strokeEngine.idle"_s,
-                    "strokeEngine.pattern"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
-                    "strokeEngine.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+        "strokeEngine"_s[isNotHomed] = "homing"_s,
+        "strokeEngine"_s[isPreflightSafe] / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
+        "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
+        "strokeEngine.preflight"_s + done / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
+        "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
+        "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
+        "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
+        "strokeEngine.pattern"_s + doublePress / drawPlayControls = "strokeEngine.idle"_s,
+        "strokeEngine.pattern"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+        "strokeEngine.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
-                    "pair"_s[isOnline] / drawPairing = "pair.idle"_s,
-                    "pair"_s = "wifi"_s,
-                    "pair.idle"_s + buttonPress = "menu"_s,
-                    "pair.idle"_s + error = "error"_s,
+        "pair"_s[isOnline] / drawPairing = "pair.idle"_s,
+        "pair"_s = "wifi"_s,
+        "pair.idle"_s + buttonPress = "menu"_s,
+        "pair.idle"_s + error = "error"_s,
 
-                    "update"_s[isOnline] / drawUpdate = "update.checking"_s,
-                    "update"_s = "wifi"_s,
-                    "update.checking"_s[isUpdateAvailable] / (drawUpdating, updateOSSM) = "update.updating"_s,
-                    "update.checking"_s / drawNoUpdate = "update.idle"_s,
-                    "update.idle"_s + buttonPress = "menu"_s,
-                    "update.updating"_s = X,
+        "update"_s[isOnline] / drawUpdate = "update.checking"_s,
+        "update"_s = "wifi"_s,
+        "update.checking"_s[isUpdateAvailable] / (drawUpdating, updateOSSM) = "update.updating"_s,
+        "update.checking"_s / drawNoUpdate = "update.idle"_s,
+        "update.idle"_s + buttonPress = "menu"_s,
+        "update.updating"_s = X,
 
-                    "wifi"_s / drawWiFi = "wifi.idle"_s,
-                    "wifi.idle"_s + done / stopWifiPortal = "menu"_s,
-                    "wifi.idle"_s + buttonPress / stopWifiPortal = "menu"_s,
+        "wifi"_s / drawWiFi = "wifi.idle"_s,
+        "wifi.idle"_s + done / stopWifiPortal = "menu"_s,
+        "wifi.idle"_s + buttonPress / stopWifiPortal = "menu"_s,
 
-                    "help"_s / drawHelp = "help.idle"_s,
-                    "help.idle"_s + buttonPress = "menu"_s,
+        "help"_s / drawHelp = "help.idle"_s,
+        "help.idle"_s + buttonPress = "menu"_s,
 
-                    "error"_s / drawError = "error.idle"_s,
-                    "error.idle"_s + buttonPress / drawHelp = "error.help"_s,
-                    "error.help"_s + buttonPress / restart = X,
+        "error"_s / drawError = "error.idle"_s,
+        "error.idle"_s + buttonPress / drawHelp = "error.help"_s,
+        "error.help"_s + buttonPress / restart = X,
 
-                    "restart"_s / restart = X);
+        "restart"_s / restart = X);
 
             // clang-format on
         }
