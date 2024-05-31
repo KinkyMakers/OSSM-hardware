@@ -14,14 +14,14 @@ void OSSM::drawWiFi() {
     drawShape::drawQRCode("WIFI:S:OSSM Setup;T:nopass;;");
 
     display.setFont(Config::Font::bold);
-    display.drawUTF8(0, 10, UserConfig::language.WiFiSetup.c_str());
+    display.drawUTF8(0, 10, UserConfig::language.WiFiSetup);
     // Draw line
     display.drawHLine(0, 12, 64 - 10);
 
     display.setFont(Config::Font::base);
-    display.drawUTF8(0, 26, UserConfig::language.WiFiSetupLine1.c_str());
-    display.drawUTF8(0, 38, UserConfig::language.WiFiSetupLine2.c_str());
-    display.drawUTF8(0, 62, UserConfig::language.Restart.c_str());
+    display.drawUTF8(0, 26, UserConfig::language.WiFiSetupLine1);
+    display.drawUTF8(0, 38, UserConfig::language.WiFiSetupLine2);
+    display.drawUTF8(0, 62, UserConfig::language.Restart);
     display.sendBuffer();
     displayMutex.unlock();
 
@@ -39,7 +39,7 @@ void OSSM::drawPairing() {
     display.clearBuffer();
 
     display.setFont(Config::Font::bold);
-    display.drawUTF8(0, 10, UserConfig::language.Pair.c_str());
+    display.drawUTF8(0, 10, UserConfig::language.Pair);
     display.drawHLine(0, 12, 64 - 10);
 
     display.setFont(Config::Font::base);
