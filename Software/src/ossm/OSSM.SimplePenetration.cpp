@@ -96,7 +96,7 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
 }
 
 void OSSM::startSimplePenetration() {
-    int stackSize = 30 * configMINIMAL_STACK_SIZE;
+    int stackSize = 10 * configMINIMAL_STACK_SIZE;
 
     xTaskCreatePinnedToCore(startSimplePenetrationTask,
                             "startSimplePenetrationTask", stackSize, this,

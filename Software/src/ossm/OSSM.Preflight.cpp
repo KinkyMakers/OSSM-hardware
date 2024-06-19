@@ -42,7 +42,7 @@ void OSSM::drawPreflightTask(void *pvParameters) {
         displayMutex.lock();
         ossm->display.clearBuffer();
         drawStr::title(menuString);
-        String speedString = UserConfig::language.Speed + ": " +
+        String speedString = String(UserConfig::language.Speed) + ": " +
                              String((int)speedPercentage) + "%";
         drawStr::centered(25, speedString);
         drawStr::multiLine(0, 40, UserConfig::language.SpeedWarning);
