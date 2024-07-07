@@ -109,7 +109,7 @@ def main():
                 write_single_register(client, 0x18, 600)    # Maximum allowed output
                 write_single_register(client, 0x05, 3000)   # Speed ring proportional ratio coefficient (KP)
                 write_single_register(client, 0x07, 3000)   # Position ring proportional coefficient (KP)
-                write_single_register(client, 0x09, 0)      # Direction polarity, 1 is default
+                write_single_register(client, 0x09, 1)      # Direction polarity, 1 is default
                 #Save the parameters to the EEPROM
                 write_single_register(client, 0x14, 1)
                 # You can read the register afterward to confirm the write operation
