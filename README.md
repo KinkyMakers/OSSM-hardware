@@ -33,7 +33,7 @@ Join our Discord to be part of the discussion and get help with your build. We h
 makers! https://discord.gg/MmpT9xE
 
 <p align="center">
-<img src="https://user-images.githubusercontent.com/12459679/200221900-9ee3337d-2c42-4a85-90ad-25ee921a2b87.png" width="750">
+<img width="750" alt="image" src="https://github.com/KinkyMakers/OSSM-hardware/assets/43324815/a756a8d5-c075-4e86-8206-b553a0b77127">
 </p>
 
 ### Software
