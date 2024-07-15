@@ -22,9 +22,9 @@ A: That depends on a couple of factors.
 - Size of toys
 - Anticipated Speed
   
-We don't have a lot of recorded data [Please help us with this!] however the general suggeestions are;
+We don't have a lot of recorded data [Please help us with this!] however the general suggestions are;
 
-- **NEW Gold Motor**: Roughly equivalent to **180W** below, see [Gold Motor Info](https://github.com/KinkyMakers/OSSM-hardware/blob/master/Documentation/Gold-Motor.md).
+- **NEW 57AIM30 (Gold Motor)**: Roughly equivalent to **180W** below, see [Gold Motor Info](https://github.com/KinkyMakers/OSSM-hardware/blob/master/Documentation/Gold-Motor.md) and BOM.
 - **100w** IHSV57 Servo: Vaginal usage with medium size toys and Anal usage with smaller toys (10 lbs force)
 - **140W** IHSV57 Servo: Vaginal usage with larger toys, Anal use with medium size toys (15 lbs force)
 - **180w** IHSV57 servo works with a wide range of toys for vaginal or anal play, and really packs a punch (20 lbs force). However if you like seriously heavy fantasy dildos you might want to consider building a Squooter [see the discord] that uses and even a larger motor mount; the NEMA34 which has even more powerful motors.

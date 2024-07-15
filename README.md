@@ -96,12 +96,12 @@ Materials (BOM)
     - Thank you @Elims for
       the [belt tensioner design](https://github.com/theelims/FuckIO/tree/master/hardware/mechanics)
 
-2) **IHSV57 NEMA23 Servo with 8mm shaft** _or_ **Gold Motor**:
+2) **IHSV57 NEMA23 Servo with 8mm shaft** _or_ **57AIM30 (Gold Motor)**:
     - **Gold Motor**
         - New standard motor for OSSM, please see [Gold Motor Info](https://github.com/KinkyMakers/OSSM-hardware/blob/master/Documentation/Gold-Motor.md) while docs are being updated.
         This motor is cheaper, more compact and has improved features which are being implemented in OSSM firmware.
         - For the latest information about this change, join the KinkyMakers Discord.
-    - **iHSV30 (Old Motor)**
+    - **iHSV30 (Previous Standard Motor)**
         - _Avoid the StepperOnline version_
         - Make sure you get something with **8mm** shaft.
         - There are **3** sizes of this motor:  
