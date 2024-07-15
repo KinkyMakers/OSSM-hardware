@@ -10,7 +10,7 @@ learning how mechanics, electronics, physics and computing are involved in your 
 Please note that this is a _work in progress_ and we have attempted to keep compatibility with the current BOM going
 forward, but it's not guaranteed.
 
-*Our Primary design goals_ are to make a machine that is compact, quiet, of moderate cost, 3D printable (no
+_Our Primary design goals_ are to make a machine that is compact, quiet, of moderate cost, 3D printable (no
 cutting/machining required), flexible, highly performant, with easily sourced components, and doesn't look like a giant
 machine.
 <p align="center">
