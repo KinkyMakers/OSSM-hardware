@@ -10,7 +10,7 @@ learning how mechanics, electronics, physics and computing are involved in your 
 Please note that this is a _work in progress_ and we have attempted to keep compatibility with the current BOM going
 forward, but it's not guaranteed.
 
-*Our Primary design goals* are to make a machine that is compact, quiet, of moderate cost, 3D printable (no
+*Our Primary design goals_ are to make a machine that is compact, quiet, of moderate cost, 3D printable (no
 cutting/machining required), flexible, highly performant, with easily sourced components, and doesn't look like a giant
 machine.
 <p align="center">
@@ -94,32 +94,37 @@ Materials (BOM)
       the [Ulanzi Ball head mount](https://github.com/KinkyMakers/OSSM-hardware/tree/master/Hardware/OSSM%20Mounting) or
       the [Shicks mount](https://github.com/KinkyMakers/OSSM-hardware/tree/master/Hardware/OSSM%20Mounting/Shicks%204040%20mount)
     - Thank you @Elims for
-      the [belt tensioner design](https://media.discordapp.net/attachments/756320102919700607/858110808281317396/unknown.png) ( https://github.com/theelims/FuckIO )
+      the [belt tensioner design](https://github.com/theelims/FuckIO/tree/master/hardware/mechanics)
 
-2) **IHSV57 NEMA23 Servo with 8mm shaft** :
-    - *Avoid the StepperOnline version*
-    - Make sure you get something with **8mm** shaft.
-    - There are *3* sizes of this motor:  
-      100W = [iHSV57-30-**10**](https://www.aliexpress.com/w/wholesale-iHSV57%2525252d30%2525252d10.html)
+2) **IHSV57 NEMA23 Servo with 8mm shaft** _or_ **Gold Motor**:
+    - **Gold Motor**
+        - New standard motor for OSSM, please see [Gold Motor Info](https://github.com/KinkyMakers/OSSM-hardware/blob/master/Documentation/Gold-Motor.md) while docs are being updated.
+        This motor is cheaper, more compact and has improved features which are being implemented in OSSM firmware.
+        - For the latest information about this change, join the KinkyMakers Discord.
+    - **iHSV30 (Old Motor)**
+        - _Avoid the StepperOnline version_
+        - Make sure you get something with **8mm** shaft.
+        - There are **3** sizes of this motor:  
+          100W = [iHSV57-30-**10**](https://www.aliexpress.com/w/wholesale-iHSV57%2525252d30%2525252d10.html)
 
-      140W = [iHSV57-30-**14**](https://www.aliexpress.com/w/wholesale-iHSV57%2525252d30%2525252d14.html)
+          140W = [iHSV57-30-**14**](https://www.aliexpress.com/w/wholesale-iHSV57%2525252d30%2525252d14.html)
 
-      180W = [iHSV57-30-**18**](https://www.aliexpress.com/w/wholesale-iHSV57%2525252d30%2525252d18.html)
+          180W = [iHSV57-30-**18**](https://www.aliexpress.com/w/wholesale-iHSV57%2525252d30%2525252d18.html)
 
-    - We recommend motors with firmware version 6 (shown as `V60x`). Pay attention to
-      this, [the firmware version is printed on the label on the side.](https://user-images.githubusercontent.com/131713378/234460307-1c29c18b-3bb5-4ac9-b66f-0dea9df0acac.png)
-      You cannot update the motor firmware. version 5 will work, but it is not as feature rich for potential new
-      features.
-    - Search around for the best deal for you - we reccommend searching "ihsv57" on Aliexpress.com and choosing the -10
-      -14 or -18. Some example listings:
+        - We recommend motors with firmware version 6 (shown as `V60x`). Pay attention to
+          this, [the firmware version is printed on the label on the side.](https://user-images.githubusercontent.com/131713378/234460307-1c29c18b-3bb5-4ac9-b66f-0dea9df0acac.png)
+          You cannot update the motor firmware. version 5 will work, but it is not as feature rich for potential new
+          features.
+        - Search around for the best deal for you - we reccommend searching "ihsv57" on Aliexpress.com and choosing the -10
+          -14 or -18. Some example listings:
 
-      [AliExpress - US](https://www.aliexpress.us/item/2251832528412325.html)
+          [AliExpress - US](https://www.aliexpress.us/item/2251832528412325.html)
 
-      [AliExpress - CA & AU](https://www.aliexpress.us/item/32714727077.html)
+          [AliExpress - CA & AU](https://www.aliexpress.us/item/32714727077.html)
 
-    - For details on picking the right motor for your use case - check
-      this [FAQ](https://github.com/KinkyMakers/OSSM-hardware/blob/master/FAQ.md#q--what-strength-of--motor-do-i-need)
-    - If you are using the 140W or 180W version it is recommended to use a 10mm wide belt and pulley (see the next two
+        - For details on picking the right motor for your use case - check
+          this [FAQ](https://github.com/KinkyMakers/OSSM-hardware/blob/master/FAQ.md#q--what-strength-of--motor-do-i-need)
+        - If you are using the 140W or 180W version it is recommended to use a 10mm wide belt and pulley (see the next two
       items)
 
 3) **GT2 Pulley 8mm Bore 20 Tooth, 10mm width** :
@@ -140,7 +145,7 @@ Materials (BOM)
 
     - Your desired stroke length plus about 200mm should be your minimum order length
 
-5) **Bearings** MR115-2RS 5x11x4mm :   
+5) **Bearings** MR115-2RS 5x11x4mm :
    [Amazon - CA](https://www.amazon.ca/gp/product/B07CVBW44R)
 
    [Amazon - US](https://www.amazon.com/Miniature-Bearings-MR115-2RS-Double-Shielded-5x11x4mm/dp/B08PFT72RQ)
@@ -157,7 +162,7 @@ Materials (BOM)
 
     - Minimum 250mm in length, suggested 350mm
     - Rail length = desired stroke + 180mm
-    - Must be MGN12**H** rail
+    - Must be MGN12**H** rail - H is a longer car than C which gives greater stability.
 
 7) **Power Supply** : 24 volt 4-5 amp w/ 2.1mm barrel DC plug
 
@@ -237,4 +242,3 @@ be different
 ### Stepper Wiring
 
 ![wiring notes](https://github.com/KinkyMakers/OSSM-hardware/blob/44ab7a5deafa7dd3d66d521bb368959db542c164/Hardware/PCB/wiring%20notes%20800.png)
-

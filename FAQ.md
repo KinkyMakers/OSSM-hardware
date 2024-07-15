@@ -6,7 +6,7 @@ A: An OSSM is compact sex machine that can be customised to suit you.  Based aro
 
 A: The OSSM is open you are not tied to a specific company and it does a lot more than equivalently priced machines.  Best of all you can fully control the stroke speed and most importantly depth.  You can make patterns or even your own control software.  Maybe you want to add a stroker rather than a dildo, you can modifiy it to do that.  Not enough power? You can use a bigger motor up to a certain point. 
 
-### Q: What parts do I need? 
+### Q: What parts do I need?
 
 A: Head over to https://github.com/KinkyMakers/OSSM-hardware/tree/master - the BOM is in the ReadMe
   
@@ -14,16 +14,19 @@ A: Head over to https://github.com/KinkyMakers/OSSM-hardware/tree/master - the B
   
 A: While you can theoretically use any Nema23 mount motor.  There are motors that work and some that work better.  Stepper motors are cheaper and noiser so the community recommends closed loop servo motors.  These are more efficient and more importantly easier to program.  
 
-### Q:  What strength of  motor do I need? 
+### Q:  What strength of  motor do I need?
   
-A: That depends on a couple of factors.  
+A: That depends on a couple of factors.
+
 - Vaginal or Anal use
 - Size of toys
 - Anticipated Speed
   
 We don't have a lot of recorded data [Please help us with this!] however the general suggeestions are;
-- **100w** IHSV57 Servo : Vaginal usage with medium size toys and Anal usage with smaller toys (10 lbs force)
-- **140W** IHSV57 Servo : Vaginal usage with larger toys, Anal use with medium size toys (15 lbs force)
+
+- **NEW Gold Motor**: Roughly equivalent to **180W** below, see [Gold Motor Info](https://github.com/KinkyMakers/OSSM-hardware/blob/master/Documentation/Gold-Motor.md).
+- **100w** IHSV57 Servo: Vaginal usage with medium size toys and Anal usage with smaller toys (10 lbs force)
+- **140W** IHSV57 Servo: Vaginal usage with larger toys, Anal use with medium size toys (15 lbs force)
 - **180w** IHSV57 servo works with a wide range of toys for vaginal or anal play, and really packs a punch (20 lbs force). However if you like seriously heavy fantasy dildos you might want to consider building a Squooter [see the discord] that uses and even a larger motor mount; the NEMA34 which has even more powerful motors.
 
 A build with a servo motor will have a flat torque curve across the speed range. That's to say - it will push just as hard at the slow speeds as well as the fast. 
