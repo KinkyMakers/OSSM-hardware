@@ -19,14 +19,14 @@ machine.
 
 ## Getting Started
 
-### <p align="center">[Read the Frequently Asked Questions](FAQ.md)</p>
+### [Read the Frequently Asked Questions](FAQ.md)
 
 There are a few hardware flavours to choose from, we've included community modified versions in case that fits your use
 case better!
 
-### <p align="center">[Build Instructions](Documentation/Assembly%20Instructions.pdf)</p>
+### [Build Instructions](Documentation/Assembly%20Instructions.pdf)
 
-### <p align="center">[Build Videos]("https://youtube.com/playlist?list=PLzSK7OAu3KNQsFo6WJGT8P28lfkD3xpps")</p>
+### [Build Videos]("https://youtube.com/playlist?list=PLzSK7OAu3KNQsFo6WJGT8P28lfkD3xpps")
 
 [Join our Discord](https://discord.gg/MmpT9xE) to be part of the discussion and get help with your build. We have a huge community of
 makers!
