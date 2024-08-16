@@ -32,7 +32,7 @@ case better!
 makers!
 
 <p align="center">
-<img width="750" alt="image" src="assets/43324815/a756a8d5-c075-4e86-8206-b553a0b77127">
+<img width="750" alt="image" src="https://github.com/KinkyMakers/OSSM-hardware/assets/43324815/a756a8d5-c075-4e86-8206-b553a0b77127">
 </p>
 
 ### Software
@@ -65,7 +65,7 @@ silent operation and very high performance.
 We have a new stand design you can check out on onshape!
 [OnShape link](https://cad.onshape.com/documents/d520ea9a8cadb4ae8681f59b/w/00b211a6fa3b76c59ef28f4e/e/5f2c80d9d9c2433a7be7f789)
 
-![OSSM on mounting solution](assets/12459679/fa8a99c4-935e-4774-9f97-a4f88e453722)
+![OSSM on mounting solution](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/fa8a99c4-935e-4774-9f97-a4f88e453722)
 
 ### Safety
 
