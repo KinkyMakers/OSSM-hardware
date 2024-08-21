@@ -4,6 +4,12 @@
 	(generator_version "8.0")
 	(uuid "6c8321a6-f33c-44f2-b852-7a460a15ebca")
 	(paper "A4")
+	(title_block
+		(title "OSSM!")
+		(date "2024-08-21")
+		(rev "V3.0 Beta 1")
+		(company "Research & Desire")
+	)
 	(lib_symbols
 		(symbol "Connector:Screw_Terminal_01x02"
 			(pin_names
@@ -7841,7 +7847,7 @@
 		(exclude_from_sim yes)
 		(in_bom no)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "c775d2d2-67c3-4940-9899-a289a6e9cef0")
 		(property "Reference" "JP1"
