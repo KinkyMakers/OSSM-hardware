@@ -15210,7 +15210,7 @@
 		(path "/3a84126e-cb4a-464e-b4d1-b979e41df207/1727d77d-17f6-4898-a03f-17b9d4346d25")
 		(sheetname "Motor")
 		(sheetfile "motor.kicad_sch")
-		(attr through_hole exclude_from_bom)
+		(attr through_hole exclude_from_bom dnp)
 		(fp_line
 			(start 12.435 1.09)
 			(end 9.651767 1.09)
@@ -16926,7 +16926,7 @@
 		(descr "SMD rectangular pad as test Point, square 1.0mm side length")
 		(tags "test point SMD pad rectangle square")
 		(property "Reference" "TP1"
-			(at -2.525 -0.25 360)
+			(at -2.525 -0.25 0)
 			(layer "B.SilkS")
 			(uuid "0567dc48-a37b-4713-a117-0499c49eea74")
 			(effects
@@ -16938,7 +16938,7 @@
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 0 -1.55 360)
+			(at 0 -1.55 0)
 			(layer "B.Fab")
 			(uuid "abef2585-ce71-42c0-9444-1e195281fa16")
 			(effects
@@ -17077,7 +17077,7 @@
 			(uuid "a94390a9-a6d6-47a6-bc8c-84daee5dcf11")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 1.45 360)
+			(at 0 1.45 0)
 			(layer "B.Fab")
 			(uuid "6496b80a-6dc0-4421-ae1f-48df78c95410")
 			(effects
@@ -18481,7 +18481,7 @@
 		(descr "SMD rectangular pad as test Point, square 1.0mm side length")
 		(tags "test point SMD pad rectangle square")
 		(property "Reference" "TP5"
-			(at -2.45 0.175 360)
+			(at -2.45 0.175 0)
 			(layer "B.SilkS")
 			(uuid "8ae3af2d-9fe7-464e-bd73-cbc6df12a043")
 			(effects
@@ -18493,7 +18493,7 @@
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 0 -1.55 360)
+			(at 0 -1.55 0)
 			(layer "B.Fab")
 			(uuid "e8e5e2a2-40f6-48ad-8425-8c75f31f1da6")
 			(effects
@@ -18632,7 +18632,7 @@
 			(uuid "6c720548-ba2e-4de7-a728-0a627a9c01e5")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 1.45 360)
+			(at 0 1.45 0)
 			(layer "B.Fab")
 			(uuid "9b042d4e-868f-4682-a9fe-726c548cb4fb")
 			(effects
@@ -18660,7 +18660,7 @@
 		(descr "SMD rectangular pad as test Point, square 1.0mm side length")
 		(tags "test point SMD pad rectangle square")
 		(property "Reference" "TP3"
-			(at -2.35 0.05 360)
+			(at -2.35 0.05 0)
 			(layer "B.SilkS")
 			(uuid "3609e7ef-3786-48ae-a81f-01be654fb5a6")
 			(effects
@@ -18672,7 +18672,7 @@
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 0 -1.55 360)
+			(at 0 -1.55 0)
 			(layer "B.Fab")
 			(uuid "d07e7130-ee10-461b-8e66-95f8e51a431a")
 			(effects
@@ -18811,7 +18811,7 @@
 			(uuid "fb1c6cae-75ee-4eb1-9999-d954f8edae36")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 1.45 360)
+			(at 0 1.45 0)
 			(layer "B.Fab")
 			(uuid "2898ecc8-6fd4-442e-8118-7f49c70c5cfd")
 			(effects
@@ -18839,7 +18839,7 @@
 		(descr "SMD rectangular pad as test Point, square 1.0mm side length")
 		(tags "test point SMD pad rectangle square")
 		(property "Reference" "TP2"
-			(at -2.75 0 360)
+			(at -2.75 0 0)
 			(layer "B.SilkS")
 			(uuid "69b28eb7-a426-40a7-8c52-3f1d65db90bd")
 			(effects
@@ -18851,7 +18851,7 @@
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 0 -1.55 360)
+			(at 0 -1.55 0)
 			(layer "B.Fab")
 			(uuid "a85e28e4-dee1-4b57-a05d-0d5cb2892359")
 			(effects
@@ -18990,7 +18990,7 @@
 			(uuid "6d4ac074-937d-4c3c-8632-f9174f46d780")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 1.45 360)
+			(at 0 1.45 0)
 			(layer "B.Fab")
 			(uuid "649b60b8-9d18-4139-bf50-c81af30bf959")
 			(effects
@@ -19273,7 +19273,7 @@
 		(descr "SMD rectangular pad as test Point, square 1.0mm side length")
 		(tags "test point SMD pad rectangle square")
 		(property "Reference" "TP4"
-			(at -2.225 0.1 360)
+			(at -2.225 0.1 0)
 			(layer "B.SilkS")
 			(uuid "402015b8-b325-40ef-9118-2d7a91c0f7c3")
 			(effects
@@ -19285,7 +19285,7 @@
 			)
 		)
 		(property "Value" "TestPoint"
-			(at 0 -1.55 360)
+			(at 0 -1.55 0)
 			(layer "B.Fab")
 			(uuid "472527b8-27c4-442c-a887-dc5cdc3fac59")
 			(effects
@@ -19424,7 +19424,7 @@
 			(uuid "7401da1b-d6a8-4aa8-83f8-3d99609cc85c")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 1.45 360)
+			(at 0 1.45 0)
 			(layer "B.Fab")
 			(uuid "4f076e17-6996-4587-9763-9d555cdf0105")
 			(effects
