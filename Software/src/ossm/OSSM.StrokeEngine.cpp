@@ -1,6 +1,6 @@
 #include "OSSM.h"
 
-#include "../../lib/StrokeEngine/src/StrokeEngine.h"
+#include "services/stepper.h"
 
 void OSSM::startStrokeEngineTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
@@ -11,13 +11,11 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
         .keepoutBoundary = 6.0};
     SettingPercents lastSetting = ossm->setting;
 
-    class StrokeEngine Stroker;
-
-    Stroker.begin(&strokingMachine, &servoMotor, ossm->engine, ossm->stepper);
+    Stroker.begin(&strokingMachine, &servoMotor, ossm->stepper);
     Stroker.thisIsHome();
 
     Stroker.setSensation(calculateSensation(ossm->setting.sensation), true);
-    Stroker.setPattern(int(ossm->setting.pattern), true);
+
     Stroker.setDepth(0.01f * ossm->setting.depth * abs(measuredStrokeMm), true);
     Stroker.setStroke(0.01f * ossm->setting.stroke * abs(measuredStrokeMm),
                       true);
@@ -70,7 +68,35 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
 
         if (lastSetting.pattern != ossm->setting.pattern) {
             ESP_LOGD("UTILS", "change pattern: %d", ossm->setting.pattern);
-            Stroker.setPattern(ossm->setting.pattern, false);
+
+            switch (ossm->setting.pattern) {
+                case StrokePatterns::SimpleStroke:
+                    Stroker.setPattern(new SimpleStroke("Simple Stroke"),
+                                       false);
+                    break;
+                case StrokePatterns::TeasingPounding:
+                    Stroker.setPattern(new TeasingPounding("Teasing Pounding"),
+                                       false);
+                    break;
+                case StrokePatterns::RoboStroke:
+                    Stroker.setPattern(new RoboStroke("Robo Stroke"), false);
+                    break;
+                case StrokePatterns::HalfnHalf:
+                    Stroker.setPattern(new HalfnHalf("Half'n'Half"), false);
+                    break;
+                case StrokePatterns::Deeper:
+                    Stroker.setPattern(new Deeper("Deeper"), false);
+                    break;
+                case StrokePatterns::StopNGo:
+                    Stroker.setPattern(new StopNGo("Stop'n'Go"), false);
+                    break;
+                case StrokePatterns::Insist:
+                    Stroker.setPattern(new Insist("Insist"), false);
+                    break;
+                default:
+                    break;
+            }
+
             lastSetting.pattern = ossm->setting.pattern;
         }
 
@@ -83,7 +109,7 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
 }
 
 void OSSM::startStrokeEngine() {
-    int stackSize = 15 * configMINIMAL_STACK_SIZE;
+    int stackSize = 10 * configMINIMAL_STACK_SIZE;
 
     xTaskCreatePinnedToCore(startStrokeEngineTask, "startStrokeEngineTask",
                             stackSize, this, configMAX_PRIORITIES - 1,

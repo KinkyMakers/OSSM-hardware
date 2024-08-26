@@ -15,7 +15,6 @@
 #include <math.h>
 
 #include "PatternMath.h"
-#include "StrokeEngine.h"
 
 #define DEBUG_PATTERN  // Print some debug informations over Serial
 
@@ -648,22 +647,3 @@ class Insist : public Pattern {
         _realStroke = int((float)_stroke * _strokeFraction);
     }
 };
-
-/**************************************************************************/
-/*
-  Array holding all different patterns. Please include any custom pattern here.
-*/
-/**************************************************************************/
-static Pattern *patternTable[] = {
-    new SimpleStroke("Simple Stroke"),
-    new TeasingPounding("Teasing or Pounding"),
-    new RoboStroke("Robo Stroke"),
-    new HalfnHalf("Half'n'Half"),
-    new Deeper("Deeper"),
-    new StopNGo("Stop'n'Go"),
-    new Insist("Insist")
-    // <-- insert your new pattern class here!
-};
-
-static const unsigned int patternTableSize =
-    sizeof(patternTable) / sizeof(patternTable[0]);

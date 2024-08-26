@@ -6,6 +6,7 @@
 #include "services/board.h"
 #include "services/display.h"
 #include "services/encoder.h"
+#include "services/stepper.h"
 
 /*
  *  ██████╗ ███████╗███████╗███╗   ███╗
@@ -24,7 +25,7 @@
  * contribute, fork, branch and share!
  */
 
-OSSM *ossm;
+OSSM* ossm;
 
 OneButton button(Pins::Remote::encoderSwitch, false);
 
@@ -39,8 +40,7 @@ void setup() {
     display.setBusClock(400000);
     display.begin();
 
-    ossm = new OSSM(display, encoder);
-
+    ossm = new OSSM(display, encoder, stepper);
     // link functions to be called on events.
     button.attachClick([]() { ossm->sm->process_event(ButtonPress{}); });
     button.attachDoubleClick([]() { ossm->sm->process_event(DoublePress{}); });

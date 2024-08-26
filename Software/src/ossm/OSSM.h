@@ -1,8 +1,6 @@
 #ifndef OSSM_SOFTWARE_OSSM_H
 #define OSSM_SOFTWARE_OSSM_H
 
-#include <memory>
-
 #include "Actions.h"
 #include "AiEsp32RotaryEncoder.h"
 #include "Events.h"
@@ -152,7 +150,15 @@ class OSSM {
                        Config::Advanced::commandDeadZonePercentage;
             };
 
-            auto isNotHomed = [](OSSM &o) { return o.isHomed == false;};
+            auto isFirstHomed = [](OSSM &o) {
+                static bool firstHomed = true;
+                if (firstHomed) {
+                    firstHomed = false;
+                    return true;
+                }
+                return false;
+            };
+            auto isNotHomed = [](OSSM &o) { return o.isHomed == false; };
             auto setHomed = [](OSSM &o) { o.isHomed = true; };
             auto setNotHomed = [](OSSM &o) { o.isHomed = false; };
 
@@ -169,9 +175,9 @@ class OSSM {
                 "homing.forward"_s + done / startHoming = "homing.backward"_s,
                 "homing.backward"_s + error = "error"_s,
                 "homing.backward"_s + done[(isStrokeTooShort)] = "error"_s,
+                "homing.backward"_s + done[isFirstHomed] / setHomed = "menu"_s,
                 "homing.backward"_s + done[(isOption(Menu::SimplePenetration))] / setHomed = "simplePenetration"_s,
                 "homing.backward"_s + done[(isOption(Menu::StrokeEngine))] / setHomed = "strokeEngine"_s,
-                "homing.backward"_s + done / setHomed = "menu"_s,
 
                 "menu"_s / (drawMenu, startWifi) = "menu.idle"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
@@ -229,9 +235,7 @@ class OSSM {
      * ////
      * ///////////////////////////////////////////
      */
-    FastAccelStepperEngine engine = FastAccelStepperEngine();
-    FastAccelStepper *stepper = nullptr;
-
+    FastAccelStepper *stepper;
     U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display;
     StateLogger logger;
     AiEsp32RotaryEncoder &encoder;
@@ -253,8 +257,11 @@ class OSSM {
     Menu menuOption;
     String errorMessage = "";
 
-    SettingPercents setting = {
-        .speed = 0, .stroke = 0, .sensation = 50, .depth = 50, .pattern = 0};
+    SettingPercents setting = {.speed = 0,
+                               .stroke = 0,
+                               .sensation = 50,
+                               .depth = 50,
+                               .pattern = StrokePatterns::SimpleStroke};
 
     unsigned long sessionStartTime = 0;
     int sessionStrokeCount = 0;
@@ -324,7 +331,8 @@ class OSSM {
 
   public:
     explicit OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
-                  AiEsp32RotaryEncoder &rotaryEncoder);
+                  AiEsp32RotaryEncoder &rotaryEncoder,
+                  FastAccelStepper *stepper);
 
     std::unique_ptr<
         sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
