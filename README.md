@@ -156,13 +156,13 @@ Materials (BOM)
 
     [Amazon - CA](https://www.amazon.ca/MGN12H-Stainless-Carriage-Precision-Machine/dp/B09TWKWCZR)
 
-    [Amazon - US](https://www.amazon.com/Twotrees-Sliding-Guideway-Bearing-Printer/dp/B07SPQZ383)
+    [Amazon - US](https://www.amazon.com/ReliaBot-Linear-Carriage-Printer-Machine/dp/B07B4DWWZC)
 
     [Aliexpress - AU](https://www.aliexpress.com/item/32840113910.html)
 
     - Minimum 250mm in length, suggested 350mm
     - Rail length = desired stroke + 180mm
-    - Must be MGN12**H** rail - H is a longer car than C which gives greater stability.
+    - Must be MGN**12H** rail - H is a longer car than C which gives greater stability. 12 indicates 12mm rail width.
 
 7.  **Power Supply**: 24 volt 4-5 amp w/ 2.1mm barrel DC plug
 
