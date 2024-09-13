@@ -2,6 +2,7 @@
 
 [![Discord](https://img.shields.io/discord/559409652425687041)](https://discord.gg/wrENMKb3)
 
+
 OSSM (pronounced like "Awesome") is a user friendly every day sex machine for the people.
 
 This project aims to help people curious about sex machines explore their interest. A second objective is optionally
