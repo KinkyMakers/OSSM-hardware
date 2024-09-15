@@ -9,6 +9,10 @@
 #include "constants/Config.h"
 #include "services/display.h"
 #include "structs/Points.h"
+#include "qrcode.h"
+
+static QRCode qrcode;
+const int scale = 2;
 
 // NOLINTBEGIN(hicpp-signed-bitwise)
 static int getUTF8CharLength(const unsigned char c) {
@@ -103,8 +107,8 @@ namespace drawStr {
             // Check for space character; if found, remember its position.
             if (*glyph == ' ') lastSpace = currentChar - charLength;
 
-            // If not a space, increment the width (for the space between
-            // characters).
+                // If not a space, increment the width (for the space between
+                // characters).
             else
                 ++currentLineWidth;
 
@@ -112,7 +116,7 @@ namespace drawStr {
             // width.
             if (*glyph == '\n' || x + currentLineWidth > displayWidth) {
                 int startingPosition =
-                    x;  // Remember the starting horizontal position.
+                        x;  // Remember the starting horizontal position.
 
                 // Display characters up to the last space (or current position
                 // if no space).
@@ -180,7 +184,7 @@ namespace drawShape {
         int scrollbarHeight = 64 - topMargin;  // Height of the scrollbar
         int scrollbarWidth = 3;                // Width of the scrollbar
         int scrollbarX =
-            125;  // X position of the scrollbar (right edge of the screen)
+                125;  // X position of the scrollbar (right edge of the screen)
         int scrollbarY = (64 - scrollbarHeight + topMargin) /
                          2;  // Y position of the scrollbar (centered)
 
@@ -192,7 +196,7 @@ namespace drawShape {
         // Calculate the Y position of the rectangle based on the current
         // position
         int rectY =
-            scrollbarY + (scrollbarHeight - scrollbarWidth) * position / 100;
+                scrollbarY + (scrollbarHeight - scrollbarWidth) * position / 100;
 
         // Draw the rectangle to represent the current position
         display.drawBox(scrollbarX, rectY, scrollbarWidth, scrollbarWidth);
@@ -211,15 +215,15 @@ namespace drawShape {
 
         // Calculate height of the bar based on the value and potential min/max
         float scaledValue =
-            constrain(value, minValue, maxValue) / maxValue * 100;
+                constrain(value, minValue, maxValue) / maxValue * 100;
         int boxHeight = ceil(h * scaledValue / 100);
 
         // Position calculations based on alignment
         int barStartX = (alignment == LEFT_ALIGNED) ? x : x - w;
         int textStartX = (alignment == LEFT_ALIGNED)
-                             ? x + w + padding + textPadding
-                             : x - display.getUTF8Width(name.c_str()) -
-                                   padding - w - textPadding;
+                         ? x + w + padding + textPadding
+                         : x - display.getUTF8Width(name.c_str()) -
+                           padding - w - textPadding;
 
         // Draw the bar and its frame
         display.drawBox(barStartX, h - boxHeight, w, boxHeight);
@@ -227,7 +231,7 @@ namespace drawShape {
 
         // Set font for label and draw it
         display.setFont(
-            Config::Font::bold);  // Make sure Config::Font::base is defined
+                Config::Font::bold);  // Make sure Config::Font::base is defined
         display.drawUTF8(textStartX, y + lh1, name.c_str());
 
         int firstQuartile = y + h * 3 / 4;
@@ -266,7 +270,7 @@ namespace drawShape {
 
         // Calculate height of the bar based on the value and potential min/max
         float scaledValue =
-            constrain(value, minValue, maxValue) / maxValue * 100;
+                constrain(value, minValue, maxValue) / maxValue * 100;
         int boxHeight = ceil(h * scaledValue / 100);
         // draw a single pixel line
         int lineH = boxHeight > 0 ? constrain(64 - boxHeight - 2, 0, 64) : 64;
@@ -277,7 +281,7 @@ namespace drawShape {
     }
 
     // Function to draw lines between a variadic number of points
-    template <typename... Points>
+    template<typename... Points>
     void lines(std::initializer_list<Point> points) {
         auto it = points.begin();
         Point start = *it;
@@ -288,6 +292,47 @@ namespace drawShape {
             end = *it;
             display.drawLine(start.x, start.y, end.x, end.y);
             start = end;  // Move to the next point
+        }
+    }
+
+    /**
+     * Draw a QR code on the display.
+     *
+     * In practice, this function can draw strings up to about 39 to 40 characters.
+     *
+     * @param value The value to encode in the QR code.
+     * @param xOffset The X offset for the QR code.
+     * @param yOffset The Y offset for the QR code.
+     */
+    static void drawQRCode(String value, int xOffset = -1, int yOffset = -1) {
+        // Assuming the version and error correction level are constants
+        const int version = 3;
+        const int ecc = 1;  // Error Correction Level M
+
+        uint8_t qrcodeData[qrcode_getBufferSize(version)];
+        ESP_LOGD("QRCode", "Buffer size: %d", qrcode_getBufferSize(version));
+        // Print the size of payload in memory
+        ESP_LOGD("QRCode", "Payload: %s", value.c_str());
+        ESP_LOGD("QRCode", "Payload length: %d", value.length());
+        // convert value to bytes and get the bytes memory size.
+        ESP_LOGD("QRCode", "Payload memory size: %d", value.length() * sizeof(char));
+
+        // Initialize the QR code with the input string
+        qrcode_initText(&qrcode, qrcodeData, version, ecc, value.c_str());
+
+
+        // Calculate offsets for centering the QR code
+
+        yOffset = yOffset == -1 ? constrain((64 - qrcode.size * scale) / 2, 0, 64) : yOffset;
+        xOffset = xOffset == -1 ? constrain((128 - qrcode.size * scale), 0, 128) : xOffset;
+
+        // Draw the QR code
+        for (uint8_t y = 0; y < qrcode.size; y++) {
+            for (uint8_t x = 0; x < qrcode.size; x++) {
+                if (qrcode_getModule(&qrcode, x, y)) {
+                    display.drawBox(xOffset + x * scale, yOffset + y * scale, scale, scale);
+                }
+            }
         }
     }
 

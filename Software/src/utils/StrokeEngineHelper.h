@@ -13,11 +13,7 @@
 ##################################################################################################*/
 
 // enum of stroke engine states
-enum PlayControls {
-    STROKE,
-    DEPTH,
-    SENSATION
-};
+enum PlayControls { STROKE, DEPTH, SENSATION };
 
 static motorProperties servoMotor{
     .maxSpeed =
@@ -41,5 +37,6 @@ static bool isChangeSignificant(float oldPct, float newPct) {
 static float calculateSensation(float sensationPercentage) {
     return float((sensationPercentage * 200.0) / 100.0) - 100.0f;
 }
+
 
 #endif

@@ -18,7 +18,7 @@ void OSSM::drawNoUpdate() {
     display.clearBuffer();
     String title = "No Update Available";
     drawStr::title(title);
-    display.drawUTF8(0, 62, UserConfig::language.Skip.c_str());
+    display.drawUTF8(0, 62, UserConfig::language.Skip);
     display.sendBuffer();
     displayMutex.unlock();
 }
