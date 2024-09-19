@@ -10,7 +10,6 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
     ossm->encoder.setAcceleration(10);
     ossm->encoder.setBoundaries(0, 100, false);
-    ossm->encoder.setEncoderValue(0);
     // Clean up!
     switch (ossm->playControl) {
         case PlayControls::STROKE:

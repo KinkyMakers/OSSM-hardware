@@ -47,11 +47,6 @@ struct StateLogger {
     template <class SM, class TAction, class TEvent>
     [[gnu::used]] void log_action(const TAction&, const TEvent&) {
         ESP_LOGV(STATE_MACHINE_TAG, "%s", sml::aux::get_type_name<SM>());
-
-        // These are trace messages because lambda functions are very verbose.
-//        ESP_LOGV(STATE_MACHINE_TAG, "%s, %s",
-//                 sml::aux::get_type_name<TAction>(),
-//                 sml::aux::get_type_name<TEvent>());
     }
 
     template <class SM, class TSrcState, class TDstState>
