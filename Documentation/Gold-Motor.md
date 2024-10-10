@@ -18,13 +18,18 @@ Advantages:
 - Better over-torque handling - can be configured to reduce torque output instead of disable like current 180w servo.
 - Is drop-in replacement for iHSV57 series making BOM compatible.
 
+Requirements:
+- Requires V2.2 PCB or newer for  simple wiring with PH-4 cable
+  - Older boards will need wires soldered to 10 pin header
+  - Recommend adding 1500uF capacitor, min 50V to older boards <V2.3
+
 Disanvantages:
 
-- Lower top speed than HSV (Standard code speed limit is even lower than this motor can achieve, so not a disadvantage for regular user).
 - More efficient (this causes more regenerated power in some motion conditions which requires additional capacitance and handling on the PCB).
-  - Fixed on PCB v2.3 as currently sold by R&D or listed on this repo. If you are upgrading your motor, you should add the capacitor as shown below.
+  - PCB v2.3 as currently sold by R&D or listed on this repo has added capacitor. If you are upgrading your motor, you should add the capacitor as shown below.
 - Digital comms over RS485 (Not worse than current RS232, just current boards don't have the needed adapter).
 - Requires software setup to see full benefits (default FW settings disable motor in over-torque condition).
+- If modding your software, technically lower top speed than HSV. (Standard code speed limit is lower than gold motor limit, so not a disadvantage for regular user).
 
 ## 42AIM30 - Gold Motor 42 (variant)
 
