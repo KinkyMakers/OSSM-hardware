@@ -22,7 +22,7 @@ Disanvantages:
 
 - Lower top speed than HSV (Standard code speed limit is even lower than this motor can achieve, so not a disadvantage for regular user).
 - More efficient (this causes more regenerated power in some motion conditions which requires additional capacitance and handling on the PCB).
-  - Fixed on PCB v2.3 as currently sold by R&D or listed on this repo. If you are upgrading your motor, you should add the capacitor as shown below.
+  - Added on PCB v2.3 as currently sold by R&D or listed on this repo. If you are upgrading your motor, you should add the capacitor as shown below. Minimum 50V, recommended 1500uF.
 - Digital comms over RS485 (Not worse than current RS232, just current boards don't have the needed adapter).
 - Requires software setup to see full benefits (default FW settings disable motor in over-torque condition).
 
