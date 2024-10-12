@@ -18,6 +18,14 @@ machine.
 <img src="https://user-images.githubusercontent.com/12459679/200219198-df577cbc-8503-47af-bbc8-9cb65de7ea49.jpg" width="750">
 </p>
 
+### Is it actually Open Source?
+
+It is one of a kind Certified, Actual, Factual, Open Source
+
+[<img width="287" alt="image" src="https://github.com/user-attachments/assets/af168015-b80a-4464-8778-e391278d9748">](https://certification.oshwa.org/ca000057.html)
+
+
+
 ## Getting Started
 
 ### [Read the Frequently Asked Questions](FAQ.md)
