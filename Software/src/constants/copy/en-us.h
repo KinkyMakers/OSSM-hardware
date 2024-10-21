@@ -52,6 +52,34 @@ static const LanguageStruct enUs = {
         "Stop'n'Go",
         "Insist"
     },
+    .AdvancedConfiguration = "Advanced Settings",
+    .AdvancedConfigurationSettingNames = {
+        "Adv. Settings ReadMe",
+        "Motor Direction",
+        "Steps Per Revolution",
+        "Pulley Teeth",
+        "Max Speed",
+        "Rail Length",
+        "Rapid Homing",
+        "Homing Sensitivity",
+        "Reset to Defaults",
+        "Apply Settings"
+    },
+    .AdvancedConfigurationSettingDescriptions = {
+        "Long press to edit. \nShort press to set value. \nChanges revert unless applied.",
+        "Homing dir toggle. \nFull depth should be penetration end away from OSSM Head.",
+        "Set to match your motor register or dip switch setting.",
+        "", // "Specify the number of teeth on your pulley.",
+        "", // "Speed limit in millimeters per second.",
+        "", // "The length of your rail in millimeters.",
+        "", // "(Future)Feature toggle to run a faster homing procedure",
+        "", // "This is a multiplier against idle current. \nHigher value will overcome more friction.",
+        "", // "Restore settings to default and restart OSSM? \n Yes: Long press \n No: Short press",
+        "Save changes and restart OSSM? \n Yes: Long press \n No: Short press"
+    },
+    // Reference board < 2.3 cannot handle this many strings being defined without the memory bootloop issue.
+    // Refactor needed to reduce memory usage.
+
 };
 
 #endif  // OSSM_SOFTWARE_EN_US_H

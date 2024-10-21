@@ -14,6 +14,7 @@
 #include "constants/Pins.h"
 #include "services/tasks.h"
 #include "structs/SettingPercents.h"
+#include "structs/AdvancedConfigurationSettings.h"
 #include "utils/RecusiveMutex.h"
 #include "utils/StateLogger.h"
 #include "utils/StrokeEngineHelper.h"
@@ -110,6 +111,8 @@ class OSSM {
                 o.stepper->disableOutputs();
             };
             auto drawHelp = [](OSSM &o) { o.drawHelp(); };
+            auto drawAdvancedConfiguration = [](OSSM &o) { o.drawAdvancedConfiguration(); };
+            auto drawAdvancedConfigurationEditing = [](OSSM &o) { o.drawAdvancedConfigurationEditing(); };
             auto drawWiFi = [](OSSM &o) { o.drawWiFi(); };
             auto drawUpdate = [](OSSM &o) { o.drawUpdate(); };
             auto drawNoUpdate = [](OSSM &o) { o.drawNoUpdate(); };
@@ -185,6 +188,7 @@ class OSSM {
                 "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
                 "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
+                "menu.idle"_s + buttonPress[isOption(Menu::AdvancedConfiguration)] = "advancedConfiguration"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
 
                 "simplePenetration"_s [isNotHomed] = "homing"_s,
@@ -217,6 +221,12 @@ class OSSM {
 
                 "help"_s / drawHelp = "help.idle"_s,
                 "help.idle"_s + buttonPress = "menu"_s,
+
+                "advancedConfiguration"_s / drawAdvancedConfiguration = "advancedConfiguration.settings"_s,
+                "advancedConfiguration.settings"_s  + buttonPress = "menu"_s,
+                "advancedConfiguration.settings"_s  + longPress = "advancedConfiguration.settings.edit"_s,
+                "advancedConfiguration.settings.edit"_s / drawAdvancedConfigurationEditing = "advancedConfiguration.settings.edit.editing"_s,
+                "advancedConfiguration.settings.edit.editing"_s  + buttonPress = "advancedConfiguration"_s,
 
                 "error"_s / drawError = "error.idle"_s,
                 "error.idle"_s + buttonPress / drawHelp = "error.help"_s,
@@ -263,6 +273,9 @@ class OSSM {
                                .depth = 50,
                                .pattern = StrokePatterns::SimpleStroke};
 
+    AdvancedConfigurationSettingName activeAdvancedConfigurationSetting = AdvancedConfigurationSettingName::ReadMe;
+    AdvancedConfigurationSettings advancedConfigurationSettings = AdvancedConfigurationSettings();
+
     unsigned long sessionStartTime = 0;
     int sessionStrokeCount = 0;
     double sessionDistanceMeters = 0;
@@ -290,6 +303,9 @@ class OSSM {
 
     void drawHelp();
 
+    void drawAdvancedConfiguration();
+    void drawAdvancedConfigurationEditing();
+
     void drawWiFi();
 
     void drawMenu();
@@ -314,6 +330,11 @@ class OSSM {
 
     static void drawPlayControlsTask(void *pvParameters);
     static void drawPatternControlsTask(void *pvParameters);
+
+    static AdvancedConfigurationSettings getAdvancedSettings();
+    static void saveAdvancedSettings(AdvancedConfigurationSettings settings);
+    static void drawAdvancedConfigurationMenuTask(void *pvParameters);
+    static void drawAdvancedConfigurationEditingTask(void *pvParameters);
 
     void drawUpdate();
     void drawNoUpdate();

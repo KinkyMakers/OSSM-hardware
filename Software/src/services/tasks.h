@@ -17,6 +17,8 @@ static TaskHandle_t drawPlayControlsTaskH = nullptr;
 static TaskHandle_t drawPatternControlsTaskH = nullptr;
 static TaskHandle_t wmTaskH = nullptr;
 static TaskHandle_t drawPreflightTaskH = nullptr;
+static TaskHandle_t drawAdvancedConfigurationMenuTaskH = nullptr;
+static TaskHandle_t drawAdvancedConfigurationEditingTaskH = nullptr;
 
 static TaskHandle_t runHomingTaskH = nullptr;
 static TaskHandle_t runSimplePenetrationTaskH = nullptr;

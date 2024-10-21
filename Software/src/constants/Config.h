@@ -14,6 +14,11 @@ namespace Config {
     */
     namespace Driver {
 
+        // TODO: Configure values using saved data retrieved from EEPROM (or similar)
+
+        // Whether the motor should set home inverted from default
+        constexpr bool invert = false;
+
         // Top linear speed of the device.
         constexpr float maxSpeedMmPerSecond = 900.0f;
 
