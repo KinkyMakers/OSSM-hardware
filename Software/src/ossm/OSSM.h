@@ -332,7 +332,6 @@ class OSSM {
     static void drawPatternControlsTask(void *pvParameters);
 
     static AdvancedConfigurationSettings getAdvancedSettings();
-    static void saveAdvancedSettings(AdvancedConfigurationSettings settings);
     static void drawAdvancedConfigurationMenuTask(void *pvParameters);
     static void drawAdvancedConfigurationEditingTask(void *pvParameters);
 

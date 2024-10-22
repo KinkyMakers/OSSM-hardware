@@ -27,6 +27,21 @@ enum AdvancedConfigurationSettingName {
     SettingCount
 };
 
+
+inline std::string getSettingName(AdvancedConfigurationSettingName name) {
+    //Max 15 characters for use as NVS key
+    switch (name) {
+        case AdvancedConfigurationSettingName::ToggleHomeDirection: return "ToggleHomeDir";
+        case AdvancedConfigurationSettingName::StepsPerRev: return "StepsPerRev";
+        case AdvancedConfigurationSettingName::PulleyTeeth: return "PulleyTeeth";
+        case AdvancedConfigurationSettingName::MaxSpeed: return "MaxSpeed";
+        case AdvancedConfigurationSettingName::RailLength: return "RailLength";
+        case AdvancedConfigurationSettingName::RapidHoming: return "RapidHoming";
+        case AdvancedConfigurationSettingName::HomingCurrentLimit: return "HomingCurLimit";
+        default: return "";
+    }
+}
+
 struct Setting {
     AdvancedConfigurationSettingName name;
     DataType type;
@@ -46,7 +61,7 @@ struct AdvancedConfigurationSettings {
 
 struct SavedSetting {
     AdvancedConfigurationSettingName name;
-    float value;
+    std::optional<float> value;
 };
 
 struct SavedSettings {

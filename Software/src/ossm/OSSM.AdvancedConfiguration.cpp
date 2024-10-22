@@ -3,75 +3,47 @@
 #include "extensions/u8g2Extensions.h"
 #include "utils/analog.h"
 #include "utils/format.h"
-#include <EEPROM.h>
+#include "nvs_flash.h"
+#include <Preferences.h>
 
-const int EEPROM_SIZE = 512; // EEPROM size in bytes
-const int EEPROM_ADDRESS = 0x0100; // Prevent conflicts with other EEPROM data
+#define STORAGE_NAMESPACE "AdvancedConfigurationSettings"
+Preferences advancedConfigurationPrefs;
 
-SavedSettings convertToSavedSettings(const AdvancedConfigurationSettings& settings) {
-    SavedSettings savedSettings;
 
-    for (const auto& setting : settings.settings) {
-        ESP_LOGD(
-        "convertToSavedSettings",
-        "Saving setting name: %d value: %f",
-        setting.name, setting.currentValue());
-        savedSettings.savedValues.push_back({
-            .name = setting.name,
-            .value = setting.currentValue()
-        });
+void saveSettings(const AdvancedConfigurationSettings& settings) {
+    advancedConfigurationPrefs.begin("ACP", false);
+    bool tpInit = advancedConfigurationPrefs.isKey("nvsInit");
+    String settingNameStr = "";
+    if (tpInit == false) {
+        advancedConfigurationPrefs.putBool("nvsInit", true);
     }
-
-    return savedSettings;
+    for (const auto& setting : settings.settings) {
+        settingNameStr = getSettingName(setting.name).c_str();
+        if(settingNameStr != ""){
+            ESP_LOGD("saveSettings", "Adding setting %s with value %f", settingNameStr.c_str(), setting.currentValue());
+            advancedConfigurationPrefs.putFloat(settingNameStr.c_str(), setting.savedValue.value_or(setting.defaultValue));
+            ESP_LOGD("getSavedValue", "Found setting %s with value %f", settingNameStr.c_str(), advancedConfigurationPrefs.getFloat(settingNameStr.c_str(), -1.0f));
+        }
+    }
+    advancedConfigurationPrefs.end();
 }
 
-void OSSM::saveAdvancedSettings(AdvancedConfigurationSettings settings){
-    //Minimize the object down to SavedSettings. Save to EEPROM
-    SavedSettings settingsForSave = convertToSavedSettings(settings);
+std::optional<float> getSavedValue(AdvancedConfigurationSettingName settingName) {
+    advancedConfigurationPrefs.begin("ACP", true);
+    float returnValue = -1.0f;
+    bool tpInit = advancedConfigurationPrefs.isKey("nvsInit");
+    if (tpInit == false) {
+        ESP_LOGD("getSavedValue", "No settings found in NVS");
+        return std::nullopt;
+    }
+    String settingNameStr = getSettingName(settingName).c_str();
+    if(settingNameStr != "" && advancedConfigurationPrefs.isKey(settingNameStr.c_str())){
+        ESP_LOGD("getSavedValue", "Found setting %s with value %f", settingNameStr.c_str(), advancedConfigurationPrefs.getFloat(settingNameStr.c_str(), returnValue));
+        returnValue = advancedConfigurationPrefs.getFloat(settingNameStr.c_str(), returnValue);
+    }
+    advancedConfigurationPrefs.end();
 
-    ESP_LOGD(
-        "saveAdvancedSettings",
-        "EEPROM Length: %d",
-        EEPROM.length());
-
-    ESP_LOGD(
-        "saveAdvancedSettings",
-        "sizeof(settingsForSave): %d",
-        sizeof(settingsForSave.savedValues));
-
-    // TODO validate that data is less than 512 bytes and then save to EEPROM
-    // if (sizeof(settingsForSave.savedValues) <= EEPROM_SIZE){
-    //     EEPROM.begin(EEPROM_SIZE);
-    //     EEPROM.put(EEPROM_ADDRESS, settingsForSave);
-    //     EEPROM.commit();
-    //     EEPROM.end();
-    // }
-}
-
-AdvancedConfigurationSettings mapSavedSettings(const AdvancedConfigurationSettings& settings) {
-    // TODO: Implement.
-
-    SavedSettings settingsFromSave;
-    // EEPROM.get(EEPROM_ADDRESS, settingsFromSave.savedValues);
-    //     ESP_LOGD(
-    //     "mapSavedSettings",
-    //     "sizeof(settingsFromSave): %d",
-    //     sizeof(settingsFromSave));
-
-    // for (auto& setting : settings.settings) {
-    //     for (const auto& savedSetting : settingsFromSave.savedValues) {
-    //         if (setting.name == savedSetting.name) {
-    //                 ESP_LOGD(
-    //                 "mapSavedSettings",
-    //                 "savedSetting.name: %d savedSetting.value: %f",
-    //                 savedSetting.name, savedSetting.value);
-    //             //setting.savedValue = savedSetting.value;
-    //             break;
-    //         }
-    //     }
-    // }
-
-    return settings;
+    return returnValue < 0 ? std::nullopt : std::make_optional(returnValue);
 }
 
 AdvancedConfigurationSettings OSSM::getAdvancedSettings(){
@@ -93,7 +65,7 @@ AdvancedConfigurationSettings OSSM::getAdvancedSettings(){
         .maxValue = static_cast<float>(true),
         .settingPrecision = 1.0f,
         .defaultValue = static_cast<float>(false),
-        .savedValue = std::nullopt
+        .savedValue = getSavedValue(ToggleHomeDirection)
     });
 
     config.settings.push_back({
@@ -103,7 +75,7 @@ AdvancedConfigurationSettings OSSM::getAdvancedSettings(){
         .maxValue = 51200.0f,
         .settingPrecision = 200.0f,
         .defaultValue = 800.0f,
-        .savedValue = std::nullopt
+        .savedValue = getSavedValue(StepsPerRev)
     });
 
     config.settings.push_back({
@@ -113,7 +85,7 @@ AdvancedConfigurationSettings OSSM::getAdvancedSettings(){
         .maxValue = 32.0f,
         .settingPrecision = 1.0f,
         .defaultValue = 20.0f,
-        .savedValue = std::nullopt
+        .savedValue = getSavedValue(PulleyTeeth)
     });
 
     config.settings.push_back({
@@ -123,7 +95,7 @@ AdvancedConfigurationSettings OSSM::getAdvancedSettings(){
         .maxValue = 2000.0f,
         .settingPrecision = 10.0f,
         .defaultValue = 900.0f,
-        .savedValue = std::nullopt
+        .savedValue = getSavedValue(MaxSpeed)
     });
 
     config.settings.push_back({
@@ -133,7 +105,7 @@ AdvancedConfigurationSettings OSSM::getAdvancedSettings(){
         .maxValue = 1000.0f,
         .settingPrecision = 5.0f,
         .defaultValue = 350.0f,
-        .savedValue = std::nullopt
+        .savedValue = getSavedValue(RailLength)
     });
 
     config.settings.push_back({
@@ -143,7 +115,7 @@ AdvancedConfigurationSettings OSSM::getAdvancedSettings(){
         .maxValue = static_cast<float>(true),
         .settingPrecision = 1.0f,
         .defaultValue = static_cast<float>(false),
-        .savedValue = std::nullopt
+        .savedValue = getSavedValue(RapidHoming)
     });
 
     config.settings.push_back({
@@ -153,7 +125,7 @@ AdvancedConfigurationSettings OSSM::getAdvancedSettings(){
         .maxValue = 20.0f,
         .settingPrecision = .05f,
         .defaultValue = 1.5f,
-        .savedValue = std::nullopt
+        .savedValue = getSavedValue(HomingCurrentLimit)
     });
 
     config.settings.push_back({
@@ -176,16 +148,18 @@ AdvancedConfigurationSettings OSSM::getAdvancedSettings(){
         .savedValue = std::nullopt
     });
 
-    // TODO: Retrieve savedValue from EEPROM and map
-    config = mapSavedSettings(config);
-
     return config;
 }
 
 void OSSM::drawAdvancedConfigurationEditingTask(void *pvParameters) {
     // parse ossm from the parameters
     OSSM *ossm = (OSSM *)pvParameters;
-    ossm->advancedConfigurationSettings = ossm->getAdvancedSettings();
+
+    // Initialize the settings if they haven't been loaded yet
+    // TODO: Remove this once we are loading on boot.
+    if (ossm->advancedConfigurationSettings.settings.empty()) {
+        ossm->advancedConfigurationSettings = ossm->getAdvancedSettings();
+    }
 
     // Load in the single setting we're editing
     Setting currentAdvancedConfigurationSetting;
@@ -229,12 +203,21 @@ void OSSM::drawAdvancedConfigurationEditingTask(void *pvParameters) {
                     ossm->display.clearBuffer();
                     //Draw the screen
                     drawStr::title(settingName);
-                    drawStr::multiLine(0, 32, "Nothing to see here.. \nShort press to go back.");
+                    drawStr::multiLine(0, 32, "Applying default settings... \nRestarting OSSM...");
                     ossm->display.sendBuffer();
                     displayMutex.unlock();
+
+                    // TODO: Reset the settings to their default values
+                    for (auto& setting : ossm->advancedConfigurationSettings.settings) {
+                        setting.savedValue = std::nullopt;
+                    }
+                    saveSettings(ossm->advancedConfigurationSettings);
+                    vTaskDelay(1000);
+                    ESP.restart();
+
                     break;
                 case Apply:
-                    // Save the setting to EEPROM
+                    // Save the setting to Flash
                     displayMutex.lock();
                     ossm->display.clearBuffer();
                     //Draw the screen
@@ -243,7 +226,10 @@ void OSSM::drawAdvancedConfigurationEditingTask(void *pvParameters) {
                     ossm->display.sendBuffer();
                     displayMutex.unlock();
 
-                    saveAdvancedSettings(ossm->advancedConfigurationSettings);
+                    saveSettings(ossm->advancedConfigurationSettings);
+
+                    vTaskDelay(1000);
+                    ESP.restart();
 
                     break;
                 default:
@@ -276,8 +262,13 @@ void OSSM::drawAdvancedConfigurationEditingTask(void *pvParameters) {
                 continue;
             }
 
-            // TODO: Apply value change back to the shared object, to later be saved.
-            // ossm->advancedConfigurationSettings = ...
+            // Search through ossm->advancedConfigurationSettings for the setting we're editing and update it
+            for (auto& setting : ossm->advancedConfigurationSettings.settings) {
+                if ((int)setting.name == (int)ossm->activeAdvancedConfigurationSetting) {
+                    setting.savedValue = valueForStorage;
+                    break;
+                }
+            }
 
             displayMutex.lock();
             ossm->display.clearBuffer();
@@ -313,7 +304,9 @@ void OSSM::drawAdvancedConfigurationMenuTask(void *pvParameters) {
     // parse ossm from the parameters
     OSSM *ossm = (OSSM *)pvParameters;
 
-    ossm->advancedConfigurationSettings = ossm->getAdvancedSettings();
+    if (ossm->advancedConfigurationSettings.settings.empty()) {
+        ossm->advancedConfigurationSettings = ossm->getAdvancedSettings();
+    }
 
     size_t numberOfSettings = ossm->advancedConfigurationSettings.settings.size();
 
