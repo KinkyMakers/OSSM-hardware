@@ -52,10 +52,7 @@ Code. [Reference for working with the code in PlatformIO here](OSSM PlatformIO R
 We recommend using
 the [Research and Desire Reference Board](https://shop.researchanddesire.com/products/ossm-reference-board) as Do It
 Yourself by someone without extensive electronics knowledge creates a lot of support overhead. This code is still
-arduino IDE compatible but offers many times better performance. Web based control is coming soon. A proof of concept
-can be found at [https://app.researchanddesire.com/ossm](https://app.researchanddesire.com/ossm), however modifications need to be made in order to use this proof
-of concept web control.
-
+arduino IDE compatible but offers many times better performance. Web based control is projected to be available in Feb 2025.  
 ### Eagle PCB
 
 Simple PCB to power an ESP32 (wifi enabled microcontroller) from 24V and breakout the pins for the OSSM control
