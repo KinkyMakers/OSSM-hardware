@@ -21,7 +21,7 @@ namespace Config {
 
         // Top linear speed of the device.
 
-        const float maxSpeedMmPerSecond = 900.0f; // TODO: Still need to get these set dynamically on boot.
+        constexpr float maxSpeedMmPerSecond = 900.0f; // TODO: Still need to get these set dynamically on boot.
                                                   // e.g. OSSM::getAdvancedSettingValue(AdvancedConfigurationSettingName::MaxSpeed);
 
         // This should match the step/rev of your stepper or servo.
