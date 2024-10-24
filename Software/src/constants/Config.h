@@ -20,7 +20,9 @@ namespace Config {
         constexpr bool invert = false;
 
         // Top linear speed of the device.
-        constexpr float maxSpeedMmPerSecond = 900.0f;
+
+        const float maxSpeedMmPerSecond = 900.0f; // TODO: Still need to get these set dynamically on boot.
+                                                  // e.g. OSSM::getAdvancedSettingValue(AdvancedConfigurationSettingName::MaxSpeed);
 
         // This should match the step/rev of your stepper or servo.
         // N.b. the iHSV57 has a table on the side for setting the DIP switches

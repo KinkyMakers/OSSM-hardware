@@ -58,6 +58,7 @@ class OSSM {
     struct OSSMStateMachine {
         auto operator()() const {
             // Action definitions to make the table easier to read.
+            auto initialize = [](OSSM &o) { o.initializeAdvancedSettings(); };
             auto drawHello = [](OSSM &o) { o.drawHello(); };
             auto drawMenu = [](OSSM &o) { o.drawMenu(); };
             auto startHoming = [](OSSM &o) {
@@ -167,10 +168,14 @@ class OSSM {
 
             return make_transition_table(
             // clang-format off
+
+            //Always start by drawing the hello screen and then initializing settings
+            *"idle"_s + done / drawHello = "initialize"_s,
+
 #ifdef DEBUG_SKIP_HOMING
-                *"idle"_s + done / drawHello = "menu"_s,
+                "initialize"_s + done / initialize = "menu"_s,
 #else
-                *"idle"_s + done / drawHello = "homing"_s,
+                "initialize"_s + done / initialize = "homing"_s,
 #endif
 
                 "homing"_s / startHoming = "homing.forward"_s,
@@ -303,6 +308,7 @@ class OSSM {
 
     void drawHelp();
 
+    void initializeAdvancedSettings();
     void drawAdvancedConfiguration();
     void drawAdvancedConfigurationEditing();
 
@@ -331,9 +337,10 @@ class OSSM {
     static void drawPlayControlsTask(void *pvParameters);
     static void drawPatternControlsTask(void *pvParameters);
 
-    static AdvancedConfigurationSettings getAdvancedSettings();
     static void drawAdvancedConfigurationMenuTask(void *pvParameters);
     static void drawAdvancedConfigurationEditingTask(void *pvParameters);
+    static void initializeAdvancedSettingsTask(void *pvParameters);
+    static AdvancedConfigurationSettings getAdvancedSettings();
 
     void drawUpdate();
     void drawNoUpdate();
@@ -360,6 +367,16 @@ class OSSM {
         sm = nullptr;  // The state machine
 
     WiFiManager wm;
+
+    float getAdvancedSettingValue(AdvancedConfigurationSettingName settingName) {
+        for (auto& setting : advancedConfigurationSettings.settings) {
+            if (setting.name == settingName) {
+                ESP_LOGD("Initialize", "Configuring setting %s with value %f", getSettingName(setting.name).c_str(), setting.currentValue());
+                return setting.currentValue();
+            }
+        }
+        return 0.0f;  // Default value if setting not found
+    }
 };
 
 #endif  // OSSM_SOFTWARE_OSSM_H

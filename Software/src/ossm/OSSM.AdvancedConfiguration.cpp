@@ -10,14 +10,14 @@
 Preferences advancedConfigurationPrefs;
 
 
-void saveSettings(const AdvancedConfigurationSettings& settings) {
+void saveSettings(AdvancedConfigurationSettings& settings) {
     advancedConfigurationPrefs.begin("ACP", false);
     bool tpInit = advancedConfigurationPrefs.isKey("nvsInit");
     String settingNameStr = "";
     if (tpInit == false) {
         advancedConfigurationPrefs.putBool("nvsInit", true);
     }
-    for (const auto& setting : settings.settings) {
+    for (auto& setting : settings.settings) {
         settingNameStr = getSettingName(setting.name).c_str();
         if(settingNameStr != ""){
             ESP_LOGD("saveSettings", "Adding setting %s with value %f", settingNameStr.c_str(), setting.currentValue());
@@ -314,12 +314,6 @@ void OSSM::drawAdvancedConfigurationMenuTask(void *pvParameters) {
         return ossm->sm->is("advancedConfiguration.settings"_s);
     };
 
-    static float editEncoder = 0;
-    static long encoderValue = 0;
-    static float editEncoderOffset = 0;
-    static float minValue = 0;
-    static float maxValue = 100;
-    static bool editState = false;
     int currentSelection = 0;
     int nextSelection = 0;
     bool shouldUpdateDisplay = true;
