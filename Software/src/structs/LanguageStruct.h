@@ -32,6 +32,9 @@ struct LanguageStruct {
     String YouShouldNotBeHere;
     String StrokeEngineDescriptions[7];
     String StrokeEngineNames[7];
+    String AdvancedConfiguration;
+    String AdvancedConfigurationSettingNames[10];
+    String AdvancedConfigurationSettingDescriptions[10];
 };
 
 #endif  // OSSM_SOFTWARE_LANGUAGESTRUCT_H

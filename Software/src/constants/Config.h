@@ -14,8 +14,15 @@ namespace Config {
     */
     namespace Driver {
 
+        // TODO: Configure values using saved data retrieved from EEPROM (or similar)
+
+        // Whether the motor should set home inverted from default
+        constexpr bool invert = false;
+
         // Top linear speed of the device.
-        constexpr float maxSpeedMmPerSecond = 900.0f;
+
+        constexpr float maxSpeedMmPerSecond = 900.0f; // TODO: Still need to get these set dynamically on boot.
+                                                  // e.g. OSSM::getAdvancedSettingValue(AdvancedConfigurationSettingName::MaxSpeed);
 
         // This should match the step/rev of your stepper or servo.
         // N.b. the iHSV57 has a table on the side for setting the DIP switches
