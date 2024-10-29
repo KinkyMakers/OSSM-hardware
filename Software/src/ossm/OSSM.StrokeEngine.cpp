@@ -29,14 +29,36 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
     };
 
     while (isInCorrectState(ossm)) {
-        if (isChangeSignificant(lastSetting.speed, ossm->setting.speed)) {
+        if (isChangeSignificant(lastSetting.speed, ossm->setting.speed) ||
+            lastSetting.stroke != ossm->setting.stroke ||
+            lastSetting.depth != ossm->setting.depth ||
+            lastSetting.sensation != ossm->setting.sensation) {
             if (ossm->setting.speed == 0) {
                 Stroker.stopMotion();
             } else if (Stroker.getState() == READY) {
                 Stroker.startPattern();
             }
+            float speedConsignePercent = ossm->setting.speed;
+            ESP_LOGD("UTILS", "speedConsignePercent: %f%", speedConsignePercent);
+            ESP_LOGD("UTILS", "maxSpeedMmPerSecond: %fmm/s", Config::Driver::maxSpeedMmPerSecond);
+            float speedMmPerSecond = (Config::Driver::maxSpeedMmPerSecond * speedConsignePercent) / 100.0F;
+            ESP_LOGD("UTILS", "speedMmPerSecond: %fmm/s", speedMmPerSecond);
 
-            Stroker.setSpeed(ossm->setting.speed * 3, true);
+            float strokeMm = Stroker.getStroke();
+            ESP_LOGD("UTILS", "strokeMm: %fmm", strokeMm);
+            float depthMm = Stroker.getDepth();
+            ESP_LOGD("UTILS", "depthMm: %fmm", depthMm);
+            float rangeMm = min(abs(strokeMm), abs(depthMm));
+            ESP_LOGD("UTILS", "rangeMm: %fmm", rangeMm);
+            float tripMm = rangeMm * 2.0F;
+            ESP_LOGD("UTILS", "tripMm: %fmm", tripMm);
+
+            float tripPerSecond = speedMmPerSecond / tripMm;
+            ESP_LOGD("UTILS", "tripPerSecond: %ftrip/s", tripPerSecond);
+            float tripPerMinute = tripPerSecond * 60.0F;
+            ESP_LOGD("UTILS", "tripPerMinute: %ftrip/min", tripPerMinute);
+
+            Stroker.setSpeed(tripPerMinute, true);
             lastSetting.speed = ossm->setting.speed;
         }
 
