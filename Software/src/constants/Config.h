@@ -17,6 +17,9 @@ namespace Config {
         // Top linear speed of the device.
         constexpr float maxSpeedMmPerSecond = 900.0f;
 
+        // Top acceleration of the device.
+        constexpr float maxAcceleration = 10000.0f;
+
         // This should match the step/rev of your stepper or servo.
         // N.b. the iHSV57 has a table on the side for setting the DIP switches
         // to your preference.

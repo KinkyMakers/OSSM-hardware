@@ -19,7 +19,7 @@ static motorProperties servoMotor{
     .maxSpeed =
         60 * (Config::Driver::maxSpeedMmPerSecond /
               (Config::Driver::pulleyToothCount * Config::Driver::beltPitchMm)),
-    .maxAcceleration = 10000,
+    .maxAcceleration = Config::Driver::maxAcceleration,
     .stepsPerMillimeter =
         Config::Driver::motorStepPerRevolution /
         (Config::Driver::pulleyToothCount * Config::Driver::beltPitchMm),
