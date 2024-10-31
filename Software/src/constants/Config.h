@@ -116,23 +116,31 @@ namespace Config {
 
         // Speed lerp of speed for SinglePenetration and StrokeEngine mode
         // Time cycle is approximately 100-200ms in fact system load
-        constexpr float speedUpPercentPerCycle = 2.0f;
-        constexpr float speedDownPercentPerCycle = 100.0f;
+        namespace SpeedLerp {
+            constexpr float UpPercentPerCycle = 100.0f;
+            constexpr float DownPercentPerCycle = 100.0f;
+        }
 
         // Speed lerp of stroke for StrokeEngine mode
         // Time cycle is approximately 100-200ms in fact system load
-        constexpr float strokeUpPercentPerCycle = 2.0f;
-        constexpr float strokeDownPercentPerCycle = 10.0f;
+        namespace StrokedLerp {
+            constexpr float UpPercentPerCycle = 100.0f;
+            constexpr float DownPercentPerCycle = 100.0f;
+        }
 
         // Speed lerp of depth for StrokeEngine mode
         // Time cycle is approximately 100-200ms in fact system load
-        constexpr float depthUpPercentPerCycle = 2.0f;
-        constexpr float depthDownPercentPerCycle = 10.0f;
+        namespace DepthLerp {
+            constexpr float UpPercentPerCycle = 100.0f;
+            constexpr float DownPercentPerCycle = 100.0f;
+        }
 
         // Speed lerp of sensation for StrokeEngine mode
         // Time cycle is approximately 100-200ms in fact system load
-        constexpr float sensationUpPercentPerCycle = 2.0f;
-        constexpr float sensationDownPercentPerCycle = 10.0f;
+        namespace SensationLerp {
+            constexpr float UpPercentPerCycle = 100.0f;
+            constexpr float DownPercentPerCycle = 100.0f;
+        }
     }
 
 }
