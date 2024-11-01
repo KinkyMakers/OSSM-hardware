@@ -32,7 +32,7 @@ static int getUTF8CharLength(const unsigned char c) {
  * display.
  */
 namespace drawStr {
-    static void centered(int y, String str) {
+    static void centered(int y, const String& str) {
         // Convert the String object to a UTF-8 string.
         // The c_str() function ensures we're passing a null-terminated string,
         // which is required by getStrWidth().
@@ -54,7 +54,7 @@ namespace drawStr {
      * @param y
      * @param str
      */
-    static void multiLine(int x, int y, String string, int lineHeight = 12) {
+    static void multiLine(int x, int y, const String& string, int lineHeight = 12) {
         const char *str = string.c_str();
         // Set the font for the text to be displayed.
         display.setFont(Config::Font::base);
@@ -162,9 +162,9 @@ namespace drawStr {
         }
     }
 
-    static void title(String str) {
+    static void title(const String& str) {
         display.setFont(Config::Font::bold);
-        centered(8, std::move(str));
+        centered(8, str);
     }
 };
 

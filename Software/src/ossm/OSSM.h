@@ -13,8 +13,8 @@
 #include "constants/Menu.h"
 #include "constants/Pins.h"
 #include "services/tasks.h"
-#include "structs/SettingPercents.h"
 #include "structs/AdvancedConfigurationSettings.h"
+#include "structs/SettingPercents.h"
 #include "utils/RecusiveMutex.h"
 #include "utils/StateLogger.h"
 #include "utils/StrokeEngineHelper.h"
@@ -112,8 +112,12 @@ class OSSM {
                 o.stepper->disableOutputs();
             };
             auto drawHelp = [](OSSM &o) { o.drawHelp(); };
-            auto drawAdvancedConfiguration = [](OSSM &o) { o.drawAdvancedConfiguration(); };
-            auto drawAdvancedConfigurationEditing = [](OSSM &o) { o.drawAdvancedConfigurationEditing(); };
+            auto drawAdvancedConfiguration = [](OSSM &o) {
+                o.drawAdvancedConfiguration();
+            };
+            auto drawAdvancedConfigurationEditing = [](OSSM &o) {
+                o.drawAdvancedConfigurationEditing();
+            };
             auto drawWiFi = [](OSSM &o) { o.drawWiFi(); };
             auto drawUpdate = [](OSSM &o) { o.drawUpdate(); };
             auto drawNoUpdate = [](OSSM &o) { o.drawNoUpdate(); };
@@ -144,8 +148,8 @@ class OSSM {
                 return o.isStrokeTooShort();
             };
 
-            auto isOption = [](Menu option) {
-                return [option](OSSM &o) { return o.menuOption == option; };
+            auto isOption = [](const Menu &option) {
+                return [&option](OSSM &o) { return o.menuOption == option; };
             };
 
             auto isPreflightSafe = [](OSSM &o) {
@@ -167,7 +171,7 @@ class OSSM {
             auto setNotHomed = [](OSSM &o) { o.isHomed = false; };
 
             return make_transition_table(
-            // clang-format off
+                // clang-format off
 
             //Always start by drawing the hello screen and then initializing settings
             *"idle"_s + done / drawHello = "initialize"_s,
@@ -278,8 +282,10 @@ class OSSM {
                                .depth = 50,
                                .pattern = StrokePatterns::SimpleStroke};
 
-    AdvancedConfigurationSettingName activeAdvancedConfigurationSetting = AdvancedConfigurationSettingName::ReadMe;
-    AdvancedConfigurationSettings advancedConfigurationSettings = AdvancedConfigurationSettings();
+    AdvancedConfigurationSettingName activeAdvancedConfigurationSetting =
+        AdvancedConfigurationSettingName::ReadMe;
+    AdvancedConfigurationSettings advancedConfigurationSettings =
+        AdvancedConfigurationSettings();
 
     unsigned long sessionStartTime = 0;
     int sessionStrokeCount = 0;
@@ -368,10 +374,13 @@ class OSSM {
 
     WiFiManager wm;
 
-    float getAdvancedSettingValue(AdvancedConfigurationSettingName settingName) {
-        for (auto& setting : advancedConfigurationSettings.settings) {
+    float getAdvancedSettingValue(
+        AdvancedConfigurationSettingName settingName) {
+        for (auto &setting : advancedConfigurationSettings.settings) {
             if (setting.name == settingName) {
-                ESP_LOGD("Initialize", "Configuring setting %s with value %f", getSettingName(setting.name).c_str(), setting.currentValue());
+                ESP_LOGD("Initialize", "Configuring setting %s with value %f",
+                         getSettingName(setting.name).c_str(),
+                         setting.currentValue());
                 return setting.currentValue();
             }
         }
