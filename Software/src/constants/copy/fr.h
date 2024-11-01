@@ -15,7 +15,7 @@ static const String fr_Idle PROGMEM = "Initialisation";
 static const String fr_InDevelopment PROGMEM =
     "Cette fonctionnalité est en développement.";
 static const String fr_MeasuringStroke PROGMEM = "Mesure de la course";
-static const String fr_NoInternalLoop PROGMEM =
+static const String fr_NoInternalLoop PROGMEM 
     "Aucun gestionnaire d'affichage implémenté.";
 static const String fr_Restart PROGMEM = "Redémarrer";
 static const String fr_Settings PROGMEM = "Paramètres";
