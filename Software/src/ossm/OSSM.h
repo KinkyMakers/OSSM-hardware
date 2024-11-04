@@ -197,10 +197,11 @@ class OSSM {
                 "strokeEngine"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
                 "strokeEngine.preflight"_s + done / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
+                "strokeEngine.transition"_s + done / (drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
-                "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
-                "strokeEngine.pattern"_s + doublePress / drawPlayControls = "strokeEngine.idle"_s,
+                "strokeEngine.pattern"_s + buttonPress / drawPreflight = "strokeEngine.transition"_s,
+                "strokeEngine.pattern"_s + doublePress / drawPreflight = "strokeEngine.transition"_s,
                 "strokeEngine.pattern"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
                 "strokeEngine.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
