@@ -34,7 +34,9 @@ void OSSM::drawPreflightTask(void *pvParameters) {
     do {
         speedPercentage =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
-        if (speedPercentage < Config::Advanced::commandDeadZonePercentage) {
+        // Waiting speed is at 0% and strepper is at the home position
+        if (speedPercentage < Config::Advanced::commandDeadZonePercentage &&
+            ossm->stepper->getCurrentPosition() == 0) {
             ossm->sm->process_event(Done{});
             break;
         };
