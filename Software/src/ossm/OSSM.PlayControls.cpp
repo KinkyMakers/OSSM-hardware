@@ -116,6 +116,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         drawShape::settingBar(UserConfig::language.Speed, next.speedKnob);
 
         if (isStrokeEngine) {
+            drawStr::centered(32, UserConfig::language.StrokeEngineNames[(int)ossm->setting.pattern]);
             switch (ossm->playControl) {
                 case PlayControls::STROKE:
                     drawShape::settingBarSmall(ossm->setting.sensation, 125);
@@ -139,6 +140,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
                     break;
             }
         } else {
+            drawStr::multiLine(15, 32, UserConfig::language.SimplePenetration);
             drawShape::settingBar(strokeString, ossm->encoder.readEncoder(),
                                   118, 0, RIGHT_ALIGNED);
         }
