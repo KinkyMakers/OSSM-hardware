@@ -67,10 +67,10 @@ class OSSM {
             auto drawPatternControls = [](OSSM &o) { o.drawPatternControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
             auto resetSettings = [](OSSM &o) {
-                o.setting.speed = 0;
-                o.setting.stroke = 0;
-                o.setting.depth = 50;
-                o.setting.sensation = 50;
+                o.setting.speed = Config::ResetSettings::speed;
+                o.setting.stroke = Config::ResetSettings::stroke;
+                o.setting.depth = Config::ResetSettings::depth;
+                o.setting.sensation = Config::ResetSettings::sensation;
                 o.playControl = PlayControls::STROKE;
 
                 // Prepare the encoder

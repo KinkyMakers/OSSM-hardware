@@ -10,6 +10,18 @@
 namespace Config {
 
     /**
+        Default drive settings
+*/
+    namespace ResetSettings {
+
+        // Default settings to start in safe
+        constexpr float speed = 0.0f;
+        constexpr float depth = 0.0f;
+        constexpr float stroke = 10.0f;
+        constexpr float sensation = 50.0f;
+    }
+
+    /**
             Motion System Config
     */
     namespace Driver {
