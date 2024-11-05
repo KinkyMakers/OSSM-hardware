@@ -243,4 +243,3 @@ be different
 ### Stepper Wiring
 
 ![wiring notes](Hardware/PCB%20Files/Archive/Alpha%20PCB%20-%20never%20widely%20used/wiring%20notes%20800.png)
-
