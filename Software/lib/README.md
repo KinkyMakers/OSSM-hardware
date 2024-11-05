@@ -1,46 +1,18 @@
+# Libraries Directory
 
-This directory is intended for project specific (private) libraries.
-PlatformIO will compile them to static libraries and link into executable file.
+This directory contains project-specific libraries that cannot be installed directly through platformio.ini dependencies.
 
-The source code of each library should be placed in a an own separate directory
-("lib/your_library_name/[here are source files]").
+## Current Libraries
 
-For example, see a structure of the following two libraries `Foo` and `Bar`:
+- **StrokeEngine**: Modified version of [Elims' StrokeEngine](https://github.com/theelims/StrokeEngine) customized for OSSM usage.
 
-|--lib
-|  |
-|  |--Bar
-|  |  |--docs
-|  |  |--examples
-|  |  |--src
-|  |     |- Bar.c
-|  |     |- Bar.h
-|  |  |- library.json (optional, custom build options, etc) https://docs.platformio.org/page/librarymanager/config.html
-|  |
-|  |--Foo
-|  |  |- Foo.c
-|  |  |- Foo.h
-|  |
-|  |- README --> THIS FILE
-|
-|- platformio.ini
-|--src
-   |- main.c
+## Adding Libraries
 
-and a contents of `src/main.c`:
-```
-#include <Foo.h>
-#include <Bar.h>
+For most dependencies, prefer adding them to `platformio.ini`. Only place libraries here when:
+- They require local modifications
+- They aren't available through PlatformIO's Library Registry
+- They need to be version controlled with the project
 
-int main (void)
-{
-  ...
-}
-
-```
-
-PlatformIO Library Dependency Finder will find automatically dependent
-libraries scanning project source files.
-
-More information about PlatformIO Library Dependency Finder
-- https://docs.platformio.org/page/librarymanager/ldf.html
+For more information about PlatformIO library management, see:
+- [Library Manager](https://docs.platformio.org/en/latest/librarymanager/index.html)
+- [Library Dependencies](https://docs.platformio.org/en/latest/librarymanager/dependencies.html)

@@ -1,4 +1,4 @@
-# How to make unit tests
+# Testing
 
 1. Create a new directory in the test directory with the name of your test
 2. Name the directory 'test_<name>' and add a file called 'test_<name>/main.cpp'
