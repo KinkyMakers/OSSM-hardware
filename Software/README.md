@@ -1,4 +1,4 @@
-# OSSM Software
+# Software
 This is the recommended software for use with OSSM designs
 
 ## Requirements:
