@@ -2,19 +2,34 @@ name: Build and Upload to S3
 
 on:
   push:
-    paths:
-      - 'Software/**'
     branches:
       - master
       - release
       - aj/development
 
 permissions:
-  id-token: write # This is required for requesting the JWT
-  contents: read  # This is required for actions/checkout
+  id-token: write
+  contents: read
 
 jobs:
+  check_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      software_changed: ${{ steps.check_software.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Check for Software directory changes
+        id: check_software
+        run: |
+          git diff --name-only HEAD^ HEAD > changes.txt
+          echo "changed=$(grep -q "^Software/" changes.txt && echo 'true' || echo 'false')" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: check_changes
+    if: needs.check_changes.outputs.software_changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -69,7 +84,8 @@ jobs:
           --header 'Authorization: Bearer ${{ secrets.BUBBLE_API_KEY }}'
 
   upload:
-    needs: build
+    needs: [check_changes, build]
+    if: needs.check_changes.outputs.software_changed == 'true'
     runs-on: ubuntu-latest
     outputs:
       firmware_filename: ${{ steps.set_filename.outputs.firmware_filename }}
@@ -98,3 +114,11 @@ jobs:
 
       - name: Upload Binary to S3
         run: aws s3 cp ./firmware.bin s3://${{ secrets.AWS_S3_BUCKET_NAME }}/$firmware_filename --acl public-read
+
+  pass_check:
+    needs: check_changes
+    if: needs.check_changes.outputs.software_changed == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip build
+        run: echo "No changes in Software directory, skipping build"
