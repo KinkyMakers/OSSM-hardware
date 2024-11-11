@@ -59,6 +59,7 @@ class OSSM {
             // Action definitions to make the table easier to read.
             auto drawHello = [](OSSM &o) { o.drawHello(); };
             auto drawMenu = [](OSSM &o) { o.drawMenu(); };
+            auto drawMenuSettings = [](OSSM &o) { o.drawMenuSettings(); };
             auto startHoming = [](OSSM &o) {
                 o.clearHoming();
                 o.startHoming();
@@ -144,6 +145,10 @@ class OSSM {
                 return [option](OSSM &o) { return o.menuOption == option; };
             };
 
+            auto isSettingsOption = [](MenuSettings option) {
+                return [option](OSSM &o) { return o.menuSettingsOption == option; };
+            };
+
             auto isPreflightSafe = [](OSSM &o) {
                 return getAnalogAveragePercent(
                            {Pins::Remote::speedPotPin, 50}) <
@@ -182,10 +187,14 @@ class OSSM {
                 "menu"_s / (drawMenu, startWifi) = "menu.idle"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
-                "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
-                "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
-                "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
-                "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::Settings))] = "menuSettings"_s,
+
+                "menuSettings"_s / (drawMenuSettings) = "menuSettings.idle"_s,
+                "menuSettings.idle"_s + buttonPress[(isSettingsOption(MenuSettings::UpdateOSSM))] = "update"_s,
+                "menuSettings.idle"_s + buttonPress[(isSettingsOption(MenuSettings::WiFiSetup))] = "wifi"_s,
+                "menuSettings.idle"_s + buttonPress[isSettingsOption(MenuSettings::Help)] = "help"_s,
+                "menuSettings.idle"_s + buttonPress[(isSettingsOption(MenuSettings::Restart))] = "restart"_s,
+                "menuSettings.idle"_s + longPress = "menu"_s,
 
                 "simplePenetration"_s [isNotHomed] = "homing"_s,
                 "simplePenetration"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
@@ -208,15 +217,15 @@ class OSSM {
                 "update"_s = "wifi"_s,
                 "update.checking"_s [isUpdateAvailable] / (drawUpdating, updateOSSM) = "update.updating"_s,
                 "update.checking"_s / drawNoUpdate = "update.idle"_s,
-                "update.idle"_s + buttonPress = "menu"_s,
+                "update.idle"_s + buttonPress = "menuSettings"_s,
                 "update.updating"_s  = X,
 
                 "wifi"_s / drawWiFi = "wifi.idle"_s,
-                "wifi.idle"_s + done / stopWifiPortal = "menu"_s,
-                "wifi.idle"_s + buttonPress / stopWifiPortal = "menu"_s,
+                "wifi.idle"_s + done / stopWifiPortal = "menuSettings"_s,
+                "wifi.idle"_s + buttonPress / stopWifiPortal = "menuSettings"_s,
 
                 "help"_s / drawHelp = "help.idle"_s,
-                "help.idle"_s + buttonPress = "menu"_s,
+                "help.idle"_s + buttonPress = "menuSettings"_s,
 
                 "error"_s / drawError = "error.idle"_s,
                 "error.idle"_s + buttonPress / drawHelp = "error.help"_s,
@@ -255,6 +264,8 @@ class OSSM {
     bool isForward = true;
 
     Menu menuOption;
+    MenuSettings menuSettingsOption;
+
     String errorMessage = "";
 
     SettingPercents setting = {.speed = 0,
@@ -293,6 +304,7 @@ class OSSM {
     void drawWiFi();
 
     void drawMenu();
+    void drawMenuSettings();
 
     void drawPlayControls();
     void drawPatternControls();
@@ -311,6 +323,7 @@ class OSSM {
     static void drawHelloTask(void *pvParameters);
 
     static void drawMenuTask(void *pvParameters);
+    static void drawMenuSettingsTask(void *pvParameters);
     static void drawMenuOnDisplay(OSSM *ossm, String *menuStrings,
                                   int lastIdx, int idx, int nextIdx,
                                   int numberIdx);

@@ -52,6 +52,53 @@ void OSSM::drawMenuTask(void *pvParameters) {
     vTaskDelete(nullptr);
 }
 
+void OSSM::drawMenuSettingsTask(void *pvParameters) {
+    OSSM *ossm = (OSSM *)pvParameters;
+
+    int numberOfSelection = MenuSettings::SETTINGS_NUM_OPTIONS;
+    int nextSelection = (int)ossm->menuSettingsOption;
+    int encoderClicksPerRow = 3;
+
+    // Init encoder
+    ossm->encoder.setAcceleration(10);
+    ossm->encoder.setBoundaries(0, numberOfSelection * encoderClicksPerRow - 1, true);
+    ossm->encoder.setEncoderValue(nextSelection * encoderClicksPerRow);
+
+    auto isInCorrectState = [](OSSM *ossm) {
+        // Add any states that you want to support here.
+        return ossm->sm->is("menuSettings"_s) ||
+               ossm->sm->is("menuSettings.idle"_s);
+    };
+
+    bool shouldUpdateDisplay = true;
+    while (isInCorrectState(ossm)) {
+
+        // Update selection when encoder moved
+        nextSelection = (int)(ossm->encoder.readEncoder() / encoderClicksPerRow);
+        shouldUpdateDisplay = shouldUpdateDisplay || (int)ossm->menuSettingsOption != nextSelection;
+
+        if (!shouldUpdateDisplay) {
+            vTaskDelay(100);
+            continue;
+        }
+        shouldUpdateDisplay = false;
+
+        // Update selected option in current menu
+        ossm->menuSettingsOption = (MenuSettings)nextSelection;
+
+        // Loop around to make an infinite menu.
+        int lastIdx = ossm->menuSettingsOption == 0 ? numberOfSelection - 1 : ossm->menuSettingsOption - 1;
+        int nextIdx = ossm->menuSettingsOption + 1 > numberOfSelection - 1 ? 0 : ossm->menuSettingsOption + 1;
+        ESP_LOGD("MenuSettings", "lastIdx: %d, ossm->menuSettingsOption: %d, nextIdx: %d, numberOfSelection: %d",
+                  lastIdx, ossm->menuSettingsOption, nextIdx, numberOfSelection);
+        drawMenuOnDisplay(ossm, menuSettingsStrings, lastIdx, ossm->menuSettingsOption, nextIdx, numberOfSelection);
+
+        vTaskDelay(1);
+    };
+
+    vTaskDelete(nullptr);
+}
+
 void OSSM::drawMenuOnDisplay(OSSM *ossm, String *strings,
                              int lastIdx, int idx, int nextIdx, int numberIdx) {
 
@@ -126,4 +173,10 @@ void OSSM::drawMenu() {
     int stackSize = 5 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawMenuTask, "drawMenuTask", stackSize, this, 1,
                 &drawMenuTaskH);
+}
+
+void OSSM::drawMenuSettings() {
+    int stackSize = 5 * configMINIMAL_STACK_SIZE;
+    xTaskCreate(drawMenuSettingsTask, "drawMenuSettingsTask", stackSize, this, 1,
+                &drawMenuSettingsTaskH);
 }
