@@ -1,5 +1,7 @@
 <h1> New Web Serial tool </h1>
 
+Note programming an AIM motor requires not only power for the RS485, the motor needs between 20-40v otherwise it will not communicate. Look for the green light on the rear of the servo.  
+
 in the "Javascript GMP" folder run the page in some browser that supports web serial and hopefully it'll just work. 
 
 <img width="671" alt="image" src="https://github.com/KinkyMakers/OSSM-hardware/assets/43324815/de769499-766b-4020-82d9-6c93fbce37e2">
