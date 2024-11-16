@@ -16,7 +16,7 @@
 #include "constants/Pins.h"
 #include "services/tasks.h"
 #include "structs/SettingPercents.h"
-#include "utils/RecusiveMutex.h"
+#include "utils/RecursiveMutex.h"
 #include "utils/StateLogger.h"
 #include "utils/StrokeEngineHelper.h"
 #include "utils/analog.h"
@@ -344,6 +344,6 @@ class OSSM {
     WiFiManager wm;
 };
 
-extern OSSM* ossm;
+extern OSSM *ossm;
 
 #endif  // OSSM_SOFTWARE_OSSM_H

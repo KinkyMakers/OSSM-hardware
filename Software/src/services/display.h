@@ -3,6 +3,7 @@
 #include <U8g2lib.h>
 
 #include "constants/Pins.h"
+#include "utils/RecursiveMutex.h"
 
 #pragma once
 /**
@@ -18,10 +19,7 @@
  * https://github.com/olikraus/u8g2/wiki/fntlistallplain
  */
 
-static ESP32RecursiveMutex displayMutex;
-static U8G2_SSD1306_128X64_NONAME_F_HW_I2C display(U8G2_R0,
-                                                   Pins::Display::oledReset,
-                                                   Pins::Remote::displayClock,
-                                                   Pins::Remote::displayData);
+extern ESP32RecursiveMutex displayMutex;
+extern U8G2_SSD1306_128X64_NONAME_F_HW_I2C display;
 
 #endif  // OSSM_SOFTWARE_DISPLAY_H
