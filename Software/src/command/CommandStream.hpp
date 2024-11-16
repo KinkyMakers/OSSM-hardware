@@ -13,7 +13,7 @@
 // Command actions are grouped by priority
 enum class CommandAction : uint16_t {
     // EMERGENCY (Priority 0)
-    E_STOP = 0,
+    EMERGENCY_STOP = 0,
 
     // SYSTEM (Priority 1)
     RESET_DEVICE = 100,
@@ -89,14 +89,36 @@ class CommandStream {
 
     std::unique_ptr<Command> currentCommand;
 
+    void clearQueueAbovePriority(uint16_t priority) {
+        std::priority_queue<std::unique_ptr<Command>,
+                            std::vector<std::unique_ptr<Command>>,
+                            CommandComparator>
+            tempQueue;
+
+        // Move all commands with priority <= threshold to temp queue
+        while (!commandQueue.empty()) {
+            if (commandQueue.top()->getPriority() > priority) {
+                commandQueue.pop();
+            } else {
+                tempQueue.push(std::move(
+                    const_cast<std::unique_ptr<Command>&>(commandQueue.top())));
+                commandQueue.pop();
+            }
+        }
+
+        // Move remaining commands back
+        commandQueue = std::move(tempQueue);
+    }
+
   public:
     CommandStream() = default;
 
     void enqueue(std::unique_ptr<Command> command) {
-        if (command->getPriority() == 0) {
-            // If the command has priority 0, clear the queue
-            // this priority aligns with emergency stop
-            clearQueue();
+        // Commands with a priority less than 400 will clear all commands above
+        // them. These command range 0-399 are associated with safety and system
+        // control.
+        if (command->getPriority() < 400) {
+            clearQueueAbovePriority(command->getPriority());
         }
         commandQueue.push(std::move(command));
     }
@@ -111,16 +133,9 @@ class CommandStream {
             return nullptr;
         }
         currentCommand = std::move(
-            const_cast<std::unique_ptr<Command>&>(commandQueue.top())
-        );
+            const_cast<std::unique_ptr<Command>&>(commandQueue.top()));
         commandQueue.pop();
         return currentCommand.get();
-    }
-
-    void clearQueue() {
-        while (!commandQueue.empty()) {
-            commandQueue.pop();
-        }
     }
 };
 
