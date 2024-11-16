@@ -1,6 +1,8 @@
 #ifndef OSSM_SOFTWARE_OSSM_H
 #define OSSM_SOFTWARE_OSSM_H
 
+#include <Arduino.h>
+
 #include "Actions.h"
 #include "AiEsp32RotaryEncoder.h"
 #include "Events.h"

@@ -1,11 +1,9 @@
 #include <memory>
 
-#include "command/CommandStream.hpp"
+#include "command/CommandStream.cpp"
 #include "unity.h"
 
-CommandStream stream;
-
-void setUp(void) { stream = CommandStream(); }
+void setUp(void) {}
 
 void tearDown(void) {}
 
@@ -30,36 +28,36 @@ void test_PriorityQueueOrder(void) {
         .timestamp = 0});
 
     // Add commands and verify they're all preserved
-    stream.enqueue(std::move(cmd1));
-    TEST_ASSERT_EQUAL(1, stream.size());
-    stream.enqueue(std::move(cmd2));
-    TEST_ASSERT_EQUAL(2, stream.size());
-    stream.enqueue(std::move(cmd3));
-    TEST_ASSERT_EQUAL(3, stream.size());
+    commandStream.enqueue(std::move(cmd1));
+    TEST_ASSERT_EQUAL(1, commandStream.size());
+    commandStream.enqueue(std::move(cmd2));
+    TEST_ASSERT_EQUAL(2, commandStream.size());
+    commandStream.enqueue(std::move(cmd3));
+    TEST_ASSERT_EQUAL(3, commandStream.size());
 
     // Verify processing order (highest to lowest priority)
-    Command* cmd = stream.getNext();
+    Command* cmd = commandStream.getNext();
     TEST_ASSERT_NOT_NULL(cmd);
     TEST_ASSERT_EQUAL(static_cast<int>(CommandAction::SET_PATTERN),
                       static_cast<int>(cmd->action));
 
-    cmd = stream.getNext();
+    cmd = commandStream.getNext();
     TEST_ASSERT_NOT_NULL(cmd);
     TEST_ASSERT_EQUAL(static_cast<int>(CommandAction::SET_PARAMETER),
                       static_cast<int>(cmd->action));
 
-    cmd = stream.getNext();
+    cmd = commandStream.getNext();
     TEST_ASSERT_NOT_NULL(cmd);
     TEST_ASSERT_EQUAL(static_cast<int>(CommandAction::GET_PARAMETER),
                       static_cast<int>(cmd->action));
 }
 
 void test_EmptyQueueBehavior(void) {
-    TEST_ASSERT_TRUE(stream.isEmpty());
-    TEST_ASSERT_EQUAL(0, stream.size());
+    TEST_ASSERT_TRUE(commandStream.isEmpty());
+    TEST_ASSERT_EQUAL(0, commandStream.size());
 
     // Test getting command from empty queue
-    Command* cmd = stream.getNext();
+    Command* cmd = commandStream.getNext();
     TEST_ASSERT_NULL(cmd);
 }
 
@@ -79,9 +77,9 @@ void test_PriorityUnseating(void) {
         .payload = {.paramType = ParameterType::POSITION, .value = 200.0f},
         .timestamp = 0});
 
-    stream.enqueue(std::move(cmd1));
-    stream.enqueue(std::move(cmd2));
-    TEST_ASSERT_EQUAL(2, stream.size());
+    commandStream.enqueue(std::move(cmd1));
+    commandStream.enqueue(std::move(cmd2));
+    TEST_ASSERT_EQUAL(2, commandStream.size());
 
     // Add a system command that should clear the queue
     auto system_cmd = std::make_unique<Command>(Command{
@@ -90,11 +88,11 @@ void test_PriorityUnseating(void) {
         .payload = {.paramType = ParameterType::POSITION, .value = 0.0f},
         .timestamp = 0});
 
-    stream.enqueue(std::move(system_cmd));
+    commandStream.enqueue(std::move(system_cmd));
 
     // Verify queue now only contains system command
-    TEST_ASSERT_EQUAL(1, stream.size());
-    Command* cmd = stream.getNext();
+    TEST_ASSERT_EQUAL(1, commandStream.size());
+    Command* cmd = commandStream.getNext();
     TEST_ASSERT_NOT_NULL(cmd);
     TEST_ASSERT_EQUAL(static_cast<int>(CommandAction::STOP_PLAY),
                       static_cast<int>(cmd->action));
@@ -111,8 +109,8 @@ void test_MultiLevelClearing(void) {
         .payload = {.paramType = ParameterType::PATTERN, .value = 100.0f},
         .timestamp = 0});
 
-    stream.enqueue(std::move(cmd1));
-    TEST_ASSERT_EQUAL(1, stream.size());
+    commandStream.enqueue(std::move(cmd1));
+    TEST_ASSERT_EQUAL(1, commandStream.size());
 
     // Add control command (priority 200) - should clear pattern command
     auto control_cmd = std::make_unique<Command>(Command{
@@ -121,8 +119,8 @@ void test_MultiLevelClearing(void) {
         .payload = {.paramType = ParameterType::POSITION, .value = 0.0f},
         .timestamp = 0});
 
-    stream.enqueue(std::move(control_cmd));
-    TEST_ASSERT_EQUAL(1, stream.size());
+    commandStream.enqueue(std::move(control_cmd));
+    TEST_ASSERT_EQUAL(1, commandStream.size());
 
     // Emergency command should clear everything
     auto emergency_cmd = std::make_unique<Command>(Command{
@@ -131,10 +129,10 @@ void test_MultiLevelClearing(void) {
         .payload = {.paramType = ParameterType::POSITION, .value = 0.0f},
         .timestamp = 0});
 
-    stream.enqueue(std::move(emergency_cmd));
-    TEST_ASSERT_EQUAL(1, stream.size());
+    commandStream.enqueue(std::move(emergency_cmd));
+    TEST_ASSERT_EQUAL(1, commandStream.size());
 
-    Command* cmd = stream.getNext();
+    Command* cmd = commandStream.getNext();
     TEST_ASSERT_NOT_NULL(cmd);
     TEST_ASSERT_EQUAL(static_cast<int>(CommandAction::EMERGENCY_STOP),
                       static_cast<int>(cmd->action));

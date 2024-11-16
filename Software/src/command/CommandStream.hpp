@@ -139,4 +139,7 @@ class CommandStream {
     }
 };
 
+// Create a global instance
+extern CommandStream commandStream;
+
 #endif  // OSSM_SOFTWARE_COMMAND_STREAM_H
