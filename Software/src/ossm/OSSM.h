@@ -344,4 +344,6 @@ class OSSM {
     WiFiManager wm;
 };
 
+extern OSSM* ossm;
+
 #endif  // OSSM_SOFTWARE_OSSM_H
