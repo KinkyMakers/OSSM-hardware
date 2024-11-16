@@ -14,6 +14,7 @@
 #include "constants/Config.h"
 #include "constants/Menu.h"
 #include "constants/Pins.h"
+#include "esp_log.h"
 #include "services/tasks.h"
 #include "structs/SettingPercents.h"
 #include "utils/RecursiveMutex.h"

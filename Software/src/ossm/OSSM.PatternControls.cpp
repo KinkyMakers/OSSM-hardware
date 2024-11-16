@@ -70,5 +70,5 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
 void OSSM::drawPatternControls() {
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawPatternControlsTask, "drawPatternControlsTask", stackSize,
-                this, 1, &drawPatternControlsTaskH);
+                this, 1, &Tasks::drawPatternControlsTaskH);
 }

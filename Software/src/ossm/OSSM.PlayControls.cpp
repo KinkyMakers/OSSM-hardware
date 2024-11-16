@@ -188,5 +188,5 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 void OSSM::drawPlayControls() {
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawPlayControlsTask, "drawPlayControlsTask", stackSize, this,
-                1, &drawPlayControlsTaskH);
+                1, &Tasks::drawPlayControlsTaskH);
 }

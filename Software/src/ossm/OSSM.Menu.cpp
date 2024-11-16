@@ -142,5 +142,5 @@ void OSSM::drawMenuTask(void *pvParameters) {
 void OSSM::drawMenu() {
     int stackSize = 5 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawMenuTask, "drawMenuTask", stackSize, this, 1,
-                &drawMenuTaskH);
+                &Tasks::drawMenuTaskH);
 }

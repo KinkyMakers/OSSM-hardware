@@ -59,5 +59,5 @@ void OSSM::drawPreflightTask(void *pvParameters) {
 void OSSM::drawPreflight() {
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawPreflightTask, "drawPlayControlsTask", stackSize, this, 1,
-                &drawPreflightTaskH);
+                &Tasks::drawPreflightTaskH);
 }

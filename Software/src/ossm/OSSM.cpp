@@ -119,7 +119,7 @@ void OSSM::drawHello() {
     // 3 x minimum stack
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawHelloTask, "drawHello", stackSize, this, 1,
-                &drawHelloTaskH);
+                &Tasks::drawHelloTaskH);
 }
 
 void OSSM::drawError() {
