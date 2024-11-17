@@ -117,11 +117,11 @@ class StrokeEngine {
 
     /**************************************************************************/
     /*!
-      @brief  Set the speed of a stroke. Speed is given in Strokes per Minute
+      @brief  Set the speed of a stroke. Speed is given in mm per Second
       and internally calculated to the time a full stroke needs to complete.
       Settings tale effect with next stroke, or after calling
       applyNewSettingsNow().
-      @param speed Strokes per Minute. Is constrained from 0.5 to 6000
+      @param speed mm per second. Is constrained from 0.0 to Config::Driver::maxSpeedMmPerSecond
       @param applyNow Set to true if changes should take effect immediately
     */
     /**************************************************************************/
@@ -129,8 +129,8 @@ class StrokeEngine {
 
     /**************************************************************************/
     /*!
-      @brief  Get the speed of a stroke. Speed is returned as Strokes per
-      Minute.
+      @brief  Get the speed of a stroke. Speed is returned as mm per
+      Second.
       @return Strokes per Minute.
     */
     /**************************************************************************/
@@ -402,6 +402,7 @@ class StrokeEngine {
     Pattern *pattern = new SimpleStroke("Simple Stroke");
     bool _isHomed = false;
     int _index = 0;
+    float _speed;
     int _depth;
     int _previousDepth;
     int _stroke;

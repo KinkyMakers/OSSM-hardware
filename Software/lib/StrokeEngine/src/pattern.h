@@ -65,7 +65,10 @@ class Pattern {
     /*!
       @param speed time of a full stroke in [sec]
     */
-    virtual void setTimeOfStroke(float speed) { _timeOfStroke = speed; }
+    virtual void setTimeOfStroke(float speed) {
+        // Speed to time
+        _timeOfStroke = speed / (min(abs(_stroke), abs(_depth)) * 2.0F);
+    }
 
     //! Set the maximum stroke a pattern may have
     /*!

@@ -35,8 +35,7 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
             } else if (Stroker.getState() == READY) {
                 Stroker.startPattern();
             }
-
-            Stroker.setSpeed(ossm->setting.speed * 3, true);
+            Stroker.setSpeed(ossm->setting.speed, true);
             lastSetting.speed = ossm->setting.speed;
         }
 
