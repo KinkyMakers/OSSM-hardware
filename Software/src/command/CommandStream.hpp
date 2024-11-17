@@ -10,6 +10,8 @@
 #include <utility>
 #include <vector>
 
+#include "OSSM.h"
+
 // Command actions are grouped by priority
 enum class CommandAction : uint16_t {
     // EMERGENCY (Priority 0)
@@ -26,7 +28,6 @@ enum class CommandAction : uint16_t {
 
     // CONFIGURATION (Priority 3)
     SET_SAFETY_BOUNDS = 300,
-    SET_SAFETY_LIMITS = 301,
 
     // PATTERN (Priority 4)
     SET_PATTERN = 400,
@@ -136,6 +137,82 @@ class CommandStream {
             const_cast<std::unique_ptr<Command>&>(commandQueue.top()));
         commandQueue.pop();
         return currentCommand.get();
+    }
+
+    // process current command and get next command
+    Command* processCommand() {
+        if (currentCommand == nullptr) {
+            if (isEmpty()) {
+                return nullptr;
+            }
+            return getNext();
+        }
+
+        // visit state machine's current state
+        String currentState;
+        ossm->sm->visit_current_states(
+            [&currentState](auto state) { currentState = state.c_str(); });
+
+        // check if current state starts with strokeEngine
+        bool isInStrokeEngine = currentState.startsWith("strokeEngine");
+        bool isInSimplePenetration =
+            currentState.startsWith("simplePenetration");
+
+        // switch on the command type and process
+        switch (currentCommand->action) {
+            case CommandAction::EMERGENCY_STOP:
+                ossm->sm->process_event(emergencyStop);
+                break;
+            case CommandAction::RESET_DEVICE:
+                restart();
+                break;
+            case CommandAction::STOP_PLAY:
+                if (isInStrokeEngine || isInSimplePenetration) {
+                    ossm->sm->process_event(emergencyStop);
+                }
+                break;
+            case CommandAction::START_PLAY:
+                // TODO: read the value from the payload and then set the menu
+                // option before triggering a button press.
+                break;
+            case CommandAction::HOLD_POSITION:
+                if (isInStrokeEngine || isInSimplePenetration) {
+                    // TODO: tell fast accel stepper to hold position.
+                    // TOOD: we need to release position as well.
+                }
+                break;
+            case CommandAction::TRIGGER_HOMING:
+                ossm->sm->process_event(home);
+                break;
+            case CommandAction::SET_SAFETY_BOUNDS:
+                // TODO immediately set the safety bounds on the OSSM using the
+                // current values. This requires some basic filtering.
+                break;
+            case CommandAction::SET_PATTERN:
+                if (isInStrokeEngine) {
+                    // TODO: set the stroke engine pattern immediately. as long
+                    // as it's valid.
+                }
+                break;
+            case CommandAction::SET_PARAMETER:
+                // TODO: set the parameter immediately. as long as it's valid.
+                break;
+            case CommandAction::STREAM_IN_PARAMETER:
+                // TODO: If this is position / time, then send this to the PD
+                // controller. Otherwise, ignore.
+                break;
+            case CommandAction::GET_PARAMETER:
+                // TODO: send the current value of the parameter to the
+                // client.
+                break;
+            case CommandAction::STREAM_OUT_PARAMETER:
+                // might not be supported.
+                break;
+            default:
+                break;
+        }
+
+        return getNext();
     }
 };
 
