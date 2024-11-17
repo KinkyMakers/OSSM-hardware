@@ -173,7 +173,8 @@ class SimpleStroke : public Pattern {
 
     void setTimeOfStroke(float speed = 0) {
         // In & Out have same time, so we need to divide by 2
-        _timeOfStroke = 0.5 * speed;
+        // time of stroke
+        _timeOfStroke = 0.5 * (speed / (min(abs(_stroke), abs(_depth)) * 2.0F));
     }
 
     motionParameter nextTarget(unsigned int index) {
