@@ -1,0 +1,29 @@
+{
+    "configurations": [
+        {
+            "name": "ESP32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${HOME}/.platformio/packages/framework-arduinoespressif32/**",
+                "${HOME}/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/**",
+                "${HOME}/.platformio/packages/framework-arduinoespressif32/cores/esp32/**",
+                "${HOME}/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/driver/include",
+                "${HOME}/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/hal/include",
+                "${HOME}/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/soc/include"
+            ],
+            "defines": [
+                "ARDUINO=200",
+                "ARDUINO_ARCH_ESP32=1",
+                "ESP32=1",
+                "F_CPU=240000000L",
+                "ARDUINO_ARCH_ESP32",
+                "ESP32"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "${HOME}/.platformio/packages/toolchain-xtensa-esp32/bin/xtensa-esp32-elf-gcc"
+        }
+    ],
+    "version": 4
+}
