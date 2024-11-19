@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include "OSSM.h"
+#include "ossm/OSSM.h"
 
 // Command actions are grouped by priority
 enum class CommandAction : uint16_t {
