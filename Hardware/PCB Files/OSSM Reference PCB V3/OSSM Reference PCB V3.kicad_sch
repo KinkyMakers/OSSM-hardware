@@ -4,6 +4,12 @@
 	(generator_version "8.0")
 	(uuid "41fe6596-aaf5-4796-8bdb-b4e357152d01")
 	(paper "A4")
+	(title_block
+		(title "OSSM!")
+		(date "2024-08-21")
+		(rev "V3.0 Beta 1")
+		(company "Research & Desire")
+	)
 	(lib_symbols
 		(symbol "Mechanical:MountingHole_Pad"
 			(pin_numbers hide)

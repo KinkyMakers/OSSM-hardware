@@ -4,6 +4,12 @@
 	(generator_version "8.0")
 	(uuid "98a21ae7-5d3b-4370-9934-b842a35daa8e")
 	(paper "A4")
+	(title_block
+		(title "OSSM!")
+		(date "2024-08-21")
+		(rev "V3.0 Beta 1")
+		(company "Research & Desire")
+	)
 	(lib_symbols
 		(symbol "Connector:Screw_Terminal_01x02"
 			(pin_names
@@ -3536,7 +3542,7 @@
 		(at 91.44 140.97 0)
 		(unit 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board yes)
 		(dnp no)
 		(fields_autoplaced yes)
@@ -3578,15 +3584,6 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
-			(at 91.44 140.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Sim.Type" ""
 			(at 91.44 140.97 0)
 			(effects
 				(font
@@ -4931,7 +4928,7 @@
 		(exclude_from_sim no)
 		(in_bom no)
 		(on_board yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "94b48693-0941-4492-ae2c-bc02c4230683")
 		(property "Reference" "J6"
