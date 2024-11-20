@@ -11,6 +11,108 @@
 		(company "Research & Desire")
 	)
 	(lib_symbols
+		(symbol "Connector:TestPoint"
+			(pin_numbers hide)
+			(pin_names
+				(offset 0.762) hide)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "TP"
+				(at 0 6.858 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "TestPoint"
+				(at 0 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 5.08 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 5.08 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "test point"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "test point tp"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "Pin* Test*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "TestPoint_0_1"
+				(circle
+					(center 0 3.302)
+					(radius 0.762)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "TestPoint_1_1"
+				(pin passive line
+					(at 0 0 90)
+					(length 2.54)
+					(name "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
 		(symbol "Connector_Generic:Conn_01x03"
 			(pin_names
 				(offset 1.016) hide)
@@ -2217,6 +2319,16 @@
 	)
 	(wire
 		(pts
+			(xy 132.08 109.22) (xy 140.97 109.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "34c222b5-cfa3-41e3-8d29-05907ea79962")
+	)
+	(wire
+		(pts
 			(xy 212.09 63.5) (xy 212.09 60.96)
 		)
 		(stroke
@@ -2224,6 +2336,16 @@
 			(type default)
 		)
 		(uuid "3af3da42-7d53-4fa7-ab23-f5536b00af9c")
+	)
+	(wire
+		(pts
+			(xy 132.08 101.6) (xy 140.97 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "42df14aa-8fae-405e-9697-4f6a453c7aa6")
 	)
 	(wire
 		(pts
@@ -2307,6 +2429,16 @@
 	)
 	(wire
 		(pts
+			(xy 132.08 111.76) (xy 140.97 111.76)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6469666a-1eb6-4865-aef9-db2ab6d8cac2")
+	)
+	(wire
+		(pts
 			(xy 138.43 166.37) (xy 139.7 166.37)
 		)
 		(stroke
@@ -2384,6 +2516,16 @@
 			(type default)
 		)
 		(uuid "8505f247-75b7-4169-b153-879c91a083ba")
+	)
+	(wire
+		(pts
+			(xy 132.08 104.14) (xy 140.97 104.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8f67a2ad-48cf-4926-935a-4bc0435d316e")
 	)
 	(wire
 		(pts
@@ -2494,6 +2636,16 @@
 			(type default)
 		)
 		(uuid "b0a34d0a-31aa-490d-90ef-b60adfe24d46")
+	)
+	(wire
+		(pts
+			(xy 132.08 106.68) (xy 140.97 106.68)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bd7fe450-9624-4799-bc72-925a97054fb2")
 	)
 	(wire
 		(pts
@@ -2954,6 +3106,71 @@
 		(uuid "f0f8b4c1-ea20-419f-bafc-d444b202f371")
 	)
 	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 132.08 101.6 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp yes)
+		(uuid "0089cad4-4388-4652-bc88-2e928a250675")
+		(property "Reference" "TP1"
+			(at 125.73 101.6 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 128.778 99.06 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
+			(at 132.08 96.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 132.08 96.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 132.08 101.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "cbff2562-efe9-4bf4-ad01-65c64cf2d29a")
+		)
+		(instances
+			(project ""
+				(path "/41fe6596-aaf5-4796-8bdb-b4e357152d01/62558055-bf91-402b-ad26-d227d1990e33"
+					(reference "TP1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 212.09 72.39 0)
 		(unit 1)
@@ -3056,7 +3273,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/product-detail/Multilayer-Ceramic-Capacitors-MLCC-SMD-SMT_Murata-Electronics-GRM155R71H104KE14D_C77020.html"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_FH--Guangdong-Fenghua-Advanced-Tech-0402B104K250NT_C56392.pdf"
 			(at 125.73 152.4 0)
 			(effects
 				(font
@@ -3074,7 +3291,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C77020"
+		(property "MPN" "C56392"
 			(at 125.73 152.4 0)
 			(effects
 				(font
@@ -3296,6 +3513,15 @@
 			)
 		)
 		(property "Sim.Type" ""
+			(at 72.39 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C11702"
 			(at 72.39 78.74 0)
 			(effects
 				(font
@@ -3662,6 +3888,136 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 132.08 109.22 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp yes)
+		(uuid "5595f46b-471a-430d-ace7-d5379907aa0f")
+		(property "Reference" "TP4"
+			(at 125.73 109.22 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 128.778 106.68 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
+			(at 132.08 104.14 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 132.08 104.14 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 132.08 109.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "196996ce-c45e-4e1a-8311-6b23d02a7e77")
+		)
+		(instances
+			(project "OSSM Reference PCB V3"
+				(path "/41fe6596-aaf5-4796-8bdb-b4e357152d01/62558055-bf91-402b-ad26-d227d1990e33"
+					(reference "TP4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 132.08 104.14 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp yes)
+		(uuid "6d891489-8424-41d4-8a34-361935696746")
+		(property "Reference" "TP2"
+			(at 125.73 104.14 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 128.778 101.6 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
+			(at 132.08 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 132.08 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 132.08 104.14 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "06a0aa6b-ce72-43bd-9394-43ba9b3b0d43")
+		)
+		(instances
+			(project "OSSM Reference PCB V3"
+				(path "/41fe6596-aaf5-4796-8bdb-b4e357152d01/62558055-bf91-402b-ad26-d227d1990e33"
+					(reference "TP2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+3V3")
 		(at 212.09 60.96 0)
 		(unit 1)
@@ -4006,6 +4362,71 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 132.08 111.76 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp yes)
+		(uuid "afb409a3-26c7-4846-ac2a-55ac03987fd2")
+		(property "Reference" "TP5"
+			(at 125.73 111.76 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 128.778 109.22 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
+			(at 132.08 106.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 132.08 106.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 132.08 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "030827ca-3cb5-4d77-9bf8-da506e34bdbc")
+		)
+		(instances
+			(project "OSSM Reference PCB V3"
+				(path "/41fe6596-aaf5-4796-8bdb-b4e357152d01/62558055-bf91-402b-ad26-d227d1990e33"
+					(reference "TP5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+3V3")
 		(at 68.58 73.66 0)
 		(unit 1)
@@ -4117,6 +4538,15 @@
 			)
 		)
 		(property "Description" "Resistor, small symbol"
+			(at 119.38 48.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C60490"
 			(at 119.38 48.26 0)
 			(effects
 				(font
@@ -4271,6 +4701,15 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" "C11702"
+			(at 64.77 78.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "cfe6fe81-99c7-4ad4-a240-6ec4f23ebae8")
 		)
@@ -4281,6 +4720,71 @@
 			(project "OSSM Reference PCB V3"
 				(path "/41fe6596-aaf5-4796-8bdb-b4e357152d01/62558055-bf91-402b-ad26-d227d1990e33"
 					(reference "R8")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 132.08 106.68 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp yes)
+		(uuid "c11ba85e-9ed9-48cd-bff1-de6c626567e6")
+		(property "Reference" "TP3"
+			(at 125.73 106.68 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 128.778 104.14 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Pad_1.0x1.0mm"
+			(at 132.08 101.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 132.08 101.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 132.08 106.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "bf5fd712-1278-4641-a074-21669f3f8ae1")
+		)
+		(instances
+			(project "OSSM Reference PCB V3"
+				(path "/41fe6596-aaf5-4796-8bdb-b4e357152d01/62558055-bf91-402b-ad26-d227d1990e33"
+					(reference "TP3")
 					(unit 1)
 				)
 			)
@@ -4482,6 +4986,15 @@
 			)
 		)
 		(property "Description" "Resistor, small symbol"
+			(at 142.24 38.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C60490"
 			(at 142.24 38.1 0)
 			(effects
 				(font
@@ -4753,7 +5266,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/product-detail/Multilayer-Ceramic-Capacitors-MLCC-SMD-SMT_Murata-Electronics-GRM155R71H104KE14D_C77020.html"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_FH--Guangdong-Fenghua-Advanced-Tech-0402B104K250NT_C56392.pdf"
 			(at 205.74 67.31 0)
 			(effects
 				(font
@@ -4771,7 +5284,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C77020"
+		(property "MPN" "C56392"
 			(at 205.74 67.31 0)
 			(effects
 				(font

@@ -3445,6 +3445,15 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" "C112291"
+			(at 46.99 146.05 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "1a004792-b3b5-4b39-9623-d0f3787ae49a")
 		)
@@ -3514,6 +3523,15 @@
 			)
 		)
 		(property "Sim.Type" ""
+			(at 67.31 158.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C112291"
 			(at 67.31 158.75 0)
 			(effects
 				(font
@@ -4638,7 +4656,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C25077"
 			(at 80.01 53.34 0)
 			(effects
 				(font
@@ -4861,7 +4879,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_FH--Guangdong-Fenghua-Advanced-Tech-0402B104K250NT_C56392.pdf"
 			(at 59.69 39.37 0)
 			(effects
 				(font
@@ -4928,7 +4946,7 @@
 		(exclude_from_sim no)
 		(in_bom no)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "94b48693-0941-4492-ae2c-bc02c4230683")
 		(property "Reference" "J6"
@@ -5258,7 +5276,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/product-detail/Multilayer-Ceramic-Capacitors-MLCC-SMD-SMT_Murata-Electronics-GRM155R71H104KE14D_C77020.html"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_FH--Guangdong-Fenghua-Advanced-Tech-0402B104K250NT_C56392.pdf"
 			(at 228.6 90.17 0)
 			(effects
 				(font
@@ -5276,7 +5294,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C77020"
+		(property "MPN" "C56392"
 			(at 228.6 90.17 0)
 			(effects
 				(font
@@ -5609,7 +5627,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_FH--Guangdong-Fenghua-Advanced-Tech-0402B104K250NT_C56392.pdf"
 			(at 66.04 50.8 0)
 			(effects
 				(font
@@ -5874,7 +5892,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C25077"
 			(at 80.01 48.26 0)
 			(effects
 				(font
