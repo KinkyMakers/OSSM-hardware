@@ -61,7 +61,7 @@ namespace Config {
         // belt attachments subtract the linear block holder length (75mm on
         // OSSM) Recommended to also subtract e.g. 20mm to keep the backstop
         // well away from the device.
-        constexpr float maxStrokeSteps = 300.0_mm;
+        constexpr float maxStrokeSteps = 500.0_mm;
 
         // If the stroke length is less than this value, then the stroke is
         // likely the result of a poor homing.
