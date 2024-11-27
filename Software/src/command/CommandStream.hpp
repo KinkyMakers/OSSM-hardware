@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include "ossm/OSSM.h"
+#include "ossm/OSSMI.h"
 
 // Command actions are grouped by priority
 enum class CommandAction : uint16_t {
@@ -111,8 +111,10 @@ class CommandStream {
         commandQueue = std::move(tempQueue);
     }
 
+    OSSMInterface* ossm;
+
   public:
-    CommandStream() = default;
+    CommandStream(OSSMInterface* ossm) : ossm(ossm) {}
 
     void enqueue(std::unique_ptr<Command> command) {
         // Commands with a priority less than 400 will clear all commands above
@@ -149,9 +151,7 @@ class CommandStream {
         }
 
         // visit state machine's current state
-        String currentState;
-        ossm->sm->visit_current_states(
-            [&currentState](auto state) { currentState = state.c_str(); });
+        String currentState = ossm->get_current_state();
 
         // check if current state starts with strokeEngine
         bool isInStrokeEngine = currentState.startsWith("strokeEngine");
@@ -161,14 +161,15 @@ class CommandStream {
         // switch on the command type and process
         switch (currentCommand->action) {
             case CommandAction::EMERGENCY_STOP:
-                ossm->sm->process_event(emergencyStop);
+                ossm->process_event(emergencyStop);
                 break;
             case CommandAction::RESET_DEVICE:
-                restart();
+                // restart();
+
                 break;
             case CommandAction::STOP_PLAY:
                 if (isInStrokeEngine || isInSimplePenetration) {
-                    ossm->sm->process_event(emergencyStop);
+                    ossm->process_event(emergencyStop);
                 }
                 break;
             case CommandAction::START_PLAY:
@@ -182,7 +183,7 @@ class CommandStream {
                 }
                 break;
             case CommandAction::TRIGGER_HOMING:
-                ossm->sm->process_event(home);
+                ossm->process_event(home);
                 break;
             case CommandAction::SET_SAFETY_BOUNDS:
                 // TODO immediately set the safety bounds on the OSSM using the

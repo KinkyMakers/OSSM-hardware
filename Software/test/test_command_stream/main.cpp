@@ -1,7 +1,12 @@
 #include <memory>
 
-#include "command/CommandStream.cpp"
+#include "command/CommandStream.hpp"
 #include "unity.h"
+
+
+OSSMInterface* ossm = nullptr;
+
+CommandStream commandStream(ossm);
 
 void setUp(void) {}
 

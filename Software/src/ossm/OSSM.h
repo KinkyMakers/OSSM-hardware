@@ -8,6 +8,7 @@
 #include "Events.h"
 #include "FastAccelStepper.h"
 #include "Guard.h"
+#include "OSSMI.h"
 #include "U8g2lib.h"
 #include "WiFiManager.h"
 #include "boost/sml.hpp"
@@ -25,7 +26,7 @@
 
 namespace sml = boost::sml;
 
-class OSSM {
+class OSSM : public OSSMInterface {
   private:
     /**
      * ///////////////////////////////////////////
@@ -343,6 +344,18 @@ class OSSM {
         sm = nullptr;  // The state machine
 
     WiFiManager wm;
+
+    // Implement the interface methods
+    void process_event(const auto &event) { sm->process_event(event); }
+
+    // get current state
+    String getCurrentState() {
+        String currentState;
+        sm->visit_current_states(
+            [&currentState](auto state) { currentState = state.c_str(); });
+
+        return currentState;
+    }
 };
 
 extern OSSM *ossm;

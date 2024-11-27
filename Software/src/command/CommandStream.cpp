@@ -1,3 +1,5 @@
 #include "CommandStream.hpp"
 
-CommandStream commandStream; 
+#include "ossm/OSSM.h"
+
+CommandStream commandStream(ossm);
