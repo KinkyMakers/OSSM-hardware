@@ -8,16 +8,24 @@
 enum Menu {
     SimplePenetration,
     StrokeEngine,
+    Settings,
+    NUM_OPTIONS
+};
+
+enum MenuSettings {
     UpdateOSSM,
     WiFiSetup,
     Help,
     Restart,
-    NUM_OPTIONS
+    SETTINGS_NUM_OPTIONS
 };
 
 static String menuStrings[Menu::NUM_OPTIONS] = {
     UserConfig::language.SimplePenetration,
     UserConfig::language.StrokeEngine,
+    UserConfig::language.Settings};
+
+static String menuSettingsStrings[MenuSettings::SETTINGS_NUM_OPTIONS] = {
     UserConfig::language.Update,
     UserConfig::language.WiFiSetup,
     UserConfig::language.GetHelp,
