@@ -705,6 +705,40 @@ void StrokeEngine::_stroking() {
                     currentMotion.acceleration = _servo->getAcceleration();
                 }
 
+                // Identify critical setup, new updated position is less, maybe not possible to brake on time and crash
+                if (_servo->getPositionAfterCommandsCompleted() < _servo->getCurrentPosition() &&
+                    _servo->getCurrentPosition() < currentMotion.stroke ||
+                    _servo->getPositionAfterCommandsCompleted() > _servo->getCurrentPosition() &&
+                    _servo->getCurrentPosition() > currentMotion.stroke) {
+#ifdef DEBUG_CLIPPING
+                    Serial.println("Check if possible to brake on time to avoid crash");
+#endif
+                    // Check if possible to brake on time
+                    // If is OK, apply new motion with hight accel to avoid crash
+                    // If is not OK, ignoring current motion to avoid crash
+                    float vMax = float(currentMotion.speed);
+                    if (_servo->getSpeedInTicks() > vMax)
+                        vMax = _servo->getSpeedInTicks();
+                    float newTimeToStop = float(vMax / currentMotion.acceleration);
+                    float stepsToStop = float(abs(_servo->getCurrentPosition() - 0.5 * currentMotion.acceleration * newTimeToStop * newTimeToStop));
+                    float stepsCurrentToStop = float(abs(_servo->getCurrentPosition() - float(_servo->getPositionAfterCommandsCompleted())));
+#ifdef DEBUG_CLIPPING
+                    Serial.println("vMax: " + String(vMax));
+                    Serial.println("newTimeToStop: " + String(newTimeToStop));
+                    Serial.println("stepsToStop: " + String(stepsToStop));
+                    Serial.println("stepsCurrentToStop: " + String(stepsCurrentToStop));
+#endif
+                    // Check if possible to brake on time
+                    if (stepsToStop > stepsCurrentToStop) {
+                        // Not possibility to brake on time
+                        // Skip current motion
+                        currentMotion.skip = true;
+#ifdef DEBUG_CLIPPING
+                        Serial.println("Skip update to avoid crash");
+#endif
+                    }
+                }
+
                 // Apply new trapezoidal motion profile to _servo
                 _applyMotionProfile(&currentMotion);
 
@@ -720,15 +754,14 @@ void StrokeEngine::_stroking() {
                 // Querey new set of pattern parameters
                 currentMotion = pattern->nextTarget(_index);
 
-                // Pattern may introduce pauses between strokes
-                if (currentMotion.skip == false) {
 #ifdef DEBUG_STROKE
-                    Serial.println("Stroking Index: " + String(_index));
+                Serial.println("Stroking Index: " + String(_index));
 #endif
-                    // Apply new trapezoidal motion profile to _servo
-                    _applyMotionProfile(&currentMotion);
+                // Apply new trapezoidal motion profile to _servo
+                _applyMotionProfile(&currentMotion);
 
-                } else {
+                // Pattern may introduce pauses between strokes
+                if (currentMotion.skip == true) {
                     // decrement _index so that it stays the same until the next
                     // valid stroke parameters are delivered
                     _index--;
