@@ -26,7 +26,6 @@ void initBoard() {
 
     analogReadResolution(12);
     analogSetAttenuation(ADC_11db);  // allows us to read almost full 3.3V range
-
     initStepper();
 }
 

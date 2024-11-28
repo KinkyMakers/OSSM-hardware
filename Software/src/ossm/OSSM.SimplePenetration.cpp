@@ -101,5 +101,6 @@ void OSSM::startSimplePenetration() {
     xTaskCreatePinnedToCore(startSimplePenetrationTask,
                             "startSimplePenetrationTask", stackSize, this,
                             configMAX_PRIORITIES - 1,
-                            &runSimplePenetrationTaskH, operationTaskCore);
+                            &Tasks::runSimplePenetrationTaskH,
+                            Tasks::operationTaskCore);
 }

@@ -25,8 +25,6 @@
  * contribute, fork, branch and share!
  */
 
-OSSM* ossm;
-
 OneButton button(Pins::Remote::encoderSwitch, false);
 
 void setup() {
@@ -41,6 +39,7 @@ void setup() {
     display.begin();
 
     ossm = new OSSM(display, encoder, stepper);
+
     // link functions to be called on events.
     button.attachClick([]() { ossm->sm->process_event(ButtonPress{}); });
     button.attachDoubleClick([]() { ossm->sm->process_event(DoublePress{}); });
