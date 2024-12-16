@@ -109,7 +109,7 @@ class OSSM : public OSSMInterface {
                 o.startSimplePenetration();
             };
 
-            // auto startStreaming = [](OSSM &o) { o.startStreaming(); };
+            auto startStreaming = [](OSSM &o) { o.startStreaming(); };
 
             auto startStrokeEngine = [](OSSM &o) { o.startStrokeEngine(); };
             auto emergencyStop = [](OSSM &o) {
@@ -185,11 +185,12 @@ class OSSM : public OSSMInterface {
                 "homing.backward"_s + done[isFirstHomed] / setHomed = "menu"_s,
                 "homing.backward"_s + done[(isOption(Menu::SimplePenetration))] / setHomed = "simplePenetration"_s,
                 "homing.backward"_s + done[(isOption(Menu::StrokeEngine))] / setHomed = "strokeEngine"_s,
-                // "homing.backward"_s + done[(isOption(Menu::Streaming))] / setHomed = "streaming"_s,
+                "homing.backward"_s + done[(isOption(Menu::Streaming))] / setHomed = "streaming"_s,
 
                 "menu"_s / (drawMenu, startWifi) = "menu.idle"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::Streaming))] = "streaming"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
                 "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
@@ -201,11 +202,11 @@ class OSSM : public OSSMInterface {
                 "simplePenetration.preflight"_s + done / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
-                // "streaming"_s [isNotHomed] = "homing"_s,
-                // "streaming"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStreaming) = "streaming.idle"_s,
-                // "streaming"_s / drawPreflight = "streaming.preflight"_s,
-                // "streaming.preflight"_s + done / (resetSettings, drawPlayControls, startStreaming) = "streaming.idle"_s,
-                // "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+                "streaming"_s [isNotHomed] = "homing"_s,
+                "streaming"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStreaming) = "streaming.idle"_s,
+                "streaming"_s / drawPreflight = "streaming.preflight"_s,
+                "streaming.preflight"_s + done / (resetSettings, drawPlayControls, startStreaming) = "streaming.idle"_s,
+                "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
 
                 "strokeEngine"_s [isNotHomed] = "homing"_s,
@@ -242,18 +243,6 @@ class OSSM : public OSSMInterface {
             // clang-format on
         }
     };
-
-    /**
-     * ///////////////////////////////////////////
-     * ////
-     * ////  Private Objects and Services
-     * ////
-     * ///////////////////////////////////////////
-     */
-    FastAccelStepper *stepper;
-    U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display;
-    StateLogger logger;
-    AiEsp32RotaryEncoder &encoder;
 
     /**
      * ///////////////////////////////////////////
@@ -354,6 +343,17 @@ class OSSM : public OSSMInterface {
                 sml::logger<StateLogger>>>
         sm = nullptr;  // The state machine
 
+    /**
+     * ///////////////////////////////////////////
+     * ////
+     * ////  Objects and Services
+     * ////
+     * ///////////////////////////////////////////
+     */
+    FastAccelStepper *stepper;
+    U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display;
+    StateLogger logger;
+    AiEsp32RotaryEncoder &encoder;
     WiFiManager wm;
 
     // Implement the interface methods
