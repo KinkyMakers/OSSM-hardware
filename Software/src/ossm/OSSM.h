@@ -108,6 +108,9 @@ class OSSM : public OSSMInterface {
             auto startSimplePenetration = [](OSSM &o) {
                 o.startSimplePenetration();
             };
+
+            // auto startStreaming = [](OSSM &o) { o.startStreaming(); };
+
             auto startStrokeEngine = [](OSSM &o) { o.startStrokeEngine(); };
             auto emergencyStop = [](OSSM &o) {
                 o.stepper->forceStop();
@@ -182,6 +185,7 @@ class OSSM : public OSSMInterface {
                 "homing.backward"_s + done[isFirstHomed] / setHomed = "menu"_s,
                 "homing.backward"_s + done[(isOption(Menu::SimplePenetration))] / setHomed = "simplePenetration"_s,
                 "homing.backward"_s + done[(isOption(Menu::StrokeEngine))] / setHomed = "strokeEngine"_s,
+                // "homing.backward"_s + done[(isOption(Menu::Streaming))] / setHomed = "streaming"_s,
 
                 "menu"_s / (drawMenu, startWifi) = "menu.idle"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
@@ -196,6 +200,13 @@ class OSSM : public OSSMInterface {
                 "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
                 "simplePenetration.preflight"_s + done / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+
+                // "streaming"_s [isNotHomed] = "homing"_s,
+                // "streaming"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStreaming) = "streaming.idle"_s,
+                // "streaming"_s / drawPreflight = "streaming.preflight"_s,
+                // "streaming.preflight"_s + done / (resetSettings, drawPlayControls, startStreaming) = "streaming.idle"_s,
+                // "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+
 
                 "strokeEngine"_s [isNotHomed] = "homing"_s,
                 "strokeEngine"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
@@ -356,6 +367,7 @@ class OSSM : public OSSMInterface {
 
         return currentState;
     }
+    void startStreaming();
 };
 
 extern OSSM *ossm;
