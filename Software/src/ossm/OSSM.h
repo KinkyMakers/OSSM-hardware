@@ -1,20 +1,24 @@
 #ifndef OSSM_SOFTWARE_OSSM_H
 #define OSSM_SOFTWARE_OSSM_H
 
+#include <Arduino.h>
+
 #include "Actions.h"
 #include "AiEsp32RotaryEncoder.h"
 #include "Events.h"
 #include "FastAccelStepper.h"
 #include "Guard.h"
+#include "OSSMI.h"
 #include "U8g2lib.h"
 #include "WiFiManager.h"
 #include "boost/sml.hpp"
 #include "constants/Config.h"
 #include "constants/Menu.h"
 #include "constants/Pins.h"
+#include "esp_log.h"
 #include "services/tasks.h"
 #include "structs/SettingPercents.h"
-#include "utils/RecusiveMutex.h"
+#include "utils/RecursiveMutex.h"
 #include "utils/StateLogger.h"
 #include "utils/StrokeEngineHelper.h"
 #include "utils/analog.h"
@@ -22,7 +26,7 @@
 
 namespace sml = boost::sml;
 
-class OSSM {
+class OSSM : public OSSMInterface {
   private:
     /**
      * ///////////////////////////////////////////
@@ -104,6 +108,9 @@ class OSSM {
             auto startSimplePenetration = [](OSSM &o) {
                 o.startSimplePenetration();
             };
+
+            auto startStreaming = [](OSSM &o) { o.startStreaming(); };
+
             auto startStrokeEngine = [](OSSM &o) { o.startStrokeEngine(); };
             auto emergencyStop = [](OSSM &o) {
                 o.stepper->forceStop();
@@ -178,10 +185,12 @@ class OSSM {
                 "homing.backward"_s + done[isFirstHomed] / setHomed = "menu"_s,
                 "homing.backward"_s + done[(isOption(Menu::SimplePenetration))] / setHomed = "simplePenetration"_s,
                 "homing.backward"_s + done[(isOption(Menu::StrokeEngine))] / setHomed = "strokeEngine"_s,
+                "homing.backward"_s + done[(isOption(Menu::Streaming))] / setHomed = "streaming"_s,
 
                 "menu"_s / (drawMenu, startWifi) = "menu.idle"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::Streaming))] = "streaming"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
                 "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
@@ -192,6 +201,13 @@ class OSSM {
                 "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
                 "simplePenetration.preflight"_s + done / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+
+                "streaming"_s [isNotHomed] = "homing"_s,
+                "streaming"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStreaming) = "streaming.idle"_s,
+                "streaming"_s / drawPreflight = "streaming.preflight"_s,
+                "streaming.preflight"_s + done / (resetSettings, drawPlayControls, startStreaming) = "streaming.idle"_s,
+                "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+
 
                 "strokeEngine"_s [isNotHomed] = "homing"_s,
                 "strokeEngine"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
@@ -227,18 +243,6 @@ class OSSM {
             // clang-format on
         }
     };
-
-    /**
-     * ///////////////////////////////////////////
-     * ////
-     * ////  Private Objects and Services
-     * ////
-     * ///////////////////////////////////////////
-     */
-    FastAccelStepper *stepper;
-    U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display;
-    StateLogger logger;
-    AiEsp32RotaryEncoder &encoder;
 
     /**
      * ///////////////////////////////////////////
@@ -339,7 +343,33 @@ class OSSM {
                 sml::logger<StateLogger>>>
         sm = nullptr;  // The state machine
 
+    /**
+     * ///////////////////////////////////////////
+     * ////
+     * ////  Objects and Services
+     * ////
+     * ///////////////////////////////////////////
+     */
+    FastAccelStepper *stepper;
+    U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display;
+    StateLogger logger;
+    AiEsp32RotaryEncoder &encoder;
     WiFiManager wm;
+
+    // Implement the interface methods
+    void process_event(const auto &event) { sm->process_event(event); }
+
+    // get current state
+    String getCurrentState() {
+        String currentState;
+        sm->visit_current_states(
+            [&currentState](auto state) { currentState = state.c_str(); });
+
+        return currentState;
+    }
+    void startStreaming();
 };
+
+extern OSSM *ossm;
 
 #endif  // OSSM_SOFTWARE_OSSM_H
