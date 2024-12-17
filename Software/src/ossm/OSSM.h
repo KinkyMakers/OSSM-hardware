@@ -251,9 +251,6 @@ class OSSM : public OSSMInterface {
      * ////
      * ///////////////////////////////////////////
      */
-    // Calibration Variables
-    float currentSensorOffset = 0;
-    float measuredStrokeSteps = 0;
 
     // Homing Variables
     bool isForward = true;
@@ -355,6 +352,16 @@ class OSSM : public OSSMInterface {
     StateLogger logger;
     AiEsp32RotaryEncoder &encoder;
     WiFiManager wm;
+
+    /**
+     * ///////////////////////////////////////////
+     * ////
+     * ////  Calibration Variables
+     * ////
+     * ///////////////////////////////////////////
+     */
+    float currentSensorOffset = 0;
+    float measuredStrokeSteps = 0;
 
     // Implement the interface methods
     void process_event(const auto &event) { sm->process_event(event); }

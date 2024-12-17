@@ -96,7 +96,7 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
 }
 
 void OSSM::startSimplePenetration() {
-    int stackSize = 30 * configMINIMAL_STACK_SIZE;
+    int stackSize = 10 * configMINIMAL_STACK_SIZE;
 
     xTaskCreatePinnedToCore(
         startSimplePenetrationTask, "startSimplePenetrationTask", stackSize,
@@ -108,23 +108,65 @@ void startStreamingTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
 
     auto isInCorrectState = [](OSSM *ossm) {
-        // Add any states that you want to support here.
         return ossm->sm->is("streaming"_s) ||
                ossm->sm->is("streaming.preflight"_s) ||
                ossm->sm->is("streaming.idle"_s);
-        return true;
     };
 
-    // create a function that, given a time, returns a value between 0 and 100
-    // from a sine wave with period of 1000ms
+    // PID constants - these may need tuning
+    const float Kp = 0.8;  // Proportional gain
+    const float Ki = 0.2;  // Integral gain
+    const float Kd = 0.1;  // Derivative gain
+
+    float integral = 0;
+    float lastError = 0;
+    float lastPosition = 0;
+    uint32_t lastTime = millis();
+
     auto sineWave = [](int time, float strokeSteps) {
-        return 0.5 * (sin(time * 2 * M_PI / 1000) + 1) * strokeSteps;
+        return -0.5 * (sin(time * 2 * M_PI / 5000) + 1) * strokeSteps;
     };
 
     while (isInCorrectState(ossm)) {
-        ossm->stepper->moveTo(sineWave(millis(), ossm->measuredStrokeSteps),
-                              false);
-        vTaskDelay(1);
+        uint32_t currentTime = millis();
+        float deltaTime =
+            (currentTime - lastTime) / 1000.0;  // Convert to seconds
+
+        // Calculate target position
+        float targetPosition = sineWave(currentTime, ossm->measuredStrokeSteps);
+        float currentPosition = ossm->stepper->getCurrentPosition();
+        float currentSpeed = ossm->stepper->getCurrentSpeedInMilliHz();
+
+        // Calculate PID terms
+        float error = targetPosition - currentPosition;
+        integral += error * deltaTime;
+        float derivative = (error - lastError) / deltaTime;
+
+        // Calculate PID output (speed adjustment)
+        float pidOutput = (Kp * error) + (Ki * integral) + (Kd * derivative);
+
+        // Convert PID output to speed (Hz)
+        float speedInMilliHz =
+            abs(pidOutput) * 1000;  // Scale factor may need adjustment
+
+        // Apply limits to speed
+        speedInMilliHz =
+            min(speedInMilliHz,
+                1000 * Config::Driver::maxSpeedMmPerSecond * (1_mm));
+
+        // Update stepper
+        ossm->stepper->setSpeedInMilliHz(speedInMilliHz);
+        ossm->stepper->moveTo(targetPosition, false);
+
+        // Debug logging
+        ESP_LOGI("Streaming", "%f, %f, %f, %f, %f", targetPosition,
+                 currentPosition, error, speedInMilliHz, currentSpeed);
+
+        // Update state for next iteration
+        lastError = error;
+        lastTime = currentTime;
+
+        vTaskDelay(pdMS_TO_TICKS(1000 / 60));  // Process at 60Hz
     }
 
     vTaskDelete(nullptr);
