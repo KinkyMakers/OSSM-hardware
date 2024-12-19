@@ -1241,6 +1241,15 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" "C60490"
+			(at 152.4 104.14 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "7f973d0b-e194-4e64-b408-29d82e6d47b2")
 		)
@@ -1378,6 +1387,15 @@
 			)
 		)
 		(property "Sim.Type" ""
+			(at 143.51 104.14 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C25792"
 			(at 143.51 104.14 0)
 			(effects
 				(font

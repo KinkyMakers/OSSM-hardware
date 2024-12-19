@@ -4833,7 +4833,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C25077"
 			(at 121.92 44.45 0)
 			(effects
 				(font
@@ -5144,6 +5144,15 @@
 			)
 		)
 		(property "Sim.Type" ""
+			(at 256.54 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C11702"
 			(at 256.54 128.27 0)
 			(effects
 				(font
@@ -6089,6 +6098,15 @@
 				(hide yes)
 			)
 		)
+		(property "MPN" "C5126159"
+			(at 137.16 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "ce755f8a-ace3-4f6f-97d8-a0840dc653ae")
 		)
@@ -6645,6 +6663,15 @@
 			)
 		)
 		(property "Sim.Type" ""
+			(at 137.16 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C60490"
 			(at 137.16 133.35 0)
 			(effects
 				(font
@@ -7555,7 +7582,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://www.lcsc.com/product-detail/Multilayer-Ceramic-Capacitors-MLCC-SMD-SMT_Murata-Electronics-GRM155R71H104KE14D_C77020.html"
+		(property "Datasheet" "https://www.lcsc.com/datasheet/lcsc_datasheet_2304140030_FH--Guangdong-Fenghua-Advanced-Tech-0402B104K250NT_C56392.pdf"
 			(at 97.79 115.57 0)
 			(effects
 				(font
@@ -7573,7 +7600,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C77020"
+		(property "MPN" "C56392"
 			(at 97.79 115.57 0)
 			(effects
 				(font
