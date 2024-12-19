@@ -1,6 +1,9 @@
 #ifndef OSSM_SOFTWARE_OSSM_H
 #define OSSM_SOFTWARE_OSSM_H
 
+// #define OSSM_CURRENT_MEAS_ANALOG
+#define OSSM_CURRENT_MEAS_INA219
+
 #include "Actions.h"
 #include "AiEsp32RotaryEncoder.h"
 #include "Events.h"
