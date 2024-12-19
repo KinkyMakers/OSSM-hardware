@@ -27,7 +27,7 @@ namespace Pins {
         constexpr int oledReset = -1;
 
         // Pin used by RGB LED
-        constexpr int ledPin = 25;
+        constexpr int ledPin = 45;
     }
 
     namespace Driver {
@@ -35,13 +35,13 @@ namespace Pins {
 
         // Pin that pulses on servo/stepper steps - likely labelled PUL on
         // drivers.
-        constexpr int motorStepPin = 14;
+        constexpr int motorStepPin = 5;
         // Pin connected to driver/servo step direction - likely labelled DIR on
         // drivers. N.b. to iHSV57 users - DIP switch #5 can be flipped to
         // invert motor direction entirely
-        constexpr int motorDirectionPin = 27;
+        constexpr int motorDirectionPin = 4;
         // Pin for motor enable - likely labelled ENA on drivers.
-        constexpr int motorEnablePin = 26;
+        constexpr int motorEnablePin = 3;  //No Longer used
 
         // define the IO pin the emergency stop switch is connected to
         constexpr int stopPin = 19;
@@ -63,23 +63,23 @@ namespace Pins {
      * potentiometer and an encoder which clicks*/
     namespace Remote {
 
-        constexpr int speedPotPin = 34;
+        constexpr int speedPotPin = 14;
 
         // This switch occurs when you press the right button in.
         // With the current state of the code this will send out a "ButtonPress"
         // event automatically.
-        constexpr int encoderSwitch = 35;
+        constexpr int encoderSwitch = 48;
 
         // The rotary encoder requires at least two pins to function.
-        constexpr int encoderA = 18;
-        constexpr int encoderB = 5;
+        constexpr int encoderA = 47;
+        constexpr int encoderB = 21;
         constexpr int encoderPower =
             -1; /* Put -1 of Rotary encoder Vcc is connected directly to 3,3V;
                    else you can use declared output pin for powering rotary
                    encoder */
 
-        constexpr int displayData = 21;
-        constexpr int displayClock = 19;
+        constexpr int displayData = 2;
+        constexpr int displayClock = 1;
         constexpr int encoderStepsPerNotch = 2;
     }
 }
