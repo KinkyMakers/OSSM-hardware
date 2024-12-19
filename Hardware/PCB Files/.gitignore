@@ -1,0 +1,12 @@
+# KiCAD Backup folders
+*-backups
+*.kicad_prl
+fp-info-cache
+*.bak
+
+# Lock Files
+*.kicad_sch.lck
+*.kicad_pcb.lck
+
+# Autosave file
+\#auto_saved_files#
