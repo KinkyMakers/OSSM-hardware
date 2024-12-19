@@ -31,7 +31,7 @@ namespace Pins {
     }
 
     namespace Driver {
-        constexpr int currentSensorPin = 36;
+        constexpr int currentSensorPin = 8;
 
         // Pin that pulses on servo/stepper steps - likely labelled PUL on
         // drivers.
