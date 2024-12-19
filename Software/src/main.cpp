@@ -8,6 +8,11 @@
 #include "services/encoder.h"
 #include "services/stepper.h"
 
+#ifdef OSSM_CURRENT_MEAS_INA219
+#include <Wire.h>
+#include <Adafruit_INA219.h>
+#endif
+
 /*
  *  ██████╗ ███████╗███████╗███╗   ███╗
  * ██╔═══██╗██╔════╝██╔════╝████╗ ████║
@@ -29,7 +34,15 @@ OSSM* ossm;
 
 OneButton button(Pins::Remote::encoderSwitch, false);
 
+#ifdef OSSM_CURRENT_MEAS_INA219
+
+TwoWire Wire_OSSM = TwoWire(0);
+
+Adafruit_INA219 ina219(0x40);
+#endif
+
 void setup() {
+    Wire_OSSM.setPins(2,1);
     /** Board setup */
     initBoard();
 

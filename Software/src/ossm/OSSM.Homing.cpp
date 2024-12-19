@@ -4,6 +4,13 @@
 #include "constants/UserConfig.h"
 #include "utils/analog.h"
 
+#ifdef OSSM_CURRENT_MEAS_INA219
+#include <Wire.h>
+#include <Adafruit_INA219.h>
+
+extern Adafruit_INA219 ina219;
+#endif
+
 namespace sml = boost::sml;
 using namespace sml;
 
@@ -25,9 +32,15 @@ void OSSM::clearHoming() {
     // Clear the stored values.
     this->measuredStrokeSteps = 0;
 
+#ifdef OSSM_CURRENT_MEAS_ANALOG
     // Recalibrate the current sensor offset.
     this->currentSensorOffset = (getAnalogAveragePercent(
         SampleOnPin{Pins::Driver::currentSensorPin, 1000}));
+#endif
+#ifdef OSSM_CURRENT_MEAS_INA219
+    this->currentSensorOffset = ina219.getCurrent_mA();
+#endif
+    ESP_LOGD("OSSM.Homing","Sensor Offset %f", this->currentSensorOffset);
 };
 
 void OSSM::startHomingTask(void *pvParameters) {
@@ -70,12 +83,18 @@ void OSSM::startHomingTask(void *pvParameters) {
             break;
         }
 
+#ifdef OSSM_CURRENT_MEAS_ANALOG
         // measure the current analog value.
         float current = getAnalogAveragePercent(
                             SampleOnPin{Pins::Driver::currentSensorPin, 200}) -
                         ossm->currentSensorOffset;
+#endif
+#ifdef OSSM_CURRENT_MEAS_INA219
+        // Measure the current using the INA219
+        float current = ina219.getCurrent_mA() - ossm->currentSensorOffset;
+#endif
 
-        ESP_LOGV("Homing", "Current: %f", current);
+        ESP_LOGD("Homing", "Current: %f", current);
 
         bool isCurrentOverLimit =
             current > Config::Driver::sensorlessCurrentLimit;

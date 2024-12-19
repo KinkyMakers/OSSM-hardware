@@ -3,6 +3,14 @@
 
 #include <Arduino.h>
 
+#ifdef OSSM_CURRENT_MEAS_INA219
+#include <Wire.h>
+#include <Adafruit_INA219.h>
+
+extern Adafruit_INA219 ina219;
+extern TwoWire Wire_OSSM;
+#endif
+
 #include "constants/Pins.h"
 #include "services/stepper.h"
 
@@ -26,6 +34,14 @@ void initBoard() {
 
     analogReadResolution(12);
     analogSetAttenuation(ADC_11db);  // allows us to read almost full 3.3V range
+
+#ifdef OSSM_CURRENT_MEAS_INA219
+    ESP_LOGD("INIT","INA219 Initializing...");
+    if (! ina219.begin(&Wire_OSSM)) {
+        // Serial.println("Failed to find INA219 chip");
+        while (1) { delay(100);  ESP_LOGD("INA", "Failed to start");}
+    }
+#endif
 
     initStepper();
 }
