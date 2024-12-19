@@ -1,0 +1,1402 @@
+(kicad_sch
+	(version 20231120)
+	(generator "eeschema")
+	(generator_version "8.0")
+	(uuid "41fe6596-aaf5-4796-8bdb-b4e357152d01")
+	(paper "A4")
+	(lib_symbols
+		(symbol "Mechanical:MountingHole_Pad"
+			(pin_numbers hide)
+			(pin_names
+				(offset 1.016) hide)
+			(exclude_from_sim yes)
+			(in_bom no)
+			(on_board yes)
+			(property "Reference" "H"
+				(at 0 6.35 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "MountingHole_Pad"
+				(at 0 4.445 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Mounting Hole with connection"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "mounting hole"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "MountingHole*Pad*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "MountingHole_Pad_0_1"
+				(circle
+					(center 0 1.27)
+					(radius 1.27)
+					(stroke
+						(width 1.27)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "MountingHole_Pad_1_1"
+				(pin input line
+					(at 0 -2.54 90)
+					(length 2.54)
+					(name "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
+	)
+	(no_connect
+		(at 243.84 133.35)
+		(uuid "c2cb1f5b-5882-428a-b84e-01c858954269")
+	)
+	(no_connect
+		(at 243.84 140.97)
+		(uuid "f9cc518c-4787-4686-ad81-ac21308084f1")
+	)
+	(wire
+		(pts
+			(xy 172.72 66.04) (xy 158.75 66.04)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "062aa0d4-faba-48f1-8dda-e3de5d0aabb8")
+	)
+	(wire
+		(pts
+			(xy 172.72 60.96) (xy 158.75 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1543ff28-812a-429b-848b-1833559c8ecb")
+	)
+	(wire
+		(pts
+			(xy 66.04 137.16) (xy 80.01 137.16)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1cc2bbbd-11fc-44ce-b596-fb5216bac65c")
+	)
+	(wire
+		(pts
+			(xy 66.04 139.7) (xy 80.01 139.7)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1d048d58-8ccd-4b01-a313-e7adf1379ac4")
+	)
+	(wire
+		(pts
+			(xy 66.04 134.62) (xy 80.01 134.62)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1db97d7e-5757-4e82-b339-5a19b1a83993")
+	)
+	(wire
+		(pts
+			(xy 133.35 90.17) (xy 128.27 90.17)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1fe167f4-41d9-4ed8-b3f2-b8f1ef2ac273")
+	)
+	(wire
+		(pts
+			(xy 158.75 86.36) (xy 172.72 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "38189e68-9946-4dd2-ad4c-68506ce65988")
+	)
+	(wire
+		(pts
+			(xy 66.04 124.46) (xy 80.01 124.46)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "39c940f9-5665-4c11-b298-7d77104f3fc2")
+	)
+	(wire
+		(pts
+			(xy 232.41 91.44) (xy 218.44 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3d2cf4c6-9afa-49e1-8212-875cb47dbcd7")
+	)
+	(wire
+		(pts
+			(xy 133.35 77.47) (xy 124.46 77.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "443caa8f-ac73-4002-be39-de06adc93346")
+	)
+	(wire
+		(pts
+			(xy 66.04 147.32) (xy 80.01 147.32)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "461d5699-c75f-46e1-9831-3295c547b6f1")
+	)
+	(wire
+		(pts
+			(xy 218.44 83.82) (xy 232.41 83.82)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "46483517-668e-4f5a-9b78-f207989bad7b")
+	)
+	(wire
+		(pts
+			(xy 66.04 142.24) (xy 80.01 142.24)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4744ac8f-d933-4487-96e0-a4bcacc8694b")
+	)
+	(wire
+		(pts
+			(xy 158.75 83.82) (xy 172.72 83.82)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "56641006-ad62-40ee-90d1-9053457ba87e")
+	)
+	(wire
+		(pts
+			(xy 218.44 99.06) (xy 232.41 99.06)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5d840c08-c9c4-490a-92ef-a021136d3947")
+	)
+	(wire
+		(pts
+			(xy 232.41 93.98) (xy 218.44 93.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "727bab1c-ed8d-4037-893c-70cee55fc948")
+	)
+	(wire
+		(pts
+			(xy 218.44 81.28) (xy 232.41 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "78eb33d2-46bf-461d-b9a1-58ec23039bae")
+	)
+	(wire
+		(pts
+			(xy 172.72 63.5) (xy 158.75 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7ab79e0a-486e-4b70-bc79-9a4684e26f8f")
+	)
+	(wire
+		(pts
+			(xy 133.35 92.71) (xy 128.27 92.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7b044d08-7838-427c-a473-ffaaab65c768")
+	)
+	(wire
+		(pts
+			(xy 218.44 86.36) (xy 232.41 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "857d9923-3ebe-4b84-916f-ae55efcd3204")
+	)
+	(wire
+		(pts
+			(xy 53.34 36.83) (xy 62.23 36.83)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8bf234d7-fe8c-4988-a00a-faf80c75c110")
+	)
+	(wire
+		(pts
+			(xy 158.75 93.98) (xy 172.72 93.98)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9506f796-ffa3-4df9-95b8-a9e66f495ae7")
+	)
+	(wire
+		(pts
+			(xy 158.75 96.52) (xy 172.72 96.52)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9fc0d536-c62d-4d50-8e04-7d390bedf5bf")
+	)
+	(wire
+		(pts
+			(xy 66.04 127) (xy 80.01 127)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b7cf1e2f-c0fb-4d6c-8f49-d2417d1834d4")
+	)
+	(wire
+		(pts
+			(xy 53.34 44.45) (xy 58.42 44.45)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bc2dac4c-6d7b-4691-8831-94909d04031e")
+	)
+	(wire
+		(pts
+			(xy 158.75 81.28) (xy 172.72 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "be0c8084-bc92-435e-aa8e-4115909ea067")
+	)
+	(wire
+		(pts
+			(xy 133.35 74.93) (xy 124.46 74.93)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bea1d3b1-ca25-4318-ba39-3b8048c6ea97")
+	)
+	(wire
+		(pts
+			(xy 158.75 88.9) (xy 172.72 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c02e7e08-fb1c-4fdd-a752-14dac9d9467e")
+	)
+	(wire
+		(pts
+			(xy 66.04 149.86) (xy 80.01 149.86)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ec3f43f6-68de-4b31-9965-e663a14ad276")
+	)
+	(wire
+		(pts
+			(xy 53.34 46.99) (xy 58.42 46.99)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ec648851-684c-4c16-9d9d-0102faae33ce")
+	)
+	(wire
+		(pts
+			(xy 53.34 34.29) (xy 62.23 34.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fb16943a-4e72-4047-a938-e3fd38e2b885")
+	)
+	(wire
+		(pts
+			(xy 172.72 58.42) (xy 158.75 58.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ffcf1c35-5a2b-4e5c-9e4c-fdae72c26202")
+	)
+	(label "MTR_DIR"
+		(at 172.72 93.98 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "008eb2d0-c1ce-4c1c-9b3c-6024453425d7")
+	)
+	(label "RS485_RO"
+		(at 80.01 139.7 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "0cb55e46-8cad-4e28-87dc-ff2f1c1d3cf8")
+	)
+	(label "SDA"
+		(at 218.44 91.44 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "0dbbd726-114c-484d-ad42-45985ae6ad77")
+	)
+	(label "ENC_PUSH"
+		(at 172.72 58.42 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "0dfa758b-610b-41eb-82ae-f2daec7aa9ff")
+	)
+	(label "~{RS485_RE}"
+		(at 80.01 137.16 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "106cf9a8-c4e0-4fac-91a0-bf3bf1575bc2")
+	)
+	(label "RS485_DI"
+		(at 80.01 134.62 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "1b5989df-23af-48d0-894b-5c8ac1a2edc5")
+	)
+	(label "USB_D-"
+		(at 124.46 77.47 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "29ca2d44-5c42-4f2b-baf9-adce4ee26138")
+	)
+	(label "SDA"
+		(at 128.27 90.17 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "2ebeb0ba-38e5-4264-952a-dd6d52d46869")
+	)
+	(label "USB_D+"
+		(at 62.23 34.29 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "3114693c-fd5a-4f61-a548-8707cbced32b")
+	)
+	(label "MTR_PUL"
+		(at 80.01 149.86 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "32694e59-044d-43f0-aa6c-bc966c51e00e")
+	)
+	(label "ENC_B"
+		(at 172.72 63.5 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "32c767fe-b8b1-46ca-bc27-49b732eb071c")
+	)
+	(label "ENC_PUSH"
+		(at 218.44 81.28 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "32df41f5-7d90-4f45-b2af-77a2f9e1e583")
+	)
+	(label "MTR_PUL"
+		(at 172.72 96.52 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "35582e74-5a49-4eb5-8b4b-b98ecf00de36")
+	)
+	(label "SCL"
+		(at 80.01 127 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "45decd12-4ee9-4888-a459-fa95324b43be")
+	)
+	(label "USB_D-"
+		(at 62.23 36.83 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "60d710dc-9d80-4f57-b868-59edc29c6f3a")
+	)
+	(label "ENC_A"
+		(at 218.44 83.82 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "63133601-fea5-47e7-a803-3bc130e43e04")
+	)
+	(label "SDA"
+		(at 80.01 124.46 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "6353c44f-7e93-4af2-8c5d-f50453b42f39")
+	)
+	(label "ENC_A"
+		(at 172.72 60.96 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "70f0a60e-97df-4b91-a2bd-a8f194fb1257")
+	)
+	(label "RS485_DI"
+		(at 172.72 81.28 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "7235001f-722b-41ab-83d1-c55331cae851")
+	)
+	(label "RS485_RO"
+		(at 172.72 86.36 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "74155475-2503-42b2-bd1a-c42a38f49191")
+	)
+	(label "SDA"
+		(at 58.42 44.45 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "7faf04e2-dfa2-4cac-955d-8f5b0746b651")
+	)
+	(label "RS485_DE"
+		(at 80.01 142.24 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "83c1429b-f7cb-4d46-b5ce-2fd2c897c6f5")
+	)
+	(label "RS485_DE"
+		(at 172.72 88.9 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "961f5749-2b3b-418c-a111-73c38356c5d3")
+	)
+	(label "POT"
+		(at 218.44 99.06 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a05bd692-b1c0-4f37-9de8-143be979be66")
+	)
+	(label "POT"
+		(at 172.72 66.04 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "b55d32da-2b09-47a6-ab87-b0e8fb9cfd25")
+	)
+	(label "MTR_DIR"
+		(at 80.01 147.32 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "b66493bd-35e7-4a88-8754-4bfbbd0a83b1")
+	)
+	(label "~{RS485_RE}"
+		(at 172.72 83.82 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "c71e0f23-ef0c-488e-bf46-5c8a7947e9d8")
+	)
+	(label "SCL"
+		(at 58.42 46.99 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "d219305e-e18b-4c5b-bfd0-15fd412c7388")
+	)
+	(label "SCL"
+		(at 218.44 93.98 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d3ef17f5-c049-4e42-821d-03a0ee6ef837")
+	)
+	(label "ENC_B"
+		(at 218.44 86.36 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "dfd0c440-3939-48e7-ae85-bdd14419046b")
+	)
+	(label "SCL"
+		(at 128.27 92.71 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "e57e8135-57d7-43c8-85e4-325b967ad905")
+	)
+	(label "USB_D+"
+		(at 124.46 74.93 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f76e4226-29d9-4c5f-a530-879f0c7b2eee")
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad")
+		(at 243.84 130.81 0)
+		(unit 1)
+		(exclude_from_sim yes)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "79691c4f-f3a7-4d67-8ab3-b9c717510c3a")
+		(property "Reference" "H1"
+			(at 246.38 128.2699 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole"
+			(at 246.38 130.8099 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_4.3mm_M4_DIN965_Pad"
+			(at 243.84 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 243.84 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection"
+			(at 243.84 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f7f74a5f-6295-44d5-a706-bc58e103f7a5")
+		)
+		(instances
+			(project ""
+				(path "/41fe6596-aaf5-4796-8bdb-b4e357152d01"
+					(reference "H1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad")
+		(at 243.84 138.43 0)
+		(unit 1)
+		(exclude_from_sim yes)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d321d8eb-66c8-4088-80c1-af0107557ce4")
+		(property "Reference" "H2"
+			(at 246.38 135.8899 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "MountingHole"
+			(at 246.38 138.4299 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_4.3mm_M4_DIN965_Pad"
+			(at 243.84 138.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 243.84 138.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Mounting Hole with connection"
+			(at 243.84 138.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ba0925a1-9418-478b-b08c-d76362c84928")
+		)
+		(instances
+			(project "OSSM Reference PCB V3"
+				(path "/41fe6596-aaf5-4796-8bdb-b4e357152d01"
+					(reference "H2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(sheet
+		(at 35.56 120.65)
+		(size 30.48 33.02)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "3a84126e-cb4a-464e-b4d1-b979e41df207")
+		(property "Sheetname" "Motor"
+			(at 35.56 119.9384 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "motor.kicad_sch"
+			(at 35.56 154.2546 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "RS485_DI" input
+			(at 66.04 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "d0aa6954-268e-4b5e-8634-eb379d3fde00")
+		)
+		(pin "~{RS485_RE}" input
+			(at 66.04 137.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "80d6a124-dbaa-48a1-9469-d43afc646339")
+		)
+		(pin "RS485_RO" output
+			(at 66.04 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "e833029c-41a1-47b5-b0dc-4b3370a70862")
+		)
+		(pin "RS485_DE" input
+			(at 66.04 142.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "681bad7c-e8fb-43e8-a7db-dcf1c21a9166")
+		)
+		(pin "DIR" input
+			(at 66.04 147.32 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "d6d288fc-78ec-42d7-a2ef-2112fb0dc2d7")
+		)
+		(pin "PUL" input
+			(at 66.04 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "a40e0c22-72a2-4a0b-8e91-30ee38063a0e")
+		)
+		(pin "SCL" bidirectional
+			(at 66.04 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "f690692c-5002-4df5-8665-06026bfae5a3")
+		)
+		(pin "SDA" bidirectional
+			(at 66.04 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "22fe582c-85a1-461b-8400-f16934e8a536")
+		)
+		(instances
+			(project "OSSM Reference PCB V3"
+				(path "/41fe6596-aaf5-4796-8bdb-b4e357152d01"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 133.35 44.45)
+		(size 25.4 58.42)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "62558055-bf91-402b-ad26-d227d1990e33")
+		(property "Sheetname" "mcu"
+			(at 133.35 43.7384 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "mcu.kicad_sch"
+			(at 133.35 103.4546 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "SCL" bidirectional
+			(at 133.35 92.71 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "c83182c2-edb6-4c38-8921-0c9c44c50edd")
+		)
+		(pin "SDA" bidirectional
+			(at 133.35 90.17 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "eca36233-054f-4212-9fc4-d4658b692346")
+		)
+		(pin "USB_D-" bidirectional
+			(at 133.35 77.47 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "92ed455f-fa2b-4649-bd31-ecf80b3b6f86")
+		)
+		(pin "USB_D+" bidirectional
+			(at 133.35 74.93 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "e039e7ca-74ce-46be-8bad-39c4477571fb")
+		)
+		(pin "ENC_B" input
+			(at 158.75 63.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "62bb3a10-9c2f-4e3d-8f54-76bac2389292")
+		)
+		(pin "ENC_PUSH" input
+			(at 158.75 58.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "720bbff4-a18d-4e6d-905c-49244b0f7a0a")
+		)
+		(pin "ENC_A" input
+			(at 158.75 60.96 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "85bb958b-d8a2-40eb-aae7-545dfdd0c3fd")
+		)
+		(pin "POT" input
+			(at 158.75 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "02f2f5be-ed59-4a92-8c24-928b181c46d3")
+		)
+		(pin "RS485_DE" output
+			(at 158.75 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "9ec3c532-8800-4dcc-91bc-7e6f109b0941")
+		)
+		(pin "RS485_RO" input
+			(at 158.75 86.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "3795e718-e92a-43c4-bcbe-c670df6a03e1")
+		)
+		(pin "MTR_PUL" output
+			(at 158.75 96.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "4f463d3d-e4af-4d73-ad98-3ce65f6651a2")
+		)
+		(pin "~{RS485_RE}" output
+			(at 158.75 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "c0c8a3f0-470a-45b4-abbb-e31ba0a88ba8")
+		)
+		(pin "MTR_DIR" output
+			(at 158.75 93.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "c9d7f7a5-ab77-4c36-bc57-1b6d997cdecb")
+		)
+		(pin "RS485_DI" output
+			(at 158.75 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "238174b9-028f-49a7-8011-b547a17795c8")
+		)
+		(instances
+			(project "OSSM Reference PCB V3"
+				(path "/41fe6596-aaf5-4796-8bdb-b4e357152d01"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 232.41 76.2)
+		(size 34.29 33.02)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "a2c5dba1-73a4-49c1-9f2b-cc7c8f6e5ee6")
+		(property "Sheetname" "remote"
+			(at 232.41 75.4884 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "remote.kicad_sch"
+			(at 232.41 109.8046 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "ENC_PUSH" output
+			(at 232.41 81.28 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "b21288e6-c875-46a1-a8ed-daa7589ec31c")
+		)
+		(pin "SCL" bidirectional
+			(at 232.41 93.98 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "dd314833-3abd-4ef4-bc8d-cf73a4abd7b8")
+		)
+		(pin "ENC_B" output
+			(at 232.41 86.36 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "2d6bbdbd-3d45-4008-acad-acd0a1efad77")
+		)
+		(pin "SDA" bidirectional
+			(at 232.41 91.44 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "4533887a-b1d9-4c39-87dd-2a976237c815")
+		)
+		(pin "ENC_A" output
+			(at 232.41 83.82 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "838dd2d8-3559-4f38-b072-7f8daa792e40")
+		)
+		(pin "POT" output
+			(at 232.41 99.06 180)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+			(uuid "a0404d6f-50e4-4ffd-91d2-a172f1cc9ea5")
+		)
+		(instances
+			(project "OSSM Reference PCB V3"
+				(path "/41fe6596-aaf5-4796-8bdb-b4e357152d01"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 26.67 27.94)
+		(size 26.67 25.4)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 255 255 194 1.0000)
+		)
+		(uuid "f2c6a4eb-44bb-4172-829c-e3e4629ea019")
+		(property "Sheetname" "Power"
+			(at 26.67 27.2284 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "Power.kicad_sch"
+			(at 26.67 53.9246 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "USB_D-" bidirectional
+			(at 53.34 36.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "32381150-62e0-46ec-9310-fb3404cf8e2f")
+		)
+		(pin "USB_D+" bidirectional
+			(at 53.34 34.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "5e8c2cb8-9cab-4fcb-8873-9cc3dcad0186")
+		)
+		(pin "SDA" bidirectional
+			(at 53.34 44.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "f5ddb536-0ca4-42bc-b27c-9213c1c2771f")
+		)
+		(pin "SCL" bidirectional
+			(at 53.34 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+			(uuid "44e4f238-e340-4fd9-93d3-681cfa7eb58e")
+		)
+		(instances
+			(project "OSSM Reference PCB V3"
+				(path "/41fe6596-aaf5-4796-8bdb-b4e357152d01"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)

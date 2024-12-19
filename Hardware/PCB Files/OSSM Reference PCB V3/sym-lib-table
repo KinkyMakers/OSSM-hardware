@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "OSSM")(type "KiCad")(uri "${KIPRJMOD}/OSSM.kicad_sym")(options "")(descr ""))
+)
