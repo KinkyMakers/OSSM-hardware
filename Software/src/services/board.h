@@ -10,6 +10,9 @@
 extern Adafruit_INA219 ina219;
 extern TwoWire Wire_OSSM;
 #endif
+#include <FastLED.h>
+#define NUM_LEDS 1
+CRGB leds[NUM_LEDS];
 
 #include "constants/Pins.h"
 #include "services/stepper.h"
@@ -18,6 +21,23 @@ extern TwoWire Wire_OSSM;
  * This file changes the configuration of the board.
  */
 void initBoard() {
+    
+
+    FastLED.addLeds<NEOPIXEL, Pins::Display::ledPin>(leds, NUM_LEDS);
+    FastLED.setBrightness(64);
+
+    leds[0] = CRGB::Green;
+    FastLED.show();
+    vTaskDelay(500);
+    leds[0] = CRGB::Red;
+    FastLED.show();
+    vTaskDelay(500);
+    leds[0] = CRGB::Blue;
+    FastLED.show();
+    vTaskDelay(500);
+    leds[0] = CRGB::Black;
+    FastLED.show();
+    
     Serial.begin(115200);
 
     pinMode(Pins::Remote::encoderSwitch,
@@ -36,9 +56,9 @@ void initBoard() {
     analogSetAttenuation(ADC_11db);  // allows us to read almost full 3.3V range
 
 #ifdef OSSM_CURRENT_MEAS_INA219
+    Wire1.setPins(Pins::Sensors::sensorSDA,Pins::Sensors::sensorSCL);
     ESP_LOGD("INIT","INA219 Initializing...");
-    if (! ina219.begin(&Wire_OSSM)) {
-        // Serial.println("Failed to find INA219 chip");
+    if (! ina219.begin(&Wire1)) {
         while (1) { delay(100);  ESP_LOGD("INA", "Failed to start");}
     }
 #endif

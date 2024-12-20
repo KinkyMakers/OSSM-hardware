@@ -1,6 +1,8 @@
 #ifndef OSSM_SOFTWARE_CONFIG_H
 #define OSSM_SOFTWARE_CONFIG_H
 
+#include "ossm/OSSM.h"
+
 /**
     Default Config for OSSM - Reference board users should tweak UserConfig to
    match their personal build.
@@ -35,7 +37,12 @@ namespace Config {
 
         // This is the measured current that use to infer when the device has
         // reached the end of its stroke. during "Homing".
+#ifdef OSSM_CURRENT_MEAS_ANALOG
         constexpr float sensorlessCurrentLimit = 1.5f;
+#endif
+#ifdef OSSM_CURRENT_MEAS_INA219
+        constexpr float sensorlessCurrentLimit = 1000.0f;
+#endif
 
         constexpr float stepsPerMM =
             motorStepPerRevolution / (pulleyToothCount * beltPitchMm);
