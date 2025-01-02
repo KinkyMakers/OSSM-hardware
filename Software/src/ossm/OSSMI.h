@@ -11,8 +11,14 @@ class OSSMInterface {
     template <typename EventType>
     void process_event(const EventType& event);  // Ensure proper type handling
 
+    virtual void ble_click() = 0;
+
     // get current state
     String get_current_state();
+
+    // target position
+    uint16_t targetPosition;
+    int16_t targetVelocity;
 };
 
 // Global pointer declaration

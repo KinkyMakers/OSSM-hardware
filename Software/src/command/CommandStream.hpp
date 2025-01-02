@@ -161,7 +161,7 @@ class CommandStream {
         // switch on the command type and process
         switch (currentCommand->action) {
             case CommandAction::EMERGENCY_STOP:
-                ossm->process_event(emergencyStop);
+                // ossm->process_event(emergencyStop);
                 break;
             case CommandAction::RESET_DEVICE:
                 // restart();
@@ -169,7 +169,7 @@ class CommandStream {
                 break;
             case CommandAction::STOP_PLAY:
                 if (isInStrokeEngine || isInSimplePenetration) {
-                    ossm->process_event(emergencyStop);
+                    // ossm->process_event(emergencyStop);
                 }
                 break;
             case CommandAction::START_PLAY:
@@ -183,7 +183,7 @@ class CommandStream {
                 }
                 break;
             case CommandAction::TRIGGER_HOMING:
-                ossm->process_event(home);
+                // ossm->process_event(home);
                 break;
             case CommandAction::SET_SAFETY_BOUNDS:
                 // TODO immediately set the safety bounds on the OSSM using the

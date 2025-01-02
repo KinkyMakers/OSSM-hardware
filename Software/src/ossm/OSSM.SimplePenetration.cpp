@@ -1,6 +1,9 @@
 #include "OSSM.h"
 
+#include <queue>
+
 #include "constants/Config.h"
+#include "services/nimble.h"
 
 void OSSM::startSimplePenetrationTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
@@ -112,61 +115,84 @@ void startStreamingTask(void *pvParameters) {
                ossm->sm->is("streaming.preflight"_s) ||
                ossm->sm->is("streaming.idle"_s);
     };
+    // Reset to home position
+    ossm->stepper->moveTo(0, true);
+    vTaskDelay(pdMS_TO_TICKS(1000));
 
-    // PID constants - these may need tuning
-    const float Kp = 0.8;  // Proportional gain
-    const float Ki = 0.2;  // Integral gain
-    const float Kd = 0.1;  // Derivative gain
+    // Motion state
+    float currentPosition = 0;
+    float currentVelocity = 0;
 
-    float integral = 0;
-    float lastError = 0;
-    float lastPosition = 0;
-    uint32_t lastTime = millis();
+    float targetPosition = 0.0f;
+    float targetVelocity = 0.0f;
 
-    auto sineWave = [](int time, float strokeSteps) {
-        return -0.5 * (sin(time * 2 * M_PI / 5000) + 1) * strokeSteps;
-    };
+    // set stepper to max speed and max acceleration
+    ossm->stepper->setSpeedInHz((1_mm) * Config::Driver::maxSpeedMmPerSecond);
+    ossm->stepper->setAcceleration((1_mm) * Config::Driver::maxAcceleration);
+
+    // Speed multipliers for different speed levels
+    const float speedMultipliers[] = {10.0, 11.0, 12.0, 13.0, 14.0, 15.0};
+    int speedMultiplierIndex = 0;
+
+    float RMS_position = 0;
+    int rms_samples = 0;
+
+    int lastTime = 0;
+    long loopStart = 0;
+
+    const int processFrequencyHz = 30;
+    const int processTimeMs = 1000 / processFrequencyHz;
 
     while (isInCorrectState(ossm)) {
-        uint32_t currentTime = millis();
-        float deltaTime =
-            (currentTime - lastTime) / 1000.0;  // Convert to seconds
+        loopStart = millis();
 
-        // Calculate target position
-        float targetPosition = sineWave(currentTime, ossm->measuredStrokeSteps);
-        float currentPosition = ossm->stepper->getCurrentPosition();
-        float currentSpeed = ossm->stepper->getCurrentSpeedInMilliHz();
+        // Get next target from queue if available
+        if (!targetQueue.empty()) {
+            auto nextTarget = targetQueue.front();
+            targetQueue.pop();
+            nimbleTargetPosition = nextTarget.position;
+        } else {
+            ESP_LOGD("Streaming", "No target found. Queue is empty.");
+            // Read about 20 times per second
+            vTaskDelay(pdMS_TO_TICKS(processTimeMs));
+            continue;
+        }
 
-        // Calculate PID terms
-        float error = targetPosition - currentPosition;
-        integral += error * deltaTime;
-        float derivative = (error - lastError) / deltaTime;
+        currentPosition =
+            static_cast<float>(ossm->stepper->getCurrentPosition());
+        currentVelocity =
+            static_cast<float>(ossm->stepper->getCurrentSpeedInMilliHz());
 
-        // Calculate PID output (speed adjustment)
-        float pidOutput = (Kp * error) + (Ki * integral) + (Kd * derivative);
+        // Calculate target position and velocity
+        targetPosition =
+            -(static_cast<float>(nimbleTargetPosition) / INT16_MAX) *
+            ossm->measuredStrokeSteps;
 
-        // Convert PID output to speed (Hz)
-        float speedInMilliHz =
-            abs(pidOutput) * 1000;  // Scale factor may need adjustment
+        // float speedMultiplier = speedMultipliers[speedMultiplierIndex];
 
-        // Apply limits to speed
-        speedInMilliHz =
-            min(speedInMilliHz,
-                1000 * Config::Driver::maxSpeedMmPerSecond * (1_mm));
+        targetVelocity =
+            256 * (targetPosition - currentPosition) / processTimeMs;
 
-        // Update stepper
-        ossm->stepper->setSpeedInMilliHz(speedInMilliHz);
+        ESP_LOGD("Streaming",
+                 "targetPosition: %f, targetVelocity: %f, "
+                 "currentPosition: %f, currentVelocity: %f",
+                 targetPosition, targetVelocity, currentPosition,
+                 currentVelocity);
+
+        RMS_position += abs(targetPosition - currentPosition);
+        rms_samples++;
+
+        ossm->stepper->setSpeedInHz(abs(targetVelocity));
         ossm->stepper->moveTo(targetPosition, false);
+        ossm->stepper->applySpeedAcceleration();
 
-        // Debug logging
-        ESP_LOGI("Streaming", "%f, %f, %f, %f, %f", targetPosition,
-                 currentPosition, error, speedInMilliHz, currentSpeed);
-
-        // Update state for next iteration
-        lastError = error;
-        lastTime = currentTime;
-
-        vTaskDelay(pdMS_TO_TICKS(1000 / 60));  // Process at 60Hz
+        int waitTime = processTimeMs - (millis() - loopStart);
+        if (waitTime > 0) {
+            vTaskDelay(pdMS_TO_TICKS(waitTime));
+        } else {
+            // Read about 20 times per second
+            vTaskDelay(1);
+        }
     }
 
     vTaskDelete(nullptr);

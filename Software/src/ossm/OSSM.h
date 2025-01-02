@@ -121,7 +121,7 @@ class OSSM : public OSSMInterface {
             auto drawUpdate = [](OSSM &o) { o.drawUpdate(); };
             auto drawNoUpdate = [](OSSM &o) { o.drawNoUpdate(); };
             auto drawUpdating = [](OSSM &o) { o.drawUpdating(); };
-            auto stopWifiPortal = [](OSSM &o) { o.wm.stopConfigPortal(); };
+            auto stopWifiPortal = [](OSSM &o) {};
             auto drawError = [](OSSM &o) { o.drawError(); };
 
             auto startWifi = [](OSSM &o) {
@@ -133,11 +133,11 @@ class OSSM : public OSSMInterface {
                 // If you have saved wifi credentials then connect to wifi
                 // immediately.
 
-                String ssid = o.wm.getWiFiSSID(true);
-                String pass = o.wm.getWiFiPass(true);
-                ESP_LOGD("UTILS", "connecting to wifi %s", ssid.c_str());
+                // String ssid = o.wm.getWiFiSSID(true);
+                // String pass = o.wm.getWiFiPass(true);
+                // ESP_LOGD("UTILS", "connecting to wifi %s", ssid.c_str());
 
-                WiFi.begin(ssid.c_str(), pass.c_str());
+                // WiFi.begin(ssid.c_str(), pass.c_str());
 
                 ESP_LOGD("UTILS", "exiting autoconnect");
             };
@@ -191,6 +191,7 @@ class OSSM : public OSSMInterface {
                 "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::Streaming))] = "streaming"_s,
+                "menu.idle"_s + bleClick = "streaming"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
                 "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
@@ -351,7 +352,6 @@ class OSSM : public OSSMInterface {
     U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display;
     StateLogger logger;
     AiEsp32RotaryEncoder &encoder;
-    WiFiManager wm;
 
     /**
      * ///////////////////////////////////////////
@@ -363,8 +363,19 @@ class OSSM : public OSSMInterface {
     float currentSensorOffset = 0;
     float measuredStrokeSteps = 0;
 
+    /**
+     * ///////////////////////////////////////////
+     * ////
+     * ////  Target Variables
+     * ////
+     * ///////////////////////////////////////////
+     */
+    uint16_t targetPosition = 0;
+    int16_t targetVelocity = 0;
+
     // Implement the interface methods
     void process_event(const auto &event) { sm->process_event(event); }
+    void ble_click() override { sm->process_event(BleClick{}); }
 
     // get current state
     String getCurrentState() {

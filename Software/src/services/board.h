@@ -2,8 +2,10 @@
 #define OSSM_SOFTWARE_BOARD_H
 
 #include <Arduino.h>
+#include <NimBLEDevice.h>
 
 #include "constants/Pins.h"
+#include "services/encoder.h"
 #include "services/stepper.h"
 
 /**
@@ -27,6 +29,7 @@ void initBoard() {
     analogReadResolution(12);
     analogSetAttenuation(ADC_11db);  // allows us to read almost full 3.3V range
     initStepper();
+    initEncoder();
 }
 
 #endif  // OSSM_SOFTWARE_BOARD_H

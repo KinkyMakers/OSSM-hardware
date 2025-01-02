@@ -26,7 +26,11 @@ struct Done {};
 struct Error {};
 struct EmergencyStop {};
 struct Home {};
+
+struct BleClick {};
+
 // Definitions to make the table easier to read.
+static auto bleClick = sml::event<BleClick>;
 static auto buttonPress = sml::event<ButtonPress>;
 static auto longPress = sml::event<LongPress>;
 static auto doublePress = sml::event<DoublePress>;
