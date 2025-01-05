@@ -148,6 +148,9 @@ void startStreamingTask(void *pvParameters) {
     int32_t lastTargetPositionSteps = 99999;
     bool stopped = false;
 
+    // Set lower acceleration/deceleration for smoother motion
+    ossm->stepper->setAcceleration((1_mm) * Config::Driver::maxAcceleration /
+                                   5);  // 25% of max
     while (isInCorrectState(ossm)) {
         // if we're not at the target position, then move to it
         targetPositionSteps =
