@@ -58,8 +58,24 @@ void setup() {
         "buttonTask", 6 * configMINIMAL_STACK_SIZE, nullptr,
         configMAX_PRIORITIES - 1, nullptr, 0);
 
-    // Initialize NimBLE last.
-    initNimble();
+    // Initialize NimBLE only when in menu.idle state
+    xTaskCreatePinnedToCore(
+        [](void *pvParameters) {
+            bool initialized = false;
+            while (true) {
+                if ((ossm->sm->is("menu.idle"_s) ||
+                     ossm->sm->is("error.idle"_s)) &&
+                    !initialized) {
+                    ESP_LOGD("MAIN", "Initializing NimBLE");
+                    initNimble();
+                    initialized = true;
+                    vTaskDelete(nullptr);
+                }
+                vTaskDelay(pdMS_TO_TICKS(100));
+            }
+        },
+        "initNimbleTask", 6 * configMINIMAL_STACK_SIZE, nullptr,
+        configMAX_PRIORITIES - 1, nullptr, 0);
 };
 
 void loop() { vTaskDelete(nullptr); };

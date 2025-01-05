@@ -1,5 +1,18 @@
 #include "nimble.h"
 
+#include "tasks.h"
+
+const char* SERVICE_A_UUID = "1D14D6EE-FD63-4FA1-BFA4-8F47B42119F0";
+const char* CHARACTERISTIC_A1_UUID = "F7BF3564-FB6D-4E53-88A4-5E37E0326063";
+const char* CHARACTERISTIC_A2_UUID = "984227F3-34FC-4045-A5D0-2C581F81A153";
+const char* SERVICE_B_UUID = "45420001-0023-4BD4-BBD5-A6920E4C5653";
+const char* CHARACTERISTIC_B1_UUID = "45420002-0023-4BD4-BBD5-A6920E4C5653";
+const char* CHARACTERISTIC_B2_UUID = "45420003-0023-4BD4-BBD5-A6920E4C5653";
+const char* MANUFACTURER_NAME_UUID =
+    "2A29";                           // Standard UUID for manufacturer name
+const char* SYSTEM_ID_UUID = "2A23";  // Standard UUID for system ID
+const char* DEVICE_INFO_SERVICE_UUID = "180A";  // Device Information Service
+
 NimBLEServer* pServer = NimBLEDevice::getServer();
 
 // Define the global variables
@@ -22,6 +35,10 @@ bool enqueueTarget(uint16_t position, int16_t velocity) {
 
 // Clear all targets from queue
 void clearQueue() { std::queue<Target>().swap(targetQueue); }
+
+// Add at the top with other global variables
+NimBLECharacteristic* pCharacteristicB2 =
+    nullptr;  // Global pointer to B2 characteristic
 
 /**  None of these are required as they will be handled by the library with
  *defaults. **
@@ -101,6 +118,31 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
                  NimBLEConnInfo& connInfo) override {
         std::string value = pCharacteristic->getValue();
 
+        // // Add debug print for all received data
+        // ESP_LOGD("NIMBLE", "Received data on %s: %s",
+        //          pCharacteristic->getUUID().toString().c_str(),
+        //          value.c_str());
+
+        // Check for vibration command pattern
+        if (value.rfind("Vibrate:", 0) == 0) {
+            size_t semicolonPos = value.find(';');
+            if (semicolonPos != std::string::npos) {
+                std::string intensityStr = value.substr(8, semicolonPos - 8);
+                try {
+                    int intensity = std::stoi(intensityStr);
+                    if (intensity >= 0 && intensity <= 10) {
+                        ESP_LOGD("NIMBLE", "Vibration intensity set to: %d",
+                                 intensity);
+
+                        ossmInterface->moveTo(intensity);
+                    }
+                } catch (...) {
+                    ESP_LOGW("NIMBLE", "Invalid vibration intensity format");
+                }
+            }
+            return;
+        }
+
         if (value.rfind("startStreaming", 0) == 0) {
             ESP_LOGD("NIMBLE", "Start streaming");
             ossmInterface->ble_click();
@@ -120,8 +162,10 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
                     std::string posStr = points.substr(0, pos);
                     points.erase(0, pos + 1);
 
-                    uint16_t pos = (uint16_t)strtoul(posStr.c_str(), nullptr, 10);
-                    enqueueTarget(pos, 0); // Set velocity to 0 since we're not using it
+                    uint16_t pos =
+                        (uint16_t)strtoul(posStr.c_str(), nullptr, 10);
+                    enqueueTarget(
+                        pos, 0);  // Set velocity to 0 since we're not using it
 
                     ESP_LOGV("NIMBLE", "Enqueued point - pos: %u", pos);
                 }
@@ -175,10 +219,34 @@ class DescriptorCallbacks : public NimBLEDescriptorCallbacks {
     }
 } dscCallbacks;
 
+void nimbleLoop(void* pvParameters) {
+    NimBLEServer* pServer = (NimBLEServer*)pvParameters;
+    /** Loop here and send notifications to connected peers */
+
+    while (true) {
+        ESP_LOGD("NIMBLE", "Nimble loop");
+        vTaskDelay(pdMS_TO_TICKS(2000));
+
+        if (pServer->getConnectedCount()) {
+            ESP_LOGD("NIMBLE", "Nimble loop - connected");
+            NimBLEService* pSvc = pServer->getServiceByUUID(SERVICE_B_UUID);
+            if (pSvc) {
+                ESP_LOGD("NIMBLE", "Nimble loop - service found");
+                NimBLECharacteristic* pChr =
+                    pSvc->getCharacteristic(CHARACTERISTIC_B2_UUID);
+                if (pChr) {
+                    ESP_LOGD("NIMBLE", "Nimble loop - characteristic found");
+                    pChr->notify();
+                }
+            }
+        }
+    }
+}
+
 void initNimble() {
     NimBLEServer* pServer;
     /** Initialize NimBLE and set the device name */
-    NimBLEDevice::init("OSSM");
+    NimBLEDevice::init("LVS-EB01");
 
     /**
      * Set the IO capabilities of the device, each option will trigger a
@@ -204,70 +272,73 @@ void initNimble() {
     pServer = NimBLEDevice::createServer();
     pServer->setCallbacks(&serverCallbacks);
 
-    NimBLEService* pDeadService = pServer->createService("DEAD");
-    NimBLECharacteristic* pBeefCharacteristic =
-        pDeadService->createCharacteristic(
-            "BEEF",
-            NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE |
-                /** Require a secure connection for read and write access */
-                NIMBLE_PROPERTY::READ_ENC |  // only allow reading if paired /
-                                             // encrypted
-                NIMBLE_PROPERTY::WRITE_ENC   // only allow writing if paired /
-                                             // encrypted
-        );
+    // Create Service A
+    NimBLEService* pServiceA = pServer->createService(SERVICE_A_UUID);
+    NimBLECharacteristic* pCharA1 = pServiceA->createCharacteristic(
+        CHARACTERISTIC_A1_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE |
+                                    NIMBLE_PROPERTY::NOTIFY |
+                                    NIMBLE_PROPERTY::WRITE_NR);
+    NimBLECharacteristic* pCharA2 = pServiceA->createCharacteristic(
+        CHARACTERISTIC_A2_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE |
+                                    NIMBLE_PROPERTY::NOTIFY |
+                                    NIMBLE_PROPERTY::WRITE_NR);
 
-    pBeefCharacteristic->setValue("Burger");
-    pBeefCharacteristic->setCallbacks(&chrCallbacks);
+    // Create Service B
+    NimBLEService* pServiceB = pServer->createService(SERVICE_B_UUID);
+    NimBLECharacteristic* pCharB1 = pServiceB->createCharacteristic(
+        CHARACTERISTIC_B1_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE |
+                                    NIMBLE_PROPERTY::NOTIFY |
+                                    NIMBLE_PROPERTY::WRITE_NR);
+    NimBLECharacteristic* pCharB2 = pServiceB->createCharacteristic(
+        CHARACTERISTIC_B2_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE |
+                                    NIMBLE_PROPERTY::NOTIFY |
+                                    NIMBLE_PROPERTY::WRITE_NR);
 
-    /**
-     *  2902 and 2904 descriptors are a special case, when createDescriptor is
-     * called with either of those uuid's it will create the associated class
-     * with the correct properties and sizes. However we must cast the returned
-     * reference to the correct type as the method only returns a pointer to the
-     * base NimBLEDescriptor class.
-     */
-    NimBLE2904* pBeef2904 = pBeefCharacteristic->create2904();
-    pBeef2904->setFormat(NimBLE2904::FORMAT_UTF8);
-    pBeef2904->setCallbacks(&dscCallbacks);
+    // Store the characteristic pointer globally
+    pCharacteristicB2 = pCharB2;
 
-    NimBLEService* pBaadService = pServer->createService("BAAD");
-    NimBLECharacteristic* pFoodCharacteristic =
-        pBaadService->createCharacteristic(
-            "F00D", NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE |
-                        NIMBLE_PROPERTY::NOTIFY | NIMBLE_PROPERTY::WRITE_NR);
+    // Set callbacks for all characteristics
+    pCharA1->setCallbacks(&chrCallbacks);
+    pCharA2->setCallbacks(&chrCallbacks);
+    pCharB1->setCallbacks(&chrCallbacks);
+    pCharB2->setCallbacks(&chrCallbacks);
 
-    pFoodCharacteristic->setValue("Fries");
-    pFoodCharacteristic->setCallbacks(&chrCallbacks);
+    // Start the services
+    pServiceA->start();
+    pServiceB->start();
 
-    /** Custom descriptor: Arguments are UUID, Properties, max length of the
-     * value in bytes */
-    NimBLEDescriptor* pC01Ddsc = pFoodCharacteristic->createDescriptor(
-        "C01D",
-        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE |
-            NIMBLE_PROPERTY::WRITE_ENC,
-        20);
-    pC01Ddsc->setValue("Send it back!");
-    pC01Ddsc->setCallbacks(&dscCallbacks);
+    // Add Device Information Service
+    NimBLEService* pDeviceInfoService =
+        pServer->createService(DEVICE_INFO_SERVICE_UUID);
 
-    /** Start the services when finished creating all Characteristics and
-     * Descriptors */
-    pDeadService->start();
-    pBaadService->start();
+    // Add Manufacturer Name characteristic
+    NimBLECharacteristic* pManufacturerName =
+        pDeviceInfoService->createCharacteristic(MANUFACTURER_NAME_UUID,
+                                                 NIMBLE_PROPERTY::READ);
+    pManufacturerName->setValue("Silicon Labs");
 
-    /** Create an advertising instance and add the services to the advertised
-     * data */
+    // Add System ID characteristic
+    NimBLECharacteristic* pSystemId = pDeviceInfoService->createCharacteristic(
+        SYSTEM_ID_UUID, NIMBLE_PROPERTY::READ);
+    uint8_t systemId[] = {0x88, 0x1A, 0x14, 0xFF, 0xFE, 0x34, 0x29, 0x63};
+    pSystemId->setValue(systemId, 8);
+
+    // Start the device info service
+    pDeviceInfoService->start();
+
+    // Update advertising to include new services
     NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
-    pAdvertising->setName("NimBLE-Server");
-    pAdvertising->addServiceUUID(pDeadService->getUUID());
-    pAdvertising->addServiceUUID(pBaadService->getUUID());
-    /**
-     *  If your device is battery powered you may consider setting scan response
-     *  to false as it will extend battery life at the expense of less data
-     * sent.
-     */
+    pAdvertising->setName("LVS-EB01");
+    pAdvertising->addServiceUUID(pServiceA->getUUID());
+    pAdvertising->addServiceUUID(pServiceB->getUUID());
+    pAdvertising->addServiceUUID(pDeviceInfoService->getUUID());
     pAdvertising->enableScanResponse(true);
     pAdvertising->start();
 
     // Increase MTU size for larger packets
     NimBLEDevice::setMTU(517);  // Maximum MTU size
+
+    xTaskCreatePinnedToCore(
+        nimbleLoop, "nimbleLoop", 9 * configMINIMAL_STACK_SIZE, pServer,
+        configMAX_PRIORITIES - 1, nullptr, Tasks::stepperCore);
 }

@@ -143,6 +143,33 @@ void startStreamingTask(void *pvParameters) {
     const int processFrequencyHz = 30;
     const int processTimeMs = 1000 / processFrequencyHz;
 
+    int32_t targetPositionSteps = 0;
+    float lastSpeed = 0;
+    int32_t lastTargetPositionSteps = 99999;
+    bool stopped = false;
+
+    while (isInCorrectState(ossm)) {
+        // if we're not at the target position, then move to it
+        targetPositionSteps =
+            -abs(((static_cast<float>(ossm->targetPosition)) / 100.0) *
+                 ossm->measuredStrokeSteps);
+
+        bool isTargetChanged = targetPositionSteps != lastTargetPositionSteps;
+        lastTargetPositionSteps = targetPositionSteps;
+
+        bool isAtTarget =
+            abs(targetPositionSteps - ossm->stepper->getCurrentPosition()) == 0;
+
+        if (isTargetChanged) {
+            ESP_LOGD("Streaming", "Moving to target position: %d",
+                     targetPositionSteps);
+            ossm->stepper->moveTo(targetPositionSteps, false);
+        }
+
+        vTaskDelay(1);
+    }
+
+    // keep this queue code... but we're not using it right now.
     while (isInCorrectState(ossm)) {
         loopStart = millis();
 

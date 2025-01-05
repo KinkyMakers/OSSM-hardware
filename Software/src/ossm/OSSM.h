@@ -259,12 +259,6 @@ class OSSM : public OSSMInterface {
     Menu menuOption;
     String errorMessage = "";
 
-    SettingPercents setting = {.speed = 0,
-                               .stroke = 0,
-                               .sensation = 50,
-                               .depth = 50,
-                               .pattern = StrokePatterns::SimpleStroke};
-
     unsigned long sessionStartTime = 0;
     int sessionStrokeCount = 0;
     double sessionDistanceMeters = 0;
@@ -341,6 +335,11 @@ class OSSM : public OSSMInterface {
                 sml::logger<StateLogger>>>
         sm = nullptr;  // The state machine
 
+    SettingPercents setting = {.speed = 0,
+                               .stroke = 0,
+                               .sensation = 50,
+                               .depth = 50,
+                               .pattern = StrokePatterns::SimpleStroke};
     /**
      * ///////////////////////////////////////////
      * ////
@@ -376,6 +375,18 @@ class OSSM : public OSSMInterface {
     // Implement the interface methods
     void process_event(const auto &event) { sm->process_event(event); }
     void ble_click() override { sm->process_event(BleClick{}); }
+    void moveTo(uint8_t intensity) override {
+        if (intensity < 0) {
+            ESP_LOGD("OSSM", "Setting target position to 0");
+            targetPosition = 0;
+        } else if (intensity > 10) {
+            ESP_LOGD("OSSM", "Setting target position to 100");
+            targetPosition = 100;
+        } else {
+            ESP_LOGD("OSSM", "Setting target position to %d", intensity * 10);
+            targetPosition = intensity * 10;
+        }
+    }
 
     // get current state
     String getCurrentState() {
