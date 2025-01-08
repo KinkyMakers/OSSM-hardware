@@ -369,23 +369,16 @@ class OSSM : public OSSMInterface {
      * ////
      * ///////////////////////////////////////////
      */
-    uint16_t targetPosition = 0;
-    int16_t targetVelocity = 0;
+    float targetPosition = 0;
+    float targetVelocity = 0;
+    uint16_t targetTime = 0;
 
     // Implement the interface methods
     void process_event(const auto &event) { sm->process_event(event); }
     void ble_click() override { sm->process_event(BleClick{}); }
-    void moveTo(uint8_t intensity) override {
-        if (intensity < 0) {
-            ESP_LOGD("OSSM", "Setting target position to 0");
-            targetPosition = 0;
-        } else if (intensity > 10) {
-            ESP_LOGD("OSSM", "Setting target position to 100");
-            targetPosition = 100;
-        } else {
-            ESP_LOGD("OSSM", "Setting target position to %d", intensity * 10);
-            targetPosition = intensity * 10;
-        }
+    void moveTo(float intensity, uint16_t inTime) override {
+        targetPosition = constrain(intensity, 0.0f, 100.0f);
+        targetTime = inTime;
     }
 
     // get current state

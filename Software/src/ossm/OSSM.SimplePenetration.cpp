@@ -149,13 +149,15 @@ void startStreamingTask(void *pvParameters) {
     bool stopped = false;
 
     // Set lower acceleration/deceleration for smoother motion
-    ossm->stepper->setAcceleration((1_mm) * Config::Driver::maxAcceleration /
-                                   5);  // 25% of max
+    ossm->stepper->setAcceleration(
+        (1_mm) * Config::Driver::maxAcceleration);  // 25% of max
     while (isInCorrectState(ossm)) {
         // if we're not at the target position, then move to it
         targetPositionSteps =
             -abs(((static_cast<float>(ossm->targetPosition)) / 100.0) *
                  ossm->measuredStrokeSteps);
+
+        auto currentPositionSteps = ossm->stepper->getCurrentPosition();
 
         bool isTargetChanged = targetPositionSteps != lastTargetPositionSteps;
         lastTargetPositionSteps = targetPositionSteps;
@@ -167,6 +169,20 @@ void startStreamingTask(void *pvParameters) {
             ESP_LOGD("Streaming", "Moving to target position: %d",
                      targetPositionSteps);
             ossm->stepper->moveTo(targetPositionSteps, false);
+
+            float speed = 0;
+
+            if (ossm->targetTime > 0) {
+                auto delta = abs(targetPositionSteps - currentPositionSteps);
+
+                // in steps per millisecond
+                speed = 1000.0f * delta / ossm->targetTime;
+                ossm->stepper->setSpeedInHz(speed);
+                ossm->stepper->applySpeedAcceleration();
+            }
+
+            ESP_LOGD("Streaming", "Moving to: %f, Speed: %f",
+                     ossm->targetPosition, speed);
         }
 
         vTaskDelay(1);

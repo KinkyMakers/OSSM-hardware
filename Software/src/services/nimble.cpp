@@ -5,13 +5,21 @@
 const char* SERVICE_A_UUID = "1D14D6EE-FD63-4FA1-BFA4-8F47B42119F0";
 const char* CHARACTERISTIC_A1_UUID = "F7BF3564-FB6D-4E53-88A4-5E37E0326063";
 const char* CHARACTERISTIC_A2_UUID = "984227F3-34FC-4045-A5D0-2C581F81A153";
-const char* SERVICE_B_UUID = "45420001-0023-4BD4-BBD5-A6920E4C5653";
-const char* CHARACTERISTIC_B1_UUID = "45420002-0023-4BD4-BBD5-A6920E4C5653";
-const char* CHARACTERISTIC_B2_UUID = "45420003-0023-4BD4-BBD5-A6920E4C5653";
+// const char* SERVICE_B_UUID = "45420001-0023-4BD4-BBD5-A6920E4C5653";
+// const char* CHARACTERISTIC_B1_UUID = "45420002-0023-4BD4-BBD5-A6920E4C5653";
+// const char* CHARACTERISTIC_B2_UUID = "45420003-0023-4BD4-BBD5-A6920E4C5653";
+
+#define SERVICE_B_UUID "0000ffe0-0000-1000-8000-00805f9b34fb"
+#define CHARACTERISTIC_B1_UUID "0000ffe1-0000-1000-8000-00805f9b34fa"
+#define CHARACTERISTIC_B2_UUID "0000ffe1-0000-1000-8000-00805f9b34fb"
 const char* MANUFACTURER_NAME_UUID =
     "2A29";                           // Standard UUID for manufacturer name
 const char* SYSTEM_ID_UUID = "2A23";  // Standard UUID for system ID
 const char* DEVICE_INFO_SERVICE_UUID = "180A";  // Device Information Service
+
+// #define SERVICE_UUID                "e556ec25-6a2d-436f-a43d-82eab88dcefd"
+// #define CONTROL_CHARACTERISTIC_UUID "c4bee434-ae8f-4e67-a741-0607141f185b"
+// #define SETTINGS_CHARACTERISTIC_UUID "fe9a02ab-2713-40ef-a677-1716f2c03bad"
 
 NimBLEServer* pServer = NimBLEDevice::getServer();
 
@@ -118,29 +126,26 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
                  NimBLEConnInfo& connInfo) override {
         std::string value = pCharacteristic->getValue();
 
-        // // Add debug print for all received data
-        // ESP_LOGD("NIMBLE", "Received data on %s: %s",
+        // Print raw bytes for debugging
+        std::string hexStr;
+        for (unsigned char c : value) {
+            char hex[4];
+            snprintf(hex, sizeof(hex), "%02X", c);
+            hexStr += hex;
+            hexStr += " ";
+        }
+        // ESP_LOGD("NIMBLE", "Received data on %s: [%s]",
         //          pCharacteristic->getUUID().toString().c_str(),
-        //          value.c_str());
+        //          hexStr.c_str());
 
-        // Check for vibration command pattern
-        if (value.rfind("Vibrate:", 0) == 0) {
-            size_t semicolonPos = value.find(';');
-            if (semicolonPos != std::string::npos) {
-                std::string intensityStr = value.substr(8, semicolonPos - 8);
-                try {
-                    int intensity = std::stoi(intensityStr);
-                    if (intensity >= 0 && intensity <= 10) {
-                        ESP_LOGD("NIMBLE", "Vibration intensity set to: %d",
-                                 intensity);
+        // Parse position and time from received bytes
+        if (value.length() >= 3) {        // Changed from 4 to 3 bytes
+            uint8_t position = value[0];  // First byte is position (0-180)
+            uint16_t inTime =
+                (value[1] << 8) | value[2];  // Next 2 bytes are time
 
-                        ossmInterface->moveTo(intensity);
-                    }
-                } catch (...) {
-                    ESP_LOGW("NIMBLE", "Invalid vibration intensity format");
-                }
-            }
-            return;
+            // Move to the parsed position
+            ossmInterface->moveTo(position * (100.0f / 180.0f), inTime);
         }
 
         if (value.rfind("startStreaming", 0) == 0) {
@@ -223,6 +228,8 @@ void nimbleLoop(void* pvParameters) {
     NimBLEServer* pServer = (NimBLEServer*)pvParameters;
     /** Loop here and send notifications to connected peers */
 
+    vTaskDelete(NULL);
+    return;
     while (true) {
         ESP_LOGD("NIMBLE", "Nimble loop");
         vTaskDelay(pdMS_TO_TICKS(2000));
@@ -272,23 +279,26 @@ void initNimble() {
     pServer = NimBLEDevice::createServer();
     pServer->setCallbacks(&serverCallbacks);
 
-    // Create Service A
-    NimBLEService* pServiceA = pServer->createService(SERVICE_A_UUID);
-    NimBLECharacteristic* pCharA1 = pServiceA->createCharacteristic(
-        CHARACTERISTIC_A1_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE |
-                                    NIMBLE_PROPERTY::NOTIFY |
-                                    NIMBLE_PROPERTY::WRITE_NR);
-    NimBLECharacteristic* pCharA2 = pServiceA->createCharacteristic(
-        CHARACTERISTIC_A2_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE |
-                                    NIMBLE_PROPERTY::NOTIFY |
-                                    NIMBLE_PROPERTY::WRITE_NR);
+    // // Create Service A
+    // NimBLEService* pServiceA = pServer->createService(SERVICE_A_UUID);
+    // NimBLECharacteristic* pCharA1 = pServiceA->createCharacteristic(
+    //     CHARACTERISTIC_A1_UUID, NIMBLE_PROPERTY::READ |
+    //     NIMBLE_PROPERTY::WRITE |
+    //                                 NIMBLE_PROPERTY::NOTIFY |
+    //                                 NIMBLE_PROPERTY::WRITE_NR);
+    // NimBLECharacteristic* pCharA2 = pServiceA->createCharacteristic(
+    //     CHARACTERISTIC_A2_UUID, NIMBLE_PROPERTY::READ |
+    //     NIMBLE_PROPERTY::WRITE |
+    //                                 NIMBLE_PROPERTY::NOTIFY |
+    //                                 NIMBLE_PROPERTY::WRITE_NR);
 
     // Create Service B
     NimBLEService* pServiceB = pServer->createService(SERVICE_B_UUID);
-    NimBLECharacteristic* pCharB1 = pServiceB->createCharacteristic(
-        CHARACTERISTIC_B1_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE |
-                                    NIMBLE_PROPERTY::NOTIFY |
-                                    NIMBLE_PROPERTY::WRITE_NR);
+    // NimBLECharacteristic* pCharB1 = pServiceB->createCharacteristic(
+    //     CHARACTERISTIC_B1_UUID, NIMBLE_PROPERTY::READ |
+    //     NIMBLE_PROPERTY::WRITE |
+    //                                 NIMBLE_PROPERTY::NOTIFY |
+    //                                 NIMBLE_PROPERTY::WRITE_NR);
     NimBLECharacteristic* pCharB2 = pServiceB->createCharacteristic(
         CHARACTERISTIC_B2_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE |
                                     NIMBLE_PROPERTY::NOTIFY |
@@ -297,14 +307,14 @@ void initNimble() {
     // Store the characteristic pointer globally
     pCharacteristicB2 = pCharB2;
 
-    // Set callbacks for all characteristics
-    pCharA1->setCallbacks(&chrCallbacks);
-    pCharA2->setCallbacks(&chrCallbacks);
-    pCharB1->setCallbacks(&chrCallbacks);
+    // // Set callbacks for all characteristics
+    // pCharA1->setCallbacks(&chrCallbacks);
+    // pCharA2->setCallbacks(&chrCallbacks);
+    // pCharB1->setCallbacks(&chrCallbacks);
     pCharB2->setCallbacks(&chrCallbacks);
 
     // Start the services
-    pServiceA->start();
+    // pServiceA->start();
     pServiceB->start();
 
     // Add Device Information Service
@@ -329,14 +339,15 @@ void initNimble() {
     // Update advertising to include new services
     NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
     pAdvertising->setName("LVS-EB01");
-    pAdvertising->addServiceUUID(pServiceA->getUUID());
+    // pAdvertising->addServiceUUID(pServiceA->getUUID());
     pAdvertising->addServiceUUID(pServiceB->getUUID());
     pAdvertising->addServiceUUID(pDeviceInfoService->getUUID());
     pAdvertising->enableScanResponse(true);
     pAdvertising->start();
 
-    // Increase MTU size for larger packets
-    NimBLEDevice::setMTU(517);  // Maximum MTU size
+    // Set MTU size for small packets (3 hex numbers)
+    NimBLEDevice::setMTU(
+        32);  // Using power of 2 MTU size for optimal packet alignment
 
     xTaskCreatePinnedToCore(
         nimbleLoop, "nimbleLoop", 9 * configMINIMAL_STACK_SIZE, pServer,

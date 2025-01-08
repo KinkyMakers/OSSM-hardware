@@ -12,7 +12,7 @@ class OSSMInterface {
     void process_event(const EventType& event);  // Ensure proper type handling
 
     virtual void ble_click() = 0;
-    virtual void moveTo(uint8_t intensity = 0) = 0;  // intensity: 0-10
+    virtual void moveTo(float intensity = 0, uint16_t inTime = 0) = 0;  // intensity: 0-10
 
     // get current state
     String get_current_state();
