@@ -152,41 +152,82 @@ void startStreamingTask(void *pvParameters) {
     ossm->stepper->setAcceleration(
         (1_mm) * Config::Driver::maxAcceleration);  // 25% of max
     while (isInCorrectState(ossm)) {
-        // if we're not at the target position, then move to it
-        targetPositionSteps =
-            -abs(((static_cast<float>(ossm->targetPosition)) / 100.0) *
-                 ossm->measuredStrokeSteps) *
-            (ossm->setting.stroke / 100.0);
+        // Calculate target position with extra type safety
+        float strokePercent = static_cast<float>(ossm->setting.stroke) / 100.0f;
+        float targetPercent = static_cast<float>(ossm->targetPosition) / 100.0f;
 
-        auto currentPositionSteps = ossm->stepper->getCurrentPosition() *
-                                    (ossm->setting.stroke / 100.0);
+        // Calculate steps and clamp between 0 and -measuredStrokeSteps
+        float rawTargetSteps = -std::abs(
+            targetPercent * ossm->measuredStrokeSteps * strokePercent);
+        targetPositionSteps = static_cast<int32_t>(
+            std::max(static_cast<float>(-ossm->measuredStrokeSteps),
+                     std::min(0.0f, rawTargetSteps)));
+
+        // Get current position with type safety
+        int32_t rawCurrentPosition = ossm->stepper->getCurrentPosition();
+        float currentPositionSteps =
+            static_cast<float>(rawCurrentPosition) * strokePercent;
 
         bool isTargetChanged = targetPositionSteps != lastTargetPositionSteps;
         lastTargetPositionSteps = targetPositionSteps;
 
         bool isAtTarget =
-            abs(targetPositionSteps - ossm->stepper->getCurrentPosition()) == 0;
+            std::abs(targetPositionSteps - rawCurrentPosition) == 0;
 
         if (isTargetChanged) {
             ossm->stepper->moveTo(targetPositionSteps, false);
 
-            float speed = 0;
-            float acceleration = 0;
+            float speed = 0.0f;
+            float acceleration = 0.0f;
+
             if (ossm->targetTime > 0) {
-                auto dx = abs(targetPositionSteps - currentPositionSteps);
+                // Calculate distance with type safety
+                float dx = static_cast<float>(
+                    std::abs(targetPositionSteps -
+                             static_cast<int32_t>(currentPositionSteps)));
 
-                // in steps per millisecond
-                speed = 1000.0f * dx / ossm->targetTime;
-                acceleration = 4 * 1000.0f * 1000.0f * dx /
-                               (ossm->targetTime * ossm->targetTime);
+                // Calculate speed and acceleration with explicit float
+                // operations Ensure targetTime is positive to avoid division by
+                // zero
+                float safeTargetTime =
+                    std::max(1.0f, static_cast<float>(ossm->targetTime));
 
-                ossm->stepper->setSpeedInHz(2 * speed);
-                ossm->stepper->setAcceleration(acceleration);
-                ossm->stepper->applySpeedAcceleration();
+                // Calculate speed with safety limits
+                speed = 1000.0f * dx / safeTargetTime;
+                speed = std::min(speed, static_cast<float>(UINT32_MAX / 2));
+                speed = std::max(0.0f, speed);
+
+                // Calculate acceleration with safety limits
+                acceleration = std::abs(4.0f * 1000.0f * 1000.0f * dx /
+                                        (safeTargetTime * safeTargetTime));
+
+                acceleration =
+                    std::min(acceleration, static_cast<float>(INT32_MAX));
+                acceleration = std::max(0.0f, acceleration);
+
+                // Apply speed and acceleration with safety checks
+                if (std::isfinite(speed) && std::isfinite(acceleration)) {
+                    ossm->stepper->setSpeedInHz(
+                        static_cast<uint32_t>(2.0f * speed));
+                    ossm->stepper->setAcceleration(
+                        static_cast<int32_t>(acceleration));
+                    ossm->stepper->applySpeedAcceleration();
+                } else {
+                    // If values are invalid, use safe defaults
+                    ossm->stepper->setSpeedInHz(
+                        (1_mm) * Config::Driver::maxSpeedMmPerSecond / 4);
+                    ossm->stepper->setAcceleration(
+                        (1_mm) * Config::Driver::maxAcceleration / 4);
+                    ossm->stepper->applySpeedAcceleration();
+                }
             }
 
-            ESP_LOGD("Streaming", "Moving to: %f, Speed: %f",
-                     ossm->targetPosition, speed);
+            ESP_LOGD("Streaming",
+                     "t: %f, tt: %d, "
+                     "tp: %d, cp: %d, sp: %f, ac: %f",
+                     ossm->targetPosition, ossm->targetTime,
+                     targetPositionSteps, rawCurrentPosition, speed,
+                     acceleration);
         }
 
         vTaskDelay(1);
