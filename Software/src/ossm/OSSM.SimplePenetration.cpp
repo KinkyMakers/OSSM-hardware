@@ -155,9 +155,11 @@ void startStreamingTask(void *pvParameters) {
         // if we're not at the target position, then move to it
         targetPositionSteps =
             -abs(((static_cast<float>(ossm->targetPosition)) / 100.0) *
-                 ossm->measuredStrokeSteps);
+                 ossm->measuredStrokeSteps) *
+            (ossm->setting.stroke / 100.0);
 
-        auto currentPositionSteps = ossm->stepper->getCurrentPosition();
+        auto currentPositionSteps = ossm->stepper->getCurrentPosition() *
+                                    (ossm->setting.stroke / 100.0);
 
         bool isTargetChanged = targetPositionSteps != lastTargetPositionSteps;
         lastTargetPositionSteps = targetPositionSteps;

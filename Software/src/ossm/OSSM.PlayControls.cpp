@@ -42,7 +42,8 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         return ossm->sm->is("simplePenetration"_s) ||
                ossm->sm->is("simplePenetration.idle"_s) ||
                ossm->sm->is("strokeEngine"_s) ||
-               ossm->sm->is("strokeEngine.idle"_s);
+               ossm->sm->is("strokeEngine.idle"_s) ||
+               ossm->sm->is("streaming"_s) || ossm->sm->is("streaming.idle"_s);
     };
 
     // Line heights
@@ -116,7 +117,9 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         drawShape::settingBar(UserConfig::language.Speed, next.speedKnob);
 
         if (isStrokeEngine) {
-            drawStr::centered(32, UserConfig::language.StrokeEngineNames[(int)ossm->setting.pattern]);
+            drawStr::centered(
+                32, UserConfig::language
+                        .StrokeEngineNames[(int)ossm->setting.pattern]);
             switch (ossm->playControl) {
                 case PlayControls::STROKE:
                     drawShape::settingBarSmall(ossm->setting.sensation, 125);
