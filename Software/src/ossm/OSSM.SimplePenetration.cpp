@@ -166,18 +166,20 @@ void startStreamingTask(void *pvParameters) {
             abs(targetPositionSteps - ossm->stepper->getCurrentPosition()) == 0;
 
         if (isTargetChanged) {
-            ESP_LOGD("Streaming", "Moving to target position: %d",
-                     targetPositionSteps);
             ossm->stepper->moveTo(targetPositionSteps, false);
 
             float speed = 0;
-
+            float acceleration = 0;
             if (ossm->targetTime > 0) {
-                auto delta = abs(targetPositionSteps - currentPositionSteps);
+                auto dx = abs(targetPositionSteps - currentPositionSteps);
 
                 // in steps per millisecond
-                speed = 1000.0f * delta / ossm->targetTime;
-                ossm->stepper->setSpeedInHz(speed);
+                speed = 1000.0f * dx / ossm->targetTime;
+                acceleration = 4 * 1000.0f * 1000.0f * dx /
+                               (ossm->targetTime * ossm->targetTime);
+
+                ossm->stepper->setSpeedInHz(2 * speed);
+                ossm->stepper->setAcceleration(acceleration);
                 ossm->stepper->applySpeedAcceleration();
             }
 
