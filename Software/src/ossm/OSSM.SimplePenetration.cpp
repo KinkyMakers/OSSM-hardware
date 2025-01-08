@@ -148,10 +148,15 @@ void startStreamingTask(void *pvParameters) {
     int32_t lastTargetPositionSteps = 99999;
     bool stopped = false;
 
+    auto leftBoundary = -ossm->measuredStrokeSteps;
+    auto rightBoundary = 0;
+
     // Set lower acceleration/deceleration for smoother motion
-    ossm->stepper->setAcceleration(
-        (1_mm) * Config::Driver::maxAcceleration);  // 25% of max
+    ossm->stepper->setAcceleration((1_mm) * Config::Driver::maxAcceleration);
     while (isInCorrectState(ossm)) {
+        leftBoundary =
+            -ossm->measuredStrokeSteps * ossm->setting.stroke / 100.0f;
+
         // Calculate target position with extra type safety
         float strokePercent = static_cast<float>(ossm->setting.stroke) / 100.0f;
         float targetPercent = static_cast<float>(ossm->targetPosition) / 100.0f;
@@ -173,12 +178,11 @@ void startStreamingTask(void *pvParameters) {
 
         bool isAtTarget =
             std::abs(targetPositionSteps - rawCurrentPosition) == 0;
+        float speed = ossm->stepper->getCurrentSpeedInMilliHz();
+        float acceleration = ossm->stepper->getCurrentAcceleration();
 
         if (isTargetChanged) {
             ossm->stepper->moveTo(targetPositionSteps, false);
-
-            float speed = 0.0f;
-            float acceleration = 0.0f;
 
             if (ossm->targetTime > 0) {
                 // Calculate distance with type safety
@@ -194,15 +198,18 @@ void startStreamingTask(void *pvParameters) {
 
                 // Calculate speed with safety limits
                 speed = 1000.0f * dx / safeTargetTime;
-                speed = std::min(speed, static_cast<float>(UINT32_MAX / 2));
+                speed = std::min(
+                    speed, static_cast<float>(
+                               (1_mm) * Config::Driver::maxSpeedMmPerSecond));
                 speed = std::max(0.0f, speed);
 
                 // Calculate acceleration with safety limits
-                acceleration = std::abs(4.0f * 1000.0f * 1000.0f * dx /
-                                        (safeTargetTime * safeTargetTime));
-
+                acceleration = 4.0f * 1000.0f * 1000.0f * dx /
+                               (safeTargetTime * safeTargetTime);
                 acceleration =
-                    std::min(acceleration, static_cast<float>(INT32_MAX));
+                    std::min(acceleration,
+                             static_cast<float>(
+                                 (1_mm) * Config::Driver::maxAcceleration));
                 acceleration = std::max(0.0f, acceleration);
 
                 // Apply speed and acceleration with safety checks
