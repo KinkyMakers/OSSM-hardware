@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#include <command/commands.hpp>
+
 #include "Actions.h"
 #include "AiEsp32RotaryEncoder.h"
 #include "Events.h"
@@ -191,7 +193,6 @@ class OSSM : public OSSMInterface {
                 "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::Streaming))] = "streaming"_s,
-                "menu.idle"_s + bleClick = "streaming"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
                 "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
@@ -201,6 +202,7 @@ class OSSM : public OSSMInterface {
                 "simplePenetration"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
                 "simplePenetration.preflight"_s + done / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
+                "simplePenetration.preflight"_s + longPress = "menu"_s,
                 "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
                 "streaming"_s [isNotHomed] = "homing"_s,
@@ -214,6 +216,7 @@ class OSSM : public OSSMInterface {
                 "strokeEngine"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
                 "strokeEngine.preflight"_s + done / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
+                "strokeEngine.preflight"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
                 "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
                 "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
@@ -340,6 +343,7 @@ class OSSM : public OSSMInterface {
                                .sensation = 50,
                                .depth = 50,
                                .pattern = StrokePatterns::SimpleStroke};
+
     /**
      * ///////////////////////////////////////////
      * ////
@@ -375,8 +379,59 @@ class OSSM : public OSSMInterface {
 
     // Implement the interface methods
     void process_event(const auto &event) { sm->process_event(event); }
-    void ble_click() override { sm->process_event(BleClick{}); }
-    void moveTo(float intensity, uint16_t inTime) override {
+    void ble_click(String commandString) {
+        // Visit current state to handle state-specific commands
+
+        CommandValue command = commandFromString(commandString);
+
+        String currentState;
+        sm->visit_current_states(
+            [&currentState](auto state) { currentState = state.c_str(); });
+
+        switch (command.command) {
+            case Commands::goToStrokeEngine:
+                menuOption = Menu::StrokeEngine;
+                sm->process_event(ButtonPress{});
+                break;
+            case Commands::goToSimplePenetration:
+                menuOption = Menu::SimplePenetration;
+                sm->process_event(ButtonPress{});
+                break;
+            case Commands::goToStreaming:
+                menuOption = Menu::Streaming;
+                sm->process_event(ButtonPress{});
+                break;
+            case Commands::goToMenu:
+                sm->process_event(LongPress{});
+                break;
+            case Commands::setSpeed:
+                setting.speed = command.value;
+                break;
+            case Commands::setStroke:
+                playControl = PlayControls::STROKE;
+                encoder.setEncoderValue(command.value);
+                setting.stroke = command.value;
+                break;
+            case Commands::setDepth:
+                playControl = PlayControls::DEPTH;
+                encoder.setEncoderValue(command.value);
+                setting.depth = command.value;
+                break;
+            case Commands::setSensation:
+                playControl = PlayControls::SENSATION;
+                encoder.setEncoderValue(command.value);
+                setting.sensation = command.value;
+                break;
+            case Commands::setPattern:
+                setting.pattern =
+                    static_cast<StrokePatterns>(command.value % 7);
+                break;
+            case Commands::ignore:
+                break;
+        }
+    }
+
+    void moveTo(float intensity, uint16_t inTime) {
         targetPosition = constrain(intensity, 0.0f, 100.0f);
         targetTime = inTime;
     }
@@ -386,6 +441,16 @@ class OSSM : public OSSMInterface {
         String currentState;
         sm->visit_current_states(
             [&currentState](auto state) { currentState = state.c_str(); });
+
+        String json = "{";
+        json += "\"state\":\"" + currentState + "\",";
+        json += "\"speed\":" + String((int)setting.speed) + ",";
+        json += "\"stroke\":" + String((int)setting.stroke) + ",";
+        json += "\"sensation\":" + String((int)setting.sensation) + ",";
+        json += "\"depth\":" + String((int)setting.depth) + ",";
+        json += "\"pattern\":" + String(static_cast<int>(setting.pattern));
+        json += "}";
+        currentState = json;
 
         return currentState;
     }
