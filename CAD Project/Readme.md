@@ -6,7 +6,11 @@
 
 # Design Guidelines For Contributions
 
+- **Template**: Contribution basic template is located in [./Templates/](Templates)
+    - Replace "Project Name" in Document and Component with your Project Name
+
 User-contributed Projects with a file structure following these guidelines will allow for the easiest incorporation into an official OSSM release.
+
 
 ![CAD Project Overview](_images/Overview.png)
 
