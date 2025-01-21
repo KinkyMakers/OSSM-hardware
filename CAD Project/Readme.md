@@ -2,8 +2,7 @@
     
     TODO: 
       3030 Extrusion Stand Assembly
-      Refine "OSSM - Mod" single component project template
-      Add "OSSM - Mod" multiple component project template
+      Add "OSSM - Mod" multiple-component project template
 
 # Design Guidelines For Contributions
 
