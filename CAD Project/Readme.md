@@ -3,6 +3,9 @@
     TODO: 
       3030 Extrusion Stand Assembly
       Add "OSSM - Mod" multiple-component project template
+      Determine if Hardware components should be "independent"
+        For now - designer's preference
+        Independent could allow a scripted hardware count
 
 # Design Guidelines For Contributions
 
