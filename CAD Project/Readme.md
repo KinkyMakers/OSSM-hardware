@@ -2,7 +2,8 @@
     
     TODO: 
       3030 Extrusion Stand Assembly
-      Introduce "OSSM - Mod" project template
+      Refine "OSSM - Mod" single component project template
+      Add "OSSM - Mod" multiple component project template
 
 # Design Guidelines For Contributions
 
@@ -33,30 +34,35 @@ User-contributed Projects with a file structure following these guidelines will 
 
 ## Naming Conventions
 
-- **Disallowed/Special-Use Characters**: These characters are reserved for special behavior for documentation scripting and should not be part of design or component names.
-  - `.` Designates file extension (dot) *[Disallowed]*
-  - `-` Designates parent-child component relationship
+- **Disallowed/Special-Use Characters**: These characters are reserved for special behavior for documentation scripting and have rules for being part of the Document or Component names.
+  - `.` Designates file extension (dot)
+    - Allowed for use in versioning e.g. `V1.1`
+  - `-` Designates parent-child Component relationship
     - Allowed for use in hardware names e.g. `M5 T-Nut`
-  - `_` Designates a component (underscore) *[Disallowed]*
+  - `_` Designates a Component (underscore) *[Disallowed]*
   - `[]` Designates reuse of hardware (brackets)
   - `()` Designates special hardware instructions (parentheses)
 
-- **Single Component Project**: If your project will only have a single component for printing, it should contain only one component named identical to the ProjectName.
+- **Single Component Project**: If your Project will only have a single Component for printing, it should contain only one Component named identical to the ProjectName.
 
-- **Parent-child Component Relationship**: If your part should be considered as a primary item for a parent component, indicate this by referencing the Parent Component by exact name, followed by ` - ` and then the name of your Child Component.
+- **Parent-child Component Relationship**: If your part should be considered as a primary item for a Parent Component, indicate this by referencing the Parent Component by exact name, followed by ` - ` and then the name of your Child Component.
   - Example: `End Effector - 24mm Short` will cause the release file to be located in the 'End Effector' directory of files, named '24mm Short'.
-  - At this time, only one Parent-child relationship is allowed per design file, and must be on a single level.
+  - At this time, only one Parent-child relationship is allowed per Document, and must be on a single level.
+    - *Documents may be nested as linked Components for more complex Parent-child relationships.*
 
-- **Version Increment**: If a piece of hardware is receiving an update from the initial release, append ` V#.#` (uppercase, case sensitive) to the component name, representative of Major.Minor updates.
+- **Version Increment**: If your part is an update from the initial release, append ` V#.#` (uppercase, case sensitive) to the Component Name, representative of Major.Minor updates.
   - Example: `Ring V1.1`
 
-- **Reused Hardware**: If your part reuses hardware from a part it may be replacing, note this with ` [From:{Component}]` in the component name.
+- **Includes Hardware**: If your part requires hardware, all hardware should be nested as Components in a single top-level Component `Hardware - ProjectName`
+  - Example: `Hardware - Body - Middle` where `Body - Middle` is the ProjectName
+
+- **Reused Hardware**: If your part reuses hardware from a part it will be replacing, note this by appending ` [From:{Component}]` to the Component name.
   - Example: `M3 x 8 Cap Head Bolt [From:OSSM - Body - Middle]`
 
-- **Alternative Hardware**: If an alternative hardware can be used, note this with ` ({Specification} alternative)` in the component name.
+- **Alternative Hardware**: If an alternative hardware can be used, note this by appending ` ({Specification} alternative)` to the Component Name.
   - Example: `M4x12 Cap Head Screw (M4 x 10 alternative)`
 
-- **Variant Hardware**: If hardware should vary for a different type of hardware a user could have, note this with `({Specification} for {variant},{Specification2} for {variant2})` in the component name. 
+- **Variant Hardware**: If hardware should vary for a different type of hardware a user could have, note this with `({Specification} for {variant},{Specification2} for {variant2})` in the Component Name. 
   - Example: `(M6 x 15 Cap Head Screw for 3030 Extrusion,M6 x 20 Cap Head Screw for 4040 Extrusion)`
 
 ## Running a Release from Fusion
