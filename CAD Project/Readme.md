@@ -8,7 +8,7 @@
 
 User-contributed Projects with a file structure following these guidelines will allow for the easiest incorporation into an official OSSM release.
 
-![CAD Project Overview](Images/Overview.png)
+![CAD Project Overview](_images/Overview.png)
 
 
 ## Fusion File Structure:
@@ -88,11 +88,11 @@ There is a proof of concept "Release" process that may evolve over time, but it 
 ### ExportIt Settings
 
 #### Export Tab
-![ExportIt Export Tab Settings](Images/ExportIt_Export.png)
+![ExportIt Export Tab Settings](_images/ExportIt_Export.png)
 
 #### Location Tab
-![ExportIt Location Tab Settings](Images/ExportIt_Location.png)
+![ExportIt Location Tab Settings](_images/ExportIt_Location.png)
 
 #### Misc Tab
-![ExportIt Misc Tab Settings](Images/ExportIt_Misc.png)
+![ExportIt Misc Tab Settings](_images/ExportIt_Misc.png)
 
