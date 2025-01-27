@@ -14,8 +14,10 @@ forward, but it's not guaranteed.
 _Our Primary design goals_ are to make a machine that is compact, quiet, of moderate cost, 3D printable (no
 cutting/machining required), flexible, highly performant, with easily sourced components, and doesn't look like a giant
 machine.
+
+
 <p align="center">
-<img src="https://user-images.githubusercontent.com/12459679/200219198-df577cbc-8503-47af-bbc8-9cb65de7ea49.jpg" width="750">
+<img src="https://github.com/user-attachments/assets/dc7199bc-cde4-4862-9eb0-50f5fcd2e5ce" width="750">
 </p>
 
 ### Is it actually Open Source?
@@ -71,7 +73,7 @@ silent operation and very high performance.
 We have a new stand design you can check out on onshape!
 [OnShape link](https://cad.onshape.com/documents/d520ea9a8cadb4ae8681f59b/w/00b211a6fa3b76c59ef28f4e/e/5f2c80d9d9c2433a7be7f789)
 
-![OSSM on mounting solution](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/fa8a99c4-935e-4774-9f97-a4f88e453722)
+![OSSM on mounting solution](https://github.com/user-attachments/assets/86bd1684-7b89-4519-9a0c-9adc26f4aff8)
 
 ### Safety
 
