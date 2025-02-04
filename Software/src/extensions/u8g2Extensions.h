@@ -199,7 +199,7 @@ namespace drawShape {
     };
 
     // Function to draw a setting bar with label and percentage
-    static void settingBar(const String &name, float value, int x = 0,
+    static void settingBar(const String &name, float value, float target, int x = 0,
                            int y = 0, Alignment alignment = LEFT_ALIGNED,
                            int textPadding = 0, float minValue = 0,
                            float maxValue = 100) {
@@ -213,6 +213,9 @@ namespace drawShape {
         float scaledValue =
             constrain(value, minValue, maxValue) / maxValue * 100;
         int boxHeight = ceil(h * scaledValue / 100);
+        float scaledTarget =
+            constrain(target, minValue, maxValue) / maxValue * 100;
+        int targetHeight = ceil(h * scaledTarget / 100);
 
         // Position calculations based on alignment
         int barStartX = (alignment == LEFT_ALIGNED) ? x : x - w;
@@ -222,7 +225,8 @@ namespace drawShape {
                                    padding - w - textPadding;
 
         // Draw the bar and its frame
-        display.drawBox(barStartX, h - boxHeight, w, boxHeight);
+        display.drawBox(barStartX, h - boxHeight, w - 2, boxHeight);
+        display.drawVLine(barStartX + w - 2, h - targetHeight, targetHeight);
         display.drawFrame(barStartX, 0, w, h);
 
         // Set font for label and draw it
@@ -258,7 +262,7 @@ namespace drawShape {
         display.setDrawColor(1);
     }
 
-    static void settingBarSmall(float value, int x = 0, int y = 0,
+    static void settingBarSmall(float value, float target, int x = 0, int y = 0,
                                 float minValue = 0, float maxValue = 100) {
         int w = 3;
         int mid = (w - 1) / 2;
@@ -268,12 +272,16 @@ namespace drawShape {
         float scaledValue =
             constrain(value, minValue, maxValue) / maxValue * 100;
         int boxHeight = ceil(h * scaledValue / 100);
+        float scaledTarget =
+            constrain(target, minValue, maxValue) / maxValue * 100;
+        int targetHeight = ceil(h * scaledTarget / 100);
         // draw a single pixel line
         int lineH = boxHeight > 0 ? constrain(64 - boxHeight - 2, 0, 64) : 64;
         display.drawVLine(x + mid, y, lineH);
+        display.drawVLine(x + w - 1, h - targetHeight, targetHeight);
 
         // draw a box 3px wide
-        display.drawBox(x, 64 - boxHeight, w, boxHeight);
+        display.drawBox(x, 64 - boxHeight, w - 1, boxHeight);
     }
 
     // Function to draw lines between a variadic number of points
