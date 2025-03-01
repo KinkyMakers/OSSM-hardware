@@ -7,6 +7,12 @@
 //
 #ifndef BOOST_SML_HPP
 #define BOOST_SML_HPP
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsubobject-linkage"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+
 #if (__cplusplus < 201305L && _MSC_VER < 1900)
 #error \
     "[Boost::ext].SML requires C++14 support (Clang-3.4+, GCC-5.1+, MSVC-2015+)"
@@ -25,7 +31,8 @@
 #if defined(__clang__)
 #define __BOOST_SML_UNUSED __attribute__((unused))
 #define __BOOST_SML_VT_INIT \
-    {}
+    {                       \
+    }
 #if !defined(BOOST_SML_CFG_DISABLE_MIN_SIZE)
 #define __BOOST_SML_ZERO_SIZE_ARRAY(...) __VA_ARGS__ _[0]
 #else
@@ -43,7 +50,8 @@
 #endif
 #define __BOOST_SML_UNUSED __attribute__((unused))
 #define __BOOST_SML_VT_INIT \
-    {}
+    {                       \
+    }
 #if !defined(BOOST_SML_CFG_DISABLE_MIN_SIZE)
 #define __BOOST_SML_ZERO_SIZE_ARRAY(...) \
     __VA_ARGS__ _[0] {}
@@ -2810,7 +2818,7 @@ namespace concepts {
                        typename T::event, typename T::deps,
                        decltype(T::initial), decltype(T::history)>;
     template <class T>
-    struct transitional : decltype(transitional_impl(aux::declval<T>())) {};
+    struct transitional : decltype(transitional_impl(aux::declval<T>())){};
 }  // namespace concepts
 namespace front {
     namespace actions {

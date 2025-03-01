@@ -1,5 +1,5 @@
 #ifndef SOFTWARE_HTTPCLIENT_H
-#define SOFTWARE_MOCK_H
+#define SOFTWARE_HTTPCLIENT_H
 
 #include <unity.h>
 
