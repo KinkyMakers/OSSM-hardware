@@ -1,20 +1,24 @@
 # PitClamp Mini
-<div style="display: flex; justify-content: center;">
-
-  <img src="Images/Workspace/Overview%20-%20Back%20Right.png" style="width: 50%; height: auto;" />
-  <img src="Images/Workspace/Overview%20-%20Front%20Left.png" style="width: 50%; height: auto;" />
-</div>
+<img src="Images/Workspace/Overview%20-%20Front%20Left.png" style="width: 50%; height: auto;" />
 
 ## Summary    
-3d printed modular quick-release adjustable and removable mount ecosystem for 57AIM, 42AIM, iHSV57 NEMA23 motors. 
-
+3d printed modular quick-release adjustable and removable mount ecosystem for 57AIM, 42AIM, iHSV57 NEMA23 motors.  
 Stress tested to 50 ft-lb without grip being compromised. (PLA 5 walls 15% crosshatch infill)  
-
+### Supported motors:  
 <div style="display: flex; justify-content: space-between;">
   <img src="Images/Workspace/PitClamp%20Mini%20-%2057AIM30%20-%20Back%20Right.png" style="width: 32%; height: auto;" />
   <img src="Images/Workspace/PitClamp%20Mini%20-%2042AIM30%20-%20Back%20Right.png" style="width: 32%; height: auto;" />
   <img src="Images/Workspace/PitClamp%20Mini%20-%20iHSV57%20-%20Back%20Right.png" style="width: 32%; height: auto;" />
 </div>
+
+- **57AIM** *(30/15/10)* 
+  - **"Gold Motor"** == **57AIM30** [Recommended]
+- **47AIM** *(30/15/10)*
+  - **"Round Motor"** == **42AIM30**
+- **iHSV57** *(180w/140w)*
+  - Note: Smaller than 140w iHSV57 will require modifications to ring
+  - This ring is two parts but snaps into two pieces after removing from printer. Clip each half around the motor.
+  
 
 ## [Print Files](Files/)  
  - All parts are intended to print in the provided file orientation (as seen in slicer preview below)  
@@ -42,25 +46,11 @@ Stress tested to 50 ft-lb without grip being compromised. (PLA 5 walls 15% cross
        - Folds flat for easier frame storage, e.g. sliding under bed
     - (Work-In-Progress) Fully Printed Tabletop Clamp
 
-### Motor Cover and All-In-One Electronics Support
-<div style="display: flex; justify-content: center;">
-  <img src="Images/Workspace/PitClamp%20Mini%20-%20Action.png" style="width: 50%; height: auto;" />
-</div>
-
-## Rings
-
-### Supported motors:  
-
-- **57AIM** *(30/15/10)* 
-  - **"Gold Motor"** == **57AIM30** [Recommended]
-- **47AIM** *(30/15/10)*
-  - **"Round Motor"** == **42AIM30**
-- **iHSV57** *(180w/140w)*
-  - Note: Smaller than 140w iHSV57 will require modifications to ring
-  - This ring is two parts but snaps into two pieces after removing from printer. Clip each half around the motor.
+### Motor Cover and All-In-One Electronics Support  
+<img src="Images/Workspace/PitClamp%20Mini%20-%20Action.png" style="width: 50%; height: auto;" />
 
 v1.1 Ring (only available for 57AIM) can use M5 nuts or M5 Coupling Nuts (20mm) and has ridges for an interlocking connection to an optional rear motor cover.  
-**This is the recommended setup.  **
+**This is the recommended setup.**
 
 
 Ring offset is +5mm from the face of the PitClamp Mini Base.  
