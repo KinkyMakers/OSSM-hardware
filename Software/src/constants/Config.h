@@ -35,7 +35,7 @@ namespace Config {
 
         // This is the measured current that use to infer when the device has
         // reached the end of its stroke. during "Homing".
-        constexpr float sensorlessCurrentLimit = 1.5f;
+        constexpr float sensorlessCurrentLimit = 5.0f;  //Increased to 5.0 from 1.5
 
         constexpr float stepsPerMM =
             motorStepPerRevolution / (pulleyToothCount * beltPitchMm);
