@@ -54,16 +54,6 @@ jobs:
         run: |
           cd Software
           pio run -e production
-
-      - name: Check PlatformIO Project
-        run: |
-          cd Software
-          pio check --skip-packages --fail-on-defect high -e production -f src
-
-      - name: Unit Test PlatformIO Project
-        run: |
-          cd Software
-          pio test -e test
           
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
@@ -71,6 +61,62 @@ jobs:
           name: firmware-bin
           path: Software/.pio/build/production/firmware.bin
           retention-days: 1
+
+  check:
+    needs: check_changes
+    if: needs.check_changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Check PlatformIO Project
+        run: |
+          cd Software
+          pio check --skip-packages --fail-on-defect high -e production -f src
+
+  test:
+    needs: check_changes
+    if: needs.check_changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Unit Test PlatformIO Project
+        run: |
+          cd Software
+          pio test -e test
 
   upload_to_supabase:
     needs: [check_changes, build]
@@ -104,4 +150,4 @@ jobs:
           
       - name: Upload firmware to Supabase Storage
         run: |
-          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache"
+          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
