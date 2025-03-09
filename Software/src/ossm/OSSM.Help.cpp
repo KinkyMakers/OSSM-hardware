@@ -38,7 +38,6 @@ void OSSM::drawHelp() {
     display.drawUTF8(0, 10, UserConfig::language.GetHelp.c_str());
     // Draw line
     display.drawHLine(0, 12, xOffset - 10);
-
     display.setFont(Config::Font::base);
     display.drawUTF8(0, 26, UserConfig::language.GetHelpLine1.c_str());
     display.drawUTF8(0, 38, UserConfig::language.GetHelpLine2.c_str());

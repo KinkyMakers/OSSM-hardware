@@ -2,18 +2,39 @@ name: PlatformIO CI
 
 on:
   pull_request:
-    paths:
-      - 'Software/**'
     branches:
       - master
       - release
 
 jobs:
-  build:
+  check_changes:
     runs-on: ubuntu-latest
-
+    outputs:
+      changes_detected: ${{ steps.check_changes.outputs.changes_detected }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes in Software directory
+        id: check_changes
+        run: |
+          if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -q "^Software/"; then
+            echo "Changes detected in Software directory"
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+          else
+            echo "No changes in Software directory, skipping build"
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+          fi
+
+  build:
+    needs: check_changes
+    if: needs.check_changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/cache@v4
         with:
@@ -32,14 +53,152 @@ jobs:
       - name: Build PlatformIO Project
         run: |
           cd Software
-          pio run -e development
+          pio run -e production
+          
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-bin
+          path: Software/.pio/build/production/firmware.bin
+          retention-days: 1
+
+  check:
+    needs: check_changes
+    if: needs.check_changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
 
       - name: Check PlatformIO Project
         run: |
           cd Software
-          pio check --skip-packages --fail-on-defect high -e development -f src
+          pio check --skip-packages --fail-on-defect high -e production -f src
+
+  test:
+    needs: check_changes
+    if: needs.check_changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
 
       - name: Unit Test PlatformIO Project
         run: |
           cd Software
           pio test -e test
+
+  upload_to_supabase:
+    needs: [check_changes, build]
+    if: needs.check_changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+      deployments: write
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Download firmware artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware-bin
+          path: ./firmware
+          
+      - name: URL encode branch name
+        id: encode_branch
+        run: |
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          URL_ENCODED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/\//%2F/g' | sed 's/+/%2B/g' | sed 's/ /%20/g')
+          echo "encoded_branch=$URL_ENCODED_BRANCH" >> $GITHUB_OUTPUT
+          
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Get commit hash
+        id: get_commit_hash
+        run: |
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
+          
+      - name: Move existing firmware out of the way
+        run: |
+          supabase storage mv "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/${{ steps.get_commit_hash.outputs.commit_hash }}/firmware.bin" --experimental
+        continue-on-error: true
+          
+      - name: Upload firmware to Supabase Storage
+        run: |
+          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+      
+      - name: Create GitHub Deployment
+        id: create_deployment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.payload.pull_request ? context.payload.pull_request.head.ref : context.ref,
+              environment: 'firmware',
+              auto_merge: false,
+              required_contexts: [],
+              description: 'OSSM Firmware Deployment'
+            });
+            
+            return { id: deployment.data.id };
+      
+      - name: Create Deployment Status
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const deploymentId = ${{ steps.create_deployment.outputs.result }}.id;
+            const flashUrl = 'https://www.researchanddesire.com/ossm?branch=${{ steps.encode_branch.outputs.encoded_branch }}';
+            
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deploymentId,
+              state: 'success',
+              environment_url: flashUrl,
+              log_url: flashUrl,
+              description: 'Firmware ready to flash'
+            });
