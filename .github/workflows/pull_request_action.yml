@@ -150,6 +150,11 @@ jobs:
         uses: supabase/setup-cli@v1
         with:
           version: latest
+
+      - name: Remove existing firmware from Supabase Storage
+        run: |
+          supabase storage rm "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --experimental
+        continue-on-error: true
           
       - name: Upload firmware to Supabase Storage
         run: |
