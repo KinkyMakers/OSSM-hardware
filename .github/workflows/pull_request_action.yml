@@ -2,8 +2,6 @@ name: PlatformIO CI
 
 on:
   pull_request:
-    paths:
-      - 'Software/**'
     branches:
       - master
       - release
@@ -14,8 +12,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes in Software directory
+        id: check_changes
+        run: |
+          if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -q "^Software/"; then
+            echo "Changes detected in Software directory"
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+          else
+            echo "No changes in Software directory, skipping build"
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+          fi
 
       - uses: actions/cache@v4
+        if: steps.check_changes.outputs.changes_detected == 'true'
         with:
           path: |
             ~/.cache/pip
@@ -23,23 +35,28 @@ jobs:
           key: ${{ runner.os }}-pio
 
       - uses: actions/setup-python@v5
+        if: steps.check_changes.outputs.changes_detected == 'true'
         with:
           python-version: '3.9'
 
       - name: Install PlatformIO Core
+        if: steps.check_changes.outputs.changes_detected == 'true'
         run: pip install --upgrade platformio
 
       - name: Build PlatformIO Project
+        if: steps.check_changes.outputs.changes_detected == 'true'
         run: |
           cd Software
           pio run -e development
 
       - name: Check PlatformIO Project
+        if: steps.check_changes.outputs.changes_detected == 'true'
         run: |
           cd Software
           pio check --skip-packages --fail-on-defect high -e development -f src
 
       - name: Unit Test PlatformIO Project
+        if: steps.check_changes.outputs.changes_detected == 'true'
         run: |
           cd Software
           pio test -e test
