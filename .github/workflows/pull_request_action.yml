@@ -177,4 +177,4 @@ jobs:
           output: |
             {"summary":"Firmware successfully built and uploaded to Supabase Storage", "text_description":"You can flash this firmware onto your device by visiting the link below."}
           actions: |
-            [{"label":"Flash this firmware", "description":"Click to go to the firmware flashing page", "identifier":"flash_firmware"}]
+            [{"label":"Flash this firmware", "description":"Click to flash firmware", "identifier":"flash_firmware"}]
