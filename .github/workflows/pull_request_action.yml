@@ -151,9 +151,15 @@ jobs:
         with:
           version: latest
 
-      - name: Remove existing firmware from Supabase Storage
+      - name: Get commit hash
+        id: get_commit_hash
         run: |
-          yes | supabase storage rm "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --experimental
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
+          
+      - name: Move existing firmware out of the way
+        run: |
+          supabase storage mv "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/${{ steps.get_commit_hash.outputs.commit_hash }}/firmware.bin" --experimental
         continue-on-error: true
           
       - name: Upload firmware to Supabase Storage
