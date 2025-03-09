@@ -122,6 +122,9 @@ jobs:
     needs: [check_changes, build]
     if: needs.check_changes.outputs.changes_detected == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
@@ -151,3 +154,15 @@ jobs:
       - name: Upload firmware to Supabase Storage
         run: |
           supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+      
+      - name: Create GitHub Check with firmware link
+        uses: LouisBrunner/checks-action@v2.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: OSSM Firmware
+          conclusion: success
+          details_url: https://www.researchanddesire.com/ossm?branch=${{ steps.encode_branch.outputs.encoded_branch }}
+          output: |
+            {"summary":"Firmware successfully built and uploaded to Supabase Storage", "text_description":"You can flash this firmware onto your device by visiting the link below."}
+          actions: |
+            [{"label":"Flash this firmware", "description":"Click to go to the firmware flashing page", "identifier":"flash_firmware"}]
