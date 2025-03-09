@@ -167,6 +167,7 @@ jobs:
           name: OSSM Firmware
           conclusion: success
           details_url: https://www.researchanddesire.com/ossm?branch=${{ steps.encode_branch.outputs.encoded_branch }}
+          action_url: https://www.researchanddesire.com/ossm?branch=${{ steps.encode_branch.outputs.encoded_branch }}
           output: |
             {"summary":"Firmware successfully built and uploaded to Supabase Storage", "text_description":"You can flash this firmware onto your device by visiting the link below."}
           actions: |
