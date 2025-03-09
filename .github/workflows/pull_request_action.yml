@@ -153,7 +153,7 @@ jobs:
 
       - name: Remove existing firmware from Supabase Storage
         run: |
-          supabase storage rm "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --experimental
+          supabase storage mv "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}" "ss:///ossm-firmware/trash" --recursive --experimental
         continue-on-error: true
           
       - name: Upload firmware to Supabase Storage
