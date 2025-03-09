@@ -7,9 +7,10 @@ on:
       - release
 
 jobs:
-  build:
+  check_changes:
     runs-on: ubuntu-latest
-
+    outputs:
+      changes_detected: ${{ steps.check_changes.outputs.changes_detected }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,8 +27,16 @@ jobs:
             echo "changes_detected=false" >> $GITHUB_OUTPUT
           fi
 
+  build:
+    needs: check_changes
+    if: needs.check_changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: actions/cache@v4
-        if: steps.check_changes.outputs.changes_detected == 'true'
         with:
           path: |
             ~/.cache/pip
@@ -35,28 +44,64 @@ jobs:
           key: ${{ runner.os }}-pio
 
       - uses: actions/setup-python@v5
-        if: steps.check_changes.outputs.changes_detected == 'true'
         with:
           python-version: '3.9'
 
       - name: Install PlatformIO Core
-        if: steps.check_changes.outputs.changes_detected == 'true'
         run: pip install --upgrade platformio
 
       - name: Build PlatformIO Project
-        if: steps.check_changes.outputs.changes_detected == 'true'
         run: |
           cd Software
-          pio run -e development
+          pio run -e production
 
       - name: Check PlatformIO Project
-        if: steps.check_changes.outputs.changes_detected == 'true'
         run: |
           cd Software
-          pio check --skip-packages --fail-on-defect high -e development -f src
+          pio check --skip-packages --fail-on-defect high -e production -f src
 
       - name: Unit Test PlatformIO Project
-        if: steps.check_changes.outputs.changes_detected == 'true'
         run: |
           cd Software
           pio test -e test
+          
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-bin
+          path: Software/.pio/build/production/firmware.bin
+          retention-days: 1
+
+  upload_to_supabase:
+    needs: [check_changes, build]
+    if: needs.check_changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Download firmware artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware-bin
+          path: ./firmware
+          
+      - name: URL encode branch name
+        id: encode_branch
+        run: |
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          URL_ENCODED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/\//%2F/g' | sed 's/+/%2B/g' | sed 's/ /%20/g')
+          echo "encoded_branch=$URL_ENCODED_BRANCH" >> $GITHUB_OUTPUT
+          
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+          
+      - name: Upload firmware to Supabase Storage
+        run: |
+          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache"
