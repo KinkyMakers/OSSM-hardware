@@ -125,6 +125,7 @@ jobs:
     permissions:
       checks: write
       contents: read
+      deployments: write
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
@@ -166,15 +167,38 @@ jobs:
         run: |
           supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
       
-      - name: Create GitHub Check with firmware link
-        uses: LouisBrunner/checks-action@v2.0.0
+      - name: Create GitHub Deployment
+        id: create_deployment
+        uses: actions/github-script@v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: OSSM Firmware
-          conclusion: success
-          details_url: https://www.researchanddesire.com/ossm?branch=${{ steps.encode_branch.outputs.encoded_branch }}
-          action_url: https://www.researchanddesire.com/ossm?branch=${{ steps.encode_branch.outputs.encoded_branch }}
-          output: |
-            {"summary":"Firmware successfully built and uploaded to Supabase Storage", "text_description":"You can flash this firmware onto your device by visiting the link below."}
-          actions: |
-            [{"label":"Flash this firmware", "description":"Click to flash firmware", "identifier":"flash_firmware"}]
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.payload.pull_request ? context.payload.pull_request.head.ref : context.ref,
+              environment: 'firmware',
+              auto_merge: false,
+              required_contexts: [],
+              description: 'OSSM Firmware Deployment'
+            });
+            
+            return { id: deployment.data.id };
+      
+      - name: Create Deployment Status
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const deploymentId = ${{ steps.create_deployment.outputs.result }}.id;
+            const flashUrl = 'https://www.researchanddesire.com/ossm?branch=${{ steps.encode_branch.outputs.encoded_branch }}';
+            
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deploymentId,
+              state: 'success',
+              environment_url: flashUrl,
+              log_url: flashUrl,
+              description: 'Firmware ready to flash'
+            });
