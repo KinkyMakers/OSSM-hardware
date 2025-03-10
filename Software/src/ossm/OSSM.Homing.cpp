@@ -110,8 +110,8 @@ void OSSM::startHomingTask(void *pvParameters) {
 void OSSM::startHoming() {
     int stackSize = 10 * configMINIMAL_STACK_SIZE;
     xTaskCreatePinnedToCore(startHomingTask, "startHomingTask", stackSize, this,
-                            configMAX_PRIORITIES - 1, &runHomingTaskH,
-                            operationTaskCore);
+                            configMAX_PRIORITIES - 1, &Tasks::runHomingTaskH,
+                            Tasks::operationTaskCore);
 }
 
 auto OSSM::isStrokeTooShort() -> bool {

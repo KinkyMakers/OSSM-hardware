@@ -46,5 +46,5 @@ void OSSM::drawWiFi() {
     display.sendBuffer();
     displayMutex.unlock();
 
-    wm.startConfigPortal("OSSM Setup");
+    // wm.startConfigPortal("OSSM Setup");
 }
