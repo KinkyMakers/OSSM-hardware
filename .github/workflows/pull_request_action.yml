@@ -161,11 +161,20 @@ jobs:
       - name: Move existing firmware out of the way
         run: |
           supabase storage mv "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/${{ steps.get_commit_hash.outputs.commit_hash }}/firmware.bin" --experimental
+          supabase storage mv "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/manifest.json" "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/${{ steps.get_commit_hash.outputs.commit_hash }}/manifest.json" --experimental
         continue-on-error: true
           
       - name: Upload firmware to Supabase Storage
         run: |
           supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+      
+      - name: Create and upload manifest.json
+        run: |
+          # Create a temporary manifest file with the branch name replaced
+          cat .github/artifacts/manifest.json | sed "s/{{ branchName }}/${{ steps.encode_branch.outputs.encoded_branch }}/g" > ./manifest.json
+          
+          # Upload the manifest file to Supabase Storage
+          supabase storage cp ./manifest.json "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
       
       - name: Create GitHub Deployment
         id: create_deployment
