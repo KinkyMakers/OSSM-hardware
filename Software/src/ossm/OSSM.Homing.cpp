@@ -76,7 +76,6 @@ void OSSM::startHomingTask(void *pvParameters) {
                         ossm->currentSensorOffset;
 
         ESP_LOGV("Homing", "Current: %f", current);
-
         bool isCurrentOverLimit =
             current > Config::Driver::sensorlessCurrentLimit;
 
