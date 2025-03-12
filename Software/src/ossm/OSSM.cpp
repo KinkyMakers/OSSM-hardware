@@ -8,6 +8,8 @@
 namespace sml = boost::sml;
 using namespace sml;
 
+OSSM *ossm = nullptr;
+
 // Now we can define the OSSM constructor since OSSMStateMachine::operator() is
 // fully defined
 OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
@@ -19,10 +21,10 @@ OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
           sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
                   sml::logger<StateLogger>>>(logger, *this)) {
     // NOTE: This is a hack to get the wifi credentials loaded early.
-    wm.setConfigPortalBlocking(false);
-    wm.startConfigPortal();
-    wm.process();
-    wm.stopConfigPortal();
+    // wm.setConfigPortalBlocking(false);
+    // wm.startConfigPortal();
+    // wm.process();
+    // wm.stopConfigPortal();
 
     // All initializations are done, so start the state machine.
     sm->process_event(Done{});
@@ -117,7 +119,7 @@ void OSSM::drawHello() {
     // 3 x minimum stack
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawHelloTask, "drawHello", stackSize, this, 1,
-                &drawHelloTaskH);
+                &Tasks::drawHelloTaskH);
 }
 
 void OSSM::drawError() {
