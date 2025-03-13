@@ -19,23 +19,25 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
     Stroker.setDepth(0.01f * ossm->setting.depth * abs(measuredStrokeMm), true);
     Stroker.setStroke(0.01f * ossm->setting.stroke * abs(measuredStrokeMm),
                       true);
-    Stroker.moveToMax(10 * 3);
 
     auto isInCorrectState = [](OSSM *ossm) {
         // Add any states that you want to support here.
         return ossm->sm->is("strokeEngine"_s) ||
                ossm->sm->is("strokeEngine.idle"_s) ||
-               ossm->sm->is("strokeEngine.pattern"_s);
+               ossm->sm->is("strokeEngine.pattern"_s) ||
+               ossm->sm->is("strokeEngine.transition"_s);
     };
 
     while (isInCorrectState(ossm)) {
-        if (isChangeSignificant(lastSetting.speed, ossm->setting.speed)) {
-            if (ossm->setting.speed == 0) {
-                Stroker.stopMotion();
-            } else if (Stroker.getState() == READY) {
-                Stroker.startPattern();
-            }
+        if (!ossm->sm->is("strokeEngine.idle"_s)) {
+            Stroker.stopMotion();
+        }else if (ossm->setting.speed == 0) {
+            Stroker.stopMotion();
+        } else if (Stroker.getState() == READY) {
+            Stroker.startPattern();
+        }
 
+        if (isChangeSignificant(lastSetting.speed, ossm->setting.speed)) {
             Stroker.setSpeed(ossm->setting.speed * 3, true);
             lastSetting.speed = ossm->setting.speed;
         }
