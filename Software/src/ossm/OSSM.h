@@ -130,13 +130,13 @@ class OSSM : public OSSMInterface {
                 // If you have saved wifi credentials then connect to wifi
                 // immediately.
 
-                String ssid = o.wm.getWiFiSSID(true);
-                String pass = o.wm.getWiFiPass(true);
-                ESP_LOGD("UTILS", "connecting to wifi %s", ssid.c_str());
+                // String ssid = o.wm.getWiFiSSID(true);
+                // String pass = o.wm.getWiFiPass(true);
+                // ESP_LOGD("UTILS", "connecting to wifi %s", ssid.c_str());
 
-                WiFi.begin(ssid.c_str(), pass.c_str());
+                // WiFi.begin(ssid.c_str(), pass.c_str());
 
-                ESP_LOGD("UTILS", "exiting autoconnect");
+                // ESP_LOGD("UTILS", "exiting autoconnect");
             };
 
             // Guard definitions to make the table easier to read.
@@ -242,7 +242,6 @@ class OSSM : public OSSMInterface {
     FastAccelStepper *stepper;
     U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display;
     StateLogger logger;
-    AiEsp32RotaryEncoder &encoder;
 
     /**
      * ///////////////////////////////////////////
@@ -261,17 +260,10 @@ class OSSM : public OSSMInterface {
     Menu menuOption;
     String errorMessage = "";
 
-    SettingPercents setting = {.speed = 0,
-                               .stroke = 0,
-                               .sensation = 50,
-                               .depth = 50,
-                               .pattern = StrokePatterns::SimpleStroke};
-
     unsigned long sessionStartTime = 0;
     int sessionStrokeCount = 0;
     double sessionDistanceMeters = 0;
 
-    PlayControls playControl = PlayControls::STROKE;
 
     /**
      * ///////////////////////////////////////////
@@ -338,12 +330,22 @@ class OSSM : public OSSMInterface {
                   AiEsp32RotaryEncoder &rotaryEncoder,
                   FastAccelStepper *stepper);
 
+    SettingPercents setting = {.speed = 0,
+                               .stroke = 0,
+                               .sensation = 50,
+                               .depth = 50,
+                               .pattern = StrokePatterns::SimpleStroke};
+
+    PlayControls playControl = PlayControls::STROKE;
+
     std::unique_ptr<
         sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
                 sml::logger<StateLogger>>>
         sm = nullptr;  // The state machine
 
     WiFiManager wm;
+
+    AiEsp32RotaryEncoder &encoder;
 
     // Implement the interface methods
     void process_event(const auto &event) { sm->process_event(event); }
