@@ -2,7 +2,7 @@
 #define OSSM_SOFTWARE_ANALOG_H
 
 #include "Arduino.h"
-#include "U8g2lib.h"    //TODO Revisit before merge to MAIN. How annoying.. must be included to satisfy tests.
+#include "clib/u8g2.h"   //TODO Revisit before merge to MAIN. How annoying.. must be included to satisfy tests.
 #include "constants/Config.h"
 
 typedef struct {
