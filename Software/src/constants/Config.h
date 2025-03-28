@@ -102,7 +102,7 @@ namespace Config {
         // The minimum value of the pot in percent
         // prevents noisy pots registering commands when turned down to zero by
         // user
-        // 03.28.2025 This deadzone now applies inside getAnalogAveragePercent()
+        // 03.28.2025 This deadzone now applies with optional parameter on getAnalogAveragePercent()
         // allowing it to apply to SimplePenetration and StrokeEngine
         constexpr float commandDeadZonePercentage = 25.0f;
 
