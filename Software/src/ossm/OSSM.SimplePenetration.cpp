@@ -25,7 +25,7 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
                             ossm->setting.speed * ossm->setting.speed /
                             Config::Advanced::accelerationScaling;
 
-        bool isSpeedZero = ossm->setting.speedKnob == 0;
+        bool isSpeedZero = ossm->setting.speedKnob < 0.0001f;
         bool isSpeedChanged =
             !isSpeedZero && abs(speed - lastSpeed) > 1.0f; //Keep some dead-zone for analog fluctuation
         bool isAtTarget =
