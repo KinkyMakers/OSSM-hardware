@@ -2,6 +2,7 @@
 #define OSSM_SOFTWARE_ANALOG_H
 
 #include "Arduino.h"
+#include "constants/Config.h"
 
 typedef struct {
     int pinNumber;
