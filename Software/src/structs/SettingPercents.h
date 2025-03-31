@@ -17,7 +17,6 @@ struct SettingPercents {
     float sensation;
     float depth;
     StrokePatterns pattern;
-    float speedKnob;
 };
 
 #endif  // SOFTWARE_SETTINGPERCENTS_H
