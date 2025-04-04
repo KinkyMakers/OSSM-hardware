@@ -213,6 +213,7 @@ namespace drawShape {
         float scaledValue =
             constrain(value, minValue, maxValue) / maxValue * 100;
         int boxHeight = ceil(h * scaledValue / 100);
+        int intValue = static_cast<int>(scaledValue); // Convert to integer for display
 
         // Position calculations based on alignment
         int barStartX = (alignment == LEFT_ALIGNED) ? x : x - w;
@@ -226,9 +227,16 @@ namespace drawShape {
         display.drawFrame(barStartX, 0, w, h);
 
         // Set font for label and draw it
-        display.setFont(
-            Config::Font::bold);  // Make sure Config::Font::base is defined
+        display.setFont(Config::Font::bold);
         display.drawUTF8(textStartX, y + lh1, name.c_str());
+
+        // Draw the numeric value
+        String valueStr = String(intValue) + "%";
+        int valueWidth = display.getUTF8Width(valueStr.c_str());
+        int valueX = (alignment == LEFT_ALIGNED)
+                        ? textStartX
+                        : x - w - padding - valueWidth - textPadding;
+        display.drawUTF8(valueX, y + lh2, valueStr.c_str());
 
         int firstQuartile = y + h * 3 / 4;
         int half = y + h / 2;
