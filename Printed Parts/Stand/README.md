@@ -34,6 +34,9 @@
     (Qty  4) 90 Degree '3030' Corner Bracket
     (Qty  2) 1.5" Reinforced Rubber Washer
     (Qty  4) 1.5" Rubber Furniture Grip Pad
+    (Qty  1) 20" (508mm) 3030 Extrusion
+    (Qty  1) 18" (467mm) 3030 Extrusion
+    (Qty  2) 14" (355mm) 3030 Extrusion
     (Recommended) Sandbag
 
 ## Legacy README  
@@ -50,7 +53,7 @@ You can view the 3D model at
 
 ![image](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/b8dbea7e-1eda-442f-b299-4ad5ab392a34)
 
-<!-- 
-![image](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/68e3e564-df99-465a-8d91-f74ca8b0cc89) -->
+
+<!-- ![image](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/68e3e564-df99-465a-8d91-f74ca8b0cc89) -->
 
 ![image](https://github.com/KinkyMakers/OSSM-hardware/assets/12459679/ec249886-0299-4e7d-bc24-8ccde2e86aa1)
