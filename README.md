@@ -2,7 +2,7 @@
 
 ![OSSM Overview Image](Documentation/_images/OSSM%20Banner%20Image.png)
 
-### [**KinkyMakers Discord Community**]([Files/](https://discord.gg/wrENMKb3))  
+### [**KinkyMakers Discord Community**](https://discord.gg/wrENMKb3) 
 ![Discord](https://img.shields.io/discord/559409652425687041)  
 Most OSSM development takes place through ideas and CAD contributions made by enthusiastic discord members, join the discussion or show off your build!  
 
@@ -84,9 +84,9 @@ Attempting to use a stepper or other motor is not recommended; while it may be t
  - OSSM Reference Board, Remote, Wiring
     - [OSSM Reference PCB](https://www.researchanddesire.com/products/ossm-reference-board) or ESP32 Development Board
       - More information for board development [here](/Documentation/Board_Design.md).
-    - JST-PH 2.0 4p signal cable and 16awg power wire
+    - [OSSM Remote](https://www.researchanddesire.com/products/ossm-reference-board)
+    - JST-PH 2.0 4-Pin data cable and 16awg power wire
       - [Wire harness - Gold Motor](https://www.researchanddesire.com/products/ossm-wire-harness-gold-motor)
-   - [OSSM Remote](https://www.researchanddesire.com/products/ossm-reference-board)
  - 20-36v DC Power Supply (5.5 x 2.1 Barrel Plug)
    - [24 volt 5 amp](https://www.researchanddesire.com/products/ossm-24v-power-supply) is recommended
    - Higher voltage, up to 36v, will provide increased force
@@ -103,7 +103,8 @@ Attempting to use a stepper or other motor is not recommended; while it may be t
    - Body
    - Knobs
  - [Toy Mounting](Printed%20Parts/Toy%20Mounting/)
-   - Tiedown/suction plate with clamping ring
+   - Flange Base Plate with Clamping Ring (Tie-Down or Suction)
+   - Double Double (Vac-U-Lock)
  - [Mounting](Printed%20Parts/Mounting/)
    - Mounting Ring (PitClamp Mini Ring)
    - Base (PitClamp Mini Base)
@@ -111,15 +112,19 @@ Attempting to use a stepper or other motor is not recommended; while it may be t
  - [Stand](Printed%20Parts/Stand/)
    - 3030 Extrusion Base
 
+Experimental parts pop up in the [KinkyMakers Discord](https://discord.gg/wrENMKb3) #ossm-print-testing channel.  
+W.I.P. for the top rated to be merged into this repo.
+
 ### Default Actuator Hardware
 **GT2 Pulley** 
 
-    8mm Bore, 20 Tooth, 10mm Width
+    (Qty 1) 8mm Bore, 20 Tooth, 10mm Width
 **GT2 Timing Belt** 
 
-    10mm Width, 500mm length
+    (Qty 1) 10mm Width, 500mm length
 **MGN12H Rail + Bearing Block**
 
+    (Qty 1)
     Minimum 250mm
     Suggested 350mm
     Maximum 550mm
