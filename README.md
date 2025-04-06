@@ -14,13 +14,14 @@ Most OSSM development takes place through ideas and CAD contributions made by en
 ### [**Build Videos**]("https://youtube.com/playlist?list=PLzSK7OAu3KNQsFo6WJGT8P28lfkD3xpps")
 
 ## **Summary**   
-OSSM (pronounced like "Awesome") is a user friendly every day sex machine for the people.
+**OSSM** (pronounced like "awesome") is a user friendly every day sex machine for the people.
 
 The OSSM's primary feature is that it is a servo powered belt-driven linear rail.  
 This allows for quiet, high torque operation at speeds up to 1 meter per second, as well as for software-defined stroke and depth. 
 
 **Default/Recommended build at a glance**
- - 32 lbs (14 kg) of force
+ - 32 lbs (14 kg) of force @ 20v DC
+   - Up to 50 lbs (22 kg) @ 36v DC
  - 8" Stroke (20 cm) with 350mm rail
 
 This project aims to help people curious about sex machines explore their interest.   
@@ -110,23 +111,20 @@ Attempting to use a stepper or other motor is not recommended; while it may be t
 
 ### Hardware
  - **GT2 Pulley** 
-   - 8mm Bore 
-   - 20 Tooth
-   - 10mm width
+   - 8mm Bore, 20 Tooth, 10mm width
  - **GT2 Timing Belt** 
-   - 10mm width
-   - 500mm length
+   - 10mm width, 500mm length
  - **MGN12H Rail and bearing**
-   - Minimum 250mm in length, suggested 350mm
+   - Minimum 250mm length, suggested 350mm, maximum 550mm
    - Must be MGN**12H** rail - H is a longer bearing than C which gives greater stability. 12 indicates 12mm rail width.
- - **Bearings** (Qty: 6) 
-   - MR115-2RS 5x11x4mm
+ - **Bearings** 
+   - (Qty: 6) MR115-2RS 5x11x4mm 
  - **Metric Hex Cap Screws**
    - //TODO: 
-   - List (Qty: 6) 
-   - Of (Qty: 6) 
-   - Screws (Qty: 6) 
- - **ESP32 Development Board or [OSSM Reference PCB](https://research-and-desire.myshopify.com/collections/all/products/ossm-reference-board)**
+   - (Qty: 6) List 
+   - (Qty: 6) Of 
+   - (Qty: 6) Screws
+ - **ESP32 Development Board or [OSSM Reference PCB](https://www.researchanddesire.com/products/ossm-reference-board)**
     - More information for board development [here](/Documentation/Board_Design.md).
 
 ## Assembly
