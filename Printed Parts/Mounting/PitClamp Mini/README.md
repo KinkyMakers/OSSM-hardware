@@ -1,9 +1,10 @@
 # PitClamp Mini
-<img src="Images/Workspace/Overview%20-%20Front%20Left.png" style="width: 50%; height: auto;" />
-
 ## Summary    
+Developed by: armpit
+
+
 3d printed modular quick-release adjustable and removable mount ecosystem for 57AIM, 42AIM, iHSV57 NEMA23 motors.  
-Stress tested to 50 ft-lb without grip being compromised. (PLA 5 walls 15% crosshatch infill)  
+Stress tested to 50 ft-lb without grip being compromised. (PLA 6 walls 10% infill)  
 ### Supported motors:  
 <div style="display: flex; justify-content: space-between;">
   <img src="Images/Workspace/PitClamp%20Mini%20-%2057AIM30%20-%20Back%20Right.png" style="width: 32%; height: auto;" />
@@ -15,14 +16,21 @@ Stress tested to 50 ft-lb without grip being compromised. (PLA 5 walls 15% cross
   - **"Gold Motor"** == **57AIM30** [Recommended]
 - **47AIM** *(30/15/10)*
   - **"Round Motor"** == **42AIM30**
-- **iHSV57** *(180w/140w)*
-  - Note: Smaller than 140w iHSV57 will require modifications to ring
-  - This ring is two parts but snaps into two pieces after removing from printer. Clip each half around the motor.
+- **iHSV57** *(180w/140w/100w)*
+  - Note: Smaller than 180w iHSV57 will require modifications to ring
+  - This ring is two parts but snaps into two pieces after removing from printer. Clasp each half around the motor to assemble.
   
 
-## [Print Files](Files/)  
- - All parts are intended to print in the provided file orientation (as seen in slicer preview below)  
- - There may be various design tricks that take advantage of 0.2mm layer height in this default orientation
+## Printing
+**PitClamp Mini Standard Print Settings:**
+
+    6 Walls
+    Infill type: Cross Hatch (or gyroid) 10%
+    Supports: Tree Supports with 5 degree threshold angle
+    Seam: Nearest (or your personal preference)
+ - All parts are intended to print in the provided file default orientation. 
+   - **Printing the Base components in other orientations will cause structural weakness**
+ - If your printer is well calibrated and your material layer strength is optimal, the print-in-place Upper+Handle is recommended, found in the [/Non-Standard](Non-standard) folder.
 
 ### [Bill Of Materials](BOM.md)  
 

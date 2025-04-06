@@ -1,7 +1,10 @@
-A stream of updates made to this repo
+A stream of updates made to PitClamp Mini
 
 _Links may go bad, if a reference changes I am not keeping it updated in this file._
 
+- 04.02.2025 - Misc improvements, v1.1 release 
+  - Pivot bolt is now M5x20 ~~M6x20~~ 
+  - Lower Dogbone grip slightly loosened
 - 03.06.2025 - Official Release to OSSM Project
 - 11.22.2024 - Added v1.1 57AIM Ring (Latest recommended default)
 - 09.08.2024 - Refactored file structure.
