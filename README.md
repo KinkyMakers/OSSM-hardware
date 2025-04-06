@@ -1,9 +1,6 @@
 # OSSM - Open Source Sex Machine
 
-<div style="display: flex; justify-content: space-between;">
-  <img src="Documentation/_images/Overview Low ALT - R2P - Actuator Removed.png" style="width: 50%; height: auto;" />
-  <img src="Documentation/_images/Overview ALT - R2P - Unfolded.png" style="width: 50%; height: auto;" />
-</div>
+![OSSM Overview Image](Documentation/_images/OSSM%20Banner%20Image.png)
 
 ### [**KinkyMakers Discord Community**]([Files/](https://discord.gg/wrENMKb3))  
 ![Discord](https://img.shields.io/discord/559409652425687041)  

@@ -1,6 +1,6 @@
 # Mounting
 
-### Default actuator mounting base: [PitClamp Mini](#pitclamp-mini)
+### Default Actuator mounting base: [PitClamp Mini](#pitclamp-mini)
 
 ### Default PCB mount: [PCB Enclosure](#pcb-enclosure)
 
@@ -45,19 +45,22 @@ Stress tested to 50 ft-lb without grip being compromised. (PLA 6 walls 10% infil
     Infill type: Cross Hatch (or gyroid) 10%
     Supports: Tree Supports with 5 degree threshold angle
     Seam: Nearest (or your personal preference)
- - **Filament estimate:** 145g
+ - **Filament estimate:** 150g
  - **Recommended filament:** PLA+
  - All parts are intended to print in the provided file default orientation. 
    - **Printing the Base components in other orientations will cause structural weakness**
- - If your printer is well calibrated and your material layer strength is optimal, the print-in-place Upper+Handle is recommended, found in the [/Non-Standard](Non-standard) folder.
 
 **Printed parts:**
 
-    (Qty 1) Pivot Plate Left
-    (Qty 1) Pivot Plate Right
-    (Qty 8) Handle Spacer
-    (Qty 4) Extrusion Foot
-    (Qty 6) Extrusion Cap
+    (Qty 1) Mounting Ring - PitClamp Mini - 57AIM V1.1
+    (Qty 1) Base - PitClamp Mini - Dogbone Bolts
+    (Qty 1) Base - PitClamp Mini - Dogbone Nuts
+    (Qty 1) Base - PitClamp Mini - Handle
+    (Qty 1) Base - PitClamp Mini - Lower V1.1
+    (Qty 1) Base - PitClamp Mini - Upper V1.1
+
+If your printer is well calibrated and your material layer strength is optimal, the print-in-place Upper+Handle is recommended, found in the [/Non-Standard](Non-standard) folder.
+
 
 ### [Bill Of Materials](PitClamp%20Mini/BOM.md)  
 

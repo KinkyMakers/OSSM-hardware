@@ -8,7 +8,7 @@
     6 Walls
     Infill type: Cross Hatch (or gyroid) 15%
     Supports: None
- - **Filament estimate:** 192g
+ - **Filament estimate:** 200g
  - **Recommended filament:** PLA+
  - All parts are intended to print in the provided file default orientation. 
    - **Printing threaded components in other orientations will cause structural weakness**
