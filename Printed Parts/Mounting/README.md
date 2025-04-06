@@ -28,9 +28,7 @@ Stress tested to 50 ft-lb without grip being compromised. (PLA 6 walls 10% infil
 </div>
 
 - **57AIM** *(30/15/10)* 
-  - **"Gold Motor"** == **57AIM30** [Recommended]
 - **47AIM** *(30/15/10)*
-  - **"Round Motor"** == **42AIM30**
 - **iHSV57** *(180w/140w/100w)*
   - Note: Smaller than 180w iHSV57 will require modifications to ring
   - This ring is two parts but snaps into two pieces after removing from printer. Clasp each half around the motor to assemble.
@@ -54,11 +52,12 @@ Stress tested to 50 ft-lb without grip being compromised. (PLA 6 walls 10% infil
  - If your printer is well calibrated and your material layer strength is optimal, the print-in-place Upper+Handle is recommended, found in the [/Non-Standard](Non-standard) folder.
 
 **Printed parts:**
- - (Qty 1) Pivot Plate Left
- - (Qty 1) Pivot Plate Right
- - (Qty 8) Handle Spacer
- - (Qty 4) Extrusion Foot
- - (Qty 6) Extrusion Cap
+
+    (Qty 1) Pivot Plate Left
+    (Qty 1) Pivot Plate Right
+    (Qty 8) Handle Spacer
+    (Qty 4) Extrusion Foot
+    (Qty 6) Extrusion Cap
 
 ### [Bill Of Materials](PitClamp%20Mini/BOM.md)  
 
@@ -84,8 +83,9 @@ Stress tested to 50 ft-lb without grip being compromised. (PLA 6 walls 10% infil
  - All parts are intended to print in the provided file default orientation. 
 
 **Printed parts:**
- - (Qty 1) PCB - Box
- - (Qty 1) PCB - Lid
+
+    (Qty 1) PCB - Box
+    (Qty 1) PCB - Lid
 
 ### Bill Of Materials
     TODO

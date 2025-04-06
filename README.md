@@ -78,6 +78,25 @@ Attempting to use a stepper or other motor is not recommended; while it may be t
 
 ### Bill Of Materials for Recommended/Default Build
 
+### Electronics  
+
+ - Motor 
+   - 57AIM30 ["Gold Motor"](https://www.researchanddesire.com/products/ossm-motor-gold-motor)
+     - **Important note:** In order to operate with OSSM Software, motors must receive programming to set their "steps per revolution" to 800
+     - Flashing requires a 4 pin USB to RS485 connector, cables, and use of the [Gold Motor Porgramming Tool](/Hardware/Servo%20Tools/Gold%20Motor/)
+ - OSSM Reference Board, Remote, Wiring
+    - [OSSM Reference PCB](https://www.researchanddesire.com/products/ossm-reference-board) or ESP32 Development Board
+      - More information for board development [here](/Documentation/Board_Design.md).
+    - JST-PH 2.0 4p signal cable and 16awg power wire
+      - [Wire harness - Gold Motor](https://www.researchanddesire.com/products/ossm-wire-harness-gold-motor)
+   - [OSSM Remote](https://www.researchanddesire.com/products/ossm-reference-board)
+ - 20-36v DC Power Supply (5.5 x 2.1 Barrel Plug)
+   - [24 volt 5 amp](https://www.researchanddesire.com/products/ossm-24v-power-supply) is recommended
+   - Higher voltage, up to 36v, will provide increased force
+   - USB Power Banks capable of true 100w USB PD also generally seem to operate well for a portable OSSM
+     - [TESTED: ✓] INIU Power Bank B63 100w
+     - [TESTED: Powers down on high load] INIU B62 Power Bank 65W
+
 ### [**Printed Parts**](Printed%20Parts/) 
  - [Actuator](Printed%20Parts/Actuator/)
    - Body
@@ -95,41 +114,49 @@ Attempting to use a stepper or other motor is not recommended; while it may be t
  - [Stand](Printed%20Parts/Stand/)
    - 3030 Extrusion Base
 
-### Electronics  
+### Default Actuator Hardware
+**GT2 Pulley** 
 
- - Motor 
-   - 57AIM30 "Gold Motor"
-     - **Important note:** In order to operate with OSSM Software, motors must receive programming to set their "steps per revolution" to 800
-     - Flashing requires a 4 pin USB to RS485 connector, cables, and use of the [Gold Motor Porgramming Tool](/Hardware/Servo%20Tools/Gold%20Motor/)
- - OSSM Reference Board + Wiring
- - OSSM Remote
- - 20-36v DC Power Supply (5.5 x 2.1 Barrel Plug)
-   - 24 volt 4-5 amp is recommended
-   - USB Power Banks capable of true 100w USB PD also generally seem to operate well
-     - [TESTED: ✓] INIU Power Bank B63 100w
-     - [TESTED: Powers down on high load] INIU B62 Power Bank 65W
+    8mm Bore, 20 Tooth, 10mm Width
+**GT2 Timing Belt** 
 
-### Hardware
- - **GT2 Pulley** 
-   - 8mm Bore, 20 Tooth, 10mm width
- - **GT2 Timing Belt** 
-   - 10mm width, 500mm length
- - **MGN12H Rail and bearing**
-   - Minimum 250mm length, suggested 350mm, maximum 550mm
-   - Must be MGN**12H** rail - H is a longer bearing than C which gives greater stability. 12 indicates 12mm rail width.
- - **Bearings** 
-   - (Qty: 6) MR115-2RS 5x11x4mm 
- - **Metric Hex Cap Screws**
-   - //TODO: 
-   - (Qty: 6) List 
-   - (Qty: 6) Of 
-   - (Qty: 6) Screws
- - **ESP32 Development Board or [OSSM Reference PCB](https://www.researchanddesire.com/products/ossm-reference-board)**
-    - More information for board development [here](/Documentation/Board_Design.md).
+    10mm Width, 500mm length
+**MGN12H Rail + Bearing Block**
+
+    Minimum 250mm
+    Suggested 350mm
+    Maximum 550mm
+
+Rail length = desired maximum stroke + 180mm  
+Must be MGN**12H** rail.  
+H is a longer bearing block than C for greater stability. 12 indicates 12mm rail width.
+
+**Ball Bearings**
+
+    (Qty 6) MR115-2RS 5x11x4mm 
+
+**Fasteners**  
+
+    (Qty 8) M3x8  Socket Cap Head Bolt 
+    (Qty 2) M3x16 Socket Cap Head Bolt 
+    (Qty 1) M3x20 Socket Cap Head Bolt 
+    (Qty 7) M3 Nut
+    (Qty 3) M5x20 Socket Cap Head Bolt
+    (Qty 1) M5 Nut
+    (Qty 4) M5x35 Socket Cap Head Bolt 
+    (Qty 4) M5 20mm Coupling Nut (Or M5 Nut)
+
+**Additional hardware is required for Stand, Mounting, Remote  
+Detailed in their respective [Printed Parts](Printed%20Parts/) folder**
 
 ## Assembly
 ![](Printed%20Parts/Actuator/_images/Exploded%20-%20Actuator%20Default.png)  
 ### [**Build Instructions**](Documentation/Assembly%20Instructions.pdf)
 (03.30.2025) Note: There have been recent improvements to the OSSM Recommended/Default build that are not yet reflected in this build document.  
 Refer to exploded views from the Printed Parts folders for assembly of each major component.
-### [**Build Videos**]("https://youtube.com/playlist?list=PLzSK7OAu3KNQsFo6WJGT8P28lfkD3xpps")
+### Build Videos
+
+[OSSM Assembly Playlist](https://youtube.com/playlist?list=PLzSK7OAu3KNQsFo6WJGT8P28lfkD3xpps)
+
+
+[OSSM Complete Assembly - Follow Along Guide](https://www.youtube.com/watch?v=9lVobSEw_Uw)
