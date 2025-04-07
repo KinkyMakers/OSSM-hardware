@@ -37,6 +37,8 @@ PitClamp Mini Lower v1.1 Reinforced Sidemount + Ring
     4x M5x35 Socket Cap Screw
     4x M5 T-Nut
 
+77x16mm plate notes: These parts don't quite seem to be universally standard. Holes must be 5mm to support the 5mm hardware. Outer hole spacing needs to fall between 59mm and 61mm.
+
 Print+Part kits: https://www.etsy.com/listing/1899330105/pitclamp-mini-reinforced-standard-base
 
 ![](Images/Overview.jpg)
