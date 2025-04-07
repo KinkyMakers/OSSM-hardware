@@ -1,5 +1,5 @@
-#ifndef SOFTWARE_RECUSIVEMUTEX_H
-#define SOFTWARE_RECUSIVEMUTEX_H
+#ifndef OSSM_SOFTWARE_RECURSIVEMUTEX_H
+#define OSSM_SOFTWARE_RECURSIVEMUTEX_H
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -41,4 +41,4 @@ class ESP32RecursiveMutex {
     // Handle for the recursive mutex
     SemaphoreHandle_t mutex;
 };
-#endif  // SOFTWARE_RECUSIVEMUTEX_H
+#endif  // OSSM_SOFTWARE_RECURSIVEMUTEX_H
