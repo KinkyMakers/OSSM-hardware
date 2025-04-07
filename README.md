@@ -8,8 +8,6 @@ Most OSSM development takes place through ideas and CAD contributions made by en
 
 ### [**Read the Frequently Asked Questions**](FAQ.md)
 
-### [**Build Videos**]("https://youtube.com/playlist?list=PLzSK7OAu3KNQsFo6WJGT8P28lfkD3xpps")
-
 ## **Summary**   
 **OSSM** (pronounced like "awesome") is a user friendly every day sex machine for the people.
 
@@ -156,7 +154,7 @@ Detailed in their respective [Printed Parts](Printed%20Parts/) folder**
 ### [**Build Instructions**](Documentation/Assembly%20Instructions.pdf)
 (03.30.2025) Note: There have been recent improvements to the OSSM Recommended/Default build that are not yet reflected in this build document.  
 Refer to exploded views from the Printed Parts folders for assembly of each major component.
-### Build Videos
+## Build Videos
 
 [OSSM Assembly Playlist](https://youtube.com/playlist?list=PLzSK7OAu3KNQsFo6WJGT8P28lfkD3xpps)
 
