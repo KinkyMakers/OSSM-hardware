@@ -1,4 +1,5 @@
 # Actuator
+![](_images/Overview%20-%20Actuator%20Default.png)
 ![](_images/Exploded%20-%20Actuator%20Default.png)
 ![](_images/Exploded%20ALT%20-%20Actuator%20Default.png)
 
