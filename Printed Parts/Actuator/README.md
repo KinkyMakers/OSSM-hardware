@@ -13,6 +13,7 @@
  - **Recommended filament:** PLA+
  - All parts are intended to print in the provided file default orientation. 
    - **Printing threaded components in other orientations will cause structural weakness**
+     - For 24mm Clamping Thread, use 2 raft layers to promote better bed adhesion.
      - If you have issues with the 24mm Clamping Thread, use [Non-standard](Non-standard/) 24mm Thread and Belt Clamp files. 
        - (Qty 2) M3x8
        - (Qty 1) M3x16
