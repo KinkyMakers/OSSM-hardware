@@ -91,4 +91,6 @@ If your printer is well calibrated and your material layer strength is optimal, 
     (Qty 1) PCB - Lid
 
 ### Bill Of Materials
-    TODO
+    (Qty 6) M3x8 Socket Cap Head Bolt (Longer okay)
+    (Qty 2) M6x12 Socket Cap Head Bolt // Needs confirmation
+    (Qty 2) M6 T-nuts 
