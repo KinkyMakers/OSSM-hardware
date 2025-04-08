@@ -37,7 +37,8 @@ PitClamp Mini Lower v1.1 Reinforced Sidemount + Ring
 
 77x16mm plate notes: These parts don't quite seem to be universally standard. Holes must be 5mm to support the 5mm hardware. Outer hole spacing needs to fall between 59mm and 61mm.
 
-Print+Part kits: https://www.etsy.com/listing/1885144462/pitclamp-mini-reinforced-3030-hinge
+Print+Part kits: 
+https://www.etsy.com/listing/1899330105/pitclamp-mini-reinforced-standard-base
 
 ![](Images/Overview.jpg)
 ![](Images/Assembly.jpg)
