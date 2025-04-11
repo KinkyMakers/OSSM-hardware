@@ -66,6 +66,9 @@ namespace Config {
         // If the stroke length is less than this value, then the stroke is
         // likely the result of a poor homing.
         constexpr float minStrokeLengthMm = 50.0_mm;
+
+        // Applied offset after homing process.
+        constexpr float homingOffsetMn = 10_mm;
     }
 
     /**
