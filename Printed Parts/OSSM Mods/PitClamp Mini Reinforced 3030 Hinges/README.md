@@ -22,14 +22,14 @@ Per-side BOM:
 PitClamp Mini v1.1 Hinge Pin
 
     1x M5x20 Socket Cap Screw
-    1x M5 Nut
+    1x M5 Hex Nut
 
 PitClamp Mini Lever Dogbones + Handle
 
     1x M3x10 or M3x12 Socket Cap Screw
-    1x M3 Nut
+    1x M3 Hex Nut
     2x M4x25 Socket Cap Screw
-    2x M4 Nut
+    2x M4 Hex Nut
 
 PitClamp Mini Lower v1.1 Reinforced Sidemount + Ring
 
