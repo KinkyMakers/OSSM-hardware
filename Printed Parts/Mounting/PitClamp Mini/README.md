@@ -57,7 +57,7 @@ Stress tested to 50 ft-lb without grip being compromised. (PLA 6 walls 10% infil
 ### Motor Cover and All-In-One Electronics Support  
 <img src="Images/Workspace/PitClamp%20Mini%20-%20Action.png" style="width: 50%; height: auto;" />
 
-v1.1 Ring (only available for 57AIM) can use M5 nuts or M5 Coupling Nuts (20mm) and has ridges for an interlocking connection to an optional rear motor cover.  
+v1.1 Ring (only available for 57AIM) can use M5 Hex Nuts or M5 Hex Coupling Nuts (20mm) and has ridges for an interlocking connection to an optional rear motor cover when using Coupling Nuts.  
 **This is the recommended setup.**
 
 

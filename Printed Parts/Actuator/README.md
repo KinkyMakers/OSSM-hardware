@@ -17,7 +17,7 @@
      - If you have issues with the 24mm Clamping Thread, use [Non-standard](Non-standard/) 24mm Thread and Belt Clamp files. 
        - (Qty 2) M3x8
        - (Qty 1) M3x16
-       - (Qty 3) M3 Nut
+       - (Qty 3) M3 Hex Nut
 
 **Printed parts:**
 
@@ -59,11 +59,11 @@ H is a longer bearing block than C for greater stability. 12 indicates 12mm rail
     (Qty 8) M3x8  Socket Cap Head Bolt 
     (Qty 2) M3x16 Socket Cap Head Bolt 
     (Qty 1) M3x20 Socket Cap Head Bolt 
-    (Qty 7) M3 Nut
+    (Qty 7) M3 Hex Nut
     (Qty 3) M5x20 Socket Cap Head Bolt
-    (Qty 1) M5 Nut
+    (Qty 1) M5 Hex Nut
     (Qty 4) M5x35 Socket Cap Head Bolt 
-    (Qty 4) M5 20mm Coupling Nut (Or M5 Nut)
+    (Qty 4) M5 20mm Hex Coupling Nut (Or M5 Hex Nut)
 
 ## Assembly
 ![](_images/Exploded%20ALT%20-%20Actuator%20Default.gif)
