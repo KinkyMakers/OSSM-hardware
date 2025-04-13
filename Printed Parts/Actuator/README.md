@@ -1,7 +1,7 @@
 # Actuator
-![](_images/Overview%20-%20Actuator%20Default.png)
-![](_images/Exploded%20-%20Actuator%20Default.png)
-![](_images/Exploded%20ALT%20-%20Actuator%20Default.png)
+<p align="center" >
+    <img src="_images/Overview%20-%20Actuator%20Default.png" width="50%">
+</p>
 
 ## Printing
 **Actuator Standard Print Settings:**  
@@ -67,10 +67,16 @@ H is a longer bearing block than C for greater stability. 12 indicates 12mm rail
 
 ## Assembly
 ![](_images/Exploded%20ALT%20-%20Actuator%20Default.gif)
-    
+
+|![](_images/Exploded%20-%20Actuator%20Default.png) | ![](_images/Exploded%20ALT%20-%20Actuator%20Default.png) |
+| ---- | ---- |
+
+(Click to enlarge)
+
 ### Belt Routing
-<div style="display: flex; justify-content: space-between;">
-  <img src="_images/Cut View - Belt Routing Rear.png" style="width: 33%; height: auto;" />
-  <img src="_images/Cut View - Belt Routing Middle.png" style="width: 33%; height: auto;" />
-  <img src="_images/Cut View - Belt Routing Front.png" style="width: 33%; height: auto;" />
-</div>
+
+| Tensioner | Body | Belt Clamp |
+| ----- | ----- | ---- |
+| ![](_images/Cut%20View%20-%20Belt%20Routing%20Rear.png) | ![](_images/Cut%20View%20-%20Belt%20Routing%20Middle.png) | ![](https://github.com/KinkyMakers/OSSM-hardware/blob/master/Printed%20Parts/Actuator/_images/Cut%20View%20-%20Belt%20Routing%20Front.png) |
+
+(Click to enlarge)
