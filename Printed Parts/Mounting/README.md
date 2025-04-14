@@ -7,10 +7,8 @@
 
 # PitClamp Mini v1.1
 
-<div style="display: flex; justify-content: space-between;">
-  <img src="_images/Overview%20-%20PitClamp%20Mini%20Base.png" style="width: 50%;" alt="Overview - PitClamp Mini">
-  <img src="_images/Exploded%20-%20PitClamp%20Mini%20Base.png" style="width: 50%; height: auto;" alt="Exploded - PitClamp Mini">
-</div>
+| ![Overview - PitClamp Mini](_images/Overview%20-%20PitClamp%20Mini%20Base.png) | ![Exploded - PitClamp Mini](_images/Exploded%20-%20PitClamp%20Mini%20Base.png)
+| ---- | ---- |
 
 **Developed by: armpit**
 
@@ -21,22 +19,14 @@
 Stress tested to 50 ft-lb without grip being compromised. (PLA 6 walls 10% infill)  
 
 ### Supported motors:  
-<div style="display: flex; justify-content: space-between;">
-  <img src="PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2057AIM30%20-%20Back%20Right.png" style="width: 32%; height: auto;" />
-  <img src="PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2042AIM30%20-%20Back%20Right.png" style="width: 32%; height: auto;" />
-  <img src="PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%20iHSV57%20-%20Back%20Right.png" style="width: 32%; height: auto;" />
-</div>
+| **57AIM** *(30/15/10)* | **47AIM** *(30/15/10)* | **iHSV57<sup>1</sup>** (180w/140w<sup>2</sup>/100w<sup>2</sup>) |
+| ---- | ---- | ---- |
+![](PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2057AIM30%20-%20Back%20Right.png) | ![](PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2042AIM30%20-%20Back%20Right.png) | ![](PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%20iHSV57%20-%20Back%20Right.png) |
+| ![](PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2057AIM30%20-%20Front%20Left.png) | ![](PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2042AIM30%20-%20Front%20Left.png) | ![](PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%20iHSV57%20-%20Front%20Left.png) |
 
-- **57AIM** *(30/15/10)* 
-- **47AIM** *(30/15/10)*
-- **iHSV57** *(180w/140w/100w)*
-  - Note: Smaller than 180w iHSV57 will require modifications to ring
-  - This ring is two parts but snaps into two pieces after removing from printer. Clasp each half around the motor to assemble.
-<div style="display: flex; justify-content: space-between;">
-  <img src="PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2057AIM30%20-%20Front%20Left.png" style="width: 32%; height: auto;" />
-  <img src="PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2042AIM30%20-%20Front%20Left.png" style="width: 32%; height: auto;" />
-  <img src="PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%20iHSV57%20-%20Front%20Left.png" style="width: 32%; height: auto;" />
-</div>
+<sup>1</sup>:The iHSV57 ring is two parts but snaps into two pieces after removing from printer. Clasp each half around the motor to assemble.  
+<sup>2</sup>: Smaller than 180w iHSV57 will require modifications to that ring. 
+
 
 ### Printing
 **PitClamp Mini Standard Print Settings:**  
