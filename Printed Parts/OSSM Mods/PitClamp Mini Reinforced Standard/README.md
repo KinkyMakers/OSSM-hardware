@@ -24,10 +24,9 @@ PitClamp Mini v1.1 Hinge Pin
 
 PitClamp Mini Lever Dogbones + Handle
 
-    1x M3x10 or M3x12 Socket Cap Screw
-    1x M3 Nut
+    	1x M4x10 or M4x12 Socket Cap Screw
 	2x M4x25 Socket Cap Screw
-	2x M4 Nut
+	3x M4 Nut
 
 PitClamp Mini Lower v1.1 Reinforced Sidemount + Ring
 
