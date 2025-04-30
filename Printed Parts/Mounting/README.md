@@ -1,8 +1,8 @@
 # Mounting
 
-### Default Actuator mounting base: [PitClamp Mini](#pitclamp-mini)
+### Standard Actuator mounting base: [PitClamp Mini](#pitclamp-mini)
 
-### Default PCB mount: [PCB Enclosure](#pcb-enclosure)
+### Standard PCB mount: [PCB Enclosure](#pcb-enclosure)
 
 
 # PitClamp Mini v1.1
@@ -19,7 +19,7 @@
 Stress tested to 50 ft-lb without grip being compromised. (PLA 6 walls 10% infill)  
 
 ### Supported motors:  
-| **57AIM** *(30/15/10)* | **47AIM** *(30/15/10)* | **iHSV57<sup>1</sup>** (180w/140w<sup>2</sup>/100w<sup>2</sup>) |
+| **57AIM** *(30/15/10)* | **47AIM** *(30/15/10)* | **iHSV57<sup>1</sup>** (180w<sup>2</sup>) |
 | ---- | ---- | ---- |
 ![](PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2057AIM30%20-%20Back%20Right.png) | ![](PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2042AIM30%20-%20Back%20Right.png) | ![](PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%20iHSV57%20-%20Back%20Right.png) |
 | ![](PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2057AIM30%20-%20Front%20Left.png) | ![](PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2042AIM30%20-%20Front%20Left.png) | ![](PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%20iHSV57%20-%20Front%20Left.png) |
