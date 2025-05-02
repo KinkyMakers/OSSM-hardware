@@ -28,7 +28,7 @@ PitClamp Mini Lever Dogbones + Handle
 	2x M4x25 Socket Cap Screw
 	3x M4 Nut
 
-PitClamp Mini Lower v1.1 Reinforced Sidemount + Ring
+PitClamp Mini Lower v1.1 Reinforced
 
 	1x 77x16mm "Flat Mending Plate" AKA "Straight Braces"
 	2x M5x16 Socket Cap Screw
