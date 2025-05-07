@@ -2,7 +2,7 @@
 - PlatformIO
 - ESP32 microcontroller
 
-If you aren't sure what ESP board to select in Arduino IDE, choose "ESP32 Dev Module" - it works on all ESP32 I have tested so far.
+If you aren't sure what ESP board to select in PlatformIO, choose "ESP32 Dev Module" - it works on all ESP32 I have tested so far.
 
 ![ESP32 Architecture](https://github.com/KinkyMakers/OSSM-hardware/blob/master/PlatformIO%20ESP32%20code/OSSM_ESP32/OSSM%20ESP32%20Architecture.png)
 
