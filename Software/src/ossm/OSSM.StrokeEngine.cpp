@@ -113,5 +113,6 @@ void OSSM::startStrokeEngine() {
 
     xTaskCreatePinnedToCore(startStrokeEngineTask, "startStrokeEngineTask",
                             stackSize, this, configMAX_PRIORITIES - 1,
-                            &runStrokeEngineTaskH, operationTaskCore);
+                            &Tasks::runStrokeEngineTaskH,
+                            Tasks::operationTaskCore);
 }
