@@ -6,7 +6,10 @@
 ![Discord](https://img.shields.io/discord/559409652425687041)  
 Most OSSM development takes place through ideas and CAD contributions made by enthusiastic discord members, join the discussion or show off your build!  
 
+### Check out our docs at [GitBook](https://kinky-makers.gitbook.io/)
+
 ### [**Read the Frequently Asked Questions**](FAQ.md)
+
 
 ## **Summary**   
 **OSSM** (pronounced like "awesome") is a user friendly every day sex machine for the people.
