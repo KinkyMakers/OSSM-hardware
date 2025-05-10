@@ -120,6 +120,25 @@ void OSSM::drawHello() {
                 &drawHelloTaskH);
 }
 
+void OSSM::initializeAdvancedSettingsTask(void *pvParameters) {
+    // parse ossm from the parameters
+    OSSM *ossm = (OSSM *)pvParameters;
+
+    if (ossm->advancedConfigurationSettings.settings.empty()) {
+        ossm->advancedConfigurationSettings = ossm->getAdvancedSettings();
+    }
+
+    // delete the task
+    vTaskDelete(nullptr);
+}
+
+void OSSM::initializeAdvancedSettings() {
+    // 3 x minimum stack
+    int stackSize = 3 * configMINIMAL_STACK_SIZE;
+    xTaskCreate(initializeAdvancedSettingsTask, "initializeAdvancedSettings", stackSize, this, 1,
+                &initializeAdvancedSettingsTaskH);
+}
+
 void OSSM::drawError() {
     // Throw the e-break on the stepper
     try {
