@@ -81,8 +81,8 @@ Attempting to use a stepper or other motor is not recommended; while it may be t
  - Motor 
    - 57AIM30 ["Gold Motor"](https://www.researchanddesire.com/products/ossm-motor-gold-motor)
      - **Important note:** In order to operate with OSSM Software, motors must receive programming to set their "steps per revolution" to 800.
-     - Motors from R+D are pre-programmed. Motors from all other sources will need programming.
-     - Flashing requires a USB to 4 pin RS485 connector, cables, and use of the [Gold Motor Porgramming Tool](/Hardware/Servo%20Tools/Gold%20Motor/)
+     - Motors from R+D are pre-programmed for OSSM. Motors from all other sources will need programming.
+     - Programming requires a USB to 4 pin RS485 connector, cable for the 8 pin white motor plug, and use of the [Gold Motor Programming Tool](/Hardware/Servo%20Tools/Gold%20Motor/)
  - OSSM Reference Board, Remote, Wiring
     - [OSSM Reference PCB](https://www.researchanddesire.com/products/ossm-reference-board) or ESP32 Development Board
       - More information for board development [here](/Documentation/Board_Design.md).
