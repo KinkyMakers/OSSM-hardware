@@ -20,6 +20,7 @@ struct LanguageStruct {
     String Speed;
     String SpeedWarning;
     String StateNotImplemented;
+    String Streaming;
     String Stroke;
     String StrokeEngine;
     String StrokeTooShort;
