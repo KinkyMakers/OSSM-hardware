@@ -80,8 +80,9 @@ Attempting to use a stepper or other motor is not recommended; while it may be t
 
  - Motor 
    - 57AIM30 ["Gold Motor"](https://www.researchanddesire.com/products/ossm-motor-gold-motor)
-     - **Important note:** In order to operate with OSSM Software, motors must receive programming to set their "steps per revolution" to 800
-     - Flashing requires a 4 pin USB to RS485 connector, cables, and use of the [Gold Motor Porgramming Tool](/Hardware/Servo%20Tools/Gold%20Motor/)
+     - **Important note:** In order to operate with OSSM Software, motors must receive programming to set their "steps per revolution" to 800.
+     - Motors from R+D are pre-programmed. Motors from all other sources will need programming.
+     - Flashing requires a USB to 4 pin RS485 connector, cables, and use of the [Gold Motor Porgramming Tool](/Hardware/Servo%20Tools/Gold%20Motor/)
  - OSSM Reference Board, Remote, Wiring
     - [OSSM Reference PCB](https://www.researchanddesire.com/products/ossm-reference-board) or ESP32 Development Board
       - More information for board development [here](/Documentation/Board_Design.md).
@@ -92,7 +93,7 @@ Attempting to use a stepper or other motor is not recommended; while it may be t
    - [24 volt 5 amp](https://www.researchanddesire.com/products/ossm-24v-power-supply) is recommended
    - Higher voltage, up to 36v, will provide increased force
    - USB Power Banks capable of true 100w USB PD also generally seem to operate well for a portable OSSM
-     - [TESTED: ✓] INIU Power Bank B63 100w
+     - [TESTED: ✓] INIU Power Bank P63-E1 100w (Old model: B63)
      - [TESTED: Powers down on high load] INIU B62 Power Bank 65W
 
 ### [**Printed Parts**](Printed%20Parts/) 
