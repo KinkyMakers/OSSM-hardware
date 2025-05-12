@@ -17,7 +17,7 @@ Most OSSM development takes place through ideas and CAD contributions made by en
 The OSSM's primary feature is that it is a servo powered belt-driven linear rail.  
 This allows for quiet, high torque operation at speeds up to 1 meter per second, as well as for software-defined stroke and depth. 
 
-**Default/Recommended build at a glance**
+**Standard Recommended Build at a glance**
  - 32 lbs (14 kg) of force @ 20v DC
    - Up to 50 lbs (22 kg) @ 36v DC
  - 8" Stroke (20 cm) with 350mm rail
@@ -66,7 +66,7 @@ what risks exist and how to mitigate them.
 
 ## **Building Your OSSM**
 ### Motor Support  
- - 57AIM30 "Gold Motor" (Recommended/Default)
+ - 57AIM30 "Gold Motor" (Standard Recommended)
  - 42AIM30 "Round Motor" (Smaller form factor, limited mounting support)
  - iHSV57 "Legacy Motor" (Pre-2024 recommended motor)
 
@@ -74,7 +74,7 @@ The OSSM Software is written to support closed loop servo type motors and tested
 Most OSSM actuator and mounting hardware is designed for NEMA23 form factor motors.  
 Attempting to use a stepper or other motor is not recommended; while it may be technically possible in some cases, this usually requires custom design work and advanced-level custom code. 
 
-### Bill Of Materials for Recommended/Default Build
+### Bill Of Materials for Standard Recommended Build
 
 ### Electronics  
 
@@ -117,7 +117,7 @@ Attempting to use a stepper or other motor is not recommended; while it may be t
 Experimental parts pop up in the [KinkyMakers Discord](https://discord.gg/wrENMKb3) #ossm-print-testing channel.  
 W.I.P. for the top rated to be merged into this repo.
 
-### Default Actuator Hardware
+### Standard Actuator Hardware
 **GT2 Pulley** 
 
     (Qty 1) 8mm Bore, 20 Tooth, 10mm Width
@@ -154,9 +154,14 @@ H is a longer bearing block than C for greater stability. 12 indicates 12mm rail
 Detailed in their respective [Printed Parts](Printed%20Parts/) folder**
 
 ## Assembly
+
+**Important note:** The actuator rail direction is critical for pattern accuracy and safety functions. The proper direction is with the threaded end to the right when looking at the front face of the actuator body - the "M" side of the OSSM text on the Cover.  
+Outdated videos and documentation may show different directions. Your rail should extend the threaded end first when booted; if this does not match the behavior of your build you should reverse your rail's printed hardware.
+
+
 ![](Printed%20Parts/Actuator/_images/Exploded%20-%20Actuator%20Default.png)  
 ### [**Build Instructions**](Documentation/Assembly%20Instructions.pdf)
-(03.30.2025) Note: There have been recent improvements to the OSSM Recommended/Default build that are not yet reflected in this build document.  
+(03.30.2025) Note: There have been recent improvements to the OSSM Standard Recommended build that are not yet reflected in this build document.  
 Refer to exploded views from the Printed Parts folders for assembly of each major component.
 ## Build Videos
 
