@@ -1,1 +1,0 @@
-Filament estimate: 75g
