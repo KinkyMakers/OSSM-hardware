@@ -32,6 +32,7 @@
     (Qty  6) M6 Washer
     (Qty 20) M6 T-Nut '3030'
     (Qty  4) 90 Degree '3030' Corner Bracket
+    (Qty  2) 1.5" (38mm) Reinforced Rubber Washer
     (Qty  4) 1.5" (38mm) Square Non-Slip Furniture Pad
     (Qty  1) 20" (508mm) 3030 Extrusion
     (Qty  1) 18" (467mm) 3030 Extrusion
