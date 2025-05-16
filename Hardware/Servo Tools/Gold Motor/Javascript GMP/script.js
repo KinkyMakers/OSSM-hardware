@@ -66,16 +66,38 @@ document.getElementById('write').addEventListener('click', async () => {
             { register: 0x09, value: document.getElementById('direction_polarity').checked ? 1 : 0 },
             { register: 0x14, value: 1 }  // Save parameters to EEPROM
         ];
-        displayFeedback('Writing settings...', 'is-info');
+
+        // Repeat the write operation for reliability.
+        // This is a workaround and the root cause should be investigated!
+        const repeatCount = 3;
+        showWriteStatus(`Writing settings ${repeatCount} times for reliability...`, 'is-info');
         writtenRegisters = settings.map(setting => setting.register);
-        for (const setting of settings) {
-            await writeRegister(setting.register, setting.value);
+        
+        for (let i = 0; i < repeatCount; i++) {
+            showWriteStatus(`Writing settings ${repeatCount} times for reliability... Loop #${i+1}`, 'is-info');
+            for (const setting of settings) {
+                await writeRegister(setting.register, setting.value);
+            }
         }
+
+        showWriteStatus(`Writing settings ${repeatCount} times for reliability... Done`, 'is-info');        fadeWriteStatus();
         displayFeedback('Settings written successfully. Refreshing register values...', 'is-success');
+        
         await readRegisters();
+
     } catch (error) {
+        fadeWriteStatus();
         displayFeedback(`Failed to write settings: ${error}`, 'is-danger');
     }
+});
+
+document.getElementById('reset_defaults').addEventListener('click', () => {
+    document.getElementById('steps_per_revolution').value = 800;
+    document.getElementById('max_output').value = 600;
+    document.getElementById('speed_kp').value = 3000;
+    document.getElementById('position_kp').value = 3000;
+    document.getElementById('direction_polarity').checked = true;
+    document.getElementById('hack_the_planet').checked = false;
 });
 
 async function readRegisters() {
@@ -108,9 +130,11 @@ async function readRegisters() {
         0x19: "SPECIFIC_FUNCTION"
     };
     let output = '';
+    let highlightCount = 0;
     for (const [address, name] of Object.entries(registerMap)) {
         const value = await readRegister(parseInt(address));
         const highlightClass = writtenRegisters.includes(parseInt(address)) ? 'highlight' : '';
+        if (highlightClass) highlightCount++;
         if (value !== null && value !== undefined) {
             output += `<span class="${highlightClass}">${name} (0x${address.toString(16)}): ${value}</span>\n`;
         } else {
@@ -118,6 +142,9 @@ async function readRegisters() {
         }
     }
     document.getElementById('register_values').innerHTML = output;
+    if (highlightCount > 0) {
+        displayFeedback(`${highlightCount} value${highlightCount === 1 ? '' : 's'} updated`, 'is-success');
+    }
 }
 
 async function writeRegister(register, value) {
@@ -269,4 +296,22 @@ function displayFeedback(message, colorClass) {
     feedbackElement.textContent = message;
     feedbackElement.className = `notification ${colorClass}`;
     feedbackElement.style.display = 'block';
+}
+
+// Update showWriteStatus to always show the element and set color class
+function showWriteStatus(message, colorClass) {
+    let el = document.getElementById('write_status');
+    if (!el) return;
+    el.textContent = message;
+    el.className = colorClass ? `notification ${colorClass}` : 'notification';
+    el.style.display = 'block';
+    el.style.color = ''; // Reset color in case it was faded
+}
+
+// Add this helper to fade the message to grey
+function fadeWriteStatus() {
+    let el = document.getElementById('write_status');
+    if (!el) return;
+    el.className = 'notification';
+    el.style.color = '#888'; // faded grey
 }
