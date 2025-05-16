@@ -112,10 +112,15 @@
             padding: 10px;
             overflow: auto;
             max-height: 200px;
+            color: #00FF00;
+        }
+
+        pre#register_values {
+            color: #fff;
         }
 
         .highlight {
-            color: #FF0000;
+            color: #00e6c3;
             font-weight: bold;
         }
 
@@ -140,6 +145,22 @@
         .flex-item:last-child {
             margin-right: 0;
         }
+
+        .reset-btn {
+            background-color: #222 !important;
+            color: #00FF00 !important;
+            border: 1px solid #00FF00 !important;
+            font-size: 13px !important;
+            padding: 4px 12px !important;
+            border-radius: 8px !important;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            transition: background 0.2s;
+        }
+        .reset-btn:hover {
+            background-color: #333 !important;
+            color: #00FF00 !important;
+        }
     </style>
 </head>
 <body>
@@ -151,8 +172,9 @@
         </div>
         <div id="controls" style="display:none;">
             <h2 class="title">Motor Settings</h2>
+            <button id="reset_defaults" class="button reset-btn" type="button" style="margin-bottom:15px;">Reset fields to OSSM Standard</button>
             <div class="field">
-                <label class="label" for="steps_per_revolution">Steps per Revolution (0x0B)</label>
+                <label class="label" for="steps_per_revolution">Steps per Revolution (0x11)</label>
                 <input class="input" type="number" id="steps_per_revolution" value="800">
             </div>
             <div class="field">
@@ -184,6 +206,7 @@
         </div>
         <h2 class="title">Register Values</h2>
         <pre id="register_values"></pre>
+        <div id="write_status" style="margin-top:10px; color:#00FF00; font-family:'VT323', monospace; font-size:18px; display:block; background:none; border:none; padding:0;"></div>
         <div id="feedback" class="notification"></div>
     </div>
     <script src="script.js"></script>
