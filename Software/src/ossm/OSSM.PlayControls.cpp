@@ -62,17 +62,18 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         // Always assume the display should not update.
         shouldUpdateDisplay = false;
 
-        next.speedKnob =
-            getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
-        ossm->setting.speedKnob = next.speedKnob;
+        // next.speedKnob =
+        //     getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin,
+        //     50});
+        // ossm->setting.speedKnob = next.speedKnob;
         encoder = ossm->encoder.readEncoder();
 
-        next.speed = next.speedKnob;
+        // next.speed = next.speedKnob;
 
-        if (next.speed != ossm->setting.speed) {
-            shouldUpdateDisplay = true;
-            ossm->setting.speed = next.speed;
-        }
+        // if (next.speed != ossm->setting.speed) {
+        //     shouldUpdateDisplay = true;
+        //     ossm->setting.speed = next.speed;
+        // }
 
         switch (ossm->playControl) {
             case PlayControls::STROKE:
@@ -116,7 +117,9 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         drawShape::settingBar(UserConfig::language.Speed, next.speedKnob);
 
         if (isStrokeEngine) {
-            drawStr::centered(32, UserConfig::language.StrokeEngineNames[(int)ossm->setting.pattern]);
+            drawStr::centered(
+                32, UserConfig::language
+                        .StrokeEngineNames[(int)ossm->setting.pattern]);
             switch (ossm->playControl) {
                 case PlayControls::STROKE:
                     drawShape::settingBarSmall(ossm->setting.sensation, 125);
