@@ -2,9 +2,9 @@
 
 Note programming an AIM motor requires not only power for the RS485, the motor needs between 20-40v otherwise it will not communicate. Look for the green light on the rear of the servo.  
 
-in the "Javascript GMP" folder run the page in some browser that supports web serial and hopefully it'll just work. 
+Download `Gold Motor.html` and `script.js` from the "Javascript GMP" folder to a folder on your computer and open the Gold Motor page in some browser that supports web serial. (Chrome)
 
-<img width="671" alt="image" src="https://github.com/KinkyMakers/OSSM-hardware/assets/43324815/de769499-766b-4020-82d9-6c93fbce37e2">
+![](Javascript%20GMP/image.png)
 
 the settings we change by default are
 
