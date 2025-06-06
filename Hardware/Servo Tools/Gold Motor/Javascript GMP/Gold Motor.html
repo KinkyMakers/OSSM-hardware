@@ -207,194 +207,242 @@
 </head>
 <body>
     <div class="window">
-        <div class="title-bar">Gold Motor Control</div>
-        <div class="buttons">
-            <button id="connect" class="button">Connect to Motor </button>
-            <button id="disconnect" class="button" style="display:none;">Disconnect</button>
-        </div>
-        <div id="controls" style="display:none;">
-            <h2 class="title">Motor Settings</h2>
-            <button id="reset_defaults" class="button reset-btn" type="button" style="margin-bottom:15px;">Reset fields to OSSM Standard</button>
-            <!-- Basic fields -->
-            <div class="compact-grid">
-                <div class="field">
-                    <label class="label" for="steps_per_revolution">Electronic Gear Denominator (Steps per Revolution)</label>
-                    <span class="reg-label">0x0B</span>
-                    <input class="input" type="number" id="steps_per_revolution" value="800">
-                </div>
-                <div class="field">
-                    <label class="label" for="max_output">Still Maximum Allowed Output</label>
-                    <span class="reg-label">0x18</span>
-                    <input class="input" type="number" id="max_output" value="600">
-                </div>
-                <div class="field">
-                    <label class="label" for="speed_kp">Speed Ring Proportional Ratio Coefficient (KP)</label>
-                    <span class="reg-label">0x05</span>
-                    <input class="input" type="number" id="speed_kp" value="3000">
-                </div>
-                <div class="field">
-                    <label class="label" for="position_kp">Position Ring Proportional Coefficient (KP)</label>
-                    <span class="reg-label">0x07</span>
-                    <input class="input" type="number" id="position_kp" value="3000">
-                </div>
-                <div class="field">
-                    <label class="label" for="direction_polarity">Direction Polarity</label>
-                    <span class="reg-label">0x09</span>
-                    <input id="direction_polarity" type="checkbox" class="slider" checked>
-                </div>
-                <div class="field">
-                    <label class="label" for="hack_the_planet">Hack the planet?</label>
-                    <span class="reg-label"></span>
-                    <input id="hack_the_planet" type="checkbox" class="slider">
-                </div>
-            </div>
-            <!-- Advanced settings toggle -->
-            <button id="toggle_advanced" class="button reset-btn" type="button" style="margin-bottom:15px;">Show Advanced Settings</button>
-            <div id="advanced_disclaimer" style="display:none; margin-bottom:15px;">
-                <div style="background:#222; color:#f55; border:1px solid #f55; padding:10px; border-radius:6px; font-size:15px;">
-                    <b>Warning:</b> Advanced settings are experimental.<br>
-                    <b>Changing these values may make your motor unusable until settings are restored.</b><br>
-                    <span style="color:#fff;">Please save your current settings somewhere safe before making changes.</span>
-                </div>
-            </div>
-            <div id="advanced_settings" style="display:none;">
-                <div class="compact-grid">
-                    <div class="field">
-                        <label class="label" for="modbus_enable">MODBUS Enable</label>
-                        <span class="reg-label">0x00</span>
-                        <input class="input" type="number" id="modbus_enable" value="0" min="0" max="1">
-                    </div>
-                    <div class="field">
-                        <label class="label" for="drive_output_enable">Drive Output Enable</label>
-                        <span class="reg-label">0x01</span>
-                        <input class="input" type="number" id="drive_output_enable" value="7" min="0" max="7">
-                    </div>
-                    <div class="field">
-                        <label class="label" for="motor_target_speed">Motor Target Speed</label>
-                        <span class="reg-label">0x02</span>
-                        <input class="input" type="number" id="motor_target_speed" value="1500">
-                    </div>
-                    <div class="field">
-                        <label class="label" for="motor_acceleration">Motor Acceleration</label>
-                        <span class="reg-label">0x03</span>
-                        <input class="input" type="number" id="motor_acceleration" value="50000">
-                    </div>
-                    <div class="field">
-                        <label class="label" for="weak_magnetic_angle">Weak Magnetic Angle</label>
-                        <span class="reg-label">0x04</span>
-                        <input class="input" type="number" id="weak_magnetic_angle" value="495">
-                    </div>
-                    <div class="field">
-                        <label class="label" for="speed_loop_integration_time">Speed Loop Integration Time</label>
-                        <span class="reg-label">0x06</span>
-                        <input class="input" type="number" id="speed_loop_integration_time" value="10">
-                    </div>
-                    <div class="field">
-                        <label class="label" for="speed_feed">Speed Feed</label>
-                        <span class="reg-label">0x08</span>
-                        <input class="input" type="number" id="speed_feed" value="3900">
-                    </div>
-                    <div class="field">
-                        <label class="label" for="electronic_gear_molecules">Electronic Gear Molecules</label>
-                        <span class="reg-label">0x0A</span>
-                        <input class="input" type="number" id="electronic_gear_molecules" value="32768">
-                    </div>
-                    <div class="field">
-                        <label class="label" for="target_location_low">Target Location is 16 bits Lower</label>
-                        <span class="reg-label">0x0C <span class="unsupported-note">UNSUPPORTED</span></span>
-                        <input class="input" type="number" id="target_location_low" value="0" disabled>
-                    </div>
-                    <div class="field">
-                        <label class="label" for="target_location_high">Target Position is 16 bits High</label>
-                        <span class="reg-label">0x0D <span class="unsupported-note">UNSUPPORTED</span></span>
-                        <input class="input" type="number" id="target_location_high" value="0" disabled>
-                    </div>
-                    <div class="field">
-                        <label class="label" for="alarm_code">Alarm Code</label>
-                        <span class="reg-label">0x0E</span>
-                        <input class="input" type="number" id="alarm_code" value="0">
-                    </div>
-                    <div class="field">
-                        <label class="label" for="system_current">System Current</label>
-                        <span class="reg-label">0x0F <span class="unsupported-note">UNSUPPORTED</span></span>
-                        <input class="input" type="number" id="system_current" value="0" disabled>
-                    </div>
-                    <div class="field">
-                        <label class="label" for="motor_current_speed">Motor Current Speed</label>
-                        <span class="reg-label">0x10 <span class="unsupported-note">UNSUPPORTED</span></span>
-                        <input class="input" type="number" id="motor_current_speed" value="0" disabled>
-                    </div>
-                    <div class="field">
-                        <label class="label" for="system_voltage">System Voltage</label>
-                        <span class="reg-label">0x11 <span class="unsupported-note">UNSUPPORTED</span></span>
-                        <input class="input" type="number" id="system_voltage" value="0" disabled>
-                    </div>
-                    <div class="field">
-                        <label class="label" for="system_temperature">System Temperature</label>
-                        <span class="reg-label">0x12 <span class="unsupported-note">UNSUPPORTED</span></span>
-                        <input class="input" type="number" id="system_temperature" value="0" disabled>
-                    </div>
-                    <div class="field">
-                        <label class="label" for="system_pwm_output">The PWM of the System Output</label>
-                        <span class="reg-label">0x13 <span class="unsupported-note">UNSUPPORTED</span></span>
-                        <input class="input" type="number" id="system_pwm_output" value="0" disabled>
-                    </div>
-                    <div class="field">
-                        <label class="label" for="parameter_saving_flag">Parameter Saving Flag</label>
-                        <span class="reg-label">0x14</span>
-                        <input class="input" type="number" id="parameter_saving_flag" value="0">
-                    </div>
-                    <div class="field">
-                        <label class="label" for="device_address">Device Address</label>
-                        <span class="reg-label">0x15</span>
-                        <input class="input" type="number" id="device_address" value="1">
-                    </div>
-                    <div class="field">
-                        <label class="label" for="absolute_position_low">Absolute Position is 16 bits Lower</label>
-                        <span class="reg-label">0x16 <span class="unsupported-note">UNSUPPORTED</span></span>
-                        <input class="input" type="number" id="absolute_position_low" value="0" disabled>
-                    </div>
-                    <div class="field">
-                        <label class="label" for="absolute_position_high">Absolute Position is 16 bits Higher</label>
-                        <span class="reg-label">0x17 <span class="unsupported-note">UNSUPPORTED</span></span>
-                        <input class="input" type="number" id="absolute_position_high" value="0" disabled>
-                    </div>
-                    <div class="field">
-                        <label class="label" for="specific_function">Specific Function</label>
-                        <span class="reg-label">0x19</span>
-                        <input class="input" type="number" id="specific_function" value="0">
-                    </div>
-                </div>
+            <div class="title-bar">Gold Motor Control</div>
+            <div id="connection_instructions" style="background:#222; color:#fff; border:1px solid #8e669c; border-radius:8px; padding:12px; margin:18px 0 18px 0; font-size:16px;">
+                <b>Connection Instructions:</b><br>
+                Connect the motor using an <b>RS485 USB adapter</b> that provides <b>5V+, GND, A, B</b>.<br>
+                The motor must have <b>20-36V DC</b> supplied, which can come from the OSSM Reference Board or external power source.<br>
+                <span style="display:block; margin-top:10px; color:#f55;">
+                    <b>Important:</b> The OSSM Reference Board 4-Pin Signal Plug must be <b>disconnected</b> while programming.
+                </span>
             </div>
             <div class="buttons">
-                <button id="write" class="button">Write Settings</button>
-                <button id="read" class="button">Read Registers</button>
+                <button id="connect" class="button">Connect to Motor </button>
+                <button id="disconnect" class="button" style="display:none;">Disconnect</button>
             </div>
+            <div id="controls" style="display:none;">
+                <h2 class="title">Motor Settings</h2>
+                <button id="reset_defaults" class="button reset-btn" type="button" style="margin-bottom:15px;">Reset fields to OSSM Standard</button>
+                <!-- Basic fields -->
+                <div class="compact-grid">
+                    <div class="field">
+                        <label class="label" for="steps_per_revolution">Electronic Gear Denominator (Steps per Revolution)</label>
+                        <span class="reg-label">0x0B</span>
+                        <input class="input" type="number" id="steps_per_revolution" value="800">
+                    </div>
+                    <div class="field">
+                        <label class="label" for="max_output">Still Maximum Allowed Output</label>
+                        <span class="reg-label">0x18</span>
+                        <input class="input" type="number" id="max_output" value="600">
+                    </div>
+                    <div class="field">
+                        <label class="label" for="speed_kp">Speed Ring Proportional Ratio Coefficient (KP)</label>
+                        <span class="reg-label">0x05</span>
+                        <input class="input" type="number" id="speed_kp" value="3000">
+                    </div>
+                    <div class="field">
+                        <label class="label" for="position_kp">Position Ring Proportional Coefficient (KP)</label>
+                        <span class="reg-label">0x07</span>
+                        <input class="input" type="number" id="position_kp" value="3000">
+                    </div>
+                    <div class="field">
+                        <label class="label" for="direction_polarity">Direction Polarity</label>
+                        <span class="reg-label">0x09</span>
+                        <input id="direction_polarity" type="checkbox" class="slider" checked>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="hack_the_planet">Hack the planet?</label>
+                        <span class="reg-label"></span>
+                        <input id="hack_the_planet" type="checkbox" class="slider">
+                    </div>
+                </div>
+                <!-- Advanced settings toggle -->
+                <button id="toggle_advanced" class="button reset-btn" type="button" style="margin-bottom:15px;">Show Advanced Settings</button>
+                <div id="advanced_disclaimer" style="display:none; margin-bottom:15px;">
+                    <div style="background:#222; color:#f55; border:1px solid #f55; padding:10px; border-radius:6px; font-size:15px;">
+                        <b>Warning:</b> Advanced settings are experimental.<br>
+                        <b>Changing these values may make your motor unusable until settings are restored.</b><br>
+                        <span style="color:#fff;">Please save your current settings somewhere safe before making changes.</span>
+                    </div>
+                </div>
+                <div id="advanced_settings" style="display:none;">
+                    <div class="compact-grid">
+                        <div class="field">
+                            <label class="label" for="modbus_enable">MODBUS Enable</label>
+                            <span class="reg-label">0x00</span>
+                            <input class="input" type="number" id="modbus_enable" value="0" min="0" max="1">
+                        </div>
+                        <div class="field">
+                            <label class="label" for="drive_output_enable">Drive Output Enable</label>
+                            <span class="reg-label">0x01</span>
+                            <input class="input" type="number" id="drive_output_enable" value="7" min="0" max="7">
+                        </div>
+                        <div class="field">
+                            <label class="label" for="motor_target_speed">Motor Target Speed</label>
+                            <span class="reg-label">0x02</span>
+                            <input class="input" type="number" id="motor_target_speed" value="1500">
+                        </div>
+                        <div class="field">
+                            <label class="label" for="motor_acceleration">Motor Acceleration</label>
+                            <span class="reg-label">0x03</span>
+                            <input class="input" type="number" id="motor_acceleration" value="50000">
+                        </div>
+                        <div class="field">
+                            <label class="label" for="weak_magnetic_angle">Weak Magnetic Angle</label>
+                            <span class="reg-label">0x04</span>
+                            <input class="input" type="number" id="weak_magnetic_angle" value="495">
+                        </div>
+                        <div class="field">
+                            <label class="label" for="speed_loop_integration_time">Speed Loop Integration Time</label>
+                            <span class="reg-label">0x06</span>
+                            <input class="input" type="number" id="speed_loop_integration_time" value="10">
+                        </div>
+                        <div class="field">
+                            <label class="label" for="speed_feed">Speed Feed</label>
+                            <span class="reg-label">0x08</span>
+                            <input class="input" type="number" id="speed_feed" value="3900">
+                        </div>
+                        <div class="field">
+                            <label class="label" for="electronic_gear_molecules">Electronic Gear Molecules</label>
+                            <span class="reg-label">0x0A</span>
+                            <input class="input" type="number" id="electronic_gear_molecules" value="32768">
+                        </div>
+                        <div class="field">
+                            <label class="label" for="target_location_low">Target Location is 16 bits Lower</label>
+                            <span class="reg-label">0x0C <span class="unsupported-note">UNSUPPORTED</span></span>
+                            <input class="input" type="number" id="target_location_low" value="0" disabled>
+                        </div>
+                        <div class="field">
+                            <label class="label" for="target_location_high">Target Position is 16 bits High</label>
+                            <span class="reg-label">0x0D <span class="unsupported-note">UNSUPPORTED</span></span>
+                            <input class="input" type="number" id="target_location_high" value="0" disabled>
+                        </div>
+                        <div class="field">
+                            <label class="label" for="alarm_code">Alarm Code</label>
+                            <span class="reg-label">0x0E</span>
+                            <input class="input" type="number" id="alarm_code" value="0">
+                        </div>
+                        <div class="field">
+                            <label class="label" for="system_current">System Current</label>
+                            <span class="reg-label">0x0F <span class="unsupported-note">UNSUPPORTED</span></span>
+                            <input class="input" type="number" id="system_current" value="0" disabled>
+                        </div>
+                        <div class="field">
+                            <label class="label" for="motor_current_speed">Motor Current Speed</label>
+                            <span class="reg-label">0x10 <span class="unsupported-note">UNSUPPORTED</span></span>
+                            <input class="input" type="number" id="motor_current_speed" value="0" disabled>
+                        </div>
+                        <div class="field">
+                            <label class="label" for="system_voltage">System Voltage</label>
+                            <span class="reg-label">0x11 <span class="unsupported-note">UNSUPPORTED</span></span>
+                            <input class="input" type="number" id="system_voltage" value="0" disabled>
+                        </div>
+                        <div class="field">
+                            <label class="label" for="system_temperature">System Temperature</label>
+                            <span class="reg-label">0x12 <span class="unsupported-note">UNSUPPORTED</span></span>
+                            <input class="input" type="number" id="system_temperature" value="0" disabled>
+                        </div>
+                        <div class="field">
+                            <label class="label" for="system_pwm_output">The PWM of the System Output</label>
+                            <span class="reg-label">0x13 <span class="unsupported-note">UNSUPPORTED</span></span>
+                            <input class="input" type="number" id="system_pwm_output" value="0" disabled>
+                        </div>
+                        <div class="field">
+                            <label class="label" for="parameter_saving_flag">Parameter Saving Flag</label>
+                            <span class="reg-label">0x14</span>
+                            <input class="input" type="number" id="parameter_saving_flag" value="0">
+                        </div>
+                        <div class="field">
+                            <label class="label" for="device_address">Device Address</label>
+                            <span class="reg-label">0x15</span>
+                            <input class="input" type="number" id="device_address" value="1">
+                        </div>
+                        <div class="field">
+                            <label class="label" for="absolute_position_low">Absolute Position is 16 bits Lower</label>
+                            <span class="reg-label">0x16 <span class="unsupported-note">UNSUPPORTED</span></span>
+                            <input class="input" type="number" id="absolute_position_low" value="0" disabled>
+                        </div>
+                        <div class="field">
+                            <label class="label" for="absolute_position_high">Absolute Position is 16 bits Higher</label>
+                            <span class="reg-label">0x17 <span class="unsupported-note">UNSUPPORTED</span></span>
+                            <input class="input" type="number" id="absolute_position_high" value="0" disabled>
+                        </div>
+                        <div class="field">
+                            <label class="label" for="specific_function">Specific Function</label>
+                            <span class="reg-label">0x19</span>
+                            <input class="input" type="number" id="specific_function" value="0">
+                        </div>
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button id="write" class="button">Write Settings</button>
+                    <button id="read" class="button">Read Registers</button>
+                </div>
+            </div>
+            <h2 class="title" id="register_values_title" style="display:none;">Register Values</h2>
+            <pre id="register_values" style="display:none;"></pre>
+            <div id="write_status" style="margin-top:10px; color:#8e669c; font-family:'VT323', monospace; font-size:18px; display:block; background:none; border:none; padding:0;"></div>
+            <div id="feedback" class="notification"></div>
+            <div style="text-align:center; color:#8e669c; font-size:20px; margin: 24px 0 0 0;">
+            Gold Motor Programming Utility
+            <br><b>v2.0 alpha</b>
         </div>
-        <h2 class="title">Register Values</h2>
-        <pre id="register_values"></pre>
-        <div id="write_status" style="margin-top:10px; color:#8e669c; font-family:'VT323', monospace; font-size:18px; display:block; background:none; border:none; padding:0;"></div>
-        <div id="feedback" class="notification"></div>
-        <div style="text-align:center; color:#8e669c; font-size:20px; margin: 24px 0 0 0;">
-        Gold Motor Programming Utility
-        <br><b>v2.0 alpha</b>
-    </div>
-    </div>
-    <script src="script.js"></script>
-    <script>
-        // Toggle advanced settings visibility
-        document.addEventListener('DOMContentLoaded', function() {
-            var advBtn = document.getElementById('toggle_advanced');
-            var advDiv = document.getElementById('advanced_settings');
-            var advDisclaimer = document.getElementById('advanced_disclaimer');
-            let shown = false;
-            advBtn.addEventListener('click', function() {
-                shown = !shown;
-                advDiv.style.display = shown ? 'block' : 'none';
-                advDisclaimer.style.display = shown ? 'block' : 'none';
-                advBtn.textContent = shown ? 'Hide Advanced Settings' : 'Show Advanced Settings';
+        </div>
+        <script src="script.js"></script>
+        <script>
+            // Toggle advanced settings visibility
+            document.addEventListener('DOMContentLoaded', function() {
+                var advBtn = document.getElementById('toggle_advanced');
+                var advDiv = document.getElementById('advanced_settings');
+                var advDisclaimer = document.getElementById('advanced_disclaimer');
+                let shown = false;
+                advBtn.addEventListener('click', function() {
+                    shown = !shown;
+                    advDiv.style.display = shown ? 'block' : 'none';
+                    advDisclaimer.style.display = shown ? 'block' : 'none';
+                    advBtn.textContent = shown ? 'Hide Advanced Settings' : 'Show Advanced Settings';
+                });
+
+                // Hide register values and connection instructions until connected
+                document.getElementById('register_values_title').style.display = 'none';
+                document.getElementById('register_values').style.display = 'none';
+                document.getElementById('connection_instructions').style.display = 'block';
             });
-        });
-    </script>
-</body>
+
+            // Show/hide register values and connection instructions after serial connection is established
+            document.getElementById('connect').addEventListener('click', async function() {
+                // Wait for the serial connection to be established in script.js
+                // Use a MutationObserver to detect when controls are shown
+                const controls = document.getElementById('controls');
+                const regTitle = document.getElementById('register_values_title');
+                const regBox = document.getElementById('register_values');
+                const connInstr = document.getElementById('connection_instructions');
+
+                if (controls.style.display !== 'none') {
+                    // Already visible, show register values and hide instructions
+                    regTitle.style.display = 'block';
+                    regBox.style.display = 'block';
+                    connInstr.style.display = 'none';
+                    return;
+                }
+
+                // Otherwise, observe for the controls to become visible
+                const observer = new MutationObserver(() => {
+                    if (controls.style.display !== 'none') {
+                        regTitle.style.display = 'block';
+                        regBox.style.display = 'block';
+                        connInstr.style.display = 'none';
+                        observer.disconnect();
+                    }
+                });
+                observer.observe(controls, { attributes: true, attributeFilter: ['style'] });
+            });
+
+            document.getElementById('disconnect').addEventListener('click', function() {
+                document.getElementById('register_values_title').style.display = 'none';
+                document.getElementById('register_values').style.display = 'none';
+                document.getElementById('connection_instructions').style.display = 'block';
+            });
+        </script>
+    </body>
 </html>
