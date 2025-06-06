@@ -125,7 +125,7 @@ document.getElementById('write').addEventListener('click', async () => {
 
 document.getElementById('reset_defaults').addEventListener('click', () => {
     document.getElementById('modbus_enable').value = 0;
-    document.getElementById('drive_output_enable').value = 7;
+    document.getElementById('drive_output_enable').value = 1;
     document.getElementById('motor_target_speed').value = 1500;
     document.getElementById('motor_acceleration').value = 50000;
     document.getElementById('weak_magnetic_angle').value = 495;
