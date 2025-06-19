@@ -2,8 +2,8 @@
 
 #include "tasks.h"
 
-#define SERVICE_B_UUID "BAAD"
-#define CHARACTERISTIC_B2_UUID "F00D"
+#define SERVICE_B_UUID "522b443a-4f53-534d-0001-420badbabe69"
+#define CHARACTERISTIC_B2_UUID "522b443a-4f53-534d-0002-420badbabe69"
 const char* MANUFACTURER_NAME_UUID =
     "2A29";                           // Standard UUID for manufacturer name
 const char* SYSTEM_ID_UUID = "2A23";  // Standard UUID for system ID
@@ -218,7 +218,8 @@ void nimbleLoop(void* pvParameters) {
         }
 
         int currentTime = millis();
-        if (currentState == lastState && (currentTime - lastMessageTime) < 1000) {
+        if (currentState == lastState &&
+            (currentTime - lastMessageTime) < 1000) {
             vTaskDelay(pdMS_TO_TICKS(200));
             continue;
         }
@@ -289,7 +290,7 @@ void initNimble() {
     NimBLECharacteristic* pManufacturerName =
         pDeviceInfoService->createCharacteristic(MANUFACTURER_NAME_UUID,
                                                  NIMBLE_PROPERTY::READ);
-    pManufacturerName->setValue("Silicon Labs");
+    pManufacturerName->setValue("Research And Desire");
 
     // Add System ID characteristic
     NimBLECharacteristic* pSystemId = pDeviceInfoService->createCharacteristic(
