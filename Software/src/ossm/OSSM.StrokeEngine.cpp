@@ -28,22 +28,18 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
                ossm->sm->is("strokeEngine.pattern"_s);
     };
 
-    // Start the high-frequency current monitoring task
-    ESP_LOGD("UTILS", "Starting current monitoring task...");
     xTaskCreatePinnedToCore(
         currentMonitoringTask,
         "CurrentMonitor", 
-        4096, // Adequate stack size for stability
+        4096,
         ossm, 
-        configMAX_PRIORITIES - 3, // Lower priority to avoid starving system tasks
+        configMAX_PRIORITIES - 3,
         &currentMonitoringTaskH, 
-        1 // Pin to same core as stroke engine
+        1
     );
     
     if (currentMonitoringTaskH == nullptr) {
         ESP_LOGE("UTILS", "Failed to create current monitoring task!");
-    } else {
-        ESP_LOGD("UTILS", "Current monitoring task created successfully");
     }
 
     while (isInCorrectState(ossm)) {
@@ -58,15 +54,12 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
             lastSetting.speed = ossm->setting.speed;
         }
         
-        // Check for force safety trigger and handle forward move cancellation
+        // Check for force safety trigger
         static bool lastForceState = false;
         bool currentForceState = ossm->isForceSafetyTriggered();
         
         if (currentForceState && !lastForceState) {
-            // Force safety just triggered - the current monitoring task has already stopped the stepper
-            ESP_LOGD("UTILS", "Force safety triggered - forward move has been stopped, pattern will advance naturally");
-            
-            // Clear the force safety flag immediately to allow pattern to continue
+            ESP_LOGD("UTILS", "Force safety event processed");
             ossm->setForceSafetyTriggered(false);
         }
         
@@ -138,7 +131,7 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
             lastSetting.pattern = ossm->setting.pattern;
         }
 
-        vTaskDelay(10); // Balanced 10ms for responsive safety checks without starving UI
+        vTaskDelay(10);
     }
 
     // Clean up current monitoring task
@@ -156,7 +149,7 @@ void OSSM::currentMonitoringTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
     float measuredStrokeMm = ossm->measuredStrokeSteps / (1_mm);
     unsigned long lastTriggerTime = 0;
-    const unsigned long MIN_TRIGGER_INTERVAL_MS = 0; // No minimum interval for maximum responsiveness
+    const unsigned long MIN_TRIGGER_INTERVAL_MS = 50;
 
     auto isInCorrectState = [](OSSM *ossm) {
         return ossm->sm->is("strokeEngine"_s) ||
@@ -164,56 +157,30 @@ void OSSM::currentMonitoringTask(void *pvParameters) {
                ossm->sm->is("strokeEngine.pattern"_s);
     };
 
-    ESP_LOGD("UTILS", "Current monitoring task started with threshold: %f", ossm->setting.currentThreshold);
-    ESP_LOGW("UTILS", "Current sensor offset: %f", ossm->currentSensorOffset);
+    ESP_LOGD("UTILS", "Current monitoring task started");
 
-    // Cache stepper pointers for faster access
     FastAccelStepper* stepperPtr = ossm->stepper;
     
-    // Dynamic threshold caching - recalculate only when setting changes
     static float lastThresholdSetting = -1.0f;
     static float cachedThresholdFactor = 0.0f;
     static bool cachedThresholdEnabled = false;
     
     while (isInCorrectState(ossm)) {
         try {
-            // Update threshold cache if setting changed (check every iteration)
             if (ossm->setting.currentThreshold != lastThresholdSetting) {
                 lastThresholdSetting = ossm->setting.currentThreshold;
                 cachedThresholdEnabled = (ossm->setting.currentThreshold < 100);
-                cachedThresholdFactor = ossm->setting.currentThreshold / 100.0f * 50.0f; //Current sensor max ~50
-                ESP_LOGW("UTILS", "Threshold cache updated: %f%% -> factor=%f, enabled=%s", 
-                        lastThresholdSetting, cachedThresholdFactor, cachedThresholdEnabled ? "true" : "false");
+                cachedThresholdFactor = ossm->setting.currentThreshold / 100.0f * 50.0f;
             }
             
-            // Fast current reading with minimal averaging for noise reduction
-            // 3 samples provides good balance between speed and noise immunity
             float currentReading = getAnalogAveragePercent(
                         SampleOnPin{Pins::Driver::currentSensorPin, 3}) -
                     ossm->currentSensorOffset;
 
-            // Store the current reading for display purposes
             ossm->lastCurrentReading = currentReading;
 
-            // Debug: Always show current vs threshold for troubleshooting
-            static unsigned long lastDebugTime = 0;
             unsigned long currentTime = millis();
-            if ((currentTime - lastDebugTime) > 1000) { // Reduced frequency to save CPU for monitoring
-                int32_t currentPosition = stepperPtr->getCurrentPosition();
-                int32_t currentTarget = stepperPtr->targetPos();
-                bool isMoving = stepperPtr->isRunning();
-                bool thresholdExceeded = cachedThresholdEnabled && (currentReading > cachedThresholdFactor);
-                ESP_LOGW("UTILS", "Current monitoring DEBUG: threshold=%f%% (factor=%f), current=%f, exceeded=%s, enabled=%s, forceFlag=%s, pos=%d, target=%d, moving=%s", 
-                         ossm->setting.currentThreshold, cachedThresholdFactor, currentReading, 
-                         thresholdExceeded ? "true" : "false",
-                         cachedThresholdEnabled ? "true" : "false",
-                         ossm->isForceSafetyTriggered() ? "true" : "false",
-                         currentPosition, currentTarget, isMoving ? "true" : "false");
-                lastDebugTime = currentTime;
-            }
-
-            // Always check threshold if enabled - don't skip when flag is already set
-            // This ensures continuous monitoring even during force safety events
+            
             if (cachedThresholdEnabled) {
                 bool thresholdExceeded = (currentReading > cachedThresholdFactor);
                 
@@ -221,32 +188,21 @@ void OSSM::currentMonitoringTask(void *pvParameters) {
                     bool canTrigger = (currentTime - lastTriggerTime) > MIN_TRIGGER_INTERVAL_MS;
                     
                     if (canTrigger) {
-                        // Get current position and target for direction analysis
-                        // Use direct stepper calls for minimum latency
                         int32_t currentPosition = stepperPtr->getCurrentPosition();
                         int32_t currentTarget = stepperPtr->targetPos();
                         
-                        // Forward move is any move where target > current position (away from home)
                         bool isForwardMove = (currentTarget > currentPosition);
                         
                         if (isForwardMove) {
-                            ESP_LOGW("UTILS", "*** CURRENT THRESHOLD TRIGGERED ON FORWARD MOVE *** Current: %f, Threshold: %f%% (actual=%f), Pos: %d, Target: %d - IMMEDIATELY stopping forward move",
-                                        currentReading, ossm->setting.currentThreshold, cachedThresholdFactor, currentPosition, currentTarget);
+                            ESP_LOGW("UTILS", "Force threshold exceeded - stopping forward move at pos %d", currentPosition);
                             
-                            // Additional logging for home position debugging
-                            if (abs(currentPosition) < 100) { // Near home position
-                                ESP_LOGW("UTILS", "*** FORWARD MOVE FROM NEAR HOME DETECTED AND STOPPED *** Pos: %d -> Target: %d", currentPosition, currentTarget);
+                            bool stopAndAdvanceResult = Stroker.forceStopAndAdvance();
+                            if (!stopAndAdvanceResult) {
+                                ESP_LOGE("UTILS", "Failed to stop and advance pattern");
                             }
                             
-                            // IMMEDIATELY stop the forward move to prevent completion
-                            stepperPtr->forceStop();
-                            
-                            // Set force safety flag to signal the main task
                             ossm->setForceSafetyTriggered(true);
                             lastTriggerTime = currentTime;
-                        } else {
-                            ESP_LOGD("UTILS", "Current threshold exceeded but move is toward home (safe) - Pos: %d, Target: %d - allowing move to continue",
-                                    currentPosition, currentTarget);
                         }
                     }
                 }
@@ -255,7 +211,7 @@ void OSSM::currentMonitoringTask(void *pvParameters) {
             ESP_LOGE("UTILS", "Exception in current monitoring task, continuing...");
         }
 
-        // Balanced monitoring frequency of 1ms for reasonable responsiveness and system impact
+        // Monitoring frequency of 1ms for responsiveness
         vTaskDelay(pdMS_TO_TICKS(1));
     }
 
