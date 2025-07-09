@@ -47,31 +47,6 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
     }
 
     while (isInCorrectState(ossm)) {
-        // Check for force safety trigger first
-        if (ossm->isForceSafetyTriggered()) {
-            ESP_LOGD("UTILS", "Force safety active - pattern will skip forward moves until flag is cleared");
-            
-            // Clear the force flag after a short timeout to allow pattern to resume
-            static unsigned long forceStartTime = 0;
-            static bool forceTimeSet = false;
-            
-            if (!forceTimeSet) {
-                forceStartTime = millis();
-                forceTimeSet = true;
-            }
-            
-            // Clear flag after 1 second to allow pattern to resume faster
-            if ((millis() - forceStartTime) > 1000) {
-                ESP_LOGD("UTILS", "Force timeout reached, clearing force flag");
-                ossm->setForceSafetyTriggered(false);
-                forceTimeSet = false;
-            }
-        } else {
-            // Reset force time tracking when not in force mode
-            static bool forceTimeSet = false;
-            forceTimeSet = false;
-        }
-        
         if (isChangeSignificant(lastSetting.speed, ossm->setting.speed)) {
             if (ossm->setting.speed == 0) {
                 Stroker.stopMotion();
@@ -91,7 +66,7 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
             // Force safety just triggered - the current monitoring task has already stopped the stepper
             ESP_LOGD("UTILS", "Force safety triggered - forward move has been stopped, pattern will advance naturally");
             
-            // Clear the force flag since the move has been stopped
+            // Clear the force safety flag immediately to allow pattern to continue
             ossm->setForceSafetyTriggered(false);
         }
         
@@ -237,8 +212,9 @@ void OSSM::currentMonitoringTask(void *pvParameters) {
                 lastDebugTime = currentTime;
             }
 
-            // Fast path: Only check threshold if enabled and not already triggered
-            if (cachedThresholdEnabled && !ossm->isForceSafetyTriggered()) {
+            // Always check threshold if enabled - don't skip when flag is already set
+            // This ensures continuous monitoring even during force safety events
+            if (cachedThresholdEnabled) {
                 bool thresholdExceeded = (currentReading > cachedThresholdFactor);
                 
                 if (thresholdExceeded) {
