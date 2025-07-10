@@ -2,7 +2,7 @@
 #define OSSM_SOFTWARE_USERCONFIG_H
 
 #include "constants/copy/en-us.h"
-#include "constants/copy/fr.h"
+//#include "constants/copy/fr.h" // Commented to help with memory issues
 
 namespace UserConfig {
     // TODO: restore user overrides.
