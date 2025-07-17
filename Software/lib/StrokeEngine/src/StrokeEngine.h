@@ -234,6 +234,29 @@ class StrokeEngine {
 
     /**************************************************************************/
     /*!
+      @brief  Forces the pattern to advance to the next stroke by incrementing
+      the internal index. Used for safety systems when a stroke needs to be
+      skipped due to excessive force or other safety conditions.
+      Only works when pattern is running (state PATTERN).
+      @return TRUE if index was advanced, FALSE if not in pattern state
+    */
+    /**************************************************************************/
+    bool advancePatternIndex();
+
+    /**************************************************************************/
+    /*!
+      @brief  Immediately stops current motion and advances to the next pattern
+      stroke. This is an atomic operation designed for force safety systems
+      that need to interrupt a problematic stroke and immediately skip to the 
+      next one without any possibility of retry or hesitation.
+      Only works when pattern is running (state PATTERN).
+      @return TRUE if operation succeeded, FALSE if not in pattern state
+    */
+    /**************************************************************************/
+    bool forceStopAndAdvance();
+
+    /**************************************************************************/
+    /*!
       @brief  Enable the servo/stepper and do the homing procedure. Drives
       towards the endstop with HOMING_SPEED. Function is non-blocking and backed
       by a task. Optionally a callback can be given to receive feedback if
@@ -402,6 +425,7 @@ class StrokeEngine {
     Pattern *pattern = new SimpleStroke("Simple Stroke");
     bool _isHomed = false;
     int _index = 0;
+    bool _indexExternallyAdvanced = false; // Flag to prevent double-increment by stroking task
     int _depth;
     int _previousDepth;
     int _stroke;
