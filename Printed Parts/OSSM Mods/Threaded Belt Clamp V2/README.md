@@ -17,7 +17,7 @@ This thread is fine-tuned in a way that regardless of printer tolerance quality 
 - Threaded Belt Clamp - Tensioner
 - (Qty 2) 24mm Nut - Hex Flower
 - Tool - Hex Flower Wrench
-- (FUTURE) 24mm Cap
+- 24mm Endcap - Hex Flower
 
 ### Printing
 
