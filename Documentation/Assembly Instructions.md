@@ -231,30 +231,3 @@ Wrapping the belt around the main drive pully and past the stacks of idler pulle
 (we hope) You should now have a mechanically assembled OSSM  
 Reach out on the discord if you have any issues!
 </center>
-
-<style> 
-
-.imgSmall { 
-  height: auto; 
-  width: auto; 
-  max-width: 180px; 
-  max-height: 180px;
-}
-
-
-.imgMedium { 
-  height: auto; 
-  width: auto; 
-  max-width: 300px; 
-  max-height: 300px;
-}
-
-.imgLarge { 
-  height: auto; 
-  width: auto; 
-  max-width: 500px; 
-  max-height: 500px;
-}
-
-
-</style>
