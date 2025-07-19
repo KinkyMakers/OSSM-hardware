@@ -1,3 +1,5 @@
+### *Note: This file is a work in progress migration of legacy documentation and may contain outdated information or parts*
+
 # Open Source Sex Machine
 
 <img src="./_images/legacy_instructions/legacy_assembly_instructions_ossm.png" />
