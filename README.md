@@ -2,7 +2,7 @@
 
 ![OSSM Overview Image](Documentation/_images/OSSM%20Banner%20Image.png)
 
-### [**KinkyMakers Discord Community**](https://discord.gg/wrENMKb3) 
+### [**KinkyMakers Discord Community**](https://discord.gg/VtZcudpxT6) 
 ![Discord](https://img.shields.io/discord/559409652425687041)  
 Most OSSM development takes place through ideas and CAD contributions made by enthusiastic discord members, join the discussion or show off your build!  
 
