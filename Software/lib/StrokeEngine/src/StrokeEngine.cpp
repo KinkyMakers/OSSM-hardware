@@ -714,8 +714,12 @@ void StrokeEngine::_stroking() {
 
             // If motor has stopped issue moveTo command to next position
             else if (_servo->isRunning() == false) {
-                // Increment index for pattern
-                _index++;
+                // Check if index was externally advanced (e.g., by force safety)
+                if (_indexExternallyAdvanced) {
+                    _indexExternallyAdvanced = false;
+                } else {
+                    _index++;
+                }
 
                 // Querey new set of pattern parameters
                 currentMotion = pattern->nextTarget(_index);
@@ -855,4 +859,55 @@ void StrokeEngine::_setupDepths() {
 #ifdef DEBUG_TALKATIVE
     Serial.println("setup new depth: " + String(depth));
 #endif
+}
+
+bool StrokeEngine::advancePatternIndex() {
+    // Only allow advancing index when pattern is running
+    if (_state != PATTERN) {
+        return false;
+    }
+
+    // Take mutex to prevent race conditions with stroking task
+    if (xSemaphoreTake(_patternMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+        // Increment the pattern index to skip current stroke
+        _index++;
+        
+        // Set flag to prevent stroking task from double-incrementing
+        _indexExternallyAdvanced = true;
+        
+        // Release mutex
+        xSemaphoreGive(_patternMutex);
+        return true;
+    }
+    
+    // Failed to take mutex
+    return false;
+}
+
+bool StrokeEngine::forceStopAndAdvance() {
+    // Only allow this operation when pattern is running
+    if (_state != PATTERN) {
+        return false;
+    }
+
+    // Take mutex to prevent race conditions with stroking task
+    if (xSemaphoreTake(_patternMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+        // Immediately stop the current motion
+        if (_servo && _servo->isRunning()) {
+            _servo->forceStopAndNewPosition(_servo->getCurrentPosition());
+        }
+        
+        // Increment the pattern index to skip current stroke
+        _index++;
+        
+        // Set flag to prevent stroking task from double-incrementing
+        _indexExternallyAdvanced = true;
+        
+        // Release mutex
+        xSemaphoreGive(_patternMutex);
+        return true;
+    }
+    
+    // Failed to take mutex
+    return false;
 }

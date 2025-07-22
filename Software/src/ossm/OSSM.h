@@ -86,7 +86,7 @@ class OSSM {
 
             auto incrementControl = [](OSSM &o) {
                 o.playControl =
-                    static_cast<PlayControls>((o.playControl + 1) % 3);
+                    static_cast<PlayControls>((o.playControl + 1) % 4);
 
                 switch (o.playControl) {
                     case PlayControls::STROKE:
@@ -97,6 +97,9 @@ class OSSM {
                         break;
                     case PlayControls::SENSATION:
                         o.encoder.setEncoderValue(o.setting.sensation);
+                        break;
+                    case PlayControls::CURRENT_THRESHOLD:
+                        o.encoder.setEncoderValue(o.setting.currentThreshold);
                         break;
                 }
             };
@@ -250,6 +253,11 @@ class OSSM {
     // Calibration Variables
     float currentSensorOffset = 0;
     float measuredStrokeSteps = 0;
+    
+    float lastCurrentReading = 0; // Store the last current reading for display
+    
+    // Current threshold safety variables
+    volatile bool forceSafetyTriggered = false;
 
     // Homing Variables
     bool isForward = true;
@@ -261,7 +269,9 @@ class OSSM {
                                .stroke = 0,
                                .sensation = 50,
                                .depth = 50,
-                               .pattern = StrokePatterns::SimpleStroke};
+                               .pattern = StrokePatterns::SimpleStroke,
+                               .speedKnob = 0,
+                               .currentThreshold = 100};
 
     unsigned long sessionStartTime = 0;
     int sessionStrokeCount = 0;
@@ -327,6 +337,8 @@ class OSSM {
 
     static void startStrokeEngineTask(void *pvParameters);
 
+    static void currentMonitoringTask(void *pvParameters);
+
     bool isHomed;
 
   public:
@@ -340,6 +352,10 @@ class OSSM {
         sm = nullptr;  // The state machine
 
     WiFiManager wm;
+    
+    // Public methods for force safety state
+    bool isForceSafetyTriggered() const { return forceSafetyTriggered; }
+    void setForceSafetyTriggered(bool triggered) { forceSafetyTriggered = triggered; }
 };
 
 #endif  // OSSM_SOFTWARE_OSSM_H
