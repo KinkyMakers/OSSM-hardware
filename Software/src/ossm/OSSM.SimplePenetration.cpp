@@ -25,7 +25,7 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
                             ossm->setting.speed * ossm->setting.speed /
                             Config::Advanced::accelerationScaling;
 
-        bool isSpeedZero = ossm->setting.speedKnob <
+        bool isSpeedZero = ossm->setting.speed <
                            Config::Advanced::commandDeadZonePercentage;
         bool isSpeedChanged =
             !isSpeedZero && abs(speed - lastSpeed) >
