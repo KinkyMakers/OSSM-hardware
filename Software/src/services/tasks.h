@@ -13,6 +13,7 @@
 
 static TaskHandle_t drawHelloTaskH = nullptr;
 static TaskHandle_t drawMenuTaskH = nullptr;
+static TaskHandle_t drawMenuSettingsTaskH = nullptr;
 static TaskHandle_t drawPlayControlsTaskH = nullptr;
 static TaskHandle_t drawPatternControlsTaskH = nullptr;
 static TaskHandle_t wmTaskH = nullptr;
