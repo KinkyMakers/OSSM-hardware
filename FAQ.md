@@ -44,7 +44,7 @@ A: The minimum bed size is 105mm x 105mm for the largest single piece. Approxima
 
 ### Q: What print material is best?
 
-A: All of our testing has been with simple PLA, however if you do print it in an interesting material make sure to share it to the discord!
+A: Structural parts should be printed in a strong material such as simple PLA, PETG, ABS, ASA, or PCTG. Non-structural parts may be printed in whatever material you like. Note that additives such as those used to make matte materials may weaken the material, so be sure to check the material properties before using a filament with additives. If you print in some new and unusual material, please share that in the Discord!
 
 ### Q: What is the infill percentage?
 
