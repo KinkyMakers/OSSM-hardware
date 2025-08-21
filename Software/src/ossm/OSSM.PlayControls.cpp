@@ -21,11 +21,14 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         case PlayControls::DEPTH:
             ossm->encoder.setEncoderValue(ossm->setting.depth);
             break;
+        case PlayControls::CURRENT_THRESHOLD:
+            ossm->encoder.setEncoderValue(ossm->setting.currentThreshold);
+            break;
     }
 
     auto menuString = menuStrings[ossm->menuOption];
 
-    SettingPercents next = {0, 0, 0, 0};
+    SettingPercents next = {0, 0, 0, 0, StrokePatterns::SimpleStroke, 0, 0};
     unsigned long displayLastUpdated = 0;
 
     /**
@@ -57,6 +60,25 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 
     // This small break gives the encoder a minute to settle.
     vTaskDelay(100);
+    
+    // Ensure encoder is properly initialized to the correct value
+    switch (ossm->playControl) {
+        case PlayControls::STROKE:
+            ossm->encoder.setEncoderValue(ossm->setting.stroke);
+            break;
+        case PlayControls::SENSATION:
+            ossm->encoder.setEncoderValue(ossm->setting.sensation);
+            break;
+        case PlayControls::DEPTH:
+            ossm->encoder.setEncoderValue(ossm->setting.depth);
+            break;
+        case PlayControls::CURRENT_THRESHOLD:
+            ossm->encoder.setEncoderValue(ossm->setting.currentThreshold);
+            break;
+    }
+    
+    // Additional delay to ensure encoder value has settled
+    vTaskDelay(50);
 
     while (isInCorrectState(ossm)) {
         // Always assume the display should not update.
@@ -94,6 +116,12 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
                                       next.depth - ossm->setting.depth >= 1;
                 ossm->setting.depth = next.depth;
                 break;
+            case PlayControls::CURRENT_THRESHOLD:
+                next.currentThreshold = encoder;
+                shouldUpdateDisplay = shouldUpdateDisplay ||
+                                      abs(next.currentThreshold - ossm->setting.currentThreshold) >= 1;
+                ossm->setting.currentThreshold = next.currentThreshold;
+                break;
         }
 
         shouldUpdateDisplay =
@@ -116,27 +144,71 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         drawShape::settingBar(UserConfig::language.Speed, next.speedKnob);
 
         if (isStrokeEngine) {
-            drawStr::centered(32, UserConfig::language.StrokeEngineNames[(int)ossm->setting.pattern]);
+            // Display current bar value above the pattern name (cleaner positioning)
+            String valueText = "";
             switch (ossm->playControl) {
                 case PlayControls::STROKE:
-                    drawShape::settingBarSmall(ossm->setting.sensation, 125);
-                    drawShape::settingBarSmall(ossm->setting.depth, 120);
+                    valueText = String((int)ossm->setting.stroke) + "%";
+                    break;
+                case PlayControls::SENSATION:
+                    valueText = String((int)ossm->setting.sensation) + "%";
+                    break;
+                case PlayControls::DEPTH:
+                    valueText = String((int)ossm->setting.depth) + "%";
+                    break;
+                case PlayControls::CURRENT_THRESHOLD:
+                    if (ossm->setting.currentThreshold >= 100) {
+                        valueText = "UNLIMITED";
+                    } else {
+                        float actualThreshold = ossm->setting.currentThreshold;
+                        valueText = String(actualThreshold, 0) + " watts";
+                    }
+                    break;
+            }
+            
+            // Draw the value text centered above the pattern name
+
+            ossm->display.setFont(Config::Font::small);
+            int centerX = (ossm->display.getDisplayWidth() - ossm->display.getUTF8Width(valueText.c_str())) / 2;
+            ossm->display.drawUTF8(centerX - 5, 22, valueText.c_str()); // Above pattern name
+            ossm->display.setFont(Config::Font::base); // Reset to base font
+
+            // Draw pattern name shifted left by 10px from center
+
+            String patternName = UserConfig::language.StrokeEngineNames[(int)ossm->setting.pattern];
+            centerX = (ossm->display.getDisplayWidth() - ossm->display.getUTF8Width(patternName.c_str())) / 2;
+            ossm->display.drawUTF8(centerX - 5, 32, patternName.c_str());
+            
+            switch (ossm->playControl) {
+                case PlayControls::STROKE:
+                    drawShape::settingBarSmall(ossm->setting.sensation, 125, 0);
+                    drawShape::settingBarSmall(ossm->setting.depth, 120, 0);
+                    drawShape::settingBarSmall(ossm->setting.currentThreshold, 103, 0);
                     drawShape::settingBar(strokeString, ossm->setting.stroke,
-                                          118, 0, RIGHT_ALIGNED);
+                                          118, 0, RIGHT_ALIGNED, 5);
                     break;
                 case PlayControls::SENSATION:
                     drawShape::settingBar("Sensation", ossm->setting.sensation,
-                                          128, 0, RIGHT_ALIGNED, 10);
-                    drawShape::settingBarSmall(ossm->setting.depth, 113);
-                    drawShape::settingBarSmall(ossm->setting.stroke, 108);
+                                          128, 0, RIGHT_ALIGNED, 15);
+                    drawShape::settingBarSmall(ossm->setting.depth, 113, 0);
+                    drawShape::settingBarSmall(ossm->setting.stroke, 108, 0);
+                    drawShape::settingBarSmall(ossm->setting.currentThreshold, 103, 0);
 
                     break;
                 case PlayControls::DEPTH:
-                    drawShape::settingBarSmall(ossm->setting.sensation, 125);
+                    drawShape::settingBarSmall(ossm->setting.sensation, 125, 0);
                     drawShape::settingBar("Depth", ossm->setting.depth, 123, 0,
-                                          RIGHT_ALIGNED, 5);
-                    drawShape::settingBarSmall(ossm->setting.stroke, 108);
+                                          RIGHT_ALIGNED, 10);
+                    drawShape::settingBarSmall(ossm->setting.stroke, 108, 0);
+                    drawShape::settingBarSmall(ossm->setting.currentThreshold, 103, 0); 
 
+                    break;
+                case PlayControls::CURRENT_THRESHOLD:
+                    drawShape::settingBarSmall(ossm->setting.sensation, 125, 0);
+                    drawShape::settingBarSmall(ossm->setting.depth, 120, 0);
+                    drawShape::settingBarSmall(ossm->setting.stroke, 115, 0);
+                    drawShape::settingBar("Force", ossm->setting.currentThreshold,
+                                          113, 0, RIGHT_ALIGNED);
                     break;
             }
         } else {
@@ -169,12 +241,18 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
             stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
             ossm->display.drawUTF8(104 - stringWidth, lh3,
                                    strokeString.c_str());
+        } else {
+            // Display current reading for stroke engine mode
+            strokeString = "~" + String(ossm->lastCurrentReading*4, 1) + " watts"; //This is NOT actually watts, just for display purposes
+            stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
+            ossm->display.drawUTF8(99 - stringWidth, lh3,
+                                   strokeString.c_str());
         }
 
         strokeString =
             formatTime(displayLastUpdated - ossm->sessionStartTime).c_str();
         stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-        ossm->display.drawUTF8(104 - stringWidth, lh4, strokeString.c_str());
+        ossm->display.drawUTF8(99 - stringWidth, lh4, strokeString.c_str());
 
         ossm->display.sendBuffer();
         displayMutex.unlock();
