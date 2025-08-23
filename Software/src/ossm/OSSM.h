@@ -146,8 +146,7 @@ class OSSM {
 
             auto isPreflightSafe = [](OSSM &o) {
                 return getAnalogAveragePercent(
-                           {Pins::Remote::speedPotPin, 50}) <
-                       Config::Advanced::commandDeadZonePercentage;
+                           {Pins::Remote::speedPotPin, 50}, Config::Advanced::commandDeadZonePercentage) < 0.0001f;
             };
 
             auto isFirstHomed = [](OSSM &o) {

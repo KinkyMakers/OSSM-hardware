@@ -98,12 +98,15 @@ namespace Config {
         // effective zero to the home switch This is to stop the home switch
         // being smacked constantly
         constexpr float strokeZeroOffsetMm = 6.0f;
+
         // The minimum value of the pot in percent
         // prevents noisy pots registering commands when turned down to zero by
         // user
-        constexpr float commandDeadZonePercentage = 1.0f;
-        // affects acceleration in stepper trajectory (Aggressiveness of motion)
+        // 03.28.2025 This deadzone now applies with optional parameter on getAnalogAveragePercent()
+        // allowing it to apply to SimplePenetration and StrokeEngine
+        constexpr float commandDeadZonePercentage = 25.0f;
 
+        // affects acceleration in stepper trajectory (Aggressiveness of motion)
         constexpr float accelerationScaling = 100.0f;
 
     }

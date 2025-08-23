@@ -25,11 +25,9 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
                             ossm->setting.speed * ossm->setting.speed /
                             Config::Advanced::accelerationScaling;
 
-        bool isSpeedZero = ossm->setting.speedKnob <
-                           Config::Advanced::commandDeadZonePercentage;
+        bool isSpeedZero = ossm->setting.speedKnob < 0.0001f;
         bool isSpeedChanged =
-            !isSpeedZero && abs(speed - lastSpeed) >
-                                5 * Config::Advanced::commandDeadZonePercentage;
+            !isSpeedZero && abs(speed - lastSpeed) > 1.0f; //Keep some dead-zone for analog fluctuation
         bool isAtTarget =
             abs(targetPosition - ossm->stepper->getCurrentPosition()) == 0;
 
@@ -75,9 +73,8 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
 
         ossm->stepper->moveTo(targetPosition, false);
 
-        if (ossm->setting.speed > Config::Advanced::commandDeadZonePercentage &&
-            ossm->setting.stroke >
-                (long)Config::Advanced::commandDeadZonePercentage) {
+        if (ossm->setting.speed > 0 &&
+            ossm->setting.stroke > (long)1.0f) {
             fullStrokeCount++;
             ossm->sessionStrokeCount = floor(fullStrokeCount / 2);
 
