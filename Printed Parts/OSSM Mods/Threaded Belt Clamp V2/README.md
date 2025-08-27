@@ -1,9 +1,13 @@
-![](Images/Overview.jpg)
-
+![Part Overview](Images/Overview.jpg)
+![Assembled](Images/Assembled.jpg)  
+(Shown with [OSSM v2 AIO PCB Backpack Mod](https://github.com/armpitMFG/OSSM-Parts/tree/main/OSSM%20v2%20AIO%20PCB%20Backpack%20Mod) and [OSSM Motor Cover](https://github.com/armpitMFG/OSSM-Parts/tree/main/OSSM%20Motor%20Cover))
 # Threaded Belt Clamp V2
 
 This is a proposed new standard part.  
 Addresses printability and strength issues in the current standard.  
+
+Slotted for MGN12 rail  
+Passthru for up to 15mm belt width  
 
 This thread is fine-tuned in a way that regardless of printer tolerance quality allows easily threading unmodified 24mm female threaded parts.
 
@@ -13,6 +17,7 @@ This thread is fine-tuned in a way that regardless of printer tolerance quality 
   * https://www.youtube.com/watch?v=gquSxSwvuUk  
 * **Tensioner and tensioning:** 
   * https://www.youtube.com/watch?v=wU7mKgEMTPk
+
 
 
 ## Parts
