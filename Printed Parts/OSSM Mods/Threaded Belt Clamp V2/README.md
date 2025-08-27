@@ -8,7 +8,12 @@ Addresses printability and strength issues in the current standard.
 This thread is fine-tuned in a way that regardless of printer tolerance quality allows easily threading unmodified 24mm female threaded parts.
 
 
-### Assembly video: https://www.youtube.com/watch?v=gquSxSwvuUk
+### Assembly videos
+* **Overview and attaching threaded end:**
+  * https://www.youtube.com/watch?v=gquSxSwvuUk  
+* **Tensioner and tensioning:** 
+  * https://www.youtube.com/watch?v=wU7mKgEMTPk
+
 
 ## Parts
 
