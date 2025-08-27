@@ -30,7 +30,7 @@ This thread is fine-tuned in a way that regardless of printer tolerance quality 
     OSSM standard settings  
     6 walls, 15% crosshatch/gyroid infill  
     Total print time: ~3 hours  
-    Filament: ~71g
+    Filament: ~85g
 
 ### Bill Of Materials
 
