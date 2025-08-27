@@ -10,6 +10,7 @@ void OSSM::drawHelp() {
 
     static QRCode qrcode;
     const int scale = 2;
+    const int version = 3;
     // This Version of QR Codes can handle ~61 alphanumeric characters with ECC
     // LEVEL M
 
