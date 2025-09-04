@@ -13,7 +13,12 @@ PitClamp Mini Standard Settings:
  - All parts are intended to print in the provided file default orientation. 
    - **Printing the Base components in other orientations will cause structural weakness**
 
-If your printer is well calibrated and your material layer strength is optimal, the print-in-place Upper+Handle is recommended, found in the [/Non-Standard](Non-standard) folder.
+If your printer is well calibrated and your material layer strength is optimal, the print-in-place Upper+Handle is recommended, found in the [/Non-Standard](Non-standard) folder and included in the [Generic_3mf] by default.
+
+It is highly recommended to use a cube modifier to force 100% infill at the critical area as shown below -  
+
+![Print Tweaks](Images/Print%20Tweaks.png)
+
 
 ### Bill Of Materials
 
@@ -26,9 +31,12 @@ PitClamp Mini v1.1 Hinge Pin
 
 PitClamp Mini Lever Dogbones + Handle
 
-    1x M4x10 or M4x12 Socket Cap Screw
     2x M4x25 Socket Cap Screw
-    3x M4 Hex Nut
+    2x M4 Hex Nut
+
+    If not using print-in-place Upper+Handle: 
+    + 1x M4x10 (or M4x12) Socket Cap Screw
+    + 1x M4 Hex Nut
 
 PitClamp Mini Lower v1.1 Reinforced Sidemount + Ring
 
