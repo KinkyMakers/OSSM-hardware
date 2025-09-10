@@ -1,5 +1,11 @@
 ![](Images/Assembled%20Stainless.jpg)
 
+
+### Assembly video
+* **PitClamp Mini Reinforced 3030 Hinges - Assembly:**
+  * https://www.youtube.com/watch?v=lNvTg5JwCek
+ 
+
 ### Printing
 This print uses PitClamp Mini Standard Settings with a +1 for walls on the `Ring`.
 
@@ -52,3 +58,4 @@ https://www.etsy.com/listing/1885144462/pitclamp-mini-reinforced-3030-hinge
 ![](Images/Overview.jpg)
 ![](Images/Print%20Bed.jpg)
 ![](Images/Assembled%20Black.jpg)
+
