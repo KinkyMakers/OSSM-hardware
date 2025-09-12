@@ -33,7 +33,8 @@ void OSSM::drawMenuTask(void *pvParameters) {
 
     while (isInCorrectState(ossm)) {
         wl_status_t newWifiState = WiFiClass::status();
-        if (!isFirstDraw && !ossm->encoder.encoderChanged() && wifiState == newWifiState) {
+        if (!isFirstDraw && !ossm->encoder.encoderChanged() &&
+            wifiState == newWifiState) {
             vTaskDelay(50);
             continue;
         }
@@ -68,8 +69,8 @@ void OSSM::drawMenuTask(void *pvParameters) {
 
         drawShape::scroll(100 * ossm->encoder.readEncoder() /
                           (clicksPerRow * Menu::NUM_OPTIONS - 1));
-        String menuName = menuStrings[menuOption];
-        ESP_LOGD("Menu", "Hovering over state: %s", menuName.c_str());
+        const char *menuName = menuStrings[menuOption];
+        ESP_LOGD("Menu", "Hovering over state: %s", menuName);
 
         // Loop around to make an infinite menu.
         int lastIdx =
@@ -82,18 +83,18 @@ void OSSM::drawMenuTask(void *pvParameters) {
         // Draw the previous item
         if (lastIdx >= 0) {
             ossm->display.drawUTF8(leftPadding, itemHeight * (1),
-                                   menuStrings[lastIdx].c_str());
+                                   menuStrings[lastIdx]);
         }
 
         // Draw the next item
         if (nextIdx < Menu::NUM_OPTIONS) {
             ossm->display.drawUTF8(leftPadding, itemHeight * (3),
-                                   menuStrings[nextIdx].c_str());
+                                   menuStrings[nextIdx]);
         }
 
         // Draw the current item
         ossm->display.setFont(Config::Font::bold);
-        ossm->display.drawUTF8(leftPadding, itemHeight * (2), menuName.c_str());
+        ossm->display.drawUTF8(leftPadding, itemHeight * (2), menuName);
 
         // Draw a rounded rectangle around the center item
         ossm->display.drawRFrame(

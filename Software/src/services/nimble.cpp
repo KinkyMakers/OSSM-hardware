@@ -1,9 +1,23 @@
 #include "nimble.h"
 
+#include <ArduinoJson.h>
+
+#include <regex>
+
+#include "command/commands.hpp"
 #include "tasks.h"
 
-#define SERVICE_B_UUID "522b443a-4f53-534d-0001-420badbabe69"
-#define CHARACTERISTIC_B2_UUID "522b443a-4f53-534d-0002-420badbabe69"
+#define SERVICE_UUID "522b443a-4f53-534d-0001-420badbabe69"
+
+// Clients should write to this char.
+#define CHARACTERISTIC_UUID "522b443a-4f53-534d-0002-420badbabe69"
+
+// Clients should read the current state from this char.
+#define CHARACTERISTIC_STATE_UUID "522b443a-4f53-534d-0010-420badbabe69"
+
+// this is a list of all the patterns on the device.
+#define CHARACTERISTIC_PATTERNS_UUID "522b443a-4f53-534d-0100-420badbabe69"
+
 const char* MANUFACTURER_NAME_UUID =
     "2A29";                           // Standard UUID for manufacturer name
 const char* SYSTEM_ID_UUID = "2A23";  // Standard UUID for system ID
@@ -33,106 +47,44 @@ bool enqueueTarget(uint16_t position, int16_t velocity) {
 void clearQueue() { std::queue<Target>().swap(targetQueue); }
 
 // Add at the top with other global variables
-NimBLECharacteristic* pCharacteristicB2 =
+NimBLECharacteristic* pCharacteristic =
     nullptr;  // Global pointer to B2 characteristic
 
-/**  None of these are required as they will be handled by the library with
- *defaults. **
- **                       Remove as you see fit for your needs */
-class ServerCallbacks : public NimBLEServerCallbacks {
-    void onConnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo) override {
-        ESP_LOGV("NIMBLE", "Client address: %s",
-                 connInfo.getAddress().toString().c_str());
-
-        /**
-         *  We can use the connection handle here to ask for different
-         * connection parameters. Args: connection handle, min connection
-         * interval, max connection interval latency, supervision timeout.
-         *  Units; Min/Max Intervals: 1.25 millisecond increments.
-         *  Latency: number of intervals allowed to skip.
-         *  Timeout: 10 millisecond increments.
-         */
-        pServer->updateConnParams(connInfo.getConnHandle(), 3, 4, 0, 20);
-    }
-
-    void onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo,
-                      int reason) override {
-        ESP_LOGV("NIMBLE", "Client disconnected - start advertising");
-        NimBLEDevice::startAdvertising();
-    }
-
-    void onMTUChange(uint16_t MTU, NimBLEConnInfo& connInfo) override {
-        ESP_LOGV("NIMBLE", "MTU updated: %u for connection ID: %u", MTU,
-                 connInfo.getConnHandle());
-    }
-
-    /********************* Security handled here *********************/
-    uint32_t onPassKeyDisplay() override {
-        ESP_LOGV("NIMBLE", "Server Passkey Display");
-        /**
-         * This should return a random 6 digit number for security
-         *  or make your own static passkey as done here.
-         */
-        return 123456;
-    }
-
-    void onConfirmPassKey(NimBLEConnInfo& connInfo,
-                          uint32_t pass_key) override {
-        ESP_LOGV("NIMBLE", "The passkey YES/NO number: %" PRIu32, pass_key);
-        /** Inject false if passkeys don't match. */
-        NimBLEDevice::injectConfirmPasskey(connInfo, true);
-    }
-
-    void onAuthenticationComplete(NimBLEConnInfo& connInfo) override {
-        /** Check that encryption was successful, if not we disconnect the
-         * client */
-        if (!connInfo.isEncrypted()) {
-            NimBLEDevice::getServer()->disconnect(connInfo.getConnHandle());
-            ESP_LOGV("NIMBLE",
-                     "Encrypt connection failed - disconnecting client");
-            return;
-        }
-
-        ESP_LOGV("NIMBLE", "Secured connection to: %s",
-                 connInfo.getAddress().toString().c_str());
-    }
-} serverCallbacks;
 /** Handler class for characteristic actions */
 class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
     uint32_t lastWriteTime = 0;
     float writeHz = 0;
     const float alpha = 0.1;  // Smoothing factor for exponential moving average
 
-    void onRead(NimBLECharacteristic* pCharacteristic,
-                NimBLEConnInfo& connInfo) override {
-        ESP_LOGV("NIMBLE", "%s : onRead(), value: %s",
-                 pCharacteristic->getUUID().toString().c_str(),
-                 pCharacteristic->getValue().c_str());
-    }
-
     void onWrite(NimBLECharacteristic* pCharacteristic,
                  NimBLEConnInfo& connInfo) override {
         std::string value = pCharacteristic->getValue();
 
-        // Print raw bytes for debugging
-        std::string hexStr;
-        for (unsigned char c : value) {
-            char hex[4];
-            snprintf(hex, sizeof(hex), "%02X", c);
-            hexStr += hex;
-            hexStr += " ";
-        }
-        // Parse position and time from received bytes
-        if (value.length() >= 3) {        // Changed from 4 to 3 bytes
-            uint8_t position = value[0];  // First byte is position (0-180)
-            uint16_t inTime =
-                (value[1] << 8) | value[2];  // Next 2 bytes are time
+        // Convert the received value to a std::string for easier parsing
+        std::string cmd(value.begin(), value.end());
+        bool matched = false;
 
-            // Move to the parsed position
-            ossmInterface->moveTo(position * (100.0f / 180.0f), inTime);
+        // Regex patterns for set and go commands
+        std::regex set_regex(
+            R"(set:(speed|stroke|depth|sensation|pattern):([0-9]{1,3}))");
+        std::regex go_regex(R"(go:(simplePenetration|strokeEngine|menu))");
+        std::smatch match;
+
+        ESP_LOGD("NIMBLE", "Received command: %s", cmd.c_str());
+
+        bool isSet = std::regex_match(cmd, match, set_regex);
+        bool isGo = std::regex_match(cmd, match, go_regex);
+
+        if (isSet || isGo) {
+            ossmInterface->ble_click(String(cmd.c_str()));
+            matched = true;
         }
 
-        ossmInterface->ble_click(String(value.c_str()));
+        if (matched) {
+            pCharacteristic->setValue("ok:" + String(cmd.c_str()));
+        } else {
+            pCharacteristic->setValue("fail:" + String(cmd.c_str()));
+        }
     }
 
     /**
@@ -142,42 +94,10 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
         ESP_LOGV("NIMBLE", "Notification/Indication return code: %d, %s", code,
                  NimBLEUtils::returnCodeToString(code));
     }
-
-    /** Peer subscribed to notifications/indications */
-    void onSubscribe(NimBLECharacteristic* pCharacteristic,
-                     NimBLEConnInfo& connInfo, uint16_t subValue) override {
-        std::string str = "Client ID: ";
-        str += connInfo.getConnHandle();
-        str += " Address: ";
-        str += connInfo.getAddress().toString();
-        if (subValue == 0) {
-            str += " Unsubscribed to ";
-        } else if (subValue == 1) {
-            str += " Subscribed to notifications for ";
-        } else if (subValue == 2) {
-            str += " Subscribed to indications for ";
-        } else if (subValue == 3) {
-            str += " Subscribed to notifications and indications for ";
-        }
-        str += std::string(pCharacteristic->getUUID());
-
-        ESP_LOGV("NIMBLE", "%s", str.c_str());
-    }
 } chrCallbacks;
 
 /** Handler class for descriptor actions */
 class DescriptorCallbacks : public NimBLEDescriptorCallbacks {
-    void onWrite(NimBLEDescriptor* pDescriptor,
-                 NimBLEConnInfo& connInfo) override {
-        std::string dscVal = pDescriptor->getValue();
-        ESP_LOGV("NIMBLE", "Descriptor written value: %s", dscVal.c_str());
-    }
-
-    void onRead(NimBLEDescriptor* pDescriptor,
-                NimBLEConnInfo& connInfo) override {
-        ESP_LOGV("NIMBLE", "%s Descriptor read",
-                 pDescriptor->getUUID().toString().c_str());
-    }
 } dscCallbacks;
 
 void nimbleLoop(void* pvParameters) {
@@ -202,7 +122,7 @@ void nimbleLoop(void* pvParameters) {
             continue;
         }
 
-        NimBLEService* pSvc = pServer->getServiceByUUID(SERVICE_B_UUID);
+        NimBLEService* pSvc = pServer->getServiceByUUID(SERVICE_UUID);
         if (!pSvc) {
             lastState = "";
             vTaskDelay(pdMS_TO_TICKS(1000));
@@ -210,7 +130,7 @@ void nimbleLoop(void* pvParameters) {
         }
 
         NimBLECharacteristic* pChr =
-            pSvc->getCharacteristic(CHARACTERISTIC_B2_UUID);
+            pSvc->getCharacteristic(CHARACTERISTIC_STATE_UUID);
         if (!pChr) {
             lastState = "";
             vTaskDelay(pdMS_TO_TICKS(1000));
@@ -218,14 +138,18 @@ void nimbleLoop(void* pvParameters) {
         }
 
         int currentTime = millis();
-        if (currentState == lastState &&
-            (currentTime - lastMessageTime) < 1000) {
+        bool stateChanged = currentState != lastState;
+        bool timeElapsed = (currentTime - lastMessageTime) > 1000;
+
+        if (!stateChanged && !timeElapsed) {
             vTaskDelay(pdMS_TO_TICKS(200));
             continue;
         }
         lastMessageTime = currentTime;
 
-        ESP_LOGD("NIMBLE", "State changed to: %s", currentState.c_str());
+        if (stateChanged) {
+            ESP_LOGD("NIMBLE", "State changed to: %s", currentState.c_str());
+        }
         pChr->setValue(currentState);
         pChr->notify();
         lastState = currentState;
@@ -260,27 +184,67 @@ void initNimble() {
         /*BLE_SM_PAIR_AUTHREQ_BOND | BLE_SM_PAIR_AUTHREQ_MITM |*/
         BLE_SM_PAIR_AUTHREQ_SC);
     pServer = NimBLEDevice::createServer();
-    pServer->setCallbacks(&serverCallbacks);
+    // pServer->setCallbacks(&serverCallbacks);
 
-    // Create Service B
-    NimBLEService* pServiceB = pServer->createService(SERVICE_B_UUID);
-    // NimBLECharacteristic* pCharB1 = pServiceB->createCharacteristic(
-    //     CHARACTERISTIC_B1_UUID, NIMBLE_PROPERTY::READ |
-    //     NIMBLE_PROPERTY::WRITE |
-    //                                 NIMBLE_PROPERTY::NOTIFY |
-    //                                 NIMBLE_PROPERTY::WRITE_NR);
-    NimBLECharacteristic* pCharB2 = pServiceB->createCharacteristic(
-        CHARACTERISTIC_B2_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE |
-                                    NIMBLE_PROPERTY::NOTIFY |
-                                    NIMBLE_PROPERTY::WRITE_NR);
+    // Create Service
+    NimBLEService* pService = pServer->createService(SERVICE_UUID);
+
+    // Command characteristic (writable, readable)
+    NimBLECharacteristic* pChar = pService->createCharacteristic(
+        CHARACTERISTIC_UUID, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ);
 
     // Store the characteristic pointer globally
-    pCharacteristicB2 = pCharB2;
+    pCharacteristic = pChar;
 
-    pCharB2->setCallbacks(&chrCallbacks);
+    pChar->setCallbacks(&chrCallbacks);
+
+    // State characteristic (read/notify string payload for state)
+    NimBLECharacteristic* pStateChar = pService->createCharacteristic(
+        CHARACTERISTIC_STATE_UUID,
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
+    pStateChar->setValue("");
+
+    // Patterns characteristic (read-only list of all patterns)
+    NimBLECharacteristic* pPatternsChar = pService->createCharacteristic(
+        CHARACTERISTIC_PATTERNS_UUID, NIMBLE_PROPERTY::READ);
+    // Use ArduinoJson to construct the patterns JSON
+    JsonDocument doc;
+    JsonArray arr = doc.to<JsonArray>();
+
+    JsonObject pattern1 = arr.createNestedObject();
+    pattern1["name"] = "Simple Stroke";
+    pattern1["idx"] = 0;
+
+    // JsonObject pattern2 = arr.createNestedObject();
+    // pattern2["name"] = UserConfig::language.StrokeEngineDescriptions[1];
+    // pattern2["idx"] = 1;
+
+    // JsonObject pattern3 = arr.createNestedObject();
+    // pattern3["name"] = UserConfig::language.StrokeEngineDescriptions[2];
+    // pattern3["idx"] = 2;
+
+    // JsonObject pattern4 = arr.createNestedObject();
+    // pattern4["name"] = UserConfig::language.StrokeEngineDescriptions[3];
+    // pattern4["idx"] = 3;
+
+    // JsonObject pattern5 = arr.createNestedObject();
+    // pattern5["name"] = UserConfig::language.StrokeEngineDescriptions[4];
+    // pattern5["idx"] = 4;
+
+    // JsonObject pattern6 = arr.createNestedObject();
+    // pattern6["name"] = UserConfig::language.StrokeEngineDescriptions[5];
+    // pattern6["idx"] = 5;
+
+    // JsonObject pattern7 = arr.createNestedObject();
+    // pattern7["name"] = UserConfig::language.StrokeEngineDescriptions[6];
+    // pattern7["idx"] = 6;
+
+    String jsonString;
+    serializeJson(arr, jsonString);
+    pPatternsChar->setValue(jsonString.c_str());
 
     // Start the services
-    pServiceB->start();
+    pService->start();
 
     // Add Device Information Service
     NimBLEService* pDeviceInfoService =
@@ -304,7 +268,7 @@ void initNimble() {
     // Update advertising to include new services
     NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
     pAdvertising->setName("OSSM");
-    pAdvertising->addServiceUUID(pServiceB->getUUID());
+    pAdvertising->addServiceUUID(pService->getUUID());
     pAdvertising->addServiceUUID(pDeviceInfoService->getUUID());
     pAdvertising->enableScanResponse(true);
     pAdvertising->start();

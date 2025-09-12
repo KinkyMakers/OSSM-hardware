@@ -32,8 +32,12 @@ void OSSM::drawPreflightTask(void *pvParameters) {
     };
 
     do {
+#ifdef AJ_DEVELOPMENT_HARDWARE
+        speedPercentage = 0;
+#else
         speedPercentage =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
+#endif
         if (speedPercentage < Config::Advanced::commandDeadZonePercentage) {
             ossm->sm->process_event(Done{});
             break;
@@ -42,7 +46,7 @@ void OSSM::drawPreflightTask(void *pvParameters) {
         displayMutex.lock();
         ossm->display.clearBuffer();
         drawStr::title(menuString);
-        String speedString = UserConfig::language.Speed + ": " +
+        String speedString = UserConfig::language.Speed + String(": ") +
                              String((int)speedPercentage) + "%";
         drawStr::centered(25, speedString);
         drawStr::multiLine(0, 40, UserConfig::language.SpeedWarning);

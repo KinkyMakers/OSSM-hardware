@@ -16,7 +16,7 @@ enum Menu {
     NUM_OPTIONS
 };
 
-static String menuStrings[Menu::NUM_OPTIONS] = {
+static const char* menuStrings[Menu::NUM_OPTIONS] = {
     UserConfig::language.SimplePenetration, UserConfig::language.StrokeEngine,
     UserConfig::language.Streaming,         UserConfig::language.Update,
     UserConfig::language.WiFiSetup,         UserConfig::language.GetHelp,

@@ -146,7 +146,11 @@ class OSSM : public OSSMInterface {
 
             // Guard definitions to make the table easier to read.
             auto isStrokeTooShort = [](OSSM &o) {
+#ifdef AJ_DEVELOPMENT_HARDWARE
+                return false;
+#else
                 return o.isStrokeTooShort();
+#endif
             };
 
             auto isOption = [](Menu option) {
@@ -173,8 +177,8 @@ class OSSM : public OSSMInterface {
 
             return make_transition_table(
             // clang-format off
-#ifdef DEBUG_SKIP_HOMING
-                *"idle"_s + done / drawHello = "menu"_s,
+#ifdef AJ_DEVELOPMENT_HARDWARE
+                *"idle"_s + done = "menu"_s,
 #else
                 *"idle"_s + done / drawHello = "homing"_s,
 #endif
@@ -382,7 +386,9 @@ class OSSM : public OSSMInterface {
     void ble_click(String commandString) {
         // Visit current state to handle state-specific commands
 
+        ESP_LOGD("OSSM", "PROCESSING CLICK");
         CommandValue command = commandFromString(commandString);
+        ESP_LOGD("OSSM", "COMMAND: %d", command.command);
 
         String currentState;
         sm->visit_current_states(

@@ -63,8 +63,12 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         // Always assume the display should not update.
         shouldUpdateDisplay = false;
 
+#ifdef AJ_DEVELOPMENT_HARDWARE
+        next.speedKnob = 0;
+#else
         next.speedKnob =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
+#endif
         ossm->setting.speedKnob = next.speedKnob;
         encoder = ossm->encoder.readEncoder();
 
@@ -128,16 +132,17 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
                                           118, 0, RIGHT_ALIGNED);
                     break;
                 case PlayControls::SENSATION:
-                    drawShape::settingBar("Sensation", ossm->setting.sensation,
-                                          128, 0, RIGHT_ALIGNED, 10);
+                    drawShape::settingBar(F("Sensation"),
+                                          ossm->setting.sensation, 128, 0,
+                                          RIGHT_ALIGNED, 10);
                     drawShape::settingBarSmall(ossm->setting.depth, 113);
                     drawShape::settingBarSmall(ossm->setting.stroke, 108);
 
                     break;
                 case PlayControls::DEPTH:
                     drawShape::settingBarSmall(ossm->setting.sensation, 125);
-                    drawShape::settingBar("Depth", ossm->setting.depth, 123, 0,
-                                          RIGHT_ALIGNED, 5);
+                    drawShape::settingBar(F("Depth"), ossm->setting.depth, 123,
+                                          0, RIGHT_ALIGNED, 5);
                     drawShape::settingBarSmall(ossm->setting.stroke, 108);
 
                     break;

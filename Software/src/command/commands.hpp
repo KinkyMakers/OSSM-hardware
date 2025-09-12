@@ -10,8 +10,8 @@
 // The state machine will execute these commands if appropiate
 
 namespace Prefix {
-    const String goTo = "go:";
-    const String setValue = "set:";
+    const char goTo[] PROGMEM = "go:";
+    const char setValue[] PROGMEM = "set:";
 }
 
 enum class Commands {
@@ -71,20 +71,26 @@ inline CommandValue setCommandValue(const String& str) {
 }
 
 inline CommandValue commandFromString(const String& str) {
-    if (str.startsWith(Prefix::goTo)) {
-        if (str == Prefix::goTo + "strokeEngine")
+    // Create temporary strings from PROGMEM for comparison
+    String goToPrefix = String(FPSTR(Prefix::goTo));
+    String setValuePrefix = String(FPSTR(Prefix::setValue));
+
+    if (str.startsWith(goToPrefix)) {
+        if (str == goToPrefix + "strokeEngine")
             return {Commands::goToStrokeEngine, 0};
-        if (str == Prefix::goTo + "simplePenetration")
+        if (str == goToPrefix + "simplePenetration")
             return {Commands::goToSimplePenetration, 0};
-        if (str == Prefix::goTo + "streaming")
+        if (str == goToPrefix + "streaming")
             return {Commands::goToStreaming, 0};
-        if (str == Prefix::goTo + "menu") return {Commands::goToMenu, 0};
+        if (str == goToPrefix + "menu") return {Commands::goToMenu, 0};
         return {Commands::goToMenu, 0};  // Default
     }
 
-    if (str.startsWith(Prefix::setValue)) {
+    if (str.startsWith(setValuePrefix)) {
         return setCommandValue(str);
     }
+
+    return {Commands::ignore, 0};
 }
 
 #endif  // OSSM_SOFTWARE_COMMANDS_H

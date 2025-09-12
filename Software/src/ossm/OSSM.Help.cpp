@@ -18,9 +18,9 @@ void OSSM::drawHelp() {
     uint8_t qrcodeData[qrcode_getBufferSize(3)];
     // NOLINTEND(modernize-avoid-c-arrays)
 
-    String url = "https://unbox.ossm.tech";
+    const char url[] PROGMEM = "https://unbox.ossm.tech";
 
-    qrcode_initText(&qrcode, qrcodeData, 3, 0, url.c_str());
+    qrcode_initText(&qrcode, qrcodeData, 3, 0, url);
 
     int yOffset = constrain((64 - qrcode.size * scale) / 2, 0, 64);
     int xOffset = constrain((128 - qrcode.size * scale), 0, 128);
@@ -36,14 +36,14 @@ void OSSM::drawHelp() {
     }
 
     display.setFont(Config::Font::bold);
-    display.drawUTF8(0, 10, UserConfig::language.GetHelp.c_str());
+    display.drawUTF8(0, 10, UserConfig::language.GetHelp);
     // Draw line
     display.drawHLine(0, 12, xOffset - 10);
 
     display.setFont(Config::Font::base);
-    display.drawUTF8(0, 26, UserConfig::language.GetHelpLine1.c_str());
-    display.drawUTF8(0, 38, UserConfig::language.GetHelpLine2.c_str());
-    display.drawUTF8(0, 62, UserConfig::language.Skip.c_str());
+    display.drawUTF8(0, 26, UserConfig::language.GetHelpLine1);
+    display.drawUTF8(0, 38, UserConfig::language.GetHelpLine2);
+    display.drawUTF8(0, 62, UserConfig::language.Skip);
     display.sendBuffer();
     displayMutex.unlock();
 }

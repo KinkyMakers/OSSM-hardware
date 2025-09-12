@@ -78,8 +78,13 @@ namespace Pins {
                    else you can use declared output pin for powering rotary
                    encoder */
 
+#ifdef AJ_DEVELOPMENT_HARDWARE
+        constexpr int displayData = 21;
+        constexpr int displayClock = 22;
+#else
         constexpr int displayData = 21;
         constexpr int displayClock = 19;
+#endif
         constexpr int encoderStepsPerNotch = 2;
     }
 }

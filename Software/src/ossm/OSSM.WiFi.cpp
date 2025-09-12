@@ -17,9 +17,9 @@ void OSSM::drawWiFi() {
     uint8_t qrcodeData[qrcode_getBufferSize(3)];
     // NOLINTEND(modernize-avoid-c-arrays)
 
-    String url = "WIFI:S:OSSM Setup;T:nopass;;";
+    const char url[] PROGMEM = "WIFI:S:OSSM Setup;T:nopass;;";
 
-    qrcode_initText(&qrcode, qrcodeData, 3, 0, url.c_str());
+    qrcode_initText(&qrcode, qrcodeData, 3, 0, url);
 
     int yOffset = constrain((64 - qrcode.size * scale) / 2, 0, 64);
     int xOffset = constrain((128 - qrcode.size * scale), 0, 128);
@@ -35,14 +35,14 @@ void OSSM::drawWiFi() {
     }
 
     display.setFont(Config::Font::bold);
-    display.drawUTF8(0, 10, UserConfig::language.WiFiSetup.c_str());
+    display.drawUTF8(0, 10, UserConfig::language.WiFiSetup);
     // Draw line
     display.drawHLine(0, 12, xOffset - 10);
 
     display.setFont(Config::Font::base);
-    display.drawUTF8(0, 26, UserConfig::language.WiFiSetupLine1.c_str());
-    display.drawUTF8(0, 38, UserConfig::language.WiFiSetupLine2.c_str());
-    display.drawUTF8(0, 62, UserConfig::language.Restart.c_str());
+    display.drawUTF8(0, 26, UserConfig::language.WiFiSetupLine1);
+    display.drawUTF8(0, 38, UserConfig::language.WiFiSetupLine2);
+    display.drawUTF8(0, 62, UserConfig::language.Restart);
     display.sendBuffer();
     displayMutex.unlock();
 

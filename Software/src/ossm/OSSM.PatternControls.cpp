@@ -21,8 +21,8 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
 
     int nextPattern = (int)ossm->setting.pattern;
     bool shouldUpdateDisplay = true;
-    String patternName = "nextPattern";
-    String patternDescription =
+    const char *patternName = "nextPattern";
+    const char *patternDescription =
         UserConfig::language.StrokeEngineDescriptions[nextPattern];
 
     // Change encode

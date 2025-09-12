@@ -40,7 +40,7 @@ static auto isUpdateAvailable = []() {
     WiFiClient client;
     http.begin(client, serverNameBubble);
     http.addHeader("Content-Type", "application/json");
-    StaticJsonDocument<200> doc;
+    JsonDocument doc;
     // Add values in the document
     doc["ossmSwVersion"] = SW_VERSION;
     String requestBody;
@@ -51,7 +51,7 @@ static auto isUpdateAvailable = []() {
     String payload = "{}";
     payload = http.getString();
     ESP_LOGD(UPDATE_TAG, "HTTP Response code: %d", httpResponseCode);
-    StaticJsonDocument<200> bubbleResponse;
+    JsonDocument bubbleResponse;
     deserializeJson(bubbleResponse, payload);
     bool response_needUpdate = bubbleResponse["response"]["needUpdate"];
 
@@ -78,8 +78,7 @@ auto updateOSSM = []() {
     url = "http://d2sy3zdr3r1gt5.cloudfront.net/firmware-dev.bin";
 #endif
 
-    t_httpUpdate_return ret = httpUpdate.update(
-        client, url);
+    t_httpUpdate_return ret = httpUpdate.update(client, url);
 
     switch (ret) {
         case HTTP_UPDATE_FAILED:

@@ -5,8 +5,7 @@
 void OSSM::drawUpdate() {
     displayMutex.lock();
     display.clearBuffer();
-    String title = "Checking for update...";
-    drawStr::title(title);
+    drawStr::title(F("Checking for update..."));
 
     // TODO - Add a spinner here
     display.sendBuffer();
@@ -16,9 +15,8 @@ void OSSM::drawUpdate() {
 void OSSM::drawNoUpdate() {
     displayMutex.lock();
     display.clearBuffer();
-    String title = "No Update Available";
-    drawStr::title(title);
-    display.drawUTF8(0, 62, UserConfig::language.Skip.c_str());
+    drawStr::title(F("No Update Available"));
+    display.drawUTF8(0, 62, UserConfig::language.Skip);
     display.sendBuffer();
     displayMutex.unlock();
 }
@@ -26,8 +24,7 @@ void OSSM::drawNoUpdate() {
 void OSSM::drawUpdating() {
     displayMutex.lock();
     display.clearBuffer();
-    String title = "Updating OSSM...";
-    drawStr::title(title);
+    drawStr::title(F("Updating OSSM..."));
     drawStr::multiLine(0, 24, UserConfig::language.UpdateMessage);
     display.sendBuffer();
     displayMutex.unlock();
