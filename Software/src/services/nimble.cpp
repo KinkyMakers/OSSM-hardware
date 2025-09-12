@@ -101,6 +101,36 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
 class DescriptorCallbacks : public NimBLEDescriptorCallbacks {
 } dscCallbacks;
 
+/** Handler class for server actions */
+class ServerCallbacks : public NimBLEServerCallbacks {
+    void onConnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo) override {
+        ESP_LOGI("NIMBLE", "Client connected: %s",
+                 connInfo.getAddress().toString().c_str());
+        ESP_LOGI("NIMBLE", "Connection count: %d",
+                 pServer->getConnectedCount());
+    }
+
+    void onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo,
+                      int reason) override {
+        ESP_LOGI("NIMBLE", "Client disconnected: %s, reason: %d",
+                 connInfo.getAddress().toString().c_str(), reason);
+        ESP_LOGI("NIMBLE", "Connection count: %d",
+                 pServer->getConnectedCount());
+
+        // Restart advertising when client disconnects
+        if (pServer->getConnectedCount() == 0) {
+            ESP_LOGI("NIMBLE",
+                     "No connections remaining, restarting advertising");
+            pServer->startAdvertising();
+        }
+    }
+
+    void onMTUChange(uint16_t MTU, NimBLEConnInfo& connInfo) override {
+        ESP_LOGD("NIMBLE", "MTU changed to: %d for connection: %s", MTU,
+                 connInfo.getAddress().toString().c_str());
+    }
+} serverCallbacks;
+
 void nimbleLoop(void* pvParameters) {
     NimBLEServer* pServer = (NimBLEServer*)pvParameters;
     /** Loop here and send notifications to connected peers */
@@ -109,17 +139,15 @@ void nimbleLoop(void* pvParameters) {
     int lastConnCount = 0;
     int lastMessageTime = 0;
     while (true) {
-        // if not advertising try to start advertising
-        if (!pServer->getAdvertising()) {
-            ESP_LOGD("NIMBLE",
-                     "Starting advertising, not sure why it stopped!");
-            pServer->startAdvertising();
-            vTaskDelay(pdMS_TO_TICKS(2000));
-            continue;
-        }
-
-        // IF NO CONNECTION, WAIT FOR 2 SECONDS
+        // Check if we should be advertising (no connections)
         if (pServer->getConnectedCount() == 0) {
+            // If not advertising and no connections, restart advertising
+            if (!pServer->getAdvertising()) {
+                ESP_LOGI("NIMBLE",
+                         "No connections and not advertising, restarting "
+                         "advertising");
+                pServer->startAdvertising();
+            }
             vTaskDelay(pdMS_TO_TICKS(2000));
             continue;
         }
@@ -131,11 +159,6 @@ void nimbleLoop(void* pvParameters) {
         if (currentConnCount != lastConnCount) {
             lastState = "";
             lastConnCount = currentConnCount;
-        }
-
-        if (!currentConnCount) {
-            vTaskDelay(pdMS_TO_TICKS(2000));
-            continue;
         }
 
         NimBLEService* pSvc = pServer->getServiceByUUID(SERVICE_UUID);
@@ -199,7 +222,7 @@ void initNimble() {
         /*BLE_SM_PAIR_AUTHREQ_BOND | BLE_SM_PAIR_AUTHREQ_MITM |*/
         BLE_SM_PAIR_AUTHREQ_SC);
     pServer = NimBLEDevice::createServer();
-    // pServer->setCallbacks(&serverCallbacks);
+    pServer->setCallbacks(&serverCallbacks);
 
     // Create Service
     NimBLEService* pService = pServer->createService(SERVICE_UUID);
@@ -266,6 +289,11 @@ void initNimble() {
     pAdvertising->addServiceUUID(pService->getUUID());
     pAdvertising->addServiceUUID(pDeviceInfoService->getUUID());
     pAdvertising->enableScanResponse(true);
+
+    // Configure advertising parameters for better reliability
+    pAdvertising->setMinInterval(0x20);  // 20ms minimum interval
+    pAdvertising->setMaxInterval(0x40);  // 40ms maximum interval
+
     pAdvertising->start();
 
     xTaskCreatePinnedToCore(
