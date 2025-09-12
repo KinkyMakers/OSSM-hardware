@@ -21,8 +21,8 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
 
     int nextPattern = (int)ossm->setting.pattern;
     bool shouldUpdateDisplay = true;
-    String patternName = "nextPattern";
-    String patternDescription =
+    const char *patternName = "nextPattern";
+    const char *patternDescription =
         UserConfig::language.StrokeEngineDescriptions[nextPattern];
 
     // Change encode
@@ -70,5 +70,5 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
 void OSSM::drawPatternControls() {
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawPatternControlsTask, "drawPatternControlsTask", stackSize,
-                this, 1, &drawPatternControlsTaskH);
+                this, 1, &Tasks::drawPatternControlsTaskH);
 }

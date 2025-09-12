@@ -42,7 +42,8 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         return ossm->sm->is("simplePenetration"_s) ||
                ossm->sm->is("simplePenetration.idle"_s) ||
                ossm->sm->is("strokeEngine"_s) ||
-               ossm->sm->is("strokeEngine.idle"_s);
+               ossm->sm->is("strokeEngine.idle"_s) ||
+               ossm->sm->is("streaming"_s) || ossm->sm->is("streaming.idle"_s);
     };
 
     // Line heights
@@ -62,8 +63,12 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         // Always assume the display should not update.
         shouldUpdateDisplay = false;
 
+#ifdef AJ_DEVELOPMENT_HARDWARE
+        next.speedKnob = 0;
+#else
         next.speedKnob =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
+#endif
         ossm->setting.speedKnob = next.speedKnob;
         encoder = ossm->encoder.readEncoder();
 
@@ -116,7 +121,9 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         drawShape::settingBar(UserConfig::language.Speed, next.speedKnob);
 
         if (isStrokeEngine) {
-            drawStr::centered(32, UserConfig::language.StrokeEngineNames[(int)ossm->setting.pattern]);
+            drawStr::centered(
+                32, UserConfig::language
+                        .StrokeEngineNames[(int)ossm->setting.pattern]);
             switch (ossm->playControl) {
                 case PlayControls::STROKE:
                     drawShape::settingBarSmall(ossm->setting.sensation, 125);
@@ -125,16 +132,17 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
                                           118, 0, RIGHT_ALIGNED);
                     break;
                 case PlayControls::SENSATION:
-                    drawShape::settingBar("Sensation", ossm->setting.sensation,
-                                          128, 0, RIGHT_ALIGNED, 10);
+                    drawShape::settingBar(F("Sensation"),
+                                          ossm->setting.sensation, 128, 0,
+                                          RIGHT_ALIGNED, 10);
                     drawShape::settingBarSmall(ossm->setting.depth, 113);
                     drawShape::settingBarSmall(ossm->setting.stroke, 108);
 
                     break;
                 case PlayControls::DEPTH:
                     drawShape::settingBarSmall(ossm->setting.sensation, 125);
-                    drawShape::settingBar("Depth", ossm->setting.depth, 123, 0,
-                                          RIGHT_ALIGNED, 5);
+                    drawShape::settingBar(F("Depth"), ossm->setting.depth, 123,
+                                          0, RIGHT_ALIGNED, 5);
                     drawShape::settingBarSmall(ossm->setting.stroke, 108);
 
                     break;
@@ -188,5 +196,5 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 void OSSM::drawPlayControls() {
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawPlayControlsTask, "drawPlayControlsTask", stackSize, this,
-                1, &drawPlayControlsTaskH);
+                1, &Tasks::drawPlayControlsTaskH);
 }

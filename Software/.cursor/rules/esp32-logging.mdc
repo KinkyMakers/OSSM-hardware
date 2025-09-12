@@ -1,0 +1,189 @@
+---
+globs: *.cpp,*.h,*.hpp
+description: ESP32 logging best practices and guidelines
+---
+
+# ESP32 Logging Best Practices
+
+This project uses ESP32's native logging library for all debug output. Follow these guidelines for consistent and efficient logging.
+
+## Log Level Macros
+
+Use the appropriate ESP32 logging macros based on message importance:
+
+-   **ESP_LOGE(tag, format, ...)** - Error messages (highest priority)
+-   **ESP_LOGW(tag, format, ...)** - Warning messages
+-   **ESP_LOGI(tag, format, ...)** - Informational messages
+-   **ESP_LOGD(tag, format, ...)** - Debug messages
+-   **ESP_LOGV(tag, format, ...)** - Verbose messages (lowest priority)
+
+## Log Tags
+
+### Tag Definition
+
+-   Define all log tags in [LogTags.h](mdc:src/constants/LogTags.h)
+-   Use `static const char* TAG_NAME = "ModuleName";` format
+-   Keep tag names short but descriptive (4-8 characters)
+-   Use UPPERCASE for tag names
+
+### Current Tags
+
+-   `STARTUP_TAG` - General OSSM startup and main operations
+-   `STATE_MACHINE_TAG` - State machine transitions and events
+-   `UPDATE_TAG` - Firmware update operations
+
+### Adding New Tags
+
+When adding new modules, define appropriate tags:
+
+```cpp
+// In LogTags.h
+static const char* NIMBLE_TAG = "NIMBLE";
+static const char* MENU_TAG = "Menu";
+static const char* HOMING_TAG = "Homing";
+```
+
+## Logging Guidelines
+
+### 1. Use Appropriate Log Levels
+
+```cpp
+// ✅ Correct usage
+ESP_LOGE(HOMING_TAG, "Homing failed: %s", errorMessage.c_str());
+ESP_LOGW(NIMBLE_TAG, "Connection timeout, retrying...");
+ESP_LOGI(STARTUP_TAG, "OSSM initialized successfully");
+ESP_LOGD(MENU_TAG, "Menu option changed: %d", option);
+ESP_LOGV(STATE_MACHINE_TAG, "State transition: %s -> %s", from.c_str(), to.c_str());
+```
+
+### 2. Include Context in Messages
+
+```cpp
+// ✅ Good - includes context
+ESP_LOGD("NIMBLE", "Command received: %s", cmd.c_str());
+ESP_LOGD("Homing", "Target position: %d steps", targetPosition);
+
+// ❌ Avoid - lacks context
+ESP_LOGD("NIMBLE", "Command received");
+ESP_LOGD("Homing", "Position set");
+```
+
+### 3. Use Format Strings Consistently
+
+```cpp
+// ✅ Correct - use format strings for all parameters
+ESP_LOGD("Menu", "Current option: %d, Last option: %d", current, last);
+ESP_LOGI("Update", "Checking for updates at %s", serverUrl.c_str());
+
+// ❌ Avoid - mixing String concatenation with format strings
+ESP_LOGD("Menu", "Current option: " + String(current));
+```
+
+### 4. Performance Considerations
+
+```cpp
+// ✅ Good - conditional logging for expensive operations
+if (ESP_LOG_LEVEL_IS_ON(ESP_LOG_DEBUG)) {
+    String debugInfo = generateExpensiveDebugString();
+    ESP_LOGD(TAG, "Debug info: %s", debugInfo.c_str());
+}
+
+// ✅ Good - use ESP_LOGV for very frequent logs
+ESP_LOGV(STATE_MACHINE_TAG, "Processing event: %s", eventName.c_str());
+```
+
+### 5. Error Handling
+
+```cpp
+// ✅ Good - log errors with context
+try {
+    riskyOperation();
+} catch (const std::exception& e) {
+    ESP_LOGE(TAG, "Operation failed: %s", e.what());
+    // Handle error appropriately
+}
+
+// ✅ Good - log warnings for recoverable issues
+if (retryCount > MAX_RETRIES) {
+    ESP_LOGW(TAG, "Max retries exceeded, giving up");
+    return false;
+}
+```
+
+## Build Configuration
+
+Log levels are controlled by `CORE_DEBUG_LEVEL` in [platformio.ini](mdc:platformio.ini):
+
+-   **Development**: `CORE_DEBUG_LEVEL=4` (all levels)
+-   **Staging**: `CORE_DEBUG_LEVEL=1` (errors and warnings only)
+-   **Production**: `CORE_DEBUG_LEVEL=0` (errors only)
+
+## Common Patterns
+
+### State Machine Logging
+
+```cpp
+// State transitions
+ESP_LOGD(STATE_MACHINE_TAG, "%s -> %s", src.c_str(), dst.c_str());
+
+// Event processing
+ESP_LOGD(STATE_MACHINE_TAG, "Processing event: %s", eventName.c_str());
+
+// Guard evaluations
+ESP_LOGD(STATE_MACHINE_TAG, "[PASS]: %s", guardName.c_str());
+```
+
+### BLE/Communication Logging
+
+```cpp
+// Command processing
+ESP_LOGD("NIMBLE", "Command received: %s", cmd.c_str());
+ESP_LOGD("NIMBLE", "Command result: %s", result.c_str());
+
+// Connection status
+ESP_LOGD("NIMBLE", "State changed to: %s", state.c_str());
+```
+
+### Hardware Operations
+
+```cpp
+// Stepper movements
+ESP_LOGD("Homing", "Target position: %d steps", position);
+ESP_LOGD("Homing", "Current position: %f mm", positionMm);
+
+// Sensor readings
+ESP_LOGV("Homing", "Current reading: %f", current);
+```
+
+## Anti-Patterns to Avoid
+
+```cpp
+// ❌ Don't use printf-style logging
+printf("Debug: %s\n", message.c_str());
+
+// ❌ Don't use Serial.print for debug output
+Serial.println("Debug message");
+
+// ❌ Don't use String concatenation in log messages
+ESP_LOGD(TAG, "Value: " + String(value));
+
+// ❌ Don't log sensitive information
+ESP_LOGD(TAG, "Password: %s", password.c_str());
+
+// ❌ Don't use inconsistent tag naming
+ESP_LOGD("my_module", "Message");  // Use defined tags
+```
+
+## Memory Considerations
+
+-   Log messages are stored in flash memory, not RAM
+-   Use format strings instead of String concatenation
+-   Avoid logging in tight loops unless using ESP_LOGV
+-   Consider log level when adding expensive debug operations
+
+## References
+
+-   [ESP32 Logging Documentation](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/log.html)
+-   Current implementation: [StateLogger.h](mdc:src/utils/StateLogger.h)
+-   Tag definitions: [LogTags.h](mdc:src/constants/LogTags.h)
+-   Build configuration: [platformio.ini](mdc:platformio.ini)

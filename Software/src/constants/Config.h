@@ -54,7 +54,6 @@ namespace Config {
 
         using namespace Operator;
 
-
         // This is in millimeters, and is what's used to define how much of
         // your rail is usable.
         // The absolute max your OSSM would have is the distance between the
