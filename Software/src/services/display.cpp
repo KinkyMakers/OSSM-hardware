@@ -65,12 +65,12 @@ auto clearPage(const bool includeFooter, const bool includeHeader) -> void {
 
 void refreshIcons() {
     display.setMaxClipWindow();
-    display.updateDisplayArea(0, 7, ICON_TILES, 1);
+    display.updateDisplayArea(0, 0, ICON_TILES, 1);
 }
 
 void refreshHeader() {
     display.setMaxClipWindow();
-    display.updateDisplayArea(ICON_TILES, 7, 16 - ICON_TILES, 1);
+    display.updateDisplayArea(ICON_TILES, 0, 16 - ICON_TILES, 1);
 }
 
 void refreshPage(bool includeFooter, bool includeHeader) {
@@ -88,7 +88,7 @@ void refreshPage(bool includeFooter, bool includeHeader) {
 
 void refreshTimeout() {
     display.setMaxClipWindow();
-    display.updateDisplayArea(0, 0, TIMEOUT_TILES, 1);
+    display.updateDisplayArea(0, 7, TIMEOUT_TILES, 1);
 }
 
 void refreshFooter() {

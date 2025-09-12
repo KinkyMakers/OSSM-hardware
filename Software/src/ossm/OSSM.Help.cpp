@@ -6,7 +6,7 @@
 
 void OSSM::drawHelp() {
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        display.clearBuffer();
+        clearPage(true, true);
 
         static QRCode qrcode;
         const int scale = 2;
@@ -44,7 +44,7 @@ void OSSM::drawHelp() {
         display.drawUTF8(0, 26, UserConfig::language.GetHelpLine1);
         display.drawUTF8(0, 38, UserConfig::language.GetHelpLine2);
         display.drawUTF8(0, 62, UserConfig::language.Skip);
-        display.sendBuffer();
+        refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }
 }

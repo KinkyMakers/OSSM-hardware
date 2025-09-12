@@ -115,7 +115,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         auto stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-            ossm->display.clearBuffer();
+            clearPage(true);
             ossm->display.setFont(Config::Font::base);
 
             drawShape::settingBar(UserConfig::language.Speed, next.speedKnob);
@@ -189,7 +189,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
             ossm->display.drawUTF8(104 - stringWidth, lh4,
                                    strokeString.c_str());
 
-            ossm->display.sendBuffer();
+            refreshPage(true);
             xSemaphoreGive(displayMutex);
         }
 

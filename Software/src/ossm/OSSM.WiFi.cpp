@@ -6,7 +6,7 @@
 
 void OSSM::drawWiFi() {
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        display.clearBuffer();
+        clearPage(true, true);
 
         static QRCode qrcode;
         const int scale = 2;
@@ -43,7 +43,7 @@ void OSSM::drawWiFi() {
         display.drawUTF8(0, 26, UserConfig::language.WiFiSetupLine1);
         display.drawUTF8(0, 38, UserConfig::language.WiFiSetupLine2);
         display.drawUTF8(0, 62, UserConfig::language.Restart);
-        display.sendBuffer();
+        refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }
 

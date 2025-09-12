@@ -51,14 +51,14 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
         ossm->setting.pattern = (StrokePatterns)nextPattern;
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-            ossm->display.clearBuffer();
+            clearPage(true, true);
 
             // Draw the title
             drawStr::title(patternName);
             drawStr::multiLine(0, 20, patternDescription);
             drawShape::scroll(100 * nextPattern / numberOfPatterns);
 
-            ossm->display.sendBuffer();
+            refreshPage(true, true);
             xSemaphoreGive(displayMutex);
         }
 

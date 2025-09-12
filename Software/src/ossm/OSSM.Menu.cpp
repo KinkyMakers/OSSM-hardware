@@ -45,7 +45,7 @@ void OSSM::drawMenuTask(void *pvParameters) {
         currentEncoderValue = ossm->encoder.readEncoder();
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-            ossm->display.clearBuffer();
+            clearPage(true, true);
 
             // Drawing Variables.
             int leftPadding = 6;  // Padding on the left side of the screen
@@ -137,7 +137,7 @@ void OSSM::drawMenuTask(void *pvParameters) {
                     break;
             }
 
-            ossm->display.sendBuffer();
+            refreshPage(true, true);
             xSemaphoreGive(displayMutex);
         }
 

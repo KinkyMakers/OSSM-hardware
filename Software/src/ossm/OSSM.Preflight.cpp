@@ -44,14 +44,14 @@ void OSSM::drawPreflightTask(void *pvParameters) {
         };
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-            ossm->display.clearBuffer();
+            clearPage(true, true);
             drawStr::title(menuString);
             String speedString = UserConfig::language.Speed + String(": ") +
                                  String((int)speedPercentage) + "%";
             drawStr::centered(25, speedString);
             drawStr::multiLine(0, 40, UserConfig::language.SpeedWarning);
 
-            ossm->display.sendBuffer();
+            refreshPage(true, true);
             xSemaphoreGive(displayMutex);
         }
 

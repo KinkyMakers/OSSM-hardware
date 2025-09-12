@@ -71,13 +71,13 @@ void OSSM::drawHelloTask(void *pvParameters) {
         frameIdx++;
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-            ossm->display.clearBuffer();
+            clearPage(true, true);
             ossm->display.setFont(u8g2_font_maniac_tf);
             ossm->display.drawUTF8(startX, heights[0], "O");
             ossm->display.drawUTF8(startX + letterSpacing, heights[1], "S");
             ossm->display.drawUTF8(startX + letterSpacing * 2, heights[2], "S");
             ossm->display.drawUTF8(startX + letterSpacing * 3, heights[3], "M");
-            ossm->display.sendBuffer();
+            refreshPage(true, true);
             xSemaphoreGive(displayMutex);
         }
         // Saying hi to the watchdog :).
@@ -88,30 +88,30 @@ void OSSM::drawHelloTask(void *pvParameters) {
     vTaskDelay(1500);
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        ossm->display.clearBuffer();
+        clearPage(true, true);
         drawStr::title("Research and Desire");
         ossm->display.drawXBMP(35, 14, 57, 50, Images::RDLogo);
-        ossm->display.sendBuffer();
+        refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }
 
     vTaskDelay(1000);
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        ossm->display.clearBuffer();
+        clearPage(true, true);
         drawStr::title("Kinky Makers");
         ossm->display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
-        ossm->display.sendBuffer();
+        refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }
 
     vTaskDelay(1000);
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        ossm->display.clearBuffer();
+        clearPage(true, true);
         drawStr::title(UserConfig::language.MeasuringStroke);
         ossm->display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
-        ossm->display.sendBuffer();
+        refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }
 
@@ -135,10 +135,10 @@ void OSSM::drawError() {
     }
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        display.clearBuffer();
+        clearPage(true, true);
         drawStr::title(UserConfig::language.Error);
         drawStr::multiLine(0, 20, errorMessage);
-        display.sendBuffer();
+        refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }
 }
