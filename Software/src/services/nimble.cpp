@@ -24,9 +24,8 @@ const char* MANUFACTURER_NAME_UUID =
 const char* SYSTEM_ID_UUID = "2A23";  // Standard UUID for system ID
 const char* DEVICE_INFO_SERVICE_UUID = "180A";  // Device Information Service
 
-NimBLEServer* pServer = NimBLEDevice::getServer();
-
 // Define the global variables
+NimBLEServer* pServer = nullptr;
 uint16_t nimbleTargetPosition = 0;
 int16_t nimbleTargetVelocity = 0;
 
@@ -175,7 +174,6 @@ void nimbleLoop(void* pvParameters) {
 }
 
 void initNimble() {
-    NimBLEServer* pServer;
     /** Initialize NimBLE and set the device name */
     NimBLEDevice::init("OSSM");
 

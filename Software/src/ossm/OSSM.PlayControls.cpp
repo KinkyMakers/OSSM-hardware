@@ -59,6 +59,8 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     // This small break gives the encoder a minute to settle.
     vTaskDelay(100);
 
+    String headerText = "";
+
     while (isInCorrectState(ossm)) {
         // Always assume the display should not update.
         shouldUpdateDisplay = false;
@@ -115,27 +117,35 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         auto stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+            // Check and update the header text... don't worry if this is the
+            // same as last time, nothing happens.
+            if (isStrokeEngine) {
+                headerText = UserConfig::language
+                                 .StrokeEngineNames[(int)ossm->setting.pattern];
+            } else {
+                headerText = UserConfig::language.SimplePenetration;
+            }
+            setHeader(headerText);
+
+            // Now draw the page...
             clearPage(true);
             ossm->display.setFont(Config::Font::base);
 
             drawShape::settingBar(UserConfig::language.Speed, next.speedKnob);
 
             if (isStrokeEngine) {
-                drawStr::centered(
-                    32, UserConfig::language
-                            .StrokeEngineNames[(int)ossm->setting.pattern]);
                 switch (ossm->playControl) {
                     case PlayControls::STROKE:
                         drawShape::settingBarSmall(ossm->setting.sensation,
                                                    125);
                         drawShape::settingBarSmall(ossm->setting.depth, 120);
                         drawShape::settingBar(strokeString,
-                                              ossm->setting.stroke, 118, 8,
+                                              ossm->setting.stroke, 118, 0,
                                               RIGHT_ALIGNED);
                         break;
                     case PlayControls::SENSATION:
                         drawShape::settingBar(F("Sensation"),
-                                              ossm->setting.sensation, 128, 8,
+                                              ossm->setting.sensation, 128, 0,
                                               RIGHT_ALIGNED, 10);
                         drawShape::settingBarSmall(ossm->setting.depth, 113);
                         drawShape::settingBarSmall(ossm->setting.stroke, 108);
@@ -145,16 +155,14 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
                         drawShape::settingBarSmall(ossm->setting.sensation,
                                                    125);
                         drawShape::settingBar(F("Depth"), ossm->setting.depth,
-                                              123, 8, RIGHT_ALIGNED, 5);
+                                              123, 0, RIGHT_ALIGNED, 5);
                         drawShape::settingBarSmall(ossm->setting.stroke, 108);
 
                         break;
                 }
             } else {
-                drawStr::multiLine(15, 32,
-                                   UserConfig::language.SimplePenetration);
                 drawShape::settingBar(strokeString, ossm->encoder.readEncoder(),
-                                      118, 8, RIGHT_ALIGNED);
+                                      118, 0, RIGHT_ALIGNED);
             }
 
             /**

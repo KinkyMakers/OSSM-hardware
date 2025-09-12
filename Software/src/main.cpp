@@ -1,6 +1,7 @@
 #include "Arduino.h"
 #include "OneButton.h"
 #include "WiFi.h"
+#include "components/HeaderBar.h"
 #include "ossm/Events.h"
 #include "ossm/OSSM.h"
 #include "ossm/OSSMI.h"
@@ -37,6 +38,9 @@ void setup() {
 
     // // Display
     initDisplay();
+
+    // Initialize header bar task
+    initHeaderBar();
 
     ossm = new OSSM(display, encoder, stepper);
     ossmInterface = ossm;

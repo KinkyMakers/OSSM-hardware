@@ -7,4 +7,6 @@ static const char* STATE_MACHINE_TAG = "StateLogger";
 
 static const char* UPDATE_TAG = "Update";
 
+static const char* HEADERBAR_TAG = "HeaderBar";
+
 #endif  // SOFTWARE_LOGTAGS_H

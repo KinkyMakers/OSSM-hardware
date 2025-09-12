@@ -13,7 +13,6 @@ U8G2_SSD1306_128X64_NONAME_F_HW_I2C display(ROTATION, Pins::Display::oledReset,
 
 const char EMPTY_STRING[] PROGMEM = "";
 
-
 void initDisplay() {
     ESP_LOGI(TAG, "Initializing display...");
     if (displayMutex == nullptr) {
@@ -33,7 +32,6 @@ void initDisplay() {
 }
 
 #define ICON_TILES 3
-#define TIMEOUT_TILES 1
 
 void clearIcons() {
     display.setClipWindow(128 - 8 * ICON_TILES, 0, 128, 8);
@@ -45,13 +43,8 @@ void clearHeader() {
     display.clearBuffer();
 }
 
-void clearTimeout() {
-    display.setClipWindow(128 - 8 * TIMEOUT_TILES, 56, 128, 64);
-    display.clearBuffer();
-}
-
 void clearFooter() {
-    display.setClipWindow(0, 56, 128 - 8 * TIMEOUT_TILES, 64);
+    display.setClipWindow(0, 64, 128, 64);
     display.clearBuffer();
 }
 
@@ -65,12 +58,12 @@ auto clearPage(const bool includeFooter, const bool includeHeader) -> void {
 
 void refreshIcons() {
     display.setMaxClipWindow();
-    display.updateDisplayArea(0, 0, ICON_TILES, 1);
+    display.updateDisplayArea(16 - ICON_TILES, 0, ICON_TILES, 1);
 }
 
 void refreshHeader() {
     display.setMaxClipWindow();
-    display.updateDisplayArea(ICON_TILES, 0, 16 - ICON_TILES, 1);
+    display.updateDisplayArea(0, 0, 16 - ICON_TILES, 1);
 }
 
 void refreshPage(bool includeFooter, bool includeHeader) {
@@ -86,14 +79,9 @@ void refreshPage(bool includeFooter, bool includeHeader) {
     display.updateDisplayArea(0, 1, 16, 6);
 }
 
-void refreshTimeout() {
-    display.setMaxClipWindow();
-    display.updateDisplayArea(0, 7, TIMEOUT_TILES, 1);
-}
-
 void refreshFooter() {
     display.setMaxClipWindow();
-    display.updateDisplayArea(TIMEOUT_TILES, 0, 16 - TIMEOUT_TILES, 1);
+    display.updateDisplayArea(0, 7, 16, 1);
 }
 
 int drawWrappedText(const int x, const int y, const String& text,

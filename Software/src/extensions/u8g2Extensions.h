@@ -200,11 +200,11 @@ namespace drawShape {
 
     // Function to draw a setting bar with label and percentage
     static void settingBar(const String &name, float value, int x = 0,
-                           int y = 8, Alignment alignment = LEFT_ALIGNED,
+                           int y = 0, Alignment alignment = LEFT_ALIGNED,
                            int textPadding = 0, float minValue = 0,
                            float maxValue = 100) {
         int w = 10;
-        int h = 56;
+        int h = 50;
         int padding = 4;  // Padding after the bar for text
         int lh1 = 10;     // Line height position for first line of text
         int lh2 = 22;     // Line height position for second line of text
@@ -214,25 +214,32 @@ namespace drawShape {
             constrain(value, minValue, maxValue) / maxValue * 100;
         int boxHeight = ceil(h * scaledValue / 100);
 
-        // Position calculations based on alignment
+        // Position calculations based on alignment - y is now offset from
+        // bottom
         int barStartX = (alignment == LEFT_ALIGNED) ? x : x - w;
         int textStartX = (alignment == LEFT_ALIGNED)
                              ? x + w + padding + textPadding
                              : x - display.getUTF8Width(name.c_str()) -
                                    padding - w - textPadding;
 
-        // Draw the bar and its frame (offset by y)
-        display.drawBox(barStartX, y + h - boxHeight, w, boxHeight);
-        display.drawFrame(barStartX, y, w, h);
+        // Calculate actual y positions (bottom-aligned)
+        int barTopY = display.getHeight() - y - h;
+        int barBottomY = display.getHeight() - y;
+        int barFillY = barBottomY - boxHeight;
 
-        // Set font for label and draw it
+        // Draw the bar and its frame (bottom-aligned)
+        display.drawBox(barStartX, barFillY, w, boxHeight);
+        display.drawFrame(barStartX, barTopY, w, h);
+
+        // Set font for label and draw it (bottom-aligned)
         display.setFont(
             Config::Font::bold);  // Make sure Config::Font::base is defined
-        display.drawUTF8(textStartX, y + lh1, name.c_str());
+        display.drawUTF8(textStartX, barTopY + lh1, name.c_str());
 
-        int firstQuartile = y + h * 3 / 4;
-        int half = y + h / 2;
-        int thirdQuartile = y + h / 4;
+        // Calculate quartile positions (bottom-aligned)
+        int firstQuartile = barTopY + h * 3 / 4;
+        int half = barTopY + h / 2;
+        int thirdQuartile = barTopY + h / 4;
 
         if (scaledValue >= 75) {
             display.setDrawColor(0);
@@ -258,22 +265,28 @@ namespace drawShape {
         display.setDrawColor(1);
     }
 
-    static void settingBarSmall(float value, int x = 0, int y = 8,
+    static void settingBarSmall(float value, int x = 0, int y = 0,
                                 float minValue = 0, float maxValue = 100) {
         int w = 3;
         int mid = (w - 1) / 2;
-        int h = 56;
+        int h = 50;
 
         // Calculate height of the bar based on the value and potential min/max
         float scaledValue =
             constrain(value, minValue, maxValue) / maxValue * 100;
         int boxHeight = ceil(h * scaledValue / 100);
-        // draw a single pixel line (offset by y)
-        int lineH = boxHeight > 0 ? constrain(h - boxHeight - 2, 0, h) : h;
-        display.drawVLine(x + mid, y, lineH);
 
-        // draw a box 3px wide (offset by y)
-        display.drawBox(x, y + h - boxHeight, w, boxHeight);
+        // Calculate actual y positions (bottom-aligned)
+        int barTopY = display.getHeight() - y - h;
+        int barBottomY = display.getHeight() - y;
+        int barFillY = barBottomY - boxHeight;
+
+        // draw a single pixel line (bottom-aligned)
+        int lineH = boxHeight > 0 ? constrain(h - boxHeight - 2, 0, h) : h;
+        display.drawVLine(x + mid, barTopY, lineH);
+
+        // draw a box 3px wide (bottom-aligned)
+        display.drawBox(x, barFillY, w, boxHeight);
     }
 
     // Function to draw lines between a variadic number of points

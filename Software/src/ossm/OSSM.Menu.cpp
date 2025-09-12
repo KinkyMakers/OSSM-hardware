@@ -45,7 +45,7 @@ void OSSM::drawMenuTask(void *pvParameters) {
         currentEncoderValue = ossm->encoder.readEncoder();
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-            clearPage(true, true);
+            clearPage(true);
 
             // Drawing Variables.
             int leftPadding = 6;  // Padding on the left side of the screen
@@ -108,36 +108,7 @@ void OSSM::drawMenuTask(void *pvParameters) {
             ossm->display.drawLine(120, 4 + fontSize / 2 + itemHeight, 120,
                                    1 + fontSize / 2 + 2 * itemHeight);
 
-            // Draw the wifi icon
-
-            // Display the appropriate Wi-Fi icon based on the current Wi-Fi
-            // status
-            switch (WiFiClass::status()) {
-                case WL_CONNECTED:
-                    ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y,
-                                           WifiIcon::w, WifiIcon::h,
-                                           WifiIcon::Connected);
-                    break;
-                case WL_NO_SSID_AVAIL:
-                case WL_CONNECT_FAILED:
-                case WL_DISCONNECTED:
-                    ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y,
-                                           WifiIcon::w, WifiIcon::h,
-                                           WifiIcon::Error);
-                    break;
-                case WL_IDLE_STATUS:
-                    ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y,
-                                           WifiIcon::w, WifiIcon::h,
-                                           WifiIcon::First);
-                    break;
-                default:
-                    ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y,
-                                           WifiIcon::w, WifiIcon::h,
-                                           WifiIcon::Error);
-                    break;
-            }
-
-            refreshPage(true, true);
+            refreshPage(true);
             xSemaphoreGive(displayMutex);
         }
 
