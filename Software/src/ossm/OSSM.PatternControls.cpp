@@ -50,16 +50,17 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
 
         ossm->setting.pattern = (StrokePatterns)nextPattern;
 
-        displayMutex.lock();
-        ossm->display.clearBuffer();
+        if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+            ossm->display.clearBuffer();
 
-        // Draw the title
-        drawStr::title(patternName);
-        drawStr::multiLine(0, 20, patternDescription);
-        drawShape::scroll(100 * nextPattern / numberOfPatterns);
+            // Draw the title
+            drawStr::title(patternName);
+            drawStr::multiLine(0, 20, patternDescription);
+            drawShape::scroll(100 * nextPattern / numberOfPatterns);
 
-        ossm->display.sendBuffer();
-        displayMutex.unlock();
+            ossm->display.sendBuffer();
+            xSemaphoreGive(displayMutex);
+        }
 
         vTaskDelay(200);
     }

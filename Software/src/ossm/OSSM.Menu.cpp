@@ -44,95 +44,102 @@ void OSSM::drawMenuTask(void *pvParameters) {
         isFirstDraw = false;
         currentEncoderValue = ossm->encoder.readEncoder();
 
-        displayMutex.lock();
-        ossm->display.clearBuffer();
+        if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+            ossm->display.clearBuffer();
 
-        // Drawing Variables.
-        int leftPadding = 6;  // Padding on the left side of the screen
-        int fontSize = 8;
-        int itemHeight = 20;   // Height of each item
-        int visibleItems = 3;  // Number of items visible on the screen
+            // Drawing Variables.
+            int leftPadding = 6;  // Padding on the left side of the screen
+            int fontSize = 8;
+            int itemHeight = 20;   // Height of each item
+            int visibleItems = 3;  // Number of items visible on the screen
 
-        auto menuOption = ossm->menuOption;
-        if (abs(currentEncoderValue % maxClicks -
-                lastEncoderValue % maxClicks) >= clicksPerRow) {
-            lastEncoderValue = currentEncoderValue % maxClicks;
-            menuOption = (Menu)floor(lastEncoderValue / clicksPerRow);
+            auto menuOption = ossm->menuOption;
+            if (abs(currentEncoderValue % maxClicks -
+                    lastEncoderValue % maxClicks) >= clicksPerRow) {
+                lastEncoderValue = currentEncoderValue % maxClicks;
+                menuOption = (Menu)floor(lastEncoderValue / clicksPerRow);
 
-            ossm->menuOption = menuOption;
+                ossm->menuOption = menuOption;
+            }
+
+            ESP_LOGD(
+                "Menu",
+                "currentEncoderValue: %d, lastEncoderValue: %d, menuOption: %d",
+                currentEncoderValue, lastEncoderValue, menuOption);
+
+            drawShape::scroll(100 * ossm->encoder.readEncoder() /
+                              (clicksPerRow * Menu::NUM_OPTIONS - 1));
+            const char *menuName = menuStrings[menuOption];
+            ESP_LOGD("Menu", "Hovering over state: %s", menuName);
+
+            // Loop around to make an infinite menu.
+            int lastIdx =
+                menuOption - 1 < 0 ? Menu::NUM_OPTIONS - 1 : menuOption - 1;
+            int nextIdx =
+                menuOption + 1 > Menu::NUM_OPTIONS - 1 ? 0 : menuOption + 1;
+
+            ossm->display.setFont(Config::Font::base);
+
+            // Draw the previous item
+            if (lastIdx >= 0) {
+                ossm->display.drawUTF8(leftPadding, itemHeight * (1),
+                                       menuStrings[lastIdx]);
+            }
+
+            // Draw the next item
+            if (nextIdx < Menu::NUM_OPTIONS) {
+                ossm->display.drawUTF8(leftPadding, itemHeight * (3),
+                                       menuStrings[nextIdx]);
+            }
+
+            // Draw the current item
+            ossm->display.setFont(Config::Font::bold);
+            ossm->display.drawUTF8(leftPadding, itemHeight * (2), menuName);
+
+            // Draw a rounded rectangle around the center item
+            ossm->display.drawRFrame(
+                0,
+                itemHeight * (visibleItems / 2) - (fontSize - itemHeight) / 2,
+                120, itemHeight, 2);
+
+            // Draw Shadow.
+            ossm->display.drawLine(2, 2 + fontSize / 2 + 2 * itemHeight, 119,
+                                   2 + fontSize / 2 + 2 * itemHeight);
+            ossm->display.drawLine(120, 4 + fontSize / 2 + itemHeight, 120,
+                                   1 + fontSize / 2 + 2 * itemHeight);
+
+            // Draw the wifi icon
+
+            // Display the appropriate Wi-Fi icon based on the current Wi-Fi
+            // status
+            switch (WiFiClass::status()) {
+                case WL_CONNECTED:
+                    ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y,
+                                           WifiIcon::w, WifiIcon::h,
+                                           WifiIcon::Connected);
+                    break;
+                case WL_NO_SSID_AVAIL:
+                case WL_CONNECT_FAILED:
+                case WL_DISCONNECTED:
+                    ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y,
+                                           WifiIcon::w, WifiIcon::h,
+                                           WifiIcon::Error);
+                    break;
+                case WL_IDLE_STATUS:
+                    ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y,
+                                           WifiIcon::w, WifiIcon::h,
+                                           WifiIcon::First);
+                    break;
+                default:
+                    ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y,
+                                           WifiIcon::w, WifiIcon::h,
+                                           WifiIcon::Error);
+                    break;
+            }
+
+            ossm->display.sendBuffer();
+            xSemaphoreGive(displayMutex);
         }
-
-        ESP_LOGD(
-            "Menu",
-            "currentEncoderValue: %d, lastEncoderValue: %d, menuOption: %d",
-            currentEncoderValue, lastEncoderValue, menuOption);
-
-        drawShape::scroll(100 * ossm->encoder.readEncoder() /
-                          (clicksPerRow * Menu::NUM_OPTIONS - 1));
-        const char *menuName = menuStrings[menuOption];
-        ESP_LOGD("Menu", "Hovering over state: %s", menuName);
-
-        // Loop around to make an infinite menu.
-        int lastIdx =
-            menuOption - 1 < 0 ? Menu::NUM_OPTIONS - 1 : menuOption - 1;
-        int nextIdx =
-            menuOption + 1 > Menu::NUM_OPTIONS - 1 ? 0 : menuOption + 1;
-
-        ossm->display.setFont(Config::Font::base);
-
-        // Draw the previous item
-        if (lastIdx >= 0) {
-            ossm->display.drawUTF8(leftPadding, itemHeight * (1),
-                                   menuStrings[lastIdx]);
-        }
-
-        // Draw the next item
-        if (nextIdx < Menu::NUM_OPTIONS) {
-            ossm->display.drawUTF8(leftPadding, itemHeight * (3),
-                                   menuStrings[nextIdx]);
-        }
-
-        // Draw the current item
-        ossm->display.setFont(Config::Font::bold);
-        ossm->display.drawUTF8(leftPadding, itemHeight * (2), menuName);
-
-        // Draw a rounded rectangle around the center item
-        ossm->display.drawRFrame(
-            0, itemHeight * (visibleItems / 2) - (fontSize - itemHeight) / 2,
-            120, itemHeight, 2);
-
-        // Draw Shadow.
-        ossm->display.drawLine(2, 2 + fontSize / 2 + 2 * itemHeight, 119,
-                               2 + fontSize / 2 + 2 * itemHeight);
-        ossm->display.drawLine(120, 4 + fontSize / 2 + itemHeight, 120,
-                               1 + fontSize / 2 + 2 * itemHeight);
-
-        // Draw the wifi icon
-
-        // Display the appropriate Wi-Fi icon based on the current Wi-Fi status
-        switch (WiFiClass::status()) {
-            case WL_CONNECTED:
-                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
-                                       WifiIcon::h, WifiIcon::Connected);
-                break;
-            case WL_NO_SSID_AVAIL:
-            case WL_CONNECT_FAILED:
-            case WL_DISCONNECTED:
-                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
-                                       WifiIcon::h, WifiIcon::Error);
-                break;
-            case WL_IDLE_STATUS:
-                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
-                                       WifiIcon::h, WifiIcon::First);
-                break;
-            default:
-                ossm->display.drawXBMP(WifiIcon::x, WifiIcon::y, WifiIcon::w,
-                                       WifiIcon::h, WifiIcon::Error);
-                break;
-        }
-
-        ossm->display.sendBuffer();
-        displayMutex.unlock();
 
         vTaskDelay(1);
     };

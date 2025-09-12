@@ -36,8 +36,7 @@ void setup() {
     ESP_LOGD("MAIN", "Starting OSSM");
 
     // // Display
-    display.setBusClock(400000);
-    display.begin();
+    initDisplay();
 
     ossm = new OSSM(display, encoder, stepper);
     ossmInterface = ossm;

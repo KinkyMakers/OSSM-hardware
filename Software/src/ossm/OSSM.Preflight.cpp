@@ -43,16 +43,17 @@ void OSSM::drawPreflightTask(void *pvParameters) {
             break;
         };
 
-        displayMutex.lock();
-        ossm->display.clearBuffer();
-        drawStr::title(menuString);
-        String speedString = UserConfig::language.Speed + String(": ") +
-                             String((int)speedPercentage) + "%";
-        drawStr::centered(25, speedString);
-        drawStr::multiLine(0, 40, UserConfig::language.SpeedWarning);
+        if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+            ossm->display.clearBuffer();
+            drawStr::title(menuString);
+            String speedString = UserConfig::language.Speed + String(": ") +
+                                 String((int)speedPercentage) + "%";
+            drawStr::centered(25, speedString);
+            drawStr::multiLine(0, 40, UserConfig::language.SpeedWarning);
 
-        ossm->display.sendBuffer();
-        displayMutex.unlock();
+            ossm->display.sendBuffer();
+            xSemaphoreGive(displayMutex);
+        }
 
         vTaskDelay(100);
     } while (isInPreflight(ossm));

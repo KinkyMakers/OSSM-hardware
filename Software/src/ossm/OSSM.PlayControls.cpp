@@ -114,78 +114,84 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         String strokeString = UserConfig::language.Stroke;
         auto stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
 
-        displayMutex.lock();
-        ossm->display.clearBuffer();
-        ossm->display.setFont(Config::Font::base);
+        if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+            ossm->display.clearBuffer();
+            ossm->display.setFont(Config::Font::base);
 
-        drawShape::settingBar(UserConfig::language.Speed, next.speedKnob);
+            drawShape::settingBar(UserConfig::language.Speed, next.speedKnob);
 
-        if (isStrokeEngine) {
-            drawStr::centered(
-                32, UserConfig::language
-                        .StrokeEngineNames[(int)ossm->setting.pattern]);
-            switch (ossm->playControl) {
-                case PlayControls::STROKE:
-                    drawShape::settingBarSmall(ossm->setting.sensation, 125);
-                    drawShape::settingBarSmall(ossm->setting.depth, 120);
-                    drawShape::settingBar(strokeString, ossm->setting.stroke,
-                                          118, 0, RIGHT_ALIGNED);
-                    break;
-                case PlayControls::SENSATION:
-                    drawShape::settingBar(F("Sensation"),
-                                          ossm->setting.sensation, 128, 0,
-                                          RIGHT_ALIGNED, 10);
-                    drawShape::settingBarSmall(ossm->setting.depth, 113);
-                    drawShape::settingBarSmall(ossm->setting.stroke, 108);
+            if (isStrokeEngine) {
+                drawStr::centered(
+                    32, UserConfig::language
+                            .StrokeEngineNames[(int)ossm->setting.pattern]);
+                switch (ossm->playControl) {
+                    case PlayControls::STROKE:
+                        drawShape::settingBarSmall(ossm->setting.sensation,
+                                                   125);
+                        drawShape::settingBarSmall(ossm->setting.depth, 120);
+                        drawShape::settingBar(strokeString,
+                                              ossm->setting.stroke, 118, 8,
+                                              RIGHT_ALIGNED);
+                        break;
+                    case PlayControls::SENSATION:
+                        drawShape::settingBar(F("Sensation"),
+                                              ossm->setting.sensation, 128, 8,
+                                              RIGHT_ALIGNED, 10);
+                        drawShape::settingBarSmall(ossm->setting.depth, 113);
+                        drawShape::settingBarSmall(ossm->setting.stroke, 108);
 
-                    break;
-                case PlayControls::DEPTH:
-                    drawShape::settingBarSmall(ossm->setting.sensation, 125);
-                    drawShape::settingBar(F("Depth"), ossm->setting.depth, 123,
-                                          0, RIGHT_ALIGNED, 5);
-                    drawShape::settingBarSmall(ossm->setting.stroke, 108);
+                        break;
+                    case PlayControls::DEPTH:
+                        drawShape::settingBarSmall(ossm->setting.sensation,
+                                                   125);
+                        drawShape::settingBar(F("Depth"), ossm->setting.depth,
+                                              123, 8, RIGHT_ALIGNED, 5);
+                        drawShape::settingBarSmall(ossm->setting.stroke, 108);
 
-                    break;
+                        break;
+                }
+            } else {
+                drawStr::multiLine(15, 32,
+                                   UserConfig::language.SimplePenetration);
+                drawShape::settingBar(strokeString, ossm->encoder.readEncoder(),
+                                      118, 8, RIGHT_ALIGNED);
             }
-        } else {
-            drawStr::multiLine(15, 32, UserConfig::language.SimplePenetration);
-            drawShape::settingBar(strokeString, ossm->encoder.readEncoder(),
-                                  118, 0, RIGHT_ALIGNED);
-        }
 
-        /**
-         * /////////////////////////////////////////////
-         * /////////// Play Controls Left  ////////////
-         * /////////////////////////////////////////////
-         *
-         * These controls are associated with stroke and distance
-         */
-        ossm->display.setFont(Config::Font::small);
-        strokeString = "# " + String(ossm->sessionStrokeCount);
-        ossm->display.drawUTF8(14, lh4, strokeString.c_str());
+            /**
+             * /////////////////////////////////////////////
+             * /////////// Play Controls Left  ////////////
+             * /////////////////////////////////////////////
+             *
+             * These controls are associated with stroke and distance
+             */
+            ossm->display.setFont(Config::Font::small);
+            strokeString = "# " + String(ossm->sessionStrokeCount);
+            ossm->display.drawUTF8(14, lh4, strokeString.c_str());
 
-        /**
-         * /////////////////////////////////////////////
-         * /////////// Play Controls Right  ////////////
-         * /////////////////////////////////////////////
-         *
-         * These controls are associated with stroke and distance
-         */
+            /**
+             * /////////////////////////////////////////////
+             * /////////// Play Controls Right  ////////////
+             * /////////////////////////////////////////////
+             *
+             * These controls are associated with stroke and distance
+             */
 
-        if (!isStrokeEngine) {
-            strokeString = formatDistance(ossm->sessionDistanceMeters);
+            if (!isStrokeEngine) {
+                strokeString = formatDistance(ossm->sessionDistanceMeters);
+                stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
+                ossm->display.drawUTF8(104 - stringWidth, lh3,
+                                       strokeString.c_str());
+            }
+
+            strokeString =
+                formatTime(displayLastUpdated - ossm->sessionStartTime).c_str();
             stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-            ossm->display.drawUTF8(104 - stringWidth, lh3,
+            ossm->display.drawUTF8(104 - stringWidth, lh4,
                                    strokeString.c_str());
+
+            ossm->display.sendBuffer();
+            xSemaphoreGive(displayMutex);
         }
-
-        strokeString =
-            formatTime(displayLastUpdated - ossm->sessionStartTime).c_str();
-        stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-        ossm->display.drawUTF8(104 - stringWidth, lh4, strokeString.c_str());
-
-        ossm->display.sendBuffer();
-        displayMutex.unlock();
 
         vTaskDelay(200);
     }
