@@ -1,6 +1,7 @@
 #include "nimble.h"
 
 #include <ArduinoJson.h>
+#include <constants/UserConfig.h>
 
 #include <regex>
 
@@ -70,14 +71,15 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
         std::regex go_regex(R"(go:(simplePenetration|strokeEngine|menu))");
         std::smatch match;
 
-        ESP_LOGD("NIMBLE", "Received command: %s", cmd.c_str());
-
         bool isSet = std::regex_match(cmd, match, set_regex);
         bool isGo = std::regex_match(cmd, match, go_regex);
 
         if (isSet || isGo) {
+            ESP_LOGD("NIMBLE", "OK command: %s", cmd.c_str());
             ossmInterface->ble_click(String(cmd.c_str()));
             matched = true;
+        } else {
+            ESP_LOGD("NIMBLE", "FAIL command: %s", cmd.c_str());
         }
 
         if (matched) {
@@ -108,6 +110,21 @@ void nimbleLoop(void* pvParameters) {
     int lastConnCount = 0;
     int lastMessageTime = 0;
     while (true) {
+        // if not advertising try to start advertising
+        if (!pServer->getAdvertising()) {
+            ESP_LOGD("NIMBLE",
+                     "Starting advertising, not sure why it stopped!");
+            pServer->startAdvertising();
+            vTaskDelay(pdMS_TO_TICKS(2000));
+            continue;
+        }
+
+        // IF NO CONNECTION, WAIT FOR 2 SECONDS
+        if (pServer->getConnectedCount() == 0) {
+            vTaskDelay(pdMS_TO_TICKS(2000));
+            continue;
+        }
+
         String currentState = ossmInterface->getCurrentState();
         int currentConnCount = pServer->getConnectedCount();
 
@@ -202,7 +219,7 @@ void initNimble() {
     NimBLECharacteristic* pStateChar = pService->createCharacteristic(
         CHARACTERISTIC_STATE_UUID,
         NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
-    pStateChar->setValue("");
+    pStateChar->setValue("ok:boot");
 
     // Patterns characteristic (read-only list of all patterns)
     NimBLECharacteristic* pPatternsChar = pService->createCharacteristic(
@@ -211,33 +228,13 @@ void initNimble() {
     JsonDocument doc;
     JsonArray arr = doc.to<JsonArray>();
 
-    JsonObject pattern1 = arr.createNestedObject();
-    pattern1["name"] = "Simple Stroke";
-    pattern1["idx"] = 0;
-
-    // JsonObject pattern2 = arr.createNestedObject();
-    // pattern2["name"] = UserConfig::language.StrokeEngineDescriptions[1];
-    // pattern2["idx"] = 1;
-
-    // JsonObject pattern3 = arr.createNestedObject();
-    // pattern3["name"] = UserConfig::language.StrokeEngineDescriptions[2];
-    // pattern3["idx"] = 2;
-
-    // JsonObject pattern4 = arr.createNestedObject();
-    // pattern4["name"] = UserConfig::language.StrokeEngineDescriptions[3];
-    // pattern4["idx"] = 3;
-
-    // JsonObject pattern5 = arr.createNestedObject();
-    // pattern5["name"] = UserConfig::language.StrokeEngineDescriptions[4];
-    // pattern5["idx"] = 4;
-
-    // JsonObject pattern6 = arr.createNestedObject();
-    // pattern6["name"] = UserConfig::language.StrokeEngineDescriptions[5];
-    // pattern6["idx"] = 5;
-
-    // JsonObject pattern7 = arr.createNestedObject();
-    // pattern7["name"] = UserConfig::language.StrokeEngineDescriptions[6];
-    // pattern7["idx"] = 6;
+    for (int i = 0; i < sizeof(UserConfig::language.StrokeEngineNames) /
+                            sizeof(UserConfig::language.StrokeEngineNames[0]);
+         i++) {
+        JsonObject pattern = arr.createNestedObject();
+        pattern["name"] = UserConfig::language.StrokeEngineNames[i];
+        pattern["idx"] = i;
+    }
 
     String jsonString;
     serializeJson(arr, jsonString);
