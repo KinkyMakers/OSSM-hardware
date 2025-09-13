@@ -3,7 +3,7 @@
 #include <queue>
 
 #include "constants/Config.h"
-#include "services/nimble.h"
+#include "services/communication/nimble.h"
 
 void OSSM::startSimplePenetrationTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;

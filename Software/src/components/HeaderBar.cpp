@@ -5,7 +5,7 @@
 
 #include "constants/Images.h"
 #include "constants/LogTags.h"
-#include "services/nimble.h"
+#include "services/communication/nimble.h"
 
 // Task handle
 TaskHandle_t headerBarTaskHandle = nullptr;

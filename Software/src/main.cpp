@@ -6,9 +6,9 @@
 #include "ossm/OSSM.h"
 #include "ossm/OSSMI.h"
 #include "services/board.h"
+#include "services/communication/nimble.h"
 #include "services/display.h"
 #include "services/encoder.h"
-#include "services/nimble.h"
 #include "services/stepper.h"
 
 /*
