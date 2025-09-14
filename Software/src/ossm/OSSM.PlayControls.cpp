@@ -78,6 +78,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         if (USE_SPEED_KNOB_AS_LIMIT) {
             next.speed = next.speedKnob * OSSM::setting.speedBLE / 100;
         } else {
+            next.speedKnob = OSSM::setting.speedBLE;
             next.speed = OSSM::setting.speedBLE;
         }
 
