@@ -10,6 +10,13 @@ using namespace sml;
 
 OSSM *ossm = nullptr;
 
+// Static member definition
+SettingPercents OSSM::setting = {.speed = 0,
+                                 .stroke = 0,
+                                 .sensation = 50,
+                                 .depth = 50,
+                                 .pattern = StrokePatterns::SimpleStroke};
+
 // Now we can define the OSSM constructor since OSSMStateMachine::operator() is
 // fully defined
 OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,

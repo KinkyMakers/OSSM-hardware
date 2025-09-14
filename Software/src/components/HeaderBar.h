@@ -27,10 +27,12 @@ enum class WifiStatus {
 // Function declarations
 bool shouldDrawWifiIcon();
 bool shouldDrawBleIcon();
+bool shouldDrawSpeedKnobIcon();
 WifiStatus getWifiStatus();
 BleStatus getBleStatus();
 void drawWifiIcon(int16_t x, int16_t y);
 void drawBleIcon(int16_t x, int16_t y);
+void drawSpeedKnobIcon();
 
 // Task functions
 [[noreturn]] void headerBarTask(void* pvParameters);

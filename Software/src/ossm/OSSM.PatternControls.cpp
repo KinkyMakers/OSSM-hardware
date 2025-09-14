@@ -12,14 +12,14 @@ size_t numberOfPatterns = 7;
 void OSSM::drawPatternControlsTask(void *pvParameters) {
     // parse ossm from the parameters
     OSSM *ossm = (OSSM *)pvParameters;
-    SettingPercents savedSettings = ossm->setting;
+    SettingPercents savedSettings = OSSM::setting;
 
     auto isInCorrectState = [](OSSM *ossm) {
         // Add any states that you want to support here.
         return ossm->sm->is("strokeEngine.pattern"_s);
     };
 
-    int nextPattern = (int)ossm->setting.pattern;
+    int nextPattern = (int)OSSM::setting.pattern;
     bool shouldUpdateDisplay = true;
     const char *patternName = "nextPattern";
     const char *patternDescription =
@@ -33,7 +33,7 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
     while (isInCorrectState(ossm)) {
         nextPattern = ossm->encoder.readEncoder() / 3;
         shouldUpdateDisplay =
-            shouldUpdateDisplay || (int)ossm->setting.pattern != nextPattern;
+            shouldUpdateDisplay || (int)OSSM::setting.pattern != nextPattern;
         if (!shouldUpdateDisplay) {
             vTaskDelay(100);
             continue;
@@ -48,7 +48,7 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
             patternDescription = "No description available";
         }
 
-        ossm->setting.pattern = (StrokePatterns)nextPattern;
+        OSSM::setting.pattern = (StrokePatterns)nextPattern;
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
             clearPage(true, true);

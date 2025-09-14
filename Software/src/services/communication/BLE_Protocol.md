@@ -12,11 +12,13 @@ The OSSM (Open Source Sex Machine) uses Bluetooth Low Energy (BLE) for wireless 
 522b443a-4f53-534d-0001-420badbabe69
 ```
 
-The OSSM implements a custom BLE service with multiple characteristics organized into three functional groups:
+The OSSM implements a custom BLE service with multiple characteristics organized into functional groups based on a structured namespace:
 
-1. **Command Characteristics** (0002-000F): Writable command interface
-2. **State Characteristics** (0010-00F0): Read-only state monitoring
-3. **Auxiliary Characteristics** (0100-0F00): Read-only device information
+1. **Writable Settings** (0x0000-0x0FFF): Command interface and configuration
+2. **Read Only State** (0x1000-0x1FFF): State monitoring and real-time data
+3. **State & Aux Information** (0x2000-0x2FFF): Device information and auxiliary data
+4. **Future Reserved** (0x3000-0xEFFF): Reserved for future expansion
+5. **Experimental/Sandbox** (0xF000-0xFFFF): Volatile experimental features
 
 ## Characteristic Specifications
 
@@ -61,11 +63,36 @@ set:pattern:3
 go:strokeEngine
 ```
 
+#### Speed Knob Configuration Characteristic
+
+-   **UUID**: `522b443a-4f53-534d-0010-420badbabe69`
+-   **Properties**: READ, WRITE
+-   **Purpose**: Configure whether speed knob acts as upper limit for BLE speed commands
+
+**Configuration Values**:
+
+| Value             | Description                              |
+| ----------------- | ---------------------------------------- |
+| `true`, `1`, `t`  | Speed knob acts as upper limit (default) |
+| `false`, `0`, `f` | Speed knob and BLE speed are independent |
+
+**Behavior**:
+
+-   **When `true`**: BLE speed commands (0-100) are treated as a percentage of the current physical knob value
+    -   Example: Knob at 50%, BLE command `set:speed:80` → Effective speed = 40%
+-   **When `false`**: BLE speed commands (0-100) are used directly as the speed value
+    -   Example: BLE command `set:speed:80` → Effective speed = 80%
+
+**Response Format**:
+
+-   **Success**: Current configuration value (`true` or `false`)
+-   **Error**: `error:invalid_value` for invalid input
+
 ### State Characteristics (Read-Only)
 
 #### Current State Characteristic
 
--   **UUID**: `522b443a-4f53-534d-0010-420badbabe69`
+-   **UUID**: `522b443a-4f53-534d-1000-420badbabe69`
 -   **Properties**: READ, NOTIFY
 -   **Purpose**: Monitor current OSSM state and settings
 
@@ -99,9 +126,6 @@ See the entire list here: [OSSM State Machine](../src/ossm/OSSM.h)
 -   `strokeEngine.idle` - Stroke engine idle
 -   `strokeEngine.preflight` - Pre-flight checks
 -   `strokeEngine.pattern` - Pattern selection
--   `streaming` - Streaming mode
--   `streaming.idle` - Streaming idle
--   `streaming.preflight` - Pre-flight checks
 -   `update` - Update mode
 -   `update.checking` - Checking for updates
 -   `update.updating` - Update in progress
@@ -125,7 +149,7 @@ See the entire list here: [OSSM State Machine](../src/ossm/OSSM.h)
 
 #### Pattern List Characteristic
 
--   **UUID**: `522b443a-4f53-534d-0100-420badbabe69`
+-   **UUID**: `522b443a-4f53-534d-2000-420badbabe69`
 -   **Properties**: READ
 -   **Purpose**: Get available stroke patterns
 
@@ -185,28 +209,52 @@ The OSSM also implements the standard Device Information Service (UUID: `180A`) 
 
 The OSSM uses a structured UUID namespace for easy expansion:
 
-### Command Characteristics (0002-000F)
+### Service UUID
 
-These are writable, and readable
+```
+0x0001 = Service UUID
+```
+
+### Namespace Ranges
+
+| Range | Hex Range     | Description                       |
+| ----- | ------------- | --------------------------------- |
+| 0x0   | 0x0000–0x0FFF | Writable Settings                 |
+| 0x1   | 0x1000–0x1FFF | Read Only State                   |
+| 0x2   | 0x2000–0x2FFF | Auxilary Information              |
+| 0x3   | 0x3000–0x3FFF | Statistics                        |
+| 0x4   | 0x4000–0x4FFF | Future                            |
+| 0x5   | 0x5000–0x5FFF | Future                            |
+| 0x6   | 0x6000–0x6FFF | Future                            |
+| 0x7   | 0x7000–0x7FFF | Future                            |
+| 0x8   | 0x8000–0x8FFF | Future                            |
+| 0x9   | 0x9000–0x9FFF | Future                            |
+| 0xA   | 0xA000–0xAFFF | Future                            |
+| 0xB   | 0xB000–0xBFFF | Future                            |
+| 0xC   | 0xC000–0xCFFF | Future                            |
+| 0xD   | 0xD000–0xDFFF | Future                            |
+| 0xE   | 0xE000–0xEFFF | Future                            |
+| 0xF   | 0xF000–0xFFFF | Experimental / Sandbox - Volatile |
+
+### Current Characteristic Assignments
+
+#### Writable Settings (0x0000-0x0FFF)
 
 ```
 522b443a-4f53-534d-0002-420badbabe69  # Primary command
+522b443a-4f53-534d-0010-420badbabe69  # Speed knob configuration
 ```
 
-### State Characteristics (0010-00F0)
-
-These are readable and subscribable
+#### Read Only State (0x1000-0x1FFF)
 
 ```
-522b443a-4f53-534d-0010-420badbabe69  # Current state
+522b443a-4f53-534d-1000-420badbabe69  # Current state
 ```
 
-### Auxiliary Characteristics (0100-0F00)
-
-These are readable and do not update.
+#### State & Aux Information (0x2000-0x2FFF)
 
 ```
-522b443a-4f53-534d-0100-420badbabe69  # Pattern list
+522b443a-4f53-534d-2000-420badbabe69  # Pattern list
 ```
 
 ## Connection Management
@@ -286,8 +334,9 @@ const service = await server.getPrimaryService("522b443a-4f53-534d-0001-420badba
 
 // Get characteristics
 const commandChar = await service.getCharacteristic("522b443a-4f53-534d-0002-420badbabe69");
-const stateChar = await service.getCharacteristic("522b443a-4f53-534d-0010-420badbabe69");
-const patternsChar = await service.getCharacteristic("522b443a-4f53-534d-0100-420badbabe69");
+const stateChar = await service.getCharacteristic("522b443a-4f53-534d-1000-420badbabe69");
+const speedKnobConfigChar = await service.getCharacteristic("522b443a-4f53-534d-0010-420badbabe69");
+const patternsChar = await service.getCharacteristic("522b443a-4f53-534d-2000-420badbabe69");
 
 // Subscribe to state updates
 await stateChar.startNotifications();
@@ -295,6 +344,11 @@ stateChar.addEventListener("characteristicvaluechanged", (event) => {
     const state = JSON.parse(new TextDecoder().decode(event.target.value));
     console.log("State update:", state);
 });
+
+// Configure speed knob behavior
+await speedKnobConfigChar.writeValue(new TextEncoder().encode("true")); // Knob as limit
+// or
+await speedKnobConfigChar.writeValue(new TextEncoder().encode("false")); // Independent
 
 // Send command
 const command = "set:speed:75";
@@ -317,8 +371,14 @@ async def connect_to_ossm():
     async with BleakClient("OSSM") as client:
         # Subscribe to state updates
         await client.start_notify(
-            "522b443a-4f53-534d-0010-420badbabe69",
+            "522b443a-4f53-534d-1000-420badbabe69",
             state_callback
+        )
+
+        # Configure speed knob behavior
+        await client.write_gatt_char(
+            "522b443a-4f53-534d-0010-420badbabe69",
+            "true".encode()  # Knob as limit
         )
 
         # Send command

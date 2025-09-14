@@ -1,5 +1,6 @@
 #include "OSSM.h"
 
+#include "constants/UserConfig.h"
 #include "extensions/u8g2Extensions.h"
 #include "services/tasks.h"
 #include "utils/analog.h"
@@ -13,13 +14,13 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     // Clean up!
     switch (ossm->playControl) {
         case PlayControls::STROKE:
-            ossm->encoder.setEncoderValue(ossm->setting.stroke);
+            ossm->encoder.setEncoderValue(OSSM::setting.stroke);
             break;
         case PlayControls::SENSATION:
-            ossm->encoder.setEncoderValue(ossm->setting.sensation);
+            ossm->encoder.setEncoderValue(OSSM::setting.sensation);
             break;
         case PlayControls::DEPTH:
-            ossm->encoder.setEncoderValue(ossm->setting.depth);
+            ossm->encoder.setEncoderValue(OSSM::setting.depth);
             break;
     }
 
@@ -43,7 +44,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
                ossm->sm->is("simplePenetration.idle"_s) ||
                ossm->sm->is("strokeEngine"_s) ||
                ossm->sm->is("strokeEngine.idle"_s) ||
-               ossm->sm->is("streaming"_s) || ossm->sm->is("streaming.idle"_s);
+               ossm->sm->is("streaming"_s);
     };
 
     // Line heights
@@ -71,35 +72,39 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         next.speedKnob =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
 #endif
-        ossm->setting.speedKnob = next.speedKnob;
+        OSSM::setting.speedKnob = next.speedKnob;
         encoder = ossm->encoder.readEncoder();
 
-        next.speed = next.speedKnob;
+        if (USE_SPEED_KNOB_AS_LIMIT) {
+            next.speed = next.speedKnob * OSSM::setting.speedBLE / 100;
+        } else {
+            next.speed = OSSM::setting.speedBLE;
+        }
 
-        if (next.speed != ossm->setting.speed) {
+        if (next.speed != OSSM::setting.speed) {
             shouldUpdateDisplay = true;
-            ossm->setting.speed = next.speed;
+            OSSM::setting.speed = next.speed;
         }
 
         switch (ossm->playControl) {
             case PlayControls::STROKE:
                 next.stroke = encoder;
                 shouldUpdateDisplay = shouldUpdateDisplay ||
-                                      next.stroke - ossm->setting.stroke >= 1;
-                ossm->setting.stroke = next.stroke;
+                                      next.stroke - OSSM::setting.stroke >= 1;
+                OSSM::setting.stroke = next.stroke;
                 break;
             case PlayControls::SENSATION:
                 next.sensation = encoder;
                 shouldUpdateDisplay =
                     shouldUpdateDisplay ||
-                    next.sensation - ossm->setting.sensation >= 1;
-                ossm->setting.sensation = next.sensation;
+                    next.sensation - OSSM::setting.sensation >= 1;
+                OSSM::setting.sensation = next.sensation;
                 break;
             case PlayControls::DEPTH:
                 next.depth = encoder;
                 shouldUpdateDisplay = shouldUpdateDisplay ||
-                                      next.depth - ossm->setting.depth >= 1;
-                ossm->setting.depth = next.depth;
+                                      next.depth - OSSM::setting.depth >= 1;
+                OSSM::setting.depth = next.depth;
                 break;
         }
 
@@ -121,7 +126,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
             // same as last time, nothing happens.
             if (isStrokeEngine) {
                 headerText = UserConfig::language
-                                 .StrokeEngineNames[(int)ossm->setting.pattern];
+                                 .StrokeEngineNames[(int)OSSM::setting.pattern];
             } else {
                 headerText = UserConfig::language.SimplePenetration;
             }
@@ -136,27 +141,27 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
             if (isStrokeEngine) {
                 switch (ossm->playControl) {
                     case PlayControls::STROKE:
-                        drawShape::settingBarSmall(ossm->setting.sensation,
+                        drawShape::settingBarSmall(OSSM::setting.sensation,
                                                    125);
-                        drawShape::settingBarSmall(ossm->setting.depth, 120);
+                        drawShape::settingBarSmall(OSSM::setting.depth, 120);
                         drawShape::settingBar(strokeString,
-                                              ossm->setting.stroke, 118, 0,
+                                              OSSM::setting.stroke, 118, 0,
                                               RIGHT_ALIGNED);
                         break;
                     case PlayControls::SENSATION:
                         drawShape::settingBar(F("Sensation"),
-                                              ossm->setting.sensation, 128, 0,
+                                              OSSM::setting.sensation, 128, 0,
                                               RIGHT_ALIGNED, 10);
-                        drawShape::settingBarSmall(ossm->setting.depth, 113);
-                        drawShape::settingBarSmall(ossm->setting.stroke, 108);
+                        drawShape::settingBarSmall(OSSM::setting.depth, 113);
+                        drawShape::settingBarSmall(OSSM::setting.stroke, 108);
 
                         break;
                     case PlayControls::DEPTH:
-                        drawShape::settingBarSmall(ossm->setting.sensation,
+                        drawShape::settingBarSmall(OSSM::setting.sensation,
                                                    125);
-                        drawShape::settingBar(F("Depth"), ossm->setting.depth,
+                        drawShape::settingBar(F("Depth"), OSSM::setting.depth,
                                               123, 0, RIGHT_ALIGNED, 5);
-                        drawShape::settingBarSmall(ossm->setting.stroke, 108);
+                        drawShape::settingBarSmall(OSSM::setting.stroke, 108);
 
                         break;
                 }

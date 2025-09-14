@@ -18,6 +18,7 @@ struct SettingPercents {
     float depth;
     StrokePatterns pattern;
     float speedKnob;
+    float speedBLE = 100;
 };
 
 #endif  // SOFTWARE_SETTINGPERCENTS_H

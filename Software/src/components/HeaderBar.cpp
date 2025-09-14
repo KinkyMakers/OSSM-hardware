@@ -5,7 +5,9 @@
 
 #include "constants/Images.h"
 #include "constants/LogTags.h"
+#include "constants/UserConfig.h"
 #include "services/communication/nimble.h"
+#include <services/board.h>
 
 // Task handle
 TaskHandle_t headerBarTaskHandle = nullptr;
@@ -13,10 +15,12 @@ TaskHandle_t headerBarTaskHandle = nullptr;
 // Last known states for change detection
 static WifiStatus lastWifiStatus = WifiStatus::DISCONNECTED;
 static BleStatus lastBleStatus = BleStatus::DISCONNECTED;
+static bool lastSpeedKnobAsLimit = true;
 
 // Icon positions
-static const int16_t WIFI_ICON_X = 106;
-static const int16_t BLE_ICON_X = 116;
+static const int16_t WIFI_ICON_X = 114;
+static const int16_t BLE_ICON_X = 120;
+static const int16_t SPEED_KNOB_ICON_X = 102;
 static const int16_t ICON_Y = 0;
 static const int16_t ICON_SIZE = 8;
 
@@ -127,6 +131,30 @@ void drawBleIcon() {
     }
 }
 
+// --- Speed Knob Status Functions ---
+bool shouldDrawSpeedKnobIcon() {
+    bool currentSpeedKnobAsLimit = USE_SPEED_KNOB_AS_LIMIT;
+    if (currentSpeedKnobAsLimit != lastSpeedKnobAsLimit) {
+        lastSpeedKnobAsLimit = currentSpeedKnobAsLimit;
+        return true;
+    }
+    return false;
+}
+
+void drawSpeedKnobIcon() {
+    // Set font for 2-letter codes
+    display.setFont(u8g2_font_spleen5x8_mu);
+
+    // Draw 2-letter status code
+    if (USE_SPEED_KNOB_AS_LIMIT) {
+        display.drawStr(SPEED_KNOB_ICON_X, ICON_Y + 7,
+                        "S1");  // Speed knob as limit enabled
+    } else {
+        display.drawStr(SPEED_KNOB_ICON_X, ICON_Y + 7,
+                        "S0");  // Speed knob as limit disabled
+    }
+}
+
 // --- Header Bar Task ---
 [[noreturn]] void headerBarTask(void* pvParameters) {
     // Initial delay to let other systems initialize
@@ -136,6 +164,7 @@ void drawBleIcon() {
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
         clearIcons();
+        drawSpeedKnobIcon();
         drawBleIcon();
         drawWifiIcon();
 
@@ -146,9 +175,10 @@ void drawBleIcon() {
     while (true) {
         bool shouldDrawWifi = shouldDrawWifiIcon();
         bool shouldDrawBle = shouldDrawBleIcon();
+        bool shouldDrawSpeedKnob = shouldDrawSpeedKnobIcon();
 
         // Only redraw if something changed
-        if (!shouldDrawWifi && !shouldDrawBle) {
+        if (!shouldDrawWifi && !shouldDrawBle && !shouldDrawSpeedKnob) {
             vTaskDelay(100 / portTICK_PERIOD_MS);
             continue;
         }
@@ -157,6 +187,7 @@ void drawBleIcon() {
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
             // Clear icon area
             clearIcons();
+            drawSpeedKnobIcon();
             drawBleIcon();
             drawWifiIcon();
             refreshIcons();

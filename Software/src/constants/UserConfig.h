@@ -13,5 +13,10 @@ namespace UserConfig {
     //  or any other language.
     static LanguageStruct language = enUs;
     static bool displayMetric = true;
+
+    // Speed knob configuration
+    // When true: BLE speed commands (0-100) are treated as a percentage of the
+    // current knob value. When false: BLE speed commands (0-100) are used
+    // directly as the speed value
 }
 #endif  // OSSM_SOFTWARE_USERCONFIG_H

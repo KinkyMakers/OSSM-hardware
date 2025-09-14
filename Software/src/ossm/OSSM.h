@@ -2,6 +2,7 @@
 #define OSSM_SOFTWARE_OSSM_H
 
 #include <Arduino.h>
+#include <services/board.h>
 
 #include <command/commands.hpp>
 
@@ -17,6 +18,7 @@
 #include "constants/Config.h"
 #include "constants/Menu.h"
 #include "constants/Pins.h"
+#include "constants/UserConfig.h"
 #include "esp_log.h"
 #include "services/tasks.h"
 #include "structs/SettingPercents.h"
@@ -73,10 +75,10 @@ class OSSM : public OSSMInterface {
             auto drawPatternControls = [](OSSM &o) { o.drawPatternControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
             auto resetSettings = [](OSSM &o) {
-                o.setting.speed = 0;
-                o.setting.stroke = 0;
-                o.setting.depth = 50;
-                o.setting.sensation = 50;
+                OSSM::setting.speed = 0;
+                OSSM::setting.stroke = 0;
+                OSSM::setting.depth = 50;
+                OSSM::setting.sensation = 50;
                 o.playControl = PlayControls::STROKE;
 
                 // Prepare the encoder
@@ -96,13 +98,13 @@ class OSSM : public OSSMInterface {
 
                 switch (o.playControl) {
                     case PlayControls::STROKE:
-                        o.encoder.setEncoderValue(o.setting.stroke);
+                        o.encoder.setEncoderValue(OSSM::setting.stroke);
                         break;
                     case PlayControls::DEPTH:
-                        o.encoder.setEncoderValue(o.setting.depth);
+                        o.encoder.setEncoderValue(OSSM::setting.depth);
                         break;
                     case PlayControls::SENSATION:
-                        o.encoder.setEncoderValue(o.setting.sensation);
+                        o.encoder.setEncoderValue(OSSM::setting.sensation);
                         break;
                 }
             };
@@ -110,8 +112,6 @@ class OSSM : public OSSMInterface {
             auto startSimplePenetration = [](OSSM &o) {
                 o.startSimplePenetration();
             };
-
-            auto startStreaming = [](OSSM &o) { o.startStreaming(); };
 
             auto startStrokeEngine = [](OSSM &o) { o.startStrokeEngine(); };
             auto emergencyStop = [](OSSM &o) {
@@ -209,11 +209,6 @@ class OSSM : public OSSMInterface {
                 "simplePenetration.preflight"_s + longPress = "menu"_s,
                 "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
-                "streaming"_s [isNotHomed] = "homing"_s,
-                "streaming"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStreaming) = "streaming.idle"_s,
-                "streaming"_s / drawPreflight = "streaming.preflight"_s,
-                "streaming.preflight"_s + done / (resetSettings, drawPlayControls, startStreaming) = "streaming.idle"_s,
-                "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
 
                 "strokeEngine"_s [isNotHomed] = "homing"_s,
@@ -342,11 +337,7 @@ class OSSM : public OSSMInterface {
                 sml::logger<StateLogger>>>
         sm = nullptr;  // The state machine
 
-    SettingPercents setting = {.speed = 0,
-                               .stroke = 0,
-                               .sensation = 50,
-                               .depth = 50,
-                               .pattern = StrokePatterns::SimpleStroke};
+    static SettingPercents setting;
 
     /**
      * ///////////////////////////////////////////
@@ -411,7 +402,9 @@ class OSSM : public OSSMInterface {
                 sm->process_event(LongPress{});
                 break;
             case Commands::setSpeed:
-                setting.speed = command.value;
+                // Use speed knob config to determine how to handle BLE speed
+                // command
+                setting.speedBLE = command.value;
                 break;
             case Commands::setStroke:
                 playControl = PlayControls::STROKE;
@@ -460,7 +453,6 @@ class OSSM : public OSSMInterface {
 
         return currentState;
     }
-    void startStreaming();
 };
 
 extern OSSM *ossm;

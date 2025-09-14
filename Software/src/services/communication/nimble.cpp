@@ -2,53 +2,22 @@
 
 #include <ArduinoJson.h>
 #include <constants/UserConfig.h>
+#include <services/board.h>
 #include <services/tasks.h>
 
 #include <regex>
 
 #include "command/commands.hpp"
 
-#define SERVICE_UUID "522b443a-4f53-534d-0001-420badbabe69"
-
-// Clients should write to this char.
-#define CHARACTERISTIC_UUID "522b443a-4f53-534d-0002-420badbabe69"
-
-// Clients should read the current state from this char.
-#define CHARACTERISTIC_STATE_UUID "522b443a-4f53-534d-0010-420badbabe69"
-
-// this is a list of all the patterns on the device.
-#define CHARACTERISTIC_PATTERNS_UUID "522b443a-4f53-534d-0100-420badbabe69"
-
-const char* MANUFACTURER_NAME_UUID =
-    "2A29";                           // Standard UUID for manufacturer name
-const char* SYSTEM_ID_UUID = "2A23";  // Standard UUID for system ID
-const char* DEVICE_INFO_SERVICE_UUID = "180A";  // Device Information Service
-
 // Define the global variables
 NimBLEServer* pServer = nullptr;
-uint16_t nimbleTargetPosition = 0;
-int16_t nimbleTargetVelocity = 0;
-
-// Queue to store target positions and velocities
-std::queue<Target> targetQueue = std::queue<Target>();
-const size_t MAX_QUEUE_SIZE = 2048;
-
-// Add a new target to the queue
-bool enqueueTarget(uint16_t position, int16_t velocity) {
-    if (targetQueue.size() >= MAX_QUEUE_SIZE) {
-        return false;  // Queue is full
-    }
-
-    targetQueue.push(Target{position, velocity});
-    return true;
-}
-
-// Clear all targets from queue
-void clearQueue() { std::queue<Target>().swap(targetQueue); }
-
 // Add at the top with other global variables
 NimBLECharacteristic* pCharacteristic =
     nullptr;  // Global pointer to B2 characteristic
+NimBLECharacteristic* pSpeedKnobConfigCharacteristic =
+    nullptr;  // Global pointer to speed knob config characteristic
+
+// Speed knob configuration is now in UserConfig namespace
 
 /** Handler class for characteristic actions */
 class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
@@ -96,6 +65,45 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
                  NimBLEUtils::returnCodeToString(code));
     }
 } chrCallbacks;
+
+/** Handler class for speed knob config characteristic */
+class SpeedKnobConfigCallbacks : public NimBLECharacteristicCallbacks {
+    void onWrite(NimBLECharacteristic* pCharacteristic,
+                 NimBLEConnInfo& connInfo) override {
+        std::string value = pCharacteristic->getValue();
+        String configValue = String(value.c_str());
+        configValue.toLowerCase();
+
+        ESP_LOGD("NIMBLE", "Speed knob config write: %s", configValue.c_str());
+
+        if (configValue == "true" || configValue == "1" || configValue == "t") {
+            USE_SPEED_KNOB_AS_LIMIT = true;
+            pCharacteristic->setValue("true");
+        } else if (configValue == "false" || configValue == "0" ||
+                   configValue == "f") {
+            USE_SPEED_KNOB_AS_LIMIT = false;
+            pCharacteristic->setValue("false");
+        } else {
+            ESP_LOGW("NIMBLE", "Invalid speed knob config value: %s",
+                     configValue.c_str());
+            pCharacteristic->setValue("error:invalid_value");
+        }
+    }
+
+    void onRead(NimBLECharacteristic* pCharacteristic,
+                NimBLEConnInfo& connInfo) override {
+        String value = USE_SPEED_KNOB_AS_LIMIT ? "true" : "false";
+        ESP_LOGD("NIMBLE", "Speed knob config read: %s", value.c_str());
+        pCharacteristic->setValue(value);
+    }
+
+    void onStatus(NimBLECharacteristic* pCharacteristic, int code) override {
+        ESP_LOGV(
+            "NIMBLE",
+            "Speed knob config notification/indication return code: %d, %s",
+            code, NimBLEUtils::returnCodeToString(code));
+    }
+} speedKnobConfigCallbacks;
 
 /** Handler class for descriptor actions */
 class DescriptorCallbacks : public NimBLEDescriptorCallbacks {
@@ -236,11 +244,22 @@ void initNimble() {
 
     pChar->setCallbacks(&chrCallbacks);
 
+    // Speed knob config characteristic (writable, readable)
+    NimBLECharacteristic* pSpeedKnobConfigChar = pService->createCharacteristic(
+        CHARACTERISTIC_SPEED_KNOB_CONFIG_UUID,
+        NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ);
+
+    // Store the characteristic pointer globally
+    pSpeedKnobConfigCharacteristic = pSpeedKnobConfigChar;
+
     // State characteristic (read/notify string payload for state)
     NimBLECharacteristic* pStateChar = pService->createCharacteristic(
         CHARACTERISTIC_STATE_UUID,
         NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
     pStateChar->setValue("ok:boot");
+
+    pSpeedKnobConfigChar->setCallbacks(&speedKnobConfigCallbacks);
+    pSpeedKnobConfigChar->setValue(USE_SPEED_KNOB_AS_LIMIT ? "true" : "false");
 
     // Patterns characteristic (read-only list of all patterns)
     NimBLECharacteristic* pPatternsChar = pService->createCharacteristic(
@@ -297,6 +316,6 @@ void initNimble() {
     pAdvertising->start();
 
     xTaskCreatePinnedToCore(
-        nimbleLoop, "nimbleLoop", 9 * configMINIMAL_STACK_SIZE, pServer,
+        nimbleLoop, "nimbleLoop", 5 * configMINIMAL_STACK_SIZE, pServer,
         configMAX_PRIORITIES - 1, nullptr, Tasks::stepperCore);
 }

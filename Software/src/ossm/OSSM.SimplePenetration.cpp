@@ -23,12 +23,12 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
 
     while (isInCorrectState(ossm)) {
         auto speed = (1_mm) * Config::Driver::maxSpeedMmPerSecond *
-                     ossm->setting.speed / 100.0;
+                     OSSM::setting.speed / 100.0;
         auto acceleration = (1_mm) * Config::Driver::maxSpeedMmPerSecond *
-                            ossm->setting.speed * ossm->setting.speed /
+                            OSSM::setting.speed * OSSM::setting.speed /
                             Config::Advanced::accelerationScaling;
 
-        bool isSpeedZero = ossm->setting.speedKnob <
+        bool isSpeedZero = OSSM::setting.speedKnob <
                            Config::Advanced::commandDeadZonePercentage;
         bool isSpeedChanged =
             !isSpeedZero && abs(speed - lastSpeed) >
@@ -67,7 +67,7 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
         ossm->isForward = nextDirection;
 
         if (ossm->isForward) {
-            targetPosition = -abs(((float)ossm->setting.stroke / 100.0) *
+            targetPosition = -abs(((float)OSSM::setting.stroke / 100.0) *
                                   ossm->measuredStrokeSteps);
         } else {
             targetPosition = 0;
@@ -78,8 +78,8 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
 
         ossm->stepper->moveTo(targetPosition, false);
 
-        if (ossm->setting.speed > Config::Advanced::commandDeadZonePercentage &&
-            ossm->setting.stroke >
+        if (OSSM::setting.speed > Config::Advanced::commandDeadZonePercentage &&
+            OSSM::setting.stroke >
                 (long)Config::Advanced::commandDeadZonePercentage) {
             fullStrokeCount++;
             ossm->sessionStrokeCount = floor(fullStrokeCount / 2);
@@ -87,7 +87,7 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
             // This calculation assumes that at the end of every stroke you have
             // a whole positive distance, equal to maximum target position.
             ossm->sessionDistanceMeters +=
-                (((float)ossm->setting.stroke / 100.0) *
+                (((float)OSSM::setting.stroke / 100.0) *
                  ossm->measuredStrokeSteps / (1_mm)) /
                 1000.0;
         }
@@ -105,201 +105,4 @@ void OSSM::startSimplePenetration() {
         startSimplePenetrationTask, "startSimplePenetrationTask", stackSize,
         this, configMAX_PRIORITIES - 1, &Tasks::runSimplePenetrationTaskH,
         Tasks::operationTaskCore);
-}
-
-void startStreamingTask(void *pvParameters) {
-    OSSM *ossm = (OSSM *)pvParameters;
-
-    auto isInCorrectState = [](OSSM *ossm) {
-        return ossm->sm->is("streaming"_s) ||
-               ossm->sm->is("streaming.preflight"_s) ||
-               ossm->sm->is("streaming.idle"_s);
-    };
-    // Reset to home position
-    ossm->stepper->moveTo(0, true);
-    vTaskDelay(pdMS_TO_TICKS(1000));
-
-    // Motion state
-    float currentPosition = 0;
-    float currentVelocity = 0;
-
-    float targetPosition = 0.0f;
-    float targetVelocity = 0.0f;
-
-    // set stepper to max speed and max acceleration
-    ossm->stepper->setSpeedInHz((1_mm) * Config::Driver::maxSpeedMmPerSecond);
-    ossm->stepper->setAcceleration((1_mm) * Config::Driver::maxAcceleration);
-
-    // Speed multipliers for different speed levels
-    const float speedMultipliers[] = {10.0, 11.0, 12.0, 13.0, 14.0, 15.0};
-    int speedMultiplierIndex = 0;
-
-    float RMS_position = 0;
-    int rms_samples = 0;
-
-    int lastTime = 0;
-    long loopStart = 0;
-
-    const int processFrequencyHz = 30;
-    const int processTimeMs = 1000 / processFrequencyHz;
-
-    int32_t targetPositionSteps = 0;
-    float lastSpeed = 0;
-    int32_t lastTargetPositionSteps = 99999;
-    bool stopped = false;
-
-    auto leftBoundary = -ossm->measuredStrokeSteps;
-    auto rightBoundary = 0;
-
-    // Set lower acceleration/deceleration for smoother motion
-    ossm->stepper->setAcceleration((1_mm) * Config::Driver::maxAcceleration);
-    while (isInCorrectState(ossm)) {
-        leftBoundary =
-            -ossm->measuredStrokeSteps * ossm->setting.stroke / 100.0f;
-
-        // Calculate target position with extra type safety
-        float strokePercent = static_cast<float>(ossm->setting.stroke) / 100.0f;
-        float targetPercent = static_cast<float>(ossm->targetPosition) / 100.0f;
-
-        // Calculate steps and clamp between 0 and -measuredStrokeSteps
-        float rawTargetSteps = -std::abs(
-            targetPercent * ossm->measuredStrokeSteps * strokePercent);
-        targetPositionSteps = static_cast<int32_t>(
-            std::max(static_cast<float>(-ossm->measuredStrokeSteps),
-                     std::min(0.0f, rawTargetSteps)));
-
-        // Get current position with type safety
-        int32_t rawCurrentPosition = ossm->stepper->getCurrentPosition();
-        float currentPositionSteps =
-            static_cast<float>(rawCurrentPosition) * strokePercent;
-
-        bool isTargetChanged = targetPositionSteps != lastTargetPositionSteps;
-        lastTargetPositionSteps = targetPositionSteps;
-
-        bool isAtTarget =
-            std::abs(targetPositionSteps - rawCurrentPosition) == 0;
-        float speed = ossm->stepper->getCurrentSpeedInMilliHz();
-        float acceleration = ossm->stepper->getCurrentAcceleration();
-
-        if (isTargetChanged) {
-            ossm->stepper->moveTo(targetPositionSteps, false);
-
-            if (ossm->targetTime > 0) {
-                // Calculate distance with type safety
-                float dx = static_cast<float>(
-                    std::abs(targetPositionSteps -
-                             static_cast<int32_t>(currentPositionSteps)));
-
-                // Calculate speed and acceleration with explicit float
-                // operations Ensure targetTime is positive to avoid division by
-                // zero
-                float safeTargetTime =
-                    std::max(1.0f, static_cast<float>(ossm->targetTime));
-
-                // Calculate speed with safety limits
-                speed = 1000.0f * dx / safeTargetTime;
-                speed = std::min(
-                    speed, static_cast<float>(
-                               (1_mm) * Config::Driver::maxSpeedMmPerSecond));
-                speed = std::max(0.0f, speed);
-
-                // Calculate acceleration with safety limits
-                acceleration = 4.0f * 1000.0f * 1000.0f * dx /
-                               (safeTargetTime * safeTargetTime);
-                acceleration =
-                    std::min(acceleration,
-                             static_cast<float>(
-                                 (1_mm) * Config::Driver::maxAcceleration));
-                acceleration = std::max(0.0f, acceleration);
-
-                // Apply speed and acceleration with safety checks
-                if (std::isfinite(speed) && std::isfinite(acceleration)) {
-                    ossm->stepper->setSpeedInHz(
-                        static_cast<uint32_t>(2.0f * speed));
-                    ossm->stepper->setAcceleration(
-                        static_cast<int32_t>(acceleration));
-                    ossm->stepper->applySpeedAcceleration();
-                } else {
-                    // If values are invalid, use safe defaults
-                    ossm->stepper->setSpeedInHz(
-                        (1_mm) * Config::Driver::maxSpeedMmPerSecond / 4);
-                    ossm->stepper->setAcceleration(
-                        (1_mm) * Config::Driver::maxAcceleration / 4);
-                    ossm->stepper->applySpeedAcceleration();
-                }
-            }
-
-            ESP_LOGD("Streaming",
-                     "t: %f, tt: %d, "
-                     "tp: %d, cp: %d, sp: %f, ac: %f",
-                     ossm->targetPosition, ossm->targetTime,
-                     targetPositionSteps, rawCurrentPosition, speed,
-                     acceleration);
-        }
-
-        vTaskDelay(1);
-    }
-
-    // keep this queue code... but we're not using it right now.
-    while (isInCorrectState(ossm)) {
-        loopStart = millis();
-
-        // Get next target from queue if available
-        if (!targetQueue.empty()) {
-            auto nextTarget = targetQueue.front();
-            targetQueue.pop();
-            nimbleTargetPosition = nextTarget.position;
-        } else {
-            ESP_LOGD("Streaming", "No target found. Queue is empty.");
-            // Read about 20 times per second
-            vTaskDelay(pdMS_TO_TICKS(processTimeMs));
-            continue;
-        }
-
-        currentPosition =
-            static_cast<float>(ossm->stepper->getCurrentPosition());
-        currentVelocity =
-            static_cast<float>(ossm->stepper->getCurrentSpeedInMilliHz());
-
-        // Calculate target position and velocity
-        targetPosition =
-            -(static_cast<float>(nimbleTargetPosition) / INT16_MAX) *
-            ossm->measuredStrokeSteps;
-
-        // float speedMultiplier = speedMultipliers[speedMultiplierIndex];
-
-        targetVelocity =
-            256 * (targetPosition - currentPosition) / processTimeMs;
-
-        ESP_LOGD("Streaming",
-                 "targetPosition: %f, targetVelocity: %f, "
-                 "currentPosition: %f, currentVelocity: %f",
-                 targetPosition, targetVelocity, currentPosition,
-                 currentVelocity);
-
-        RMS_position += abs(targetPosition - currentPosition);
-        rms_samples++;
-
-        ossm->stepper->setSpeedInHz(abs(targetVelocity));
-        ossm->stepper->moveTo(targetPosition, false);
-        ossm->stepper->applySpeedAcceleration();
-
-        int waitTime = processTimeMs - (millis() - loopStart);
-        if (waitTime > 0) {
-            vTaskDelay(pdMS_TO_TICKS(waitTime));
-        } else {
-            // Read about 20 times per second
-            vTaskDelay(1);
-        }
-    }
-
-    vTaskDelete(nullptr);
-}
-
-void OSSM::startStreaming() {
-    int stackSize = 10 * configMINIMAL_STACK_SIZE;
-
-    xTaskCreatePinnedToCore(startStreamingTask, "startStreamingTask", stackSize,
-                            this, configMAX_PRIORITIES - 1, nullptr,
-                            Tasks::operationTaskCore);
 }
