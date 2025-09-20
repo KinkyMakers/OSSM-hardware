@@ -196,7 +196,7 @@ void nimbleLoop(void* pvParameters) {
         bool timeElapsed = (currentTime - lastMessageTime) > 1000;
 
         if (!stateChanged && !timeElapsed) {
-            vTaskDelay(pdMS_TO_TICKS(200));
+            vTaskDelay(1);
             continue;
         }
         lastMessageTime = currentTime;
@@ -207,7 +207,7 @@ void nimbleLoop(void* pvParameters) {
         pChr->setValue(currentState);
         pChr->notify();
         lastState = currentState;
-        vTaskDelay(pdMS_TO_TICKS(200));
+        vTaskDelay(1);
     }
 }
 
