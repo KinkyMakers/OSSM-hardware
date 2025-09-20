@@ -21,7 +21,7 @@ NimBLECharacteristic* pSpeedKnobConfigCharacteristic =
 static long lostConnectionTime = 0;
 static int speedOnLostConnection = 0;
 static const unsigned long RAMP_DURATION_MS =
-    1000;  // Duration for speed ramp to zero
+    2000;  // Duration for speed ramp to zero
 
 double easeInOutSine(double t) {
     return 0.5 * (1 + sin(3.1415926 * (t - 0.5)));
@@ -125,7 +125,6 @@ class ServerCallbacks : public NimBLEServerCallbacks {
                  pServer->getConnectedCount());
 
         lostConnectionTime = 0;
-        speedOnLostConnection = ossmInterface->getSpeed();
     }
 
     void onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo,
@@ -134,6 +133,10 @@ class ServerCallbacks : public NimBLEServerCallbacks {
                  connInfo.getAddress().toString().c_str(), reason);
         ESP_LOGI(NIMBLE_TAG, "Connection count: %d",
                  pServer->getConnectedCount());
+
+        // Capture current speed when connection is lost
+        speedOnLostConnection = ossmInterface->getSpeed();
+        ESP_LOGI(NIMBLE_TAG, "Speed on disconnect: %d", speedOnLostConnection);
 
         // Restart advertising when client disconnects
         if (pServer->getConnectedCount() == 0) {
@@ -170,6 +173,13 @@ void nimbleLoop(void* pvParameters) {
             }
 
             if (lostConnectionTime > 0) {
+                // Skip ramp-down if speed was already zero when connection was
+                // lost
+                if (speedOnLostConnection <= 0) {
+                    lostConnectionTime = 0;
+                    continue;
+                }
+
                 unsigned long elapsed = millis() - lostConnectionTime;
 
                 // Wait 1 second before starting easing
@@ -179,12 +189,15 @@ void nimbleLoop(void* pvParameters) {
                 }
 
                 // Calculate easing factor (0 to 1) over ramp duration
-                double t = constrain(
-                    easeInOutSine((elapsed - 1000) / (double)RAMP_DURATION_MS),
-                    0, 1);
+                double progress = constrain(
+                    (elapsed - 1000) / (double)RAMP_DURATION_MS, 0.0, 1.0);
+                double t = easeInOutSine(progress);
 
                 // Ramp from current speed to zero
                 int targetSpeed = (int)(speedOnLostConnection * (1.0 - t));
+                ESP_LOGI(NIMBLE_TAG,
+                         "Target speed: %d (from %d, progress: %.2f)",
+                         targetSpeed, speedOnLostConnection, progress);
 
                 ossmInterface->ble_click("set:speed:" + String(targetSpeed));
 
