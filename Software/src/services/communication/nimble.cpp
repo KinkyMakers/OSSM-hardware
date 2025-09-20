@@ -18,6 +18,8 @@ NimBLECharacteristic* pCharacteristic =
 NimBLECharacteristic* pSpeedKnobConfigCharacteristic =
     nullptr;  // Global pointer to speed knob config characteristic
 
+static long lostConnectionTime = 0;
+
 // Speed knob configuration is now in UserConfig namespace
 
 // queue of message received from the BLE
@@ -114,6 +116,8 @@ class ServerCallbacks : public NimBLEServerCallbacks {
                  connInfo.getAddress().toString().c_str());
         ESP_LOGI(NIMBLE_TAG, "Connection count: %d",
                  pServer->getConnectedCount());
+
+        lostConnectionTime = 0;
     }
 
     void onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo,
@@ -129,6 +133,8 @@ class ServerCallbacks : public NimBLEServerCallbacks {
                      "No connections remaining, restarting advertising");
             pServer->startAdvertising();
         }
+
+        lostConnectionTime = millis();
     }
 
     void onMTUChange(uint16_t MTU, NimBLEConnInfo& connInfo) override {
@@ -154,7 +160,15 @@ void nimbleLoop(void* pvParameters) {
                          "advertising");
                 pServer->startAdvertising();
             }
-            vTaskDelay(pdMS_TO_TICKS(2000));
+
+            if (lostConnectionTime > 0 &&
+                millis() - lostConnectionTime > 1000) {
+                ESP_LOGI(NIMBLE_TAG, "Connection lost, setting speed to zero");
+                ossmInterface->ble_click("set:speed:0");
+                lostConnectionTime = 0;
+            }
+
+            vTaskDelay(pdMS_TO_TICKS(100));
             continue;
         }
 
