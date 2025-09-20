@@ -169,12 +169,17 @@ void nimbleLoop(void* pvParameters) {
 
             if (lostConnectionTime > 0 &&
                 millis() - lostConnectionTime > 1000) {
+                // Calculate easing factor (0 to 1) over 1 second
                 double t = constrain(
                     easeInOutSine((millis() - lostConnectionTime - 1000) /
                                   1000.0),
                     0, 1);
-                ossmInterface->ble_click("set:speed:" +
-                                         String(speedOnLostConnection * t));
+
+                // Ramp from current speed to zero
+                int currentSpeed = ossmInterface->getSpeed();
+                int targetSpeed = (int)(currentSpeed * (1.0 - t));
+
+                ossmInterface->ble_click("set:speed:" + String(targetSpeed));
 
                 if (t >= 1) {
                     lostConnectionTime = 0;
