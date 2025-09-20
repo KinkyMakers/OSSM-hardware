@@ -17,6 +17,7 @@ class OSSMInterface {
 
     // get current state
     virtual String getCurrentState() = 0;
+    virtual int getSpeed() = 0;
 
     // target position
     uint16_t targetPosition;

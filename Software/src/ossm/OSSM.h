@@ -372,6 +372,7 @@ class OSSM : public OSSMInterface {
     float targetVelocity = 0;
     uint16_t targetTime = 0;
 
+    int getSpeed() { return this->setting.speed; }
     // Implement the interface methods
     void process_event(const auto &event) { sm->process_event(event); }
     void ble_click(String commandString) {

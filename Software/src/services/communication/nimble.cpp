@@ -19,6 +19,11 @@ NimBLECharacteristic* pSpeedKnobConfigCharacteristic =
     nullptr;  // Global pointer to speed knob config characteristic
 
 static long lostConnectionTime = 0;
+static int speedOnLostConnection = 0;
+
+double easeInOutSine(double t) {
+    return 0.5 * (1 + sin(3.1415926 * (t - 0.5)));
+}
 
 // Speed knob configuration is now in UserConfig namespace
 
@@ -118,6 +123,7 @@ class ServerCallbacks : public NimBLEServerCallbacks {
                  pServer->getConnectedCount());
 
         lostConnectionTime = 0;
+        speedOnLostConnection = ossmInterface->getSpeed();
     }
 
     void onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo,
@@ -163,12 +169,21 @@ void nimbleLoop(void* pvParameters) {
 
             if (lostConnectionTime > 0 &&
                 millis() - lostConnectionTime > 1000) {
-                ESP_LOGI(NIMBLE_TAG, "Connection lost, setting speed to zero");
-                ossmInterface->ble_click("set:speed:0");
-                lostConnectionTime = 0;
+                double t = constrain(
+                    easeInOutSine((millis() - lostConnectionTime - 1000) /
+                                  1000.0),
+                    0, 1);
+                ossmInterface->ble_click("set:speed:" +
+                                         String(speedOnLostConnection * t));
+
+                if (t >= 1) {
+                    lostConnectionTime = 0;
+                }
+                vTaskDelay(pdMS_TO_TICKS(50));
+                continue;
             }
 
-            vTaskDelay(pdMS_TO_TICKS(100));
+            vTaskDelay(pdMS_TO_TICKS(200));
             continue;
         }
 
