@@ -20,6 +20,8 @@ NimBLECharacteristic* pSpeedKnobConfigCharacteristic =
 
 static long lostConnectionTime = 0;
 static int speedOnLostConnection = 0;
+static const unsigned long RAMP_DURATION_MS =
+    1000;  // Duration for speed ramp to zero
 
 double easeInOutSine(double t) {
     return 0.5 * (1 + sin(3.1415926 * (t - 0.5)));
@@ -167,23 +169,31 @@ void nimbleLoop(void* pvParameters) {
                 pServer->startAdvertising();
             }
 
-            if (lostConnectionTime > 0 &&
-                millis() - lostConnectionTime > 1000) {
-                // Calculate easing factor (0 to 1) over 1 second
+            if (lostConnectionTime > 0) {
+                unsigned long elapsed = millis() - lostConnectionTime;
+
+                // Wait 1 second before starting easing
+                if (elapsed < 1000) {
+                    vTaskDelay(pdMS_TO_TICKS(50));
+                    continue;
+                }
+
+                // Calculate easing factor (0 to 1) over ramp duration
                 double t = constrain(
-                    easeInOutSine((millis() - lostConnectionTime - 1000) /
-                                  1000.0),
+                    easeInOutSine((elapsed - 1000) / (double)RAMP_DURATION_MS),
                     0, 1);
 
                 // Ramp from current speed to zero
-                int currentSpeed = ossmInterface->getSpeed();
-                int targetSpeed = (int)(currentSpeed * (1.0 - t));
+                int targetSpeed = (int)(speedOnLostConnection * (1.0 - t));
 
                 ossmInterface->ble_click("set:speed:" + String(targetSpeed));
 
+                // Stop processing when easing is complete
                 if (t >= 1) {
                     lostConnectionTime = 0;
+                    continue;
                 }
+
                 vTaskDelay(pdMS_TO_TICKS(50));
                 continue;
             }
