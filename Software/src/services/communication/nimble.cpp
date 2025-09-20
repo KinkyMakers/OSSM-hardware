@@ -188,6 +188,16 @@ void nimbleLoop(void* pvParameters) {
                     continue;
                 }
 
+                if (elapsed > 1000 + RAMP_DURATION_MS) {
+                    ESP_LOGI(
+                        NIMBLE_TAG,
+                        "Speed ramp duration exceeded, setting speed to 0");
+                    lostConnectionTime = 0;
+                    speedOnLostConnection = 0;
+                    ossmInterface->ble_click("set:speed:0");
+                    continue;
+                }
+
                 // Calculate easing factor (0 to 1) over ramp duration
                 double progress = constrain(
                     (elapsed - 1000) / (double)RAMP_DURATION_MS, 0.0, 1.0);
