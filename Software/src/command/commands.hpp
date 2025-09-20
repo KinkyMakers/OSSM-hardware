@@ -70,23 +70,19 @@ inline CommandValue setCommandValue(const String& str) {
     }
 }
 
-inline CommandValue commandFromString(const String& str) {
-    // Create temporary strings from PROGMEM for comparison
-    String goToPrefix = String(FPSTR(Prefix::goTo));
-    String setValuePrefix = String(FPSTR(Prefix::setValue));
+static const char ignore_str[] PROGMEM = "ignore";
 
-    if (str.startsWith(goToPrefix)) {
-        if (str == goToPrefix + "strokeEngine")
-            return {Commands::goToStrokeEngine, 0};
-        if (str == goToPrefix + "simplePenetration")
+inline CommandValue commandFromString(const String& str) {
+    if (str.startsWith("go:")) {
+        if (str == "go:strokeEngine") return {Commands::goToStrokeEngine, 0};
+        if (str == "go:simplePenetration")
             return {Commands::goToSimplePenetration, 0};
-        if (str == goToPrefix + "streaming")
-            return {Commands::goToStreaming, 0};
-        if (str == goToPrefix + "menu") return {Commands::goToMenu, 0};
+        if (str == "go:streaming") return {Commands::goToStreaming, 0};
+        if (str == "go:menu") return {Commands::goToMenu, 0};
         return {Commands::goToMenu, 0};  // Default
     }
 
-    if (str.startsWith(setValuePrefix)) {
+    if (str.startsWith("set:")) {
         return setCommandValue(str);
     }
 

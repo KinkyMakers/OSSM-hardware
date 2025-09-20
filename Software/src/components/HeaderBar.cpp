@@ -2,12 +2,12 @@
 
 #include <WiFi.h>
 #include <esp_log.h>
+#include <services/board.h>
 
 #include "constants/Images.h"
 #include "constants/LogTags.h"
 #include "constants/UserConfig.h"
 #include "services/communication/nimble.h"
-#include <services/board.h>
 
 // Task handle
 TaskHandle_t headerBarTaskHandle = nullptr;
@@ -18,9 +18,9 @@ static BleStatus lastBleStatus = BleStatus::DISCONNECTED;
 static bool lastSpeedKnobAsLimit = true;
 
 // Icon positions
-static const int16_t WIFI_ICON_X = 114;
-static const int16_t BLE_ICON_X = 120;
-static const int16_t SPEED_KNOB_ICON_X = 102;
+static const int16_t WIFI_ICON_X = 106;
+static const int16_t BLE_ICON_X = 116;
+static const int16_t SPEED_KNOB_ICON_X = 96;
 static const int16_t ICON_Y = 0;
 static const int16_t ICON_SIZE = 8;
 

@@ -9,4 +9,6 @@ static const char* UPDATE_TAG = "Update";
 
 static const char* HEADERBAR_TAG = "HeaderBar";
 
+static const char* NIMBLE_TAG = "NIMBLE";
+
 #endif  // SOFTWARE_LOGTAGS_H

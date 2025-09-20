@@ -25,7 +25,7 @@ The display is organized into a grid system where U8G2 breaks the 128x64 pixel s
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ Header (13 cells)                     │ Icons (3 cells) │  Row 0
+│ Header (12 cells)                     │ Icons (4 cells) │  Row 0
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
 │                                                         │
@@ -35,7 +35,7 @@ The display is organized into a grid system where U8G2 breaks the 128x64 pixel s
 │                                                         │
 │                                                         │
 ├─────────────────────────────────────────────────────────┤
-│ Footer (15 cells)                    │ Timeout (1 cell) │  Row 7
+│ Footer (16 cells)                                       │  Row 7
 └─────────────────────────────────────────────────────────┘
 ```
 

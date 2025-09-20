@@ -31,7 +31,7 @@ void initDisplay() {
     ESP_LOGI(TAG, "Display initialization complete.");
 }
 
-#define ICON_TILES 3
+#define ICON_TILES 4
 
 void clearIcons() {
     display.setClipWindow(128 - 8 * ICON_TILES, 0, 128, 8);

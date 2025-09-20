@@ -67,7 +67,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         shouldUpdateDisplay = false;
 
 #ifdef AJ_DEVELOPMENT_HARDWARE
-        next.speedKnob = 0;
+        next.speedKnob = 50;
 #else
         next.speedKnob =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
@@ -75,11 +75,12 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         OSSM::setting.speedKnob = next.speedKnob;
         encoder = ossm->encoder.readEncoder();
 
-        if (USE_SPEED_KNOB_AS_LIMIT) {
-            next.speed = next.speedKnob * OSSM::setting.speedBLE / 100;
+        if (USE_SPEED_KNOB_AS_LIMIT || !OSSM::setting.speedBLE.has_value()) {
+            next.speed =
+                next.speedKnob * (OSSM::setting.speedBLE.value_or(100)) / 100;
         } else {
-            next.speedKnob = OSSM::setting.speedBLE;
-            next.speed = OSSM::setting.speedBLE;
+            next.speedKnob = OSSM::setting.speedBLE.value_or(100);
+            next.speed = OSSM::setting.speedBLE.value_or(100);
         }
 
         if (next.speed != OSSM::setting.speed) {
