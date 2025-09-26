@@ -35,14 +35,16 @@ void OSSM::drawHelp() {
             }
         }
 
-    display.setFont(Config::Font::bold);
-    display.drawUTF8(0, 10, UserConfig::language.GetHelp.c_str());
-    // Draw line
-    display.drawHLine(0, 12, xOffset - 10);
-    display.setFont(Config::Font::base);
-    display.drawUTF8(0, 26, UserConfig::language.GetHelpLine1.c_str());
-    display.drawUTF8(0, 38, UserConfig::language.GetHelpLine2.c_str());
-    display.drawUTF8(0, 62, UserConfig::language.Skip.c_str());
-    display.sendBuffer();
-    displayMutex.unlock();
+        display.setFont(Config::Font::bold);
+        display.drawUTF8(0, 10, UserConfig::language.GetHelp);
+        // Draw line
+        display.drawHLine(0, 12, xOffset - 10);
+
+        display.setFont(Config::Font::base);
+        display.drawUTF8(0, 26, UserConfig::language.GetHelpLine1);
+        display.drawUTF8(0, 38, UserConfig::language.GetHelpLine2);
+        display.drawUTF8(0, 62, UserConfig::language.Skip);
+        display.sendBuffer();
+        xSemaphoreGive(displayMutex);
+    }
 }
