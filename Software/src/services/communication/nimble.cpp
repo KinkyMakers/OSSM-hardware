@@ -1,0 +1,402 @@
+#include "nimble.h"
+
+#include <ArduinoJson.h>
+#include <constants/LogTags.h>
+#include <constants/UserConfig.h>
+#include <services/board.h>
+#include <services/tasks.h>
+
+#include <queue>
+
+#include "command/commands.hpp"
+
+// Define the global variables
+NimBLEServer* pServer = nullptr;
+// Add at the top with other global variables
+NimBLECharacteristic* pCharacteristic =
+    nullptr;  // Global pointer to B2 characteristic
+NimBLECharacteristic* pSpeedKnobConfigCharacteristic =
+    nullptr;  // Global pointer to speed knob config characteristic
+
+static long lostConnectionTime = 0;
+static int speedOnLostConnection = 0;
+static const unsigned long RAMP_DURATION_MS =
+    2000;  // Duration for speed ramp to zero
+
+double easeInOutSine(double t) {
+    return 0.5 * (1 + sin(3.1415926 * (t - 0.5)));
+}
+
+// Speed knob configuration is now in UserConfig namespace
+
+// queue of message received from the BLE
+std::queue<String> messageQueue;
+
+static const std::regex commandRegex(
+    R"(go:(simplePenetration|strokeEngine|menu)|set:(speed|stroke|depth|sensation|pattern):\d+)");
+
+/** Handler class for characteristic actions */
+class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
+    uint32_t lastWriteTime = 0;
+    float writeHz = 0;
+    const float alpha = 0.1;  // Smoothing factor for exponential moving average
+
+    void onWrite(NimBLECharacteristic* pCharacteristic,
+                 NimBLEConnInfo& connInfo) override {
+        std::string cmd = pCharacteristic->getValue();
+
+        if (!std::regex_match(cmd, commandRegex)) {
+            ESP_LOGD(NIMBLE_TAG, "Invalid command: %s", cmd.c_str());
+            pCharacteristic->setValue("fail:" + String(cmd.c_str()));
+            return;
+        }
+        messageQueue.push(String(cmd.c_str()));
+    }
+
+    /**
+     *  The value returned in code is the NimBLE host return code.
+     */
+    void onStatus(NimBLECharacteristic* pCharacteristic, int code) override {
+        ESP_LOGV(NIMBLE_TAG, "Notification/Indication return code: %d, %s",
+                 code, NimBLEUtils::returnCodeToString(code));
+    }
+} chrCallbacks;
+
+/** Handler class for speed knob config characteristic */
+class SpeedKnobConfigCallbacks : public NimBLECharacteristicCallbacks {
+    void onWrite(NimBLECharacteristic* pCharacteristic,
+                 NimBLEConnInfo& connInfo) override {
+        std::string value = pCharacteristic->getValue();
+        String configValue = String(value.c_str());
+        configValue.toLowerCase();
+
+        ESP_LOGD(NIMBLE_TAG, "Speed knob config write: %s",
+                 configValue.c_str());
+
+        // Store config strings in PROGMEM
+        static const char true_str[] PROGMEM = "true";
+        static const char false_str[] PROGMEM = "false";
+        static const char error_invalid[] PROGMEM = "error:invalid_value";
+
+        if (configValue == "true" || configValue == "1" || configValue == "t") {
+            USE_SPEED_KNOB_AS_LIMIT = true;
+            pCharacteristic->setValue(String(FPSTR(true_str)));
+        } else if (configValue == "false" || configValue == "0" ||
+                   configValue == "f") {
+            USE_SPEED_KNOB_AS_LIMIT = false;
+            pCharacteristic->setValue(String(FPSTR(false_str)));
+        } else {
+            ESP_LOGW(NIMBLE_TAG, "Invalid speed knob config value: %s",
+                     configValue.c_str());
+            pCharacteristic->setValue(String(FPSTR(error_invalid)));
+        }
+    }
+
+    void onRead(NimBLECharacteristic* pCharacteristic,
+                NimBLEConnInfo& connInfo) override {
+        // Use PROGMEM strings for read values
+        static const char true_str[] PROGMEM = "true";
+        static const char false_str[] PROGMEM = "false";
+
+        String value = USE_SPEED_KNOB_AS_LIMIT ? String(FPSTR(true_str))
+                                               : String(FPSTR(false_str));
+        ESP_LOGD(NIMBLE_TAG, "Speed knob config read: %s", value.c_str());
+        pCharacteristic->setValue(value);
+    }
+
+    void onStatus(NimBLECharacteristic* pCharacteristic, int code) override {
+        ESP_LOGV(
+            NIMBLE_TAG,
+            "Speed knob config notification/indication return code: %d, %s",
+            code, NimBLEUtils::returnCodeToString(code));
+    }
+} speedKnobConfigCallbacks;
+
+/** Handler class for descriptor actions */
+class DescriptorCallbacks : public NimBLEDescriptorCallbacks {
+} dscCallbacks;
+
+/** Handler class for server actions */
+class ServerCallbacks : public NimBLEServerCallbacks {
+    void onConnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo) override {
+        ESP_LOGI(NIMBLE_TAG, "Client connected: %s",
+                 connInfo.getAddress().toString().c_str());
+        ESP_LOGI(NIMBLE_TAG, "Connection count: %d",
+                 pServer->getConnectedCount());
+
+        lostConnectionTime = 0;
+    }
+
+    void onDisconnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo,
+                      int reason) override {
+        ESP_LOGI(NIMBLE_TAG, "Client disconnected: %s, reason: %d",
+                 connInfo.getAddress().toString().c_str(), reason);
+        ESP_LOGI(NIMBLE_TAG, "Connection count: %d",
+                 pServer->getConnectedCount());
+
+        // Capture current speed when connection is lost
+        speedOnLostConnection = ossmInterface->getSpeed();
+        ESP_LOGI(NIMBLE_TAG, "Speed on disconnect: %d", speedOnLostConnection);
+
+        // Restart advertising when client disconnects
+        if (pServer->getConnectedCount() == 0) {
+            ESP_LOGI(NIMBLE_TAG,
+                     "No connections remaining, restarting advertising");
+            pServer->startAdvertising();
+        }
+
+        lostConnectionTime = millis();
+    }
+
+    void onMTUChange(uint16_t MTU, NimBLEConnInfo& connInfo) override {
+        ESP_LOGD(NIMBLE_TAG, "MTU changed to: %d for connection: %s", MTU,
+                 connInfo.getAddress().toString().c_str());
+    }
+} serverCallbacks;
+
+void nimbleLoop(void* pvParameters) {
+    NimBLEServer* pServer = (NimBLEServer*)pvParameters;
+    /** Loop here and send notifications to connected peers */
+
+    String lastState = "";
+    int lastConnCount = 0;
+    int lastMessageTime = 0;
+    while (true) {
+        // Check if we should be advertising (no connections)
+        if (pServer->getConnectedCount() == 0) {
+            // If not advertising and no connections, restart advertising
+            if (!pServer->getAdvertising()) {
+                ESP_LOGI(NIMBLE_TAG,
+                         "No connections and not advertising, restarting "
+                         "advertising");
+                pServer->startAdvertising();
+            }
+
+            if (lostConnectionTime > 0) {
+                // Skip ramp-down if speed was already zero when connection was
+                // lost
+                if (speedOnLostConnection <= 0) {
+                    lostConnectionTime = 0;
+                    continue;
+                }
+
+                unsigned long elapsed = millis() - lostConnectionTime;
+
+                // Wait 1 second before starting easing
+                if (elapsed < 1000) {
+                    vTaskDelay(pdMS_TO_TICKS(50));
+                    continue;
+                }
+
+                if (elapsed > 1000 + RAMP_DURATION_MS) {
+                    ESP_LOGI(
+                        NIMBLE_TAG,
+                        "Speed ramp duration exceeded, setting speed to 0");
+                    lostConnectionTime = 0;
+                    speedOnLostConnection = 0;
+                    ossmInterface->ble_click("set:speed:0");
+                    continue;
+                }
+
+                // Calculate easing factor (0 to 1) over ramp duration
+                double progress = constrain(
+                    (elapsed - 1000) / (double)RAMP_DURATION_MS, 0.0, 1.0);
+                double t = easeInOutSine(progress);
+
+                // Ramp from current speed to zero
+                int targetSpeed = (int)(speedOnLostConnection * (1.0 - t));
+                ESP_LOGI(NIMBLE_TAG,
+                         "Target speed: %d (from %d, progress: %.2f)",
+                         targetSpeed, speedOnLostConnection, progress);
+
+                ossmInterface->ble_click("set:speed:" + String(targetSpeed));
+
+                // Stop processing when easing is complete
+                if (t >= 1) {
+                    lostConnectionTime = 0;
+                    continue;
+                }
+
+                vTaskDelay(pdMS_TO_TICKS(50));
+                continue;
+            }
+
+            vTaskDelay(pdMS_TO_TICKS(200));
+            continue;
+        }
+
+        String currentState = ossmInterface->getCurrentState();
+        int currentConnCount = pServer->getConnectedCount();
+
+        // Clear last state when connection count changes
+        if (currentConnCount != lastConnCount) {
+            lastState = "";
+            lastConnCount = currentConnCount;
+        }
+
+        NimBLEService* pSvc = pServer->getServiceByUUID(SERVICE_UUID);
+        if (!pSvc) {
+            lastState = "";
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            continue;
+        }
+
+        NimBLECharacteristic* pChr =
+            pSvc->getCharacteristic(CHARACTERISTIC_STATE_UUID);
+        if (!pChr) {
+            lastState = "";
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            continue;
+        }
+
+        // mannage message queue
+        while (!messageQueue.empty()) {
+            String cmd = messageQueue.front();
+            messageQueue.pop();
+            ossmInterface->ble_click(cmd);
+            pChr->setValue("ok:" + cmd);
+            vTaskDelay(1);
+        }
+
+        int currentTime = millis();
+        bool stateChanged = currentState != lastState;
+        bool timeElapsed = (currentTime - lastMessageTime) > 1000;
+
+        if (!stateChanged && !timeElapsed) {
+            vTaskDelay(1);
+            continue;
+        }
+        lastMessageTime = currentTime;
+
+        if (stateChanged) {
+            ESP_LOGD(NIMBLE_TAG, "State changed to: %s", currentState.c_str());
+        }
+        pChr->setValue(currentState);
+        pChr->notify();
+        lastState = currentState;
+        vTaskDelay(1);
+    }
+}
+
+void initNimble() {
+    /** Initialize NimBLE and set the device name */
+    NimBLEDevice::init("OSSM");
+
+    /**
+     * Set the IO capabilities of the device, each option will trigger a
+     * different pairing method. BLE_HS_IO_DISPLAY_ONLY    - Passkey pairing
+     *  BLE_HS_IO_DISPLAY_YESNO   - Numeric comparison pairing
+     *  BLE_HS_IO_NO_INPUT_OUTPUT - DEFAULT setting - just works pairing
+     */
+    // NimBLEDevice::setSecurityIOCap(BLE_HS_IO_DISPLAY_ONLY); // use passkey
+    // NimBLEDevice::setSecurityIOCap(BLE_HS_IO_DISPLAY_YESNO); //use numeric
+    // comparison
+
+    /**
+     *  2 different ways to set security - both calls achieve the same result.
+     *  no bonding, no man in the middle protection, BLE secure connections.
+     *
+     *  These are the default values, only shown here for demonstration.
+     */
+    // NimBLEDevice::setSecurityAuth(false, false, true);
+
+    NimBLEDevice::setSecurityAuth(
+        /*BLE_SM_PAIR_AUTHREQ_BOND | BLE_SM_PAIR_AUTHREQ_MITM |*/
+        BLE_SM_PAIR_AUTHREQ_SC);
+    pServer = NimBLEDevice::createServer();
+    pServer->setCallbacks(&serverCallbacks);
+
+    // Create Service
+    NimBLEService* pService = pServer->createService(SERVICE_UUID);
+
+    // Command characteristic (writable, readable)
+    NimBLECharacteristic* pChar = pService->createCharacteristic(
+        CHARACTERISTIC_UUID, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ);
+
+    // Store the characteristic pointer globally
+    pCharacteristic = pChar;
+
+    pChar->setCallbacks(&chrCallbacks);
+
+    // Speed knob config characteristic (writable, readable)
+    NimBLECharacteristic* pSpeedKnobConfigChar = pService->createCharacteristic(
+        CHARACTERISTIC_SPEED_KNOB_CONFIG_UUID,
+        NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ);
+
+    // Store the characteristic pointer globally
+    pSpeedKnobConfigCharacteristic = pSpeedKnobConfigChar;
+
+    // State characteristic (read/notify string payload for state)
+    NimBLECharacteristic* pStateChar = pService->createCharacteristic(
+        CHARACTERISTIC_STATE_UUID,
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
+    static const char boot_state[] PROGMEM = "ok:boot";
+    pStateChar->setValue(String(FPSTR(boot_state)));
+
+    pSpeedKnobConfigChar->setCallbacks(&speedKnobConfigCallbacks);
+    // Use PROGMEM strings for initial value
+    static const char true_str[] PROGMEM = "true";
+    static const char false_str[] PROGMEM = "false";
+    pSpeedKnobConfigChar->setValue(USE_SPEED_KNOB_AS_LIMIT
+                                       ? String(FPSTR(true_str))
+                                       : String(FPSTR(false_str)));
+
+    // Patterns characteristic (read-only list of all patterns)
+    NimBLECharacteristic* pPatternsChar = pService->createCharacteristic(
+        CHARACTERISTIC_PATTERNS_UUID, NIMBLE_PROPERTY::READ);
+    // Use ArduinoJson to construct the patterns JSON
+    JsonDocument doc;
+    JsonArray arr = doc.to<JsonArray>();
+
+    for (int i = 0; i < sizeof(UserConfig::language.StrokeEngineNames) /
+                            sizeof(UserConfig::language.StrokeEngineNames[0]);
+         i++) {
+        JsonObject pattern = arr.createNestedObject();
+        pattern["name"] = UserConfig::language.StrokeEngineNames[i];
+        pattern["idx"] = i;
+    }
+
+    String jsonString;
+    serializeJson(arr, jsonString);
+    pPatternsChar->setValue(jsonString.c_str());
+
+    // Start the services
+    pService->start();
+
+    // Add Device Information Service
+    NimBLEService* pDeviceInfoService =
+        pServer->createService(DEVICE_INFO_SERVICE_UUID);
+
+    // Add Manufacturer Name characteristic
+    NimBLECharacteristic* pManufacturerName =
+        pDeviceInfoService->createCharacteristic(MANUFACTURER_NAME_UUID,
+                                                 NIMBLE_PROPERTY::READ);
+    static const char manufacturer[] PROGMEM = "Research And Desire";
+    pManufacturerName->setValue(String(FPSTR(manufacturer)));
+
+    // Add System ID characteristic
+    NimBLECharacteristic* pSystemId = pDeviceInfoService->createCharacteristic(
+        SYSTEM_ID_UUID, NIMBLE_PROPERTY::READ);
+    uint8_t systemId[] = {0x88, 0x1A, 0x14, 0xFF, 0xFE, 0x34, 0x29, 0x63};
+    pSystemId->setValue(systemId, 8);
+
+    // Start the device info service
+    pDeviceInfoService->start();
+
+    // Update advertising to include new services
+    NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
+    pAdvertising->setName("OSSM");
+    pAdvertising->addServiceUUID(pService->getUUID());
+    pAdvertising->addServiceUUID(pDeviceInfoService->getUUID());
+    pAdvertising->enableScanResponse(true);
+
+    // Configure advertising parameters for better reliability
+    pAdvertising->setMinInterval(0x20);  // 20ms minimum interval
+    pAdvertising->setMaxInterval(0x40);  // 40ms maximum interval
+
+    pAdvertising->start();
+
+    xTaskCreatePinnedToCore(
+        nimbleLoop, "nimbleLoop", 5 * configMINIMAL_STACK_SIZE, pServer,
+        configMAX_PRIORITIES - 1, nullptr, Tasks::stepperCore);
+}

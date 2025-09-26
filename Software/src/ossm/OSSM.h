@@ -1,20 +1,28 @@
 #ifndef OSSM_SOFTWARE_OSSM_H
 #define OSSM_SOFTWARE_OSSM_H
 
+#include <Arduino.h>
+#include <services/board.h>
+
+#include <command/commands.hpp>
+
 #include "Actions.h"
 #include "AiEsp32RotaryEncoder.h"
 #include "Events.h"
 #include "FastAccelStepper.h"
 #include "Guard.h"
+#include "OSSMI.h"
 #include "U8g2lib.h"
 #include "WiFiManager.h"
 #include "boost/sml.hpp"
 #include "constants/Config.h"
 #include "constants/Menu.h"
 #include "constants/Pins.h"
+#include "constants/UserConfig.h"
+#include "esp_log.h"
 #include "services/tasks.h"
 #include "structs/SettingPercents.h"
-#include "utils/RecusiveMutex.h"
+#include "utils/RecursiveMutex.h"
 #include "utils/StateLogger.h"
 #include "utils/StrokeEngineHelper.h"
 #include "utils/analog.h"
@@ -22,7 +30,7 @@
 
 namespace sml = boost::sml;
 
-class OSSM {
+class OSSM : public OSSMInterface {
   private:
     /**
      * ///////////////////////////////////////////
@@ -67,10 +75,10 @@ class OSSM {
             auto drawPatternControls = [](OSSM &o) { o.drawPatternControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
             auto resetSettings = [](OSSM &o) {
-                o.setting.speed = 0;
-                o.setting.stroke = 0;
-                o.setting.depth = 50;
-                o.setting.sensation = 50;
+                OSSM::setting.speed = 0;
+                OSSM::setting.stroke = 0;
+                OSSM::setting.depth = 50;
+                OSSM::setting.sensation = 50;
                 o.playControl = PlayControls::STROKE;
 
                 // Prepare the encoder
@@ -90,13 +98,13 @@ class OSSM {
 
                 switch (o.playControl) {
                     case PlayControls::STROKE:
-                        o.encoder.setEncoderValue(o.setting.stroke);
+                        o.encoder.setEncoderValue(OSSM::setting.stroke);
                         break;
                     case PlayControls::DEPTH:
-                        o.encoder.setEncoderValue(o.setting.depth);
+                        o.encoder.setEncoderValue(OSSM::setting.depth);
                         break;
                     case PlayControls::SENSATION:
-                        o.encoder.setEncoderValue(o.setting.sensation);
+                        o.encoder.setEncoderValue(OSSM::setting.sensation);
                         break;
                 }
             };
@@ -104,6 +112,7 @@ class OSSM {
             auto startSimplePenetration = [](OSSM &o) {
                 o.startSimplePenetration();
             };
+
             auto startStrokeEngine = [](OSSM &o) { o.startStrokeEngine(); };
             auto emergencyStop = [](OSSM &o) {
                 o.stepper->forceStop();
@@ -114,7 +123,7 @@ class OSSM {
             auto drawUpdate = [](OSSM &o) { o.drawUpdate(); };
             auto drawNoUpdate = [](OSSM &o) { o.drawNoUpdate(); };
             auto drawUpdating = [](OSSM &o) { o.drawUpdating(); };
-            auto stopWifiPortal = [](OSSM &o) { o.wm.stopConfigPortal(); };
+            auto stopWifiPortal = [](OSSM &o) {};
             auto drawError = [](OSSM &o) { o.drawError(); };
 
             auto startWifi = [](OSSM &o) {
@@ -126,18 +135,22 @@ class OSSM {
                 // If you have saved wifi credentials then connect to wifi
                 // immediately.
 
-                String ssid = o.wm.getWiFiSSID(true);
-                String pass = o.wm.getWiFiPass(true);
-                ESP_LOGD("UTILS", "connecting to wifi %s", ssid.c_str());
+                // String ssid = o.wm.getWiFiSSID(true);
+                // String pass = o.wm.getWiFiPass(true);
+                // ESP_LOGD("UTILS", "connecting to wifi %s", ssid.c_str());
 
-                WiFi.begin(ssid.c_str(), pass.c_str());
+                // WiFi.begin(ssid.c_str(), pass.c_str());
 
                 ESP_LOGD("UTILS", "exiting autoconnect");
             };
 
             // Guard definitions to make the table easier to read.
             auto isStrokeTooShort = [](OSSM &o) {
+#ifdef AJ_DEVELOPMENT_HARDWARE
+                return false;
+#else
                 return o.isStrokeTooShort();
+#endif
             };
 
             auto isOption = [](Menu option) {
@@ -164,8 +177,8 @@ class OSSM {
 
             return make_transition_table(
             // clang-format off
-#ifdef DEBUG_SKIP_HOMING
-                *"idle"_s + done / drawHello = "menu"_s,
+#ifdef AJ_DEVELOPMENT_HARDWARE
+                *"idle"_s + done = "menu"_s,
 #else
                 *"idle"_s + done / drawHello = "homing"_s,
 #endif
@@ -178,10 +191,12 @@ class OSSM {
                 "homing.backward"_s + done[isFirstHomed] / setHomed = "menu"_s,
                 "homing.backward"_s + done[(isOption(Menu::SimplePenetration))] / setHomed = "simplePenetration"_s,
                 "homing.backward"_s + done[(isOption(Menu::StrokeEngine))] / setHomed = "strokeEngine"_s,
+                "homing.backward"_s + done[(isOption(Menu::Streaming))] / setHomed = "streaming"_s,
 
                 "menu"_s / (drawMenu, startWifi) = "menu.idle"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::Streaming))] = "streaming"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
                 "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
@@ -191,12 +206,16 @@ class OSSM {
                 "simplePenetration"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
                 "simplePenetration.preflight"_s + done / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
+                "simplePenetration.preflight"_s + longPress = "menu"_s,
                 "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+
+
 
                 "strokeEngine"_s [isNotHomed] = "homing"_s,
                 "strokeEngine"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
                 "strokeEngine.preflight"_s + done / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
+                "strokeEngine.preflight"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
                 "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
                 "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
@@ -231,37 +250,16 @@ class OSSM {
     /**
      * ///////////////////////////////////////////
      * ////
-     * ////  Private Objects and Services
-     * ////
-     * ///////////////////////////////////////////
-     */
-    FastAccelStepper *stepper;
-    U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display;
-    StateLogger logger;
-    AiEsp32RotaryEncoder &encoder;
-
-    /**
-     * ///////////////////////////////////////////
-     * ////
      * ////  Private Variables and Flags
      * ////
      * ///////////////////////////////////////////
      */
-    // Calibration Variables
-    float currentSensorOffset = 0;
-    float measuredStrokeSteps = 0;
 
     // Homing Variables
     bool isForward = true;
 
     Menu menuOption;
     String errorMessage = "";
-
-    SettingPercents setting = {.speed = 0,
-                               .stroke = 0,
-                               .sensation = 50,
-                               .depth = 50,
-                               .pattern = StrokePatterns::SimpleStroke};
 
     unsigned long sessionStartTime = 0;
     int sessionStrokeCount = 0;
@@ -339,7 +337,125 @@ class OSSM {
                 sml::logger<StateLogger>>>
         sm = nullptr;  // The state machine
 
-    WiFiManager wm;
+    static SettingPercents setting;
+
+    /**
+     * ///////////////////////////////////////////
+     * ////
+     * ////  Objects and Services
+     * ////
+     * ///////////////////////////////////////////
+     */
+    FastAccelStepper *stepper;
+    U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display;
+    StateLogger logger;
+    AiEsp32RotaryEncoder &encoder;
+
+    /**
+     * ///////////////////////////////////////////
+     * ////
+     * ////  Calibration Variables
+     * ////
+     * ///////////////////////////////////////////
+     */
+    float currentSensorOffset = 0;
+    float measuredStrokeSteps = 0;
+
+    /**
+     * ///////////////////////////////////////////
+     * ////
+     * ////  Target Variables
+     * ////
+     * ///////////////////////////////////////////
+     */
+    float targetPosition = 0;
+    float targetVelocity = 0;
+    uint16_t targetTime = 0;
+
+    int getSpeed() { return this->setting.speed; }
+    // Implement the interface methods
+    void process_event(const auto &event) { sm->process_event(event); }
+    void ble_click(String commandString) {
+        // Visit current state to handle state-specific commands
+
+        ESP_LOGD("OSSM", "PROCESSING CLICK");
+        CommandValue command = commandFromString(commandString);
+        ESP_LOGD("OSSM", "COMMAND: %d", command.command);
+
+        String currentState;
+        sm->visit_current_states(
+            [&currentState](auto state) { currentState = state.c_str(); });
+
+        switch (command.command) {
+            case Commands::goToStrokeEngine:
+                menuOption = Menu::StrokeEngine;
+                sm->process_event(ButtonPress{});
+                break;
+            case Commands::goToSimplePenetration:
+                menuOption = Menu::SimplePenetration;
+                sm->process_event(ButtonPress{});
+                break;
+            case Commands::goToStreaming:
+                menuOption = Menu::Streaming;
+                sm->process_event(ButtonPress{});
+                break;
+            case Commands::goToMenu:
+                sm->process_event(LongPress{});
+                break;
+            case Commands::setSpeed:
+                // Use speed knob config to determine how to handle BLE speed
+                // command
+                setting.speedBLE = command.value;
+                break;
+            case Commands::setStroke:
+                playControl = PlayControls::STROKE;
+                encoder.setEncoderValue(command.value);
+                setting.stroke = command.value;
+                break;
+            case Commands::setDepth:
+                playControl = PlayControls::DEPTH;
+                encoder.setEncoderValue(command.value);
+                setting.depth = command.value;
+                break;
+            case Commands::setSensation:
+                playControl = PlayControls::SENSATION;
+                encoder.setEncoderValue(command.value);
+                setting.sensation = command.value;
+                break;
+            case Commands::setPattern:
+                setting.pattern =
+                    static_cast<StrokePatterns>(command.value % 7);
+                break;
+            case Commands::ignore:
+                break;
+        }
+    }
+
+    void moveTo(float intensity, uint16_t inTime) {
+        targetPosition = constrain(intensity, 0.0f, 100.0f);
+        targetTime = inTime;
+    }
+
+    // get current state
+    String getCurrentState() {
+        String currentState;
+        sm->visit_current_states(
+            [&currentState](auto state) { currentState = state.c_str(); });
+
+        String json = "{";
+        json += "\"state\":\"" + currentState + "\",";
+        json += "\"speed\":" + String((int)setting.speed) + ",";
+        json += "\"stroke\":" + String((int)setting.stroke) + ",";
+        json += "\"sensation\":" + String((int)setting.sensation) + ",";
+        json += "\"depth\":" + String((int)setting.depth) + ",";
+        json += "\"pattern\":" + String(static_cast<int>(setting.pattern));
+        json += "}";
+        currentState = json;
+
+        return currentState;
+    }
 };
+
+extern OSSM *ossm;
 
 #endif  // OSSM_SOFTWARE_OSSM_H

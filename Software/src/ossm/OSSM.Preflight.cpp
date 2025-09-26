@@ -32,23 +32,28 @@ void OSSM::drawPreflightTask(void *pvParameters) {
     };
 
     do {
+#ifdef AJ_DEVELOPMENT_HARDWARE
+        speedPercentage = 0;
+#else
         speedPercentage =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
+#endif
         if (speedPercentage < Config::Advanced::commandDeadZonePercentage) {
             ossm->sm->process_event(Done{});
             break;
         };
 
-        displayMutex.lock();
-        ossm->display.clearBuffer();
-        drawStr::title(menuString);
-        String speedString = UserConfig::language.Speed + ": " +
-                             String((int)speedPercentage) + "%";
-        drawStr::centered(25, speedString);
-        drawStr::multiLine(0, 40, UserConfig::language.SpeedWarning);
+        if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+            clearPage(true, true);
+            drawStr::title(menuString);
+            String speedString = UserConfig::language.Speed + String(": ") +
+                                 String((int)speedPercentage) + "%";
+            drawStr::centered(25, speedString);
+            drawStr::multiLine(0, 40, UserConfig::language.SpeedWarning);
 
-        ossm->display.sendBuffer();
-        displayMutex.unlock();
+            refreshPage(true, true);
+            xSemaphoreGive(displayMutex);
+        }
 
         vTaskDelay(100);
     } while (isInPreflight(ossm));
@@ -59,5 +64,5 @@ void OSSM::drawPreflightTask(void *pvParameters) {
 void OSSM::drawPreflight() {
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawPreflightTask, "drawPlayControlsTask", stackSize, this, 1,
-                &drawPreflightTaskH);
+                &Tasks::drawPreflightTaskH);
 }

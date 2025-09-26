@@ -1,0 +1,104 @@
+---
+globs: *.cpp,*.h,*.hpp
+description: PROGMEM string optimization for ESP32/Arduino
+---
+
+# PROGMEM String Optimization
+
+When using constant value strings in ESP32/Arduino projects, prefer storing them in PROGMEM to conserve RAM.
+
+## String Storage Rules
+
+### 1. Language and UI Strings
+
+-   Store all language strings in PROGMEM using individual `const char name[] PROGMEM = "text";` declarations
+-   Use `const char*` pointers in structs instead of `String` objects
+-   Reference: [LanguageStruct.h](mdc:src/structs/LanguageStruct.h), [en-us.h](mdc:src/constants/copy/en-us.h)
+
+### 2. Hardcoded Display Strings
+
+-   **DO NOT use F() style functions unless SPECIFICALLY requested**
+-   Store persistent strings as `const char name[] PROGMEM = "text";`
+-   Use `const char*` pointers for string references
+-   Examples: [OSSM.cpp](mdc:src/ossm/OSSM.cpp), [OSSM.Update.cpp](mdc:src/ossm/OSSM.Update.cpp)
+
+### 3. Command and Configuration Strings
+
+-   Store command prefixes and configuration strings in PROGMEM
+-   Use `FPSTR()` macro when converting PROGMEM strings for String operations
+-   Reference: [commands.hpp](mdc:src/command/commands.hpp)
+
+### 4. String Parameter Passing
+
+-   **Always pass Arduino Strings by reference when appropriate** to avoid unnecessary copying
+-   Use `const String&` for read-only string parameters
+-   Use `String&` for string parameters that need modification
+-   Avoid passing `String` by value unless absolutely necessary
+
+## Implementation Patterns
+
+### ✅ Correct PROGMEM Usage
+
+```cpp
+// Individual string declarations
+static const char myString[] PROGMEM = "Hello World";
+
+// Struct with const char* pointers
+struct MyStruct {
+    const char* message;
+};
+
+// Using const char* for string references
+display.drawUTF8(0, 0, myProgmemString);
+
+// Converting PROGMEM to String when needed
+String tempString = String(FPSTR(myProgmemString));
+
+// Passing Strings by reference
+void processString(const String& input) {  // Read-only reference
+    // Process input without copying
+}
+
+void modifyString(String& output) {  // Mutable reference
+    output += " modified";
+}
+```
+
+### ❌ Avoid These Patterns
+
+```cpp
+// Don't use String objects for constant strings
+String myString = "Hello World";  // Uses RAM
+
+// Don't use F() macro unless specifically requested
+display.drawUTF8(0, 0, F("Temporary text"));  // Avoid unless requested
+
+// Don't use .c_str() with PROGMEM strings
+display.drawUTF8(0, 0, myProgmemString.c_str());  // Wrong!
+
+// Don't store strings in RAM when they could be in PROGMEM
+const char* myString = "Hello World";  // Still uses RAM
+
+// Don't pass String by value unnecessarily
+void badFunction(String input) {  // Creates copy - avoid!
+    // Process input
+}
+
+// Don't use String objects for constant strings
+String constantString = "Never changes";  // Should be PROGMEM
+```
+
+## Memory Benefits
+
+-   **Before**: Strings stored in RAM as `String` objects (high overhead)
+-   **After**: Strings stored in flash memory (PROGMEM), freeing significant RAM
+-   **Impact**: Critical for ESP32 with limited RAM resources
+-   **Reference Passing**: Avoids unnecessary String copying, reducing memory fragmentation
+
+## File References
+
+-   Language system: [LanguageStruct.h](mdc:src/structs/LanguageStruct.h)
+-   English strings: [en-us.h](mdc:src/constants/copy/en-us.h)
+-   French strings: [fr.h](mdc:src/constants/copy/fr.h)
+-   Menu system: [Menu.h](mdc:src/constants/Menu.h)
+-   Command system: [commands.hpp](mdc:src/command/commands.hpp)

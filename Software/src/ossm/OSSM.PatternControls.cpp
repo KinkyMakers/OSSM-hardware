@@ -12,17 +12,17 @@ size_t numberOfPatterns = 7;
 void OSSM::drawPatternControlsTask(void *pvParameters) {
     // parse ossm from the parameters
     OSSM *ossm = (OSSM *)pvParameters;
-    SettingPercents savedSettings = ossm->setting;
+    SettingPercents savedSettings = OSSM::setting;
 
     auto isInCorrectState = [](OSSM *ossm) {
         // Add any states that you want to support here.
         return ossm->sm->is("strokeEngine.pattern"_s);
     };
 
-    int nextPattern = (int)ossm->setting.pattern;
+    int nextPattern = (int)OSSM::setting.pattern;
     bool shouldUpdateDisplay = true;
-    String patternName = "nextPattern";
-    String patternDescription =
+    const char *patternName = "nextPattern";
+    const char *patternDescription =
         UserConfig::language.StrokeEngineDescriptions[nextPattern];
 
     // Change encode
@@ -33,7 +33,7 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
     while (isInCorrectState(ossm)) {
         nextPattern = ossm->encoder.readEncoder() / 3;
         shouldUpdateDisplay =
-            shouldUpdateDisplay || (int)ossm->setting.pattern != nextPattern;
+            shouldUpdateDisplay || (int)OSSM::setting.pattern != nextPattern;
         if (!shouldUpdateDisplay) {
             vTaskDelay(100);
             continue;
@@ -48,18 +48,19 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
             patternDescription = "No description available";
         }
 
-        ossm->setting.pattern = (StrokePatterns)nextPattern;
+        OSSM::setting.pattern = (StrokePatterns)nextPattern;
 
-        displayMutex.lock();
-        ossm->display.clearBuffer();
+        if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+            clearPage(true, true);
 
-        // Draw the title
-        drawStr::title(patternName);
-        drawStr::multiLine(0, 20, patternDescription);
-        drawShape::scroll(100 * nextPattern / numberOfPatterns);
+            // Draw the title
+            drawStr::title(patternName);
+            drawStr::multiLine(0, 20, patternDescription);
+            drawShape::scroll(100 * nextPattern / numberOfPatterns);
 
-        ossm->display.sendBuffer();
-        displayMutex.unlock();
+            refreshPage(true, true);
+            xSemaphoreGive(displayMutex);
+        }
 
         vTaskDelay(200);
     }
@@ -70,5 +71,5 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
 void OSSM::drawPatternControls() {
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawPatternControlsTask, "drawPatternControlsTask", stackSize,
-                this, 1, &drawPatternControlsTaskH);
+                this, 1, &Tasks::drawPatternControlsTaskH);
 }

@@ -1,6 +1,9 @@
 #include "OSSM.h"
 
+#include <queue>
+
 #include "constants/Config.h"
+#include "services/communication/nimble.h"
 
 void OSSM::startSimplePenetrationTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
@@ -20,12 +23,12 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
 
     while (isInCorrectState(ossm)) {
         auto speed = (1_mm) * Config::Driver::maxSpeedMmPerSecond *
-                     ossm->setting.speed / 100.0;
+                     OSSM::setting.speed / 100.0;
         auto acceleration = (1_mm) * Config::Driver::maxSpeedMmPerSecond *
-                            ossm->setting.speed * ossm->setting.speed /
+                            OSSM::setting.speed * OSSM::setting.speed /
                             Config::Advanced::accelerationScaling;
 
-        bool isSpeedZero = ossm->setting.speedKnob <
+        bool isSpeedZero = OSSM::setting.speedKnob <
                            Config::Advanced::commandDeadZonePercentage;
         bool isSpeedChanged =
             !isSpeedZero && abs(speed - lastSpeed) >
@@ -64,7 +67,7 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
         ossm->isForward = nextDirection;
 
         if (ossm->isForward) {
-            targetPosition = -abs(((float)ossm->setting.stroke / 100.0) *
+            targetPosition = -abs(((float)OSSM::setting.stroke / 100.0) *
                                   ossm->measuredStrokeSteps);
         } else {
             targetPosition = 0;
@@ -75,8 +78,8 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
 
         ossm->stepper->moveTo(targetPosition, false);
 
-        if (ossm->setting.speed > Config::Advanced::commandDeadZonePercentage &&
-            ossm->setting.stroke >
+        if (OSSM::setting.speed > Config::Advanced::commandDeadZonePercentage &&
+            OSSM::setting.stroke >
                 (long)Config::Advanced::commandDeadZonePercentage) {
             fullStrokeCount++;
             ossm->sessionStrokeCount = floor(fullStrokeCount / 2);
@@ -84,7 +87,7 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
             // This calculation assumes that at the end of every stroke you have
             // a whole positive distance, equal to maximum target position.
             ossm->sessionDistanceMeters +=
-                (((float)ossm->setting.stroke / 100.0) *
+                (((float)OSSM::setting.stroke / 100.0) *
                  ossm->measuredStrokeSteps / (1_mm)) /
                 1000.0;
         }
@@ -96,10 +99,10 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
 }
 
 void OSSM::startSimplePenetration() {
-    int stackSize = 30 * configMINIMAL_STACK_SIZE;
+    int stackSize = 10 * configMINIMAL_STACK_SIZE;
 
-    xTaskCreatePinnedToCore(startSimplePenetrationTask,
-                            "startSimplePenetrationTask", stackSize, this,
-                            configMAX_PRIORITIES - 1,
-                            &runSimplePenetrationTaskH, operationTaskCore);
+    xTaskCreatePinnedToCore(
+        startSimplePenetrationTask, "startSimplePenetrationTask", stackSize,
+        this, configMAX_PRIORITIES - 1, &Tasks::runSimplePenetrationTaskH,
+        Tasks::operationTaskCore);
 }

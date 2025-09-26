@@ -36,6 +36,14 @@ void OSSM::startHomingTask(void *pvParameters) {
     // parse parameters to get OSSM reference
     OSSM *ossm = (OSSM *)pvParameters;
 
+#ifdef AJ_DEVELOPMENT_HARDWARE
+    ossm->stepper->setCurrentPosition(0);
+    ossm->stepper->forceStopAndNewPosition(0);
+    ossm->sm->process_event(Done{});
+    vTaskDelete(nullptr);
+    return;
+#endif
+
     // Stroke Engine and Simple Penetration treat this differently.
     ossm->stepper->enableOutputs();
     ossm->stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
@@ -109,8 +117,8 @@ void OSSM::startHomingTask(void *pvParameters) {
 void OSSM::startHoming() {
     int stackSize = 10 * configMINIMAL_STACK_SIZE;
     xTaskCreatePinnedToCore(startHomingTask, "startHomingTask", stackSize, this,
-                            configMAX_PRIORITIES - 1, &runHomingTaskH,
-                            operationTaskCore);
+                            configMAX_PRIORITIES - 1, &Tasks::runHomingTaskH,
+                            Tasks::operationTaskCore);
 }
 
 auto OSSM::isStrokeTooShort() -> bool {

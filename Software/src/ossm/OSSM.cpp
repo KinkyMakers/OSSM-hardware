@@ -8,6 +8,15 @@
 namespace sml = boost::sml;
 using namespace sml;
 
+OSSM *ossm = nullptr;
+
+// Static member definition
+SettingPercents OSSM::setting = {.speed = 0,
+                                 .stroke = 0,
+                                 .sensation = 50,
+                                 .depth = 50,
+                                 .pattern = StrokePatterns::SimpleStroke};
+
 // Now we can define the OSSM constructor since OSSMStateMachine::operator() is
 // fully defined
 OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
@@ -19,10 +28,10 @@ OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
           sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
                   sml::logger<StateLogger>>>(logger, *this)) {
     // NOTE: This is a hack to get the wifi credentials loaded early.
-    wm.setConfigPortalBlocking(false);
-    wm.startConfigPortal();
-    wm.process();
-    wm.stopConfigPortal();
+    // wm.setConfigPortalBlocking(false);
+    // wm.startConfigPortal();
+    // wm.process();
+    // wm.stopConfigPortal();
 
     // All initializations are done, so start the state machine.
     sm->process_event(Done{});
@@ -68,15 +77,16 @@ void OSSM::drawHelloTask(void *pvParameters) {
         // increment the frame index
         frameIdx++;
 
-        displayMutex.lock();
-        ossm->display.clearBuffer();
-        ossm->display.setFont(u8g2_font_maniac_tf);
-        ossm->display.drawUTF8(startX, heights[0], "O");
-        ossm->display.drawUTF8(startX + letterSpacing, heights[1], "S");
-        ossm->display.drawUTF8(startX + letterSpacing * 2, heights[2], "S");
-        ossm->display.drawUTF8(startX + letterSpacing * 3, heights[3], "M");
-        ossm->display.sendBuffer();
-        displayMutex.unlock();
+        if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+            clearPage(true, true);
+            ossm->display.setFont(u8g2_font_maniac_tf);
+            ossm->display.drawUTF8(startX, heights[0], "O");
+            ossm->display.drawUTF8(startX + letterSpacing, heights[1], "S");
+            ossm->display.drawUTF8(startX + letterSpacing * 2, heights[2], "S");
+            ossm->display.drawUTF8(startX + letterSpacing * 3, heights[3], "M");
+            refreshPage(true, true);
+            xSemaphoreGive(displayMutex);
+        }
         // Saying hi to the watchdog :).
         vTaskDelay(1);
     };
@@ -84,30 +94,33 @@ void OSSM::drawHelloTask(void *pvParameters) {
     // Delay for a second, then show the RDLogo.
     vTaskDelay(1500);
 
-    displayMutex.lock();
-    ossm->display.clearBuffer();
-    drawStr::title("Research and Desire");
-    ossm->display.drawXBMP(35, 14, 57, 50, Images::RDLogo);
-    ossm->display.sendBuffer();
-    displayMutex.unlock();
+    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+        clearPage(true, true);
+        drawStr::title("Research and Desire");
+        ossm->display.drawXBMP(35, 14, 57, 50, Images::RDLogo);
+        refreshPage(true, true);
+        xSemaphoreGive(displayMutex);
+    }
 
     vTaskDelay(1000);
 
-    displayMutex.lock();
-    ossm->display.clearBuffer();
-    drawStr::title("Kinky Makers");
-    ossm->display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
-    ossm->display.sendBuffer();
-    displayMutex.unlock();
+    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+        clearPage(true, true);
+        drawStr::title("Kinky Makers");
+        ossm->display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
+        refreshPage(true, true);
+        xSemaphoreGive(displayMutex);
+    }
 
     vTaskDelay(1000);
 
-    displayMutex.lock();
-    ossm->display.clearBuffer();
-    drawStr::title(UserConfig::language.MeasuringStroke);
-    ossm->display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
-    ossm->display.sendBuffer();
-    displayMutex.unlock();
+    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+        clearPage(true, true);
+        drawStr::title(UserConfig::language.MeasuringStroke);
+        ossm->display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
+        refreshPage(true, true);
+        xSemaphoreGive(displayMutex);
+    }
 
     // delete the task
     vTaskDelete(nullptr);
@@ -117,7 +130,7 @@ void OSSM::drawHello() {
     // 3 x minimum stack
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawHelloTask, "drawHello", stackSize, this, 1,
-                &drawHelloTaskH);
+                &Tasks::drawHelloTaskH);
 }
 
 void OSSM::drawError() {
@@ -128,10 +141,11 @@ void OSSM::drawError() {
         ESP_LOGD("OSSM::drawError", "Caught exception: %s", e.what());
     }
 
-    displayMutex.lock();
-    display.clearBuffer();
-    drawStr::title(UserConfig::language.Error);
-    drawStr::multiLine(0, 20, errorMessage);
-    display.sendBuffer();
-    displayMutex.unlock();
+    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+        clearPage(true, true);
+        drawStr::title(UserConfig::language.Error);
+        drawStr::multiLine(0, 20, errorMessage);
+        refreshPage(true, true);
+        xSemaphoreGive(displayMutex);
+    }
 }
