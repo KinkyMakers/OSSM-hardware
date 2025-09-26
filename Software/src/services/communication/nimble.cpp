@@ -8,15 +8,20 @@
 
 #include <queue>
 
+#include "command.hpp"
 #include "command/commands.hpp"
+#include "config.hpp"
+#include "patterns.hpp"
+#include "state.hpp"
 
 // Define the global variables
 NimBLEServer* pServer = nullptr;
-// Add at the top with other global variables
-NimBLECharacteristic* pCharacteristic =
-    nullptr;  // Global pointer to B2 characteristic
-NimBLECharacteristic* pSpeedKnobConfigCharacteristic =
-    nullptr;  // Global pointer to speed knob config characteristic
+
+NimBLECharacteristic* pStateCharacteristic = nullptr;
+
+NimBLECharacteristic* pSpeedKnobConfigCharacteristic = nullptr;
+
+NimBLECharacteristic* pCommandCharacteristic = nullptr;
 
 static long lostConnectionTime = 0;
 static int speedOnLostConnection = 0;
@@ -26,95 +31,6 @@ static const unsigned long RAMP_DURATION_MS =
 double easeInOutSine(double t) {
     return 0.5 * (1 + sin(3.1415926 * (t - 0.5)));
 }
-
-// Speed knob configuration is now in UserConfig namespace
-
-// queue of message received from the BLE
-std::queue<String> messageQueue;
-
-static const std::regex commandRegex(
-    R"(go:(simplePenetration|strokeEngine|menu)|set:(speed|stroke|depth|sensation|pattern):\d+)");
-
-/** Handler class for characteristic actions */
-class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
-    uint32_t lastWriteTime = 0;
-    float writeHz = 0;
-    const float alpha = 0.1;  // Smoothing factor for exponential moving average
-
-    void onWrite(NimBLECharacteristic* pCharacteristic,
-                 NimBLEConnInfo& connInfo) override {
-        std::string cmd = pCharacteristic->getValue();
-
-        if (!std::regex_match(cmd, commandRegex)) {
-            ESP_LOGD(NIMBLE_TAG, "Invalid command: %s", cmd.c_str());
-            pCharacteristic->setValue("fail:" + String(cmd.c_str()));
-            return;
-        }
-        messageQueue.push(String(cmd.c_str()));
-    }
-
-    /**
-     *  The value returned in code is the NimBLE host return code.
-     */
-    void onStatus(NimBLECharacteristic* pCharacteristic, int code) override {
-        ESP_LOGV(NIMBLE_TAG, "Notification/Indication return code: %d, %s",
-                 code, NimBLEUtils::returnCodeToString(code));
-    }
-} chrCallbacks;
-
-/** Handler class for speed knob config characteristic */
-class SpeedKnobConfigCallbacks : public NimBLECharacteristicCallbacks {
-    void onWrite(NimBLECharacteristic* pCharacteristic,
-                 NimBLEConnInfo& connInfo) override {
-        std::string value = pCharacteristic->getValue();
-        String configValue = String(value.c_str());
-        configValue.toLowerCase();
-
-        ESP_LOGD(NIMBLE_TAG, "Speed knob config write: %s",
-                 configValue.c_str());
-
-        // Store config strings in PROGMEM
-        static const char true_str[] PROGMEM = "true";
-        static const char false_str[] PROGMEM = "false";
-        static const char error_invalid[] PROGMEM = "error:invalid_value";
-
-        if (configValue == "true" || configValue == "1" || configValue == "t") {
-            USE_SPEED_KNOB_AS_LIMIT = true;
-            pCharacteristic->setValue(String(FPSTR(true_str)));
-        } else if (configValue == "false" || configValue == "0" ||
-                   configValue == "f") {
-            USE_SPEED_KNOB_AS_LIMIT = false;
-            pCharacteristic->setValue(String(FPSTR(false_str)));
-        } else {
-            ESP_LOGW(NIMBLE_TAG, "Invalid speed knob config value: %s",
-                     configValue.c_str());
-            pCharacteristic->setValue(String(FPSTR(error_invalid)));
-        }
-    }
-
-    void onRead(NimBLECharacteristic* pCharacteristic,
-                NimBLEConnInfo& connInfo) override {
-        // Use PROGMEM strings for read values
-        static const char true_str[] PROGMEM = "true";
-        static const char false_str[] PROGMEM = "false";
-
-        String value = USE_SPEED_KNOB_AS_LIMIT ? String(FPSTR(true_str))
-                                               : String(FPSTR(false_str));
-        ESP_LOGD(NIMBLE_TAG, "Speed knob config read: %s", value.c_str());
-        pCharacteristic->setValue(value);
-    }
-
-    void onStatus(NimBLECharacteristic* pCharacteristic, int code) override {
-        ESP_LOGV(
-            NIMBLE_TAG,
-            "Speed knob config notification/indication return code: %d, %s",
-            code, NimBLEUtils::returnCodeToString(code));
-    }
-} speedKnobConfigCallbacks;
-
-/** Handler class for descriptor actions */
-class DescriptorCallbacks : public NimBLEDescriptorCallbacks {
-} dscCallbacks;
 
 /** Handler class for server actions */
 class ServerCallbacks : public NimBLEServerCallbacks {
@@ -282,83 +198,26 @@ void initNimble() {
     /** Initialize NimBLE and set the device name */
     NimBLEDevice::init("OSSM");
 
-    /**
-     * Set the IO capabilities of the device, each option will trigger a
-     * different pairing method. BLE_HS_IO_DISPLAY_ONLY    - Passkey pairing
-     *  BLE_HS_IO_DISPLAY_YESNO   - Numeric comparison pairing
-     *  BLE_HS_IO_NO_INPUT_OUTPUT - DEFAULT setting - just works pairing
-     */
-    // NimBLEDevice::setSecurityIOCap(BLE_HS_IO_DISPLAY_ONLY); // use passkey
-    // NimBLEDevice::setSecurityIOCap(BLE_HS_IO_DISPLAY_YESNO); //use numeric
-    // comparison
-
-    /**
-     *  2 different ways to set security - both calls achieve the same result.
-     *  no bonding, no man in the middle protection, BLE secure connections.
-     *
-     *  These are the default values, only shown here for demonstration.
-     */
-    // NimBLEDevice::setSecurityAuth(false, false, true);
-
-    NimBLEDevice::setSecurityAuth(
-        /*BLE_SM_PAIR_AUTHREQ_BOND | BLE_SM_PAIR_AUTHREQ_MITM |*/
-        BLE_SM_PAIR_AUTHREQ_SC);
+    NimBLEDevice::setSecurityAuth(BLE_SM_PAIR_AUTHREQ_SC);
     pServer = NimBLEDevice::createServer();
     pServer->setCallbacks(&serverCallbacks);
 
     // Create Service
     NimBLEService* pService = pServer->createService(SERVICE_UUID);
 
-    // Command characteristic (writable, readable)
-    NimBLECharacteristic* pChar = pService->createCharacteristic(
-        CHARACTERISTIC_UUID, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ);
+    pCommandCharacteristic =
+        initCommandCharacteristic(pService, NimBLEUUID(CHARACTERISTIC_UUID));
 
-    // Store the characteristic pointer globally
-    pCharacteristic = pChar;
+    pSpeedKnobConfigCharacteristic = initSpeedKnobConfigCharacteristic(
+        pService, NimBLEUUID(CHARACTERISTIC_SPEED_KNOB_CONFIG_UUID));
 
-    pChar->setCallbacks(&chrCallbacks);
+    pStateCharacteristic = initStateCharacteristic(
+        pService, NimBLEUUID(CHARACTERISTIC_STATE_UUID));
 
-    // Speed knob config characteristic (writable, readable)
-    NimBLECharacteristic* pSpeedKnobConfigChar = pService->createCharacteristic(
-        CHARACTERISTIC_SPEED_KNOB_CONFIG_UUID,
-        NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ);
-
-    // Store the characteristic pointer globally
-    pSpeedKnobConfigCharacteristic = pSpeedKnobConfigChar;
-
-    // State characteristic (read/notify string payload for state)
-    NimBLECharacteristic* pStateChar = pService->createCharacteristic(
-        CHARACTERISTIC_STATE_UUID,
-        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
-    static const char boot_state[] PROGMEM = "ok:boot";
-    pStateChar->setValue(String(FPSTR(boot_state)));
-
-    pSpeedKnobConfigChar->setCallbacks(&speedKnobConfigCallbacks);
-    // Use PROGMEM strings for initial value
-    static const char true_str[] PROGMEM = "true";
-    static const char false_str[] PROGMEM = "false";
-    pSpeedKnobConfigChar->setValue(USE_SPEED_KNOB_AS_LIMIT
-                                       ? String(FPSTR(true_str))
-                                       : String(FPSTR(false_str)));
-
-    // Patterns characteristic (read-only list of all patterns)
-    NimBLECharacteristic* pPatternsChar = pService->createCharacteristic(
-        CHARACTERISTIC_PATTERNS_UUID, NIMBLE_PROPERTY::READ);
-    // Use ArduinoJson to construct the patterns JSON
-    JsonDocument doc;
-    JsonArray arr = doc.to<JsonArray>();
-
-    for (int i = 0; i < sizeof(UserConfig::language.StrokeEngineNames) /
-                            sizeof(UserConfig::language.StrokeEngineNames[0]);
-         i++) {
-        JsonObject pattern = arr.createNestedObject();
-        pattern["name"] = UserConfig::language.StrokeEngineNames[i];
-        pattern["idx"] = i;
-    }
-
-    String jsonString;
-    serializeJson(arr, jsonString);
-    pPatternsChar->setValue(jsonString.c_str());
+    initPatternsCharacteristic(pService,
+                               NimBLEUUID(CHARACTERISTIC_PATTERNS_UUID));
+    initPatternDataCharacteristic(
+        pService, NimBLEUUID(CHARACTERISTIC_GET_PATTERN_DATA_UUID));
 
     // Start the services
     pService->start();

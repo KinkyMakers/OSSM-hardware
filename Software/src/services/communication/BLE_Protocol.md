@@ -217,24 +217,24 @@ The OSSM uses a structured UUID namespace for easy expansion:
 
 ### Namespace Ranges
 
-| Range | Hex Range     | Description                       |
-| ----- | ------------- | --------------------------------- |
-| 0x0   | 0x0000–0x0FFF | Writable Settings                 |
-| 0x1   | 0x1000–0x1FFF | Read Only State                   |
-| 0x2   | 0x2000–0x2FFF | Auxilary Information              |
-| 0x3   | 0x3000–0x3FFF | Statistics                        |
-| 0x4   | 0x4000–0x4FFF | Future                            |
-| 0x5   | 0x5000–0x5FFF | Future                            |
-| 0x6   | 0x6000–0x6FFF | Future                            |
-| 0x7   | 0x7000–0x7FFF | Future                            |
-| 0x8   | 0x8000–0x8FFF | Future                            |
-| 0x9   | 0x9000–0x9FFF | Future                            |
-| 0xA   | 0xA000–0xAFFF | Future                            |
-| 0xB   | 0xB000–0xBFFF | Future                            |
-| 0xC   | 0xC000–0xCFFF | Future                            |
-| 0xD   | 0xD000–0xDFFF | Future                            |
-| 0xE   | 0xE000–0xEFFF | Future                            |
-| 0xF   | 0xF000–0xFFFF | Experimental / Sandbox - Volatile |
+| Range | Hex Range     | Description                         |
+| ----- | ------------- | ----------------------------------- |
+| 0x0   | 0x0000–0x0FFF | Reserved for future System Messages |
+| 0x1   | 0x1000–0x1FFF | Commands and Configuration          |
+| 0x2   | 0x2000–0x2FFF | State Information                   |
+| 0x3   | 0x3000–0x3FFF | Pattern Information                 |
+| 0x4   | 0x4000–0x4FFF | Future                              |
+| 0x5   | 0x5000–0x5FFF | Future                              |
+| 0x6   | 0x6000–0x6FFF | Future                              |
+| 0x7   | 0x7000–0x7FFF | Future                              |
+| 0x8   | 0x8000–0x8FFF | Future                              |
+| 0x9   | 0x9000–0x9FFF | Future                              |
+| 0xA   | 0xA000–0xAFFF | Future                              |
+| 0xB   | 0xB000–0xBFFF | Future                              |
+| 0xC   | 0xC000–0xCFFF | Future                              |
+| 0xD   | 0xD000–0xDFFF | Future                              |
+| 0xE   | 0xE000–0xEFFF | Reserved For Statistics             |
+| 0xF   | 0xF000–0xFFFF | Experimental / Sandbox - Volatile   |
 
 ### Current Characteristic Assignments
 

@@ -126,24 +126,6 @@ class OSSM : public OSSMInterface {
             auto stopWifiPortal = [](OSSM &o) {};
             auto drawError = [](OSSM &o) { o.drawError(); };
 
-            auto startWifi = [](OSSM &o) {
-                if (WiFiClass::status() == WL_CONNECTED) {
-                    return;
-                }
-                // Start the wifi task.
-
-                // If you have saved wifi credentials then connect to wifi
-                // immediately.
-
-                // String ssid = o.wm.getWiFiSSID(true);
-                // String pass = o.wm.getWiFiPass(true);
-                // ESP_LOGD("UTILS", "connecting to wifi %s", ssid.c_str());
-
-                // WiFi.begin(ssid.c_str(), pass.c_str());
-
-                ESP_LOGD("UTILS", "exiting autoconnect");
-            };
-
             // Guard definitions to make the table easier to read.
             auto isStrokeTooShort = [](OSSM &o) {
 #ifdef AJ_DEVELOPMENT_HARDWARE
@@ -193,7 +175,7 @@ class OSSM : public OSSMInterface {
                 "homing.backward"_s + done[(isOption(Menu::StrokeEngine))] / setHomed = "strokeEngine"_s,
                 "homing.backward"_s + done[(isOption(Menu::Streaming))] / setHomed = "streaming"_s,
 
-                "menu"_s / (drawMenu, startWifi) = "menu.idle"_s,
+                "menu"_s / (drawMenu) = "menu.idle"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
                 "menu.idle"_s + buttonPress[(isOption(Menu::Streaming))] = "streaming"_s,
@@ -208,8 +190,6 @@ class OSSM : public OSSMInterface {
                 "simplePenetration.preflight"_s + done / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration.preflight"_s + longPress = "menu"_s,
                 "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
-
-
 
                 "strokeEngine"_s [isNotHomed] = "homing"_s,
                 "strokeEngine"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
@@ -258,7 +238,6 @@ class OSSM : public OSSMInterface {
     // Homing Variables
     bool isForward = true;
 
-    Menu menuOption;
     String errorMessage = "";
 
     unsigned long sessionStartTime = 0;
@@ -338,6 +317,7 @@ class OSSM : public OSSMInterface {
         sm = nullptr;  // The state machine
 
     static SettingPercents setting;
+    Menu menuOption;
 
     /**
      * ///////////////////////////////////////////
