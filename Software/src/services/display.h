@@ -29,9 +29,6 @@ extern SemaphoreHandle_t displayMutex;
 
 void initDisplay();
 
-void clearTimeout();
-void refreshTimeout();
-
 void clearIcons();
 void refreshIcons();
 
