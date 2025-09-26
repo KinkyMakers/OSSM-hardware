@@ -27,12 +27,6 @@ OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
       sm(std::make_unique<
           sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
                   sml::logger<StateLogger>>>(logger, *this)) {
-    // NOTE: This is a hack to get the wifi credentials loaded early.
-    // wm.setConfigPortalBlocking(false);
-    // wm.startConfigPortal();
-    // wm.process();
-    // wm.stopConfigPortal();
-
     // All initializations are done, so start the state machine.
     sm->process_event(Done{});
 }

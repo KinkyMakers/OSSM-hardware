@@ -67,7 +67,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         shouldUpdateDisplay = false;
 
 #ifdef AJ_DEVELOPMENT_HARDWARE
-        next.speedKnob = 50;
+        next.speedKnob = 0;
 #else
         next.speedKnob =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});

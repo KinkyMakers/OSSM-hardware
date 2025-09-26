@@ -1,6 +1,8 @@
 
 #include "OSSM.h"
 
+#include <services/wm.h>
+
 #include "extensions/u8g2Extensions.h"
 #include "qrcode.h"
 
@@ -21,8 +23,8 @@ void OSSM::drawWiFi() {
 
         qrcode_initText(&qrcode, qrcodeData, 3, 0, url);
 
-        int yOffset = constrain((64 - qrcode.size * scale) / 2, 0, 64);
-        int xOffset = constrain((128 - qrcode.size * scale), 0, 128);
+        int yOffset = 64 - qrcode.size * scale;   // Bottom align
+        int xOffset = 128 - qrcode.size * scale;  // Right align
 
         // Draw the QR code
         for (uint8_t y = 0; y < qrcode.size; y++) {
@@ -47,5 +49,28 @@ void OSSM::drawWiFi() {
         xSemaphoreGive(displayMutex);
     }
 
-    // wm.startConfigPortal("OSSM Setup");
+    wm.setConfigPortalBlocking(false);
+    wm.setCleanConnect(true);
+    wm.startConfigPortal("OSSM Setup");
+
+    // wm process task
+    xTaskCreatePinnedToCore(
+        [](void *pvParameters) {
+            OSSM *ossm = (OSSM *)pvParameters;
+
+            auto isInCorrectState = [](OSSM *ossm) {
+                // Add any states that you want to support here.
+                return ossm->sm->is("wifi"_s) || ossm->sm->is("wifi.idle"_s);
+            };
+
+            while (isInCorrectState(ossm)) {
+                wm.process();
+                vTaskDelay(50);
+            }
+
+            wm.stopConfigPortal();
+            vTaskDelete(nullptr);
+        },
+        "wmProcessTask", 4 * configMINIMAL_STACK_SIZE, this,
+        configMAX_PRIORITIES - 1, nullptr, 0);
 }

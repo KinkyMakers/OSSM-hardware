@@ -1,6 +1,5 @@
 #include "Arduino.h"
 #include "OneButton.h"
-#include "WiFi.h"
 #include "components/HeaderBar.h"
 #include "ossm/Events.h"
 #include "ossm/OSSM.h"
@@ -10,6 +9,7 @@
 #include "services/display.h"
 #include "services/encoder.h"
 #include "services/stepper.h"
+#include "services/wm.h"
 
 /*
  *  ██████╗ ███████╗███████╗███╗   ███╗
@@ -36,7 +36,9 @@ void setup() {
 
     ESP_LOGD("MAIN", "Starting OSSM");
 
-    // // Display
+    initWM();
+
+    // Display
     initDisplay();
 
     // Initialize header bar task
@@ -54,11 +56,10 @@ void setup() {
         [](void *pvParameters) {
             while (true) {
                 button.tick();
-                // ossm->wm.process();
                 vTaskDelay(25 / portTICK_PERIOD_MS);
             }
         },
-        "buttonTask", 6 * configMINIMAL_STACK_SIZE, nullptr,
+        "buttonTask", 4 * configMINIMAL_STACK_SIZE, nullptr,
         configMAX_PRIORITIES - 1, nullptr, 0);
 
     // Initialize NimBLE only when in menu.idle state
