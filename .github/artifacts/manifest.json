@@ -1,0 +1,27 @@
+{
+    "name": "OSSM ({{ branchName }} branch)",
+    "builds": [
+        {
+            "chipFamily": "ESP32",
+            "improv": false,
+            "parts": [
+                {
+                    "path": "https://www.researchanddesire.com/esp/bootloader_dio_40m.bin",
+                    "offset": 4096
+                },
+                {
+                    "path": "https://www.researchanddesire.com/esp/partitions.bin",
+                    "offset": 32768
+                },
+                {
+                    "path": "https://www.researchanddesire.com/esp/boot_app0.bin",
+                    "offset": 57344
+                },
+                {
+                    "path": "https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public/ossm-firmware/{{ branchName }}/firmware.bin",
+                    "offset": 65536
+                }
+            ]
+        }
+    ]
+}

@@ -71,7 +71,7 @@ void OSSM::startHomingTask(void *pvParameters) {
         // 'portTICK_PERIOD_MS' is the number of milliseconds per tick.
         uint32_t msPassed = xTicksPassed * portTICK_PERIOD_MS;
 
-        if (msPassed > 30000) {
+        if (msPassed > 40000) {
             ESP_LOGE("Homing", "Homing took too long. Check power and restart");
             ossm->errorMessage = UserConfig::language.HomingTookTooLong;
             ossm->sm->process_event(Error{});
@@ -84,7 +84,6 @@ void OSSM::startHomingTask(void *pvParameters) {
                         ossm->currentSensorOffset;
 
         ESP_LOGV("Homing", "Current: %f", current);
-
         bool isCurrentOverLimit =
             current > Config::Driver::sensorlessCurrentLimit;
 
