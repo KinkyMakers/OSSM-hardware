@@ -76,7 +76,7 @@ class OSSM : public OSSMInterface {
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
             auto resetSettings = [](OSSM &o) {
                 OSSM::setting.speed = 0;
-                OSSM::setting.stroke = 0;
+                OSSM::setting.stroke = 10;
                 OSSM::setting.depth = 50;
                 OSSM::setting.sensation = 50;
                 o.playControl = PlayControls::STROKE;
