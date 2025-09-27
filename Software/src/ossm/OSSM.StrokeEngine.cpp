@@ -29,7 +29,8 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
 
     while (isInCorrectState(ossm)) {
         if (isChangeSignificant(lastSetting.speed, OSSM::setting.speed) || ossm->wasLastSpeedCommandFromBLE(true)) {
-            if (OSSM::setting.speed == 0) {
+            //Speed is float, so give a little wiggle room here to assume 0
+            if (OSSM::setting.speed < 0.1f) {
                 Stroker.stopMotion();
             } else if (Stroker.getState() == READY) {
                 Stroker.startPattern();
