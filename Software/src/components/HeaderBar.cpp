@@ -8,6 +8,7 @@
 #include "constants/LogTags.h"
 #include "constants/UserConfig.h"
 #include "services/communication/nimble.h"
+#include "services/led.h"
 
 // Task handle
 TaskHandle_t headerBarTaskHandle = nullptr;
@@ -176,6 +177,9 @@ void drawSpeedKnobIcon() {
         bool shouldDrawWifi = shouldDrawWifiIcon();
         bool shouldDrawBle = shouldDrawBleIcon();
         bool shouldDrawSpeedKnob = shouldDrawSpeedKnobIcon();
+
+        // Update LED for machine status (checks homing first, then BLE status)
+        updateLEDForMachineStatus();
 
         // Only redraw if something changed
         if (!shouldDrawWifi && !shouldDrawBle && !shouldDrawSpeedKnob) {

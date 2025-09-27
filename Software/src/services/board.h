@@ -7,6 +7,7 @@
 #include "constants/Pins.h"
 #include "services/encoder.h"
 #include "services/stepper.h"
+#include "services/led.h"
 
 extern bool USE_SPEED_KNOB_AS_LIMIT;
 void initBoard();

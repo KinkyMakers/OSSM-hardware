@@ -9,6 +9,7 @@
 #include "NimBLEService.h"
 #include "NimBLEUUID.h"
 #include "queue.h"
+#include "services/led.h"
 
 static const std::regex commandRegex(
     R"(go:(simplePenetration|strokeEngine|menu)|set:(speed|stroke|depth|sensation|pattern):\d+)");
@@ -29,6 +30,9 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
             return;
         }
         messageQueue.push(String(cmd.c_str()));
+        
+        // Trigger LED communication pulse for received command
+        pulseForCommunication();
     }
 
     /**
