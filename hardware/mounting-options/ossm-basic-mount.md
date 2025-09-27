@@ -1,2 +1,0 @@
-# OSSM - Basic Mount
-
