@@ -28,7 +28,7 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
     };
 
     while (isInCorrectState(ossm)) {
-        if (isChangeSignificant(lastSetting.speed, OSSM::setting.speed)) {
+        if (isChangeSignificant(lastSetting.speed, OSSM::setting.speed) || ossm->wasLastSpeedCommandFromBLE(true)) {
             if (OSSM::setting.speed == 0) {
                 Stroker.stopMotion();
             } else if (Stroker.getState() == READY) {
@@ -99,7 +99,12 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
             lastSetting.pattern = OSSM::setting.pattern;
         }
 
-        vTaskDelay(400);
+        if(ossm->hasActiveBLEConnection) {
+            // When connected to BLE, update more frequently for improved responsiveness
+            vTaskDelay(100);
+        } else {
+            vTaskDelay(400);
+        }
     }
 
     Stroker.stopMotion();

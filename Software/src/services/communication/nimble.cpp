@@ -40,6 +40,11 @@ class ServerCallbacks : public NimBLEServerCallbacks {
         ESP_LOGI(NIMBLE_TAG, "Connection count: %d",
                  pServer->getConnectedCount());
 
+        // Set BLE connection status to true
+        if (ossmInterface) {
+            ossmInterface->setBLEConnectionStatus(true);
+        }
+
         lostConnectionTime = 0;
     }
 
@@ -49,6 +54,11 @@ class ServerCallbacks : public NimBLEServerCallbacks {
                  connInfo.getAddress().toString().c_str(), reason);
         ESP_LOGI(NIMBLE_TAG, "Connection count: %d",
                  pServer->getConnectedCount());
+
+        // Set BLE connection status to false when no connections remain
+        if (ossmInterface && pServer->getConnectedCount() == 0) {
+            ossmInterface->setBLEConnectionStatus(false);
+        }
 
         // Capture current speed when connection is lost
         speedOnLostConnection = ossmInterface->getSpeed();

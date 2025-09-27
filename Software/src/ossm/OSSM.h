@@ -246,6 +246,9 @@ class OSSM : public OSSMInterface {
 
     PlayControls playControl = PlayControls::STROKE;
 
+    bool lastSpeedCommandWasFromBLE = false;
+    bool hasActiveBLEConnection = false;
+
     /**
      * ///////////////////////////////////////////
      * ////
@@ -354,7 +357,8 @@ class OSSM : public OSSMInterface {
 
     int getSpeed() { return this->setting.speed; }
     // Implement the interface methods
-    void process_event(const auto &event) { sm->process_event(event); }
+    template<typename EventType>
+    void process_event(const EventType &event) { sm->process_event(event); }
     void ble_click(String commandString) {
         // Visit current state to handle state-specific commands
 
@@ -383,6 +387,9 @@ class OSSM : public OSSMInterface {
                 sm->process_event(LongPress{});
                 break;
             case Commands::setSpeed:
+                // BLE devices can be trusted to send true value 
+                // and can bypass potentiomer smoothing logic
+                lastSpeedCommandWasFromBLE = true;
                 // Use speed knob config to determine how to handle BLE speed
                 // command
                 setting.speedBLE = command.value;
@@ -433,6 +440,29 @@ class OSSM : public OSSMInterface {
         currentState = json;
 
         return currentState;
+    }
+
+    // BLE command tracking methods
+    bool wasLastSpeedCommandFromBLE(bool andReset = false) {
+        if (andReset) {
+            bool temp = lastSpeedCommandWasFromBLE;
+            resetLastSpeedCommandWasFromBLE();
+            return temp;
+        }
+        return lastSpeedCommandWasFromBLE;
+    }
+
+    void resetLastSpeedCommandWasFromBLE() {
+        lastSpeedCommandWasFromBLE = false;
+    }
+
+    // BLE connection tracking methods
+    bool hasActiveBLE() const {
+        return hasActiveBLEConnection;
+    }
+
+    void setBLEConnectionStatus(bool isConnected) {
+        hasActiveBLEConnection = isConnected;
     }
 };
 

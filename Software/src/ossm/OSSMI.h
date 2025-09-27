@@ -19,6 +19,9 @@ class OSSMInterface {
     virtual String getCurrentState() = 0;
     virtual int getSpeed() = 0;
 
+    // BLE connection tracking
+    virtual void setBLEConnectionStatus(bool isConnected) = 0;
+
     // target position
     uint16_t targetPosition;
     int16_t targetVelocity;
