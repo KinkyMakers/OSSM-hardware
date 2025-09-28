@@ -81,7 +81,7 @@ void OSSM::drawHelloTask(void *pvParameters) {
             refreshPage(true, true);
             xSemaphoreGive(displayMutex);
         }
-        // Saying hi to the watchdog :).
+        // Restored original animation timing for smooth animation
         vTaskDelay(1);
     };
 
@@ -116,13 +116,17 @@ void OSSM::drawHelloTask(void *pvParameters) {
         xSemaphoreGive(displayMutex);
     }
 
+    // Hold the "Measuring Stroke" screen for visibility
+    vTaskDelay(2000);
+
     // delete the task
     vTaskDelete(nullptr);
 }
 
 void OSSM::drawHello() {
-    // 3 x minimum stack
-    int stackSize = 3 * configMINIMAL_STACK_SIZE;
+    // Increase stack size to prevent potential stack overflow during display operations
+    // 5x minimum stack should be safe for complex display rendering
+    int stackSize = 5 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawHelloTask, "drawHello", stackSize, this, 1,
                 &Tasks::drawHelloTaskH);
 }

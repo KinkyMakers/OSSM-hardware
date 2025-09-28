@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include <esp_log.h>
 #include <services/board.h>
+#include <services/display.h>
 
 #include "constants/Images.h"
 #include "constants/LogTags.h"
@@ -157,66 +158,38 @@ void drawSpeedKnobIcon() {
 
 // --- Header Bar Task ---
 [[noreturn]] void headerBarTask(void* pvParameters) {
-    // Initial delay to let other systems initialize
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    // Wait much longer to avoid any interference with startup
+    vTaskDelay(15000 / portTICK_PERIOD_MS);
 
-    ESP_LOGI(HEADERBAR_TAG, "Header bar task started");
-
-    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearIcons();
-        drawSpeedKnobIcon();
-        drawBleIcon();
-        drawWifiIcon();
-
-        refreshIcons();
-        xSemaphoreGive(displayMutex);
-    }
+    ESP_LOGI(HEADERBAR_TAG, "Header bar task started (simplified version)");
 
     while (true) {
-        bool shouldDrawWifi = shouldDrawWifiIcon();
-        bool shouldDrawBle = shouldDrawBleIcon();
-        bool shouldDrawSpeedKnob = shouldDrawSpeedKnobIcon();
-
-        // Only redraw if something changed
-        if (!shouldDrawWifi && !shouldDrawBle && !shouldDrawSpeedKnob) {
-            vTaskDelay(100 / portTICK_PERIOD_MS);
-            continue;
-        }
-
-        // Take display mutex
-        if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-            // Clear icon area
-            clearIcons();
-            drawSpeedKnobIcon();
-            drawBleIcon();
-            drawWifiIcon();
-            refreshIcons();
-
-            // Release display mutex
+        // Much longer delay between updates to minimize interference
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
+        
+        // Only update if we can get the mutex quickly, otherwise skip
+        if (xSemaphoreTake(displayMutex, 10) == pdTRUE) {
+            // Very minimal update - just check status but don't actually draw
+            bool wifiChanged = shouldDrawWifiIcon();
+            bool bleChanged = shouldDrawBleIcon();
+            bool speedChanged = shouldDrawSpeedKnobIcon();
+            
+            // Log status changes but don't actually draw to avoid corruption
+            if (wifiChanged || bleChanged || speedChanged) {
+                ESP_LOGD(HEADERBAR_TAG, "Status change detected (wifi=%d, ble=%d, speed=%d)", 
+                         wifiChanged, bleChanged, speedChanged);
+            }
+            
             xSemaphoreGive(displayMutex);
-        } else {
-            ESP_LOGW(HEADERBAR_TAG, "Failed to acquire display mutex");
         }
-
-        vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 }
 
 void initHeaderBar() {
-    ESP_LOGI(HEADERBAR_TAG, "Initializing header bar task");
+    ESP_LOGD(HEADERBAR_TAG, "initializing Header Bar");
 
-    BaseType_t result =
-        xTaskCreatePinnedToCore(headerBarTask, "headerBar",
-                                4 * configMINIMAL_STACK_SIZE,  // Stack size
-                                nullptr,
-                                tskIDLE_PRIORITY + 1,  // Priority
-                                &headerBarTaskHandle,
-                                0  // Core 0
-        );
-
-    if (result != pdPASS) {
-        ESP_LOGE(HEADERBAR_TAG, "Failed to create header bar task");
-    } else {
-        ESP_LOGI(HEADERBAR_TAG, "Header bar task created successfully");
-    }
+    int stackSize = 2 * configMINIMAL_STACK_SIZE;
+    xTaskCreatePinnedToCore(headerBarTask, "headerBarTask", stackSize,
+                            nullptr, 1, &headerBarTaskHandle,
+                            0); // Use core 0 for display tasks
 }

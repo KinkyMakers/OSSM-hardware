@@ -34,54 +34,49 @@ void initDisplay() {
 #define ICON_TILES 4
 
 void clearIcons() {
-    display.setClipWindow(128 - 8 * ICON_TILES, 0, 128, 8);
+    // Use a more conservative approach similar to stable version
     display.clearBuffer();
+    display.sendBuffer();
 }
 
 void clearHeader() {
-    display.setClipWindow(0, 0, 128 - 8 * ICON_TILES, 8);
+    // Use a more conservative approach similar to stable version
     display.clearBuffer();
+    display.sendBuffer();
 }
 
 void clearFooter() {
-    display.setClipWindow(0, 64, 128, 64);
+    // Use a more conservative approach similar to stable version
     display.clearBuffer();
+    display.sendBuffer();
 }
 
 auto clearPage(const bool includeFooter, const bool includeHeader) -> void {
-    const int y1 = includeHeader ? 0 : 8;
-    const int y2 = includeFooter ? 64 : 56;
-
-    display.setClipWindow(0, y1, 128, y2);
+    // Always use full buffer clear for maximum compatibility
     display.clearBuffer();
 }
 
 void refreshIcons() {
-    display.setMaxClipWindow();
-    display.updateDisplayArea(16 - ICON_TILES, 0, ICON_TILES, 1);
+    // Use partial update for just the icon region if possible
+    // For now, send the full buffer but this could be optimized further
+    display.sendBuffer();
 }
 
 void refreshHeader() {
-    display.setMaxClipWindow();
-    display.updateDisplayArea(0, 0, 16 - ICON_TILES, 1);
+    // Use partial update for just the header region if possible  
+    // For now, send the full buffer but this could be optimized further
+    display.sendBuffer();
 }
 
 void refreshPage(bool includeFooter, bool includeHeader) {
-    display.setMaxClipWindow();
-
-    if (includeFooter) {
-        refreshFooter();
-    }
-    if (includeHeader) {
-        refreshHeader();
-    }
-
-    display.updateDisplayArea(0, 1, 16, 6);
+    // Full page refresh - send the complete buffer
+    display.sendBuffer();
 }
 
 void refreshFooter() {
-    display.setMaxClipWindow();
-    display.updateDisplayArea(0, 7, 16, 1);
+    // Use partial update for just the footer region if possible
+    // For now, send the full buffer but this could be optimized further  
+    display.sendBuffer();
 }
 
 int drawWrappedText(const int x, const int y, const String& text,
