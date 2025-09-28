@@ -125,6 +125,11 @@ static bool commPulseActive = false;
 static unsigned long commPulseStartTime = 0;
 static uint8_t baseDimLevel = 30;  // Dim level when connected (out of 255)
 
+// Advertising timeout variables
+static bool advertisingDimmed = false;  // Flag for dimmed advertising after timeout
+static unsigned long advertisingStartTime = 0;  // When advertising started
+static const unsigned long ADVERTISING_TIMEOUT = 30000;  // 30 seconds in milliseconds
+
 void updateLEDForBLEStatus() {
     BleStatus currentStatus = getBleStatus();
     unsigned long currentTime = millis();
@@ -146,14 +151,18 @@ void updateLEDForBLEStatus() {
                 // Rainbow will be handled in the continuous loop
                 rainbowActive = true;
                 rainbowStartTime = currentTime;
+                advertisingStartTime = currentTime;  // Track when advertising started
+                advertisingDimmed = false;  // Reset dimmed flag
                 break;
             case BleStatus::CONNECTED:
                 // Rainbow will be handled in the continuous loop
                 rainbowActive = true;
                 rainbowStartTime = currentTime;
+                advertisingDimmed = false;  // Reset advertising flags
                 break;
             case BleStatus::DISCONNECTED:
                 showBLEDisconnected();
+                advertisingDimmed = false;  // Reset advertising flags
                 break;
             default:
                 break;
@@ -169,7 +178,18 @@ void updateLEDForBLEStatus() {
                     rainbowActive = false;
                 }
             } else {
-                showBLEAdvertising();
+                // Check if advertising timeout has been reached
+                unsigned long advertisingElapsed = currentTime - advertisingStartTime;
+                if (advertisingElapsed >= ADVERTISING_TIMEOUT && !advertisingDimmed) {
+                    advertisingDimmed = true;
+                    ESP_LOGI(TAG, "Advertising timeout reached, switching to dimmed pulsing");
+                }
+                
+                if (advertisingDimmed) {
+                    showBLEAdvertisingDimmed();
+                } else {
+                    showBLEAdvertising();
+                }
             }
             break;
             
@@ -242,6 +262,41 @@ void showBLEAdvertising() {
         // Create blue color with breathing intensity
         CRGB color = CRGB::Blue;
         color.nscale8(breathValue);
+        setLEDColor(color);
+    }
+}
+
+void showBLEAdvertisingDimmed() {
+    // Dimmed breathing blue effect after 30 second timeout
+    unsigned long currentTime = millis();
+    static unsigned long lastBreathUpdateDimmed = 0;
+    static uint8_t breathValueDimmed = baseDimLevel; // Start at base dim level
+    static bool increasingDimmed = true;
+    
+    if (currentTime - lastBreathUpdateDimmed >= 8) { // Update every 8ms for slower, more subtle breathing
+        lastBreathUpdateDimmed = currentTime;
+        
+        // Pulse range: baseDimLevel (30) to baseDimLevel + 40 (70) - much smaller range
+        uint8_t minLevel = baseDimLevel;
+        uint8_t maxLevel = baseDimLevel + 40; // Only +40 brightness instead of full range
+        
+        if (increasingDimmed) {
+            breathValueDimmed += 3; // Slower step for gentler pulsing
+            if (breathValueDimmed >= maxLevel) {
+                increasingDimmed = false;
+                breathValueDimmed = maxLevel;
+            }
+        } else {
+            breathValueDimmed -= 3; // Slower step for gentler pulsing
+            if (breathValueDimmed <= minLevel) {
+                increasingDimmed = true;
+                breathValueDimmed = minLevel;
+            }
+        }
+        
+        // Create blue color with dimmed breathing intensity
+        CRGB color = CRGB::Blue;
+        color.nscale8(breathValueDimmed);
         setLEDColor(color);
     }
 }

@@ -54,6 +54,7 @@ void setLEDStatusConnecting();
 void updateLEDForBLEStatus();
 void showBLERainbow(int duration_ms = 1000);
 void showBLEAdvertising();  // Breathing blue
+void showBLEAdvertisingDimmed();  // Dimmed breathing blue after timeout
 void showBLEConnected();    // Dimmed blue
 void showBLEDisconnected(); // Off
 
