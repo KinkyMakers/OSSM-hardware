@@ -81,7 +81,7 @@ void OSSM::drawHelloTask(void *pvParameters) {
             refreshPage(true, true);
             xSemaphoreGive(displayMutex);
         }
-        // Restored original animation timing for smooth animation
+        // Saying hi to the watchdog :).
         vTaskDelay(1);
     };
 
@@ -90,7 +90,7 @@ void OSSM::drawHelloTask(void *pvParameters) {
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
         clearPage(true, true);
-        drawStr::title("Research and Desire");
+        drawStr::title("Research & Desire         ");   // Padding to offset from BLE icons
         ossm->display.drawXBMP(35, 14, 57, 50, Images::RDLogo);
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);
@@ -100,7 +100,7 @@ void OSSM::drawHelloTask(void *pvParameters) {
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
         clearPage(true, true);
-        drawStr::title("Kinky Makers");
+        drawStr::title("Kinky Makers       ");   // Padding to offset from BLE icons
         ossm->display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);
@@ -110,23 +110,20 @@ void OSSM::drawHelloTask(void *pvParameters) {
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
         clearPage(true, true);
-        drawStr::title(UserConfig::language.MeasuringStroke);
+        std::string measuringStrokeTitle = std::string(UserConfig::language.MeasuringStroke) + "         ";   // Padding to offset from BLE icons
+        drawStr::title(measuringStrokeTitle.c_str());
         ossm->display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }
-
-    // Hold the "Measuring Stroke" screen for visibility
-    vTaskDelay(2000);
 
     // delete the task
     vTaskDelete(nullptr);
 }
 
 void OSSM::drawHello() {
-    // Increase stack size to prevent potential stack overflow during display operations
-    // 5x minimum stack should be safe for complex display rendering
-    int stackSize = 5 * configMINIMAL_STACK_SIZE;
+    // 3 x minimum stack
+    int stackSize = 3 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawHelloTask, "drawHello", stackSize, this, 1,
                 &Tasks::drawHelloTaskH);
 }

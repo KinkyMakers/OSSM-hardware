@@ -28,7 +28,7 @@ static const char fr_Speed[] PROGMEM = "Vitesse";
 static const char fr_SpeedWarning[] PROGMEM =
     "Réduisez la vitesse pour commencer à jouer.";
 static const char fr_StateNotImplemented[] PROGMEM = "État: %u non implémenté.";
-static const char fr_Streaming[] PROGMEM = "Streaming";
+static const char fr_Streaming[] PROGMEM = "Streaming (beta)";
 static const char fr_Stroke[] PROGMEM = "Coup";
 static const char fr_StrokeEngine[] PROGMEM = "Stroke Engine";
 static const char fr_StrokeTooShort[] PROGMEM =

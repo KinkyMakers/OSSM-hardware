@@ -34,49 +34,54 @@ void initDisplay() {
 #define ICON_TILES 4
 
 void clearIcons() {
-    // Use a more conservative approach similar to stable version
+    display.setClipWindow(128 - 8 * ICON_TILES, 0, 128, 8);
     display.clearBuffer();
-    display.sendBuffer();
 }
 
 void clearHeader() {
-    // Use a more conservative approach similar to stable version
+    display.setClipWindow(0, 0, 128 - 8 * ICON_TILES, 8);
     display.clearBuffer();
-    display.sendBuffer();
 }
 
 void clearFooter() {
-    // Use a more conservative approach similar to stable version
+    display.setClipWindow(0, 64, 128, 64);
     display.clearBuffer();
-    display.sendBuffer();
 }
 
 auto clearPage(const bool includeFooter, const bool includeHeader) -> void {
-    // Always use full buffer clear for maximum compatibility
+    const int y1 = includeHeader ? 0 : 8;
+    const int y2 = includeFooter ? 64 : 56;
+
+    display.setClipWindow(0, y1, 128, y2);
     display.clearBuffer();
 }
 
 void refreshIcons() {
-    // Use partial update for just the icon region if possible
-    // For now, send the full buffer but this could be optimized further
-    display.sendBuffer();
+    display.setMaxClipWindow();
+    display.updateDisplayArea(16 - ICON_TILES, 0, ICON_TILES, 1);
 }
 
 void refreshHeader() {
-    // Use partial update for just the header region if possible  
-    // For now, send the full buffer but this could be optimized further
-    display.sendBuffer();
+    display.setMaxClipWindow();
+    display.updateDisplayArea(0, 0, 16 - ICON_TILES, 1);
 }
 
 void refreshPage(bool includeFooter, bool includeHeader) {
-    // Full page refresh - send the complete buffer
-    display.sendBuffer();
+    display.setMaxClipWindow();
+
+    if (includeFooter) {
+        refreshFooter();
+    }
+    if (includeHeader) {
+        refreshHeader();
+    }
+
+    display.updateDisplayArea(0, 1, 16, 6);
 }
 
 void refreshFooter() {
-    // Use partial update for just the footer region if possible
-    // For now, send the full buffer but this could be optimized further  
-    display.sendBuffer();
+    display.setMaxClipWindow();
+    display.updateDisplayArea(0, 7, 16, 1);
 }
 
 int drawWrappedText(const int x, const int y, const String& text,
