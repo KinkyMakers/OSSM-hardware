@@ -3,6 +3,7 @@
 #include "constants/Config.h"
 #include "constants/Images.h"
 #include "extensions/u8g2Extensions.h"
+#include "services/display.h"
 #include "utils/analog.h"
 
 void OSSM::drawMenuTask(void *pvParameters) {
@@ -33,8 +34,11 @@ void OSSM::drawMenuTask(void *pvParameters) {
 
     while (isInCorrectState(ossm)) {
         wl_status_t newWifiState = WiFiClass::status();
-        if (!isFirstDraw && !ossm->encoder.encoderChanged() &&
-            wifiState == newWifiState) {
+        
+        // Force redraw on first draw or when conditions change
+        bool shouldRedraw = isFirstDraw || ossm->encoder.encoderChanged() || (wifiState != newWifiState);
+        
+        if (!shouldRedraw) {
             vTaskDelay(50);
             continue;
         }
@@ -45,7 +49,7 @@ void OSSM::drawMenuTask(void *pvParameters) {
         currentEncoderValue = ossm->encoder.readEncoder();
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-            clearPage(true);
+            clearPage(true, false); // Clear page content but preserve header icons
 
             // Drawing Variables.
             int leftPadding = 6;  // Padding on the left side of the screen
@@ -108,12 +112,20 @@ void OSSM::drawMenuTask(void *pvParameters) {
             ossm->display.drawLine(120, 4 + fontSize / 2 + itemHeight, 120,
                                    1 + fontSize / 2 + 2 * itemHeight);
 
-            refreshPage(true);
+            refreshPage(true, true); // Include both footer and header in refresh
             xSemaphoreGive(displayMutex);
         }
 
         vTaskDelay(1);
     };
+
+    // Clear header icons when exiting menu
+    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+        clearIcons(); // Clear the header icons
+        ossm->display.setMaxClipWindow(); // Reset clipping 
+        ossm->display.sendBuffer(); // Send the cleared buffer to display
+        xSemaphoreGive(displayMutex);
+    }
 
     vTaskDelete(nullptr);
 }

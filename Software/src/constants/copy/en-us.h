@@ -27,7 +27,7 @@ static const char enUs_SpeedWarning[] PROGMEM =
     "Decrease the speed to begin playing.";
 static const char enUs_StateNotImplemented[] PROGMEM =
     "State: %u not implemented.";
-static const char enUs_Streaming[] PROGMEM = "Streaming";
+static const char enUs_Streaming[] PROGMEM = "Streaming (beta)";
 static const char enUs_Stroke[] PROGMEM = "Stroke";
 static const char enUs_StrokeEngine[] PROGMEM = "Stroke Engine";
 static const char enUs_StrokeTooShort[] PROGMEM =

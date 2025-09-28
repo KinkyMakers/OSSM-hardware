@@ -88,7 +88,7 @@ void OSSM::startHomingTask(void *pvParameters) {
             current > Config::Driver::sensorlessCurrentLimit;
 
         if (!isCurrentOverLimit) {
-            vTaskDelay(1);
+            vTaskDelay(10); // Increased from 1ms to 10ms to reduce CPU load
             continue;
         }
 
