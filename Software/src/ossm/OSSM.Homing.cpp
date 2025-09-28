@@ -97,18 +97,7 @@ void OSSM::startHomingTask(void *pvParameters) {
 
         // step away from the hard stop, with your hands in the air!
         int32_t currentPosition = ossm->stepper->getCurrentPosition();
-        ossm->stepper->moveTo(currentPosition - sign * 10_mm, false); // Changed to non-blocking
-
-        // Wait for stepper to finish moving away from hard stop
-        int retries = 100;
-        while (ossm->stepper->isRunning() && retries > 0) {
-            vTaskDelay(10); // Feed watchdog while waiting
-            retries--;
-        }
-
-        if (retries == 0) {
-            ESP_LOGW("Homing", "Stepper move away from hard stop timed out");
-        }
+        ossm->stepper->moveTo(currentPosition - sign * 10_mm, true);
 
         // measure and save the current position
         ossm->measuredStrokeSteps =
