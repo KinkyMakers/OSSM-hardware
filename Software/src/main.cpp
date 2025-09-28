@@ -9,6 +9,7 @@
 #include "services/display.h"
 #include "services/encoder.h"
 #include "services/stepper.h"
+#include "services/led.h"
 #include "services/wm.h"
 
 /*
@@ -46,6 +47,10 @@ void setup() {
 
     ossm = new OSSM(display, encoder, stepper);
     ossmInterface = ossm;
+
+    // Initialize LED for BLE and machine status indication
+    ESP_LOGI("MAIN", "LED initialized for BLE and machine status indication");
+    updateLEDForMachineStatus();  // Set initial LED state
 
     // // link functions to be called on events.
     button.attachClick([]() { ossm->sm->process_event(ButtonPress{}); });

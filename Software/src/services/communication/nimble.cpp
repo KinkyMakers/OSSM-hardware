@@ -12,6 +12,7 @@
 #include "command/commands.hpp"
 #include "config.hpp"
 #include "patterns.hpp"
+#include "services/led.h"
 #include "state.hpp"
 
 // Define the global variables
@@ -181,6 +182,10 @@ void nimbleLoop(void* pvParameters) {
             messageQueue.pop();
             ossmInterface->ble_click(cmd);
             pChr->setValue("ok:" + cmd);
+            
+            // Trigger LED communication pulse for command processing
+            pulseForCommunication();
+            
             vTaskDelay(1);
         }
 
@@ -199,6 +204,10 @@ void nimbleLoop(void* pvParameters) {
         }
         pChr->setValue(currentState);
         pChr->notify();
+        
+        // Trigger LED communication pulse for state update
+        pulseForCommunication();
+        
         lastState = currentState;
         vTaskDelay(1);
     }
