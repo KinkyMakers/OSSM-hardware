@@ -12,9 +12,9 @@ OSSM *ossm = nullptr;
 
 // Static member definition
 SettingPercents OSSM::setting = {.speed = 0,
-                                 .stroke = 10,
+                                 .stroke = 50,
                                  .sensation = 50,
-                                 .depth = 50,
+                                 .depth = 10,
                                  .pattern = StrokePatterns::SimpleStroke};
 
 // Now we can define the OSSM constructor since OSSMStateMachine::operator() is
