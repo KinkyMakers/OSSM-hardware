@@ -48,3 +48,6 @@ This thread is fine-tuned in a way that regardless of printer tolerance quality 
 
     1x M5x20 Socket Cap Screw
     1x M5 Hex Nut
+
+Print+Part Kits:  
+https://www.etsy.com/listing/4378204900/end-effector-tensioner-threaded-belt
