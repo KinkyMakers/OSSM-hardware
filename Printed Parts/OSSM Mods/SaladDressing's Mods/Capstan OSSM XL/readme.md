@@ -3,7 +3,7 @@
 
 
 # Capstan-OSSM-XL
-
+![IMG20250717163516](https://github.com/user-attachments/assets/c26ea6da-c220-4e42-8925-d1a913f3a561)
 
 Revamp of the OSSM drive mechanism to use a capstan based version, enabling higher load use with a more powerful motor, namely the 60AIM40F.
 
