@@ -106,7 +106,7 @@ void OSSM::startHomingTask(void *pvParameters) {
 
         // step away from the hard stop, with your hands in the air!
         int32_t currentPosition = ossm->stepper->getCurrentPosition();
-        ossm->stepper->moveTo(currentPosition - sign * 10_mm, true);
+        ossm->stepper->moveTo(currentPosition - sign * Config::Driver::homingOffsetMn, true);
 
         // measure and save the current position
         ossm->measuredStrokeSteps =
