@@ -17,6 +17,7 @@
 * [Software](<Software/README.md>)
   * [OSSM Project Documentation](<Software/docs/README.md>)
     * [PlatformIO](<Software/docs/PlatformIO.md>)
+    * [LED Status](<Software/docs/LED_Status.md>)
   * [Include Directory](<Software/include/README.md>)
   * [Libraries Directory](<Software/lib/README.md>)
     * [StrokeEngine](<Software/lib/StrokeEngine/README.md>)
