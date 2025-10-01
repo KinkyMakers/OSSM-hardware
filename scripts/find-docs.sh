@@ -3,6 +3,7 @@ set -euo pipefail
 
 # This script finds markdown files not referenced in SUMMARY.md and inserts them
 # into the appropriate section based on their directory structure.
+# DUPLICATE POLICY: If a file path exists ANYWHERE in SUMMARY.md (case-insensitive), skip it.
 # - Only scans non-dot directories
 # - Preserves existing SUMMARY.md, writing changes in-place
 # - Uses two spaces per depth level for bullets
@@ -24,7 +25,9 @@ while IFS= read -r line; do
     path="${BASH_REMATCH[1]}"
     # Normalize possible leading ./
     path="${path#./}"
-    LISTED["$path"]=1
+    # Case-insensitive tracking of already listed paths
+    lower_key="$(printf '%s' "$path" | tr '[:upper:]' '[:lower:]')"
+    LISTED["$lower_key"]=1
   fi
 done < "$SUMMARY_FILE"
 
@@ -119,6 +122,8 @@ find_insertion_line() {
 # - Skip SUMMARY.md itself
 # - Use -print0 to safely handle spaces
 missing_paths=()
+# Also track within-run uniqueness (case-insensitive)
+declare -A SEEN_MISSING
 while IFS= read -r -d '' f; do
   rel="${f#$ROOT_DIR/}"
   # Normalize leading ./ if any
@@ -131,7 +136,14 @@ while IFS= read -r -d '' f; do
   if [[ "$rel" == *"/."* ]]; then
     continue
   fi
-  if [[ -z "${LISTED[$rel]:-}" ]]; then
+  # Global duplicate guard: if the literal path appears ANYWHERE in SUMMARY.md, skip
+  if grep -qiF -- "$rel" "$SUMMARY_FILE"; then
+    continue
+  fi
+  # Case-insensitive de-dup across existing and newly collected
+  rel_key="$(printf '%s' "$rel" | tr '[:upper:]' '[:lower:]')"
+  if [[ -z "${LISTED[$rel_key]:-}" && -z "${SEEN_MISSING[$rel_key]:-}" ]]; then
+    SEEN_MISSING["$rel_key"]=1
     missing_paths+=("$rel")
   fi
 done < <(find "$ROOT_DIR" \
