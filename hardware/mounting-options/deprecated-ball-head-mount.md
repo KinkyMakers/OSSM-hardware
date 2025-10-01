@@ -1,2 +1,0 @@
-# Deprecated - Ball Head Mount
-
