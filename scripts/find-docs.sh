@@ -184,7 +184,8 @@ for i in "${idxs[@]}"; do
   ln_no="${inserts_lines[$i]}"
   txt="${inserts_texts[$i]}"
   # sed: append text after ln_no
-  printf '%s\n' "$txt" | sed -i '' -e "$((ln_no))r /dev/stdin" "$TMP_FILE"
+  printf '%s\n' "$txt" | sed -i.bak -e "$((ln_no))r /dev/stdin" "$TMP_FILE"
+  rm -f "$TMP_FILE.bak"
 done
 
 # Move temp over original
