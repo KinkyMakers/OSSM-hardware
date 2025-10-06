@@ -8,12 +8,13 @@ void initBoard() {
     pinMode(Pins::Remote::encoderSwitch,
             INPUT_PULLDOWN);  // Rotary Encoder Pushbutton
 
+    pinMode(Pins::GPIO::pin1, OUTPUT);
+    pinMode(Pins::GPIO::pin2, OUTPUT);
+    pinMode(Pins::GPIO::pin3, OUTPUT);
+    pinMode(Pins::GPIO::pin4, OUTPUT);
+
     pinMode(Pins::Driver::motorEnablePin, OUTPUT);
     pinMode(Pins::Wifi::resetPin, INPUT_PULLDOWN);
-    // TODO: Remove wifi toggle pin
-    //    pinMode(Pins::Wifi::controlTogglePin, LOCAL_CONTROLLER); // choose
-    //    between WIFI_CONTROLLER and LOCAL_CONTROLLER
-    // Set analog pots (control knobs)
     pinMode(Pins::Remote::speedPotPin, INPUT);
     adcAttachPin(Pins::Remote::speedPotPin);
 
