@@ -23,7 +23,6 @@
 #define CHARACTERISTIC_UUID "522b443a-4f53-534d-1000-420badbabe69"
 #define CHARACTERISTIC_SPEED_KNOB_CONFIG_UUID \
     "522b443a-4f53-534d-1010-420badbabe69"
-#define CHARACTERISTIC_GPIO_UUID "522b443a-4f53-534d-1020-420badbabe69"
 
 // **********************************************************
 // State Characteristics
@@ -43,6 +42,13 @@
 #define CHARACTERISTIC_PATTERNS_UUID "522b443a-4f53-534d-3000-420badbabe69"
 #define CHARACTERISTIC_GET_PATTERN_DATA_UUID \
     "522b443a-4f53-534d-3010-420badbabe69"
+
+// ************************************************
+// GPIO Characteristics
+// - Range: 4000-4FFF
+// - Description: Read and request information about patterns on this device.
+// ************************************************
+#define CHARACTERISTIC_GPIO_UUID "522b443a-4f53-534d-4000-420badbabe69"
 
 // ************************************************
 // ****************** ETC *************************
