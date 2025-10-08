@@ -44,6 +44,13 @@
     "522b443a-4f53-534d-3010-420badbabe69"
 
 // ************************************************
+// GPIO Characteristics
+// - Range: 4000-4FFF
+// - Description: Read and request information about patterns on this device.
+// ************************************************
+#define CHARACTERISTIC_GPIO_UUID "522b443a-4f53-534d-4000-420badbabe69"
+
+// ************************************************
 // ****************** ETC *************************
 // ************************************************
 #define MANUFACTURER_NAME_UUID "2A29"    // Standard UUID for manufacturer name

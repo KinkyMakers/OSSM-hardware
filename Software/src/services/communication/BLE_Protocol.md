@@ -223,7 +223,7 @@ The OSSM uses a structured UUID namespace for easy expansion:
 | 0x1   | 0x1000–0x1FFF | Commands and Configuration          |
 | 0x2   | 0x2000–0x2FFF | State Information                   |
 | 0x3   | 0x3000–0x3FFF | Pattern Information                 |
-| 0x4   | 0x4000–0x4FFF | Future                              |
+| 0x4   | 0x4000–0x4FFF | GPIO Pin Setting                    |
 | 0x5   | 0x5000–0x5FFF | Future                              |
 | 0x6   | 0x6000–0x6FFF | Future                              |
 | 0x7   | 0x7000–0x7FFF | Future                              |
