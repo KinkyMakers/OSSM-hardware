@@ -79,12 +79,12 @@ class OSSM : public OSSMInterface {
                 OSSM::setting.stroke = 50;
                 OSSM::setting.depth = 10;
                 OSSM::setting.sensation = 50;
-                o.playControl = PlayControls::STROKE;
+                o.playControl = PlayControls::DEPTH;
 
                 // Prepare the encoder
                 o.encoder.setBoundaries(0, 100, false);
                 o.encoder.setAcceleration(10);
-                o.encoder.setEncoderValue(0);
+                o.encoder.setEncoderValue(OSSM::setting.depth);
 
                 // record session start time rounded to the nearest second
                 o.sessionStartTime = millis();
