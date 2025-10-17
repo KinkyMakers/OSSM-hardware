@@ -104,7 +104,7 @@ Attempting to use a stepper or other motor is not recommended; while it may be t
  - [Remote](Printed%20Parts/Remote/)
    - Body
    - Knobs
- - [Toy Mounting](Printed%20Parts/Toy%20Mounting/)
+ - [Toy Mounting](Printed%20Parts/Toy%20Mounting)
    - Flange Base Plate with Clamping Ring (Tie-Down or Suction)
    - Double Double (Vac-U-Lock)
  - [Mounting](Printed%20Parts/Mounting/)
