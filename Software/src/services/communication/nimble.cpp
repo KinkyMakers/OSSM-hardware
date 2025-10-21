@@ -87,13 +87,21 @@ class FTSCallbacks : public NimBLECharacteristicCallbacks {
                  NimBLEConnInfo& connInfo) override {
         std::string value = pCharacteristic->getValue();
 
-        // Print raw bytes for debugging
-        std::string hexStr;
-        for (unsigned char c : value) {
-            char hex[4];
-            snprintf(hex, sizeof(hex), "%02X", c);
-            hexStr += hex;
-            hexStr += " ";
+        // Expected format: [position, timeHigh, timeLow]
+        // position: uint8 (0-180)
+        // time: uint16 big-endian (MSB first)
+        if (value.length() >= 3) {
+            uint8_t position = static_cast<uint8_t>(value[0]);
+            uint16_t time = (static_cast<uint8_t>(value[1]) << 8) |
+                            static_cast<uint8_t>(value[2]);
+
+            ESP_LOGD("NIMBLE", "FTS Command - Position: %d, Time: %d ms",
+                     position, time);
+
+            positionTimeQueue.push({position, time});
+        } else {
+            ESP_LOGW("NIMBLE", "FTS write - Invalid data length: %d bytes",
+                     value.length());
         }
     }
 
