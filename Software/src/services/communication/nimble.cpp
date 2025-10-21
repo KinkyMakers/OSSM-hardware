@@ -81,6 +81,57 @@ class ServerCallbacks : public NimBLEServerCallbacks {
     }
 } serverCallbacks;
 
+#ifdef PRETEND_TO_BE_FLESHY_THRUST_SYNC
+class FTSCallbacks : public NimBLECharacteristicCallbacks {
+    void onWrite(NimBLECharacteristic* pCharacteristic,
+                 NimBLEConnInfo& connInfo) override {
+        std::string value = pCharacteristic->getValue();
+
+        // Print raw bytes for debugging
+        std::string hexStr;
+        for (unsigned char c : value) {
+            char hex[4];
+            snprintf(hex, sizeof(hex), "%02X", c);
+            hexStr += hex;
+            hexStr += " ";
+        }
+    }
+
+    void onRead(NimBLECharacteristic* pCharacteristic,
+                NimBLEConnInfo& connInfo) override {
+        Serial.println("FTS read callback");
+        std::string value = pCharacteristic->getValue();
+        String ftsValue = String(value.c_str());
+        pCharacteristic->setValue(ftsValue);
+        // Print everything that comes to this
+        Serial.print("FTS read: ");
+        Serial.println(ftsValue);
+        ESP_LOGD(NIMBLE_TAG, "FTS read: %s", ftsValue.c_str());
+    }
+
+    /** Peer subscribed to notifications/indications */
+    void onSubscribe(NimBLECharacteristic* pCharacteristic,
+                     NimBLEConnInfo& connInfo, uint16_t subValue) override {
+        std::string str = "Client ID: ";
+        str += connInfo.getConnHandle();
+        str += " Address: ";
+        str += connInfo.getAddress().toString();
+        if (subValue == 0) {
+            str += " Unsubscribed to ";
+        } else if (subValue == 1) {
+            str += " Subscribed to notifications for ";
+        } else if (subValue == 2) {
+            str += " Subscribed to indications for ";
+        } else if (subValue == 3) {
+            str += " Subscribed to notifications and indications for ";
+        }
+        str += std::string(pCharacteristic->getUUID());
+        ESP_LOGV("NIMBLE", "%s", str.c_str());
+    }
+
+} ftsCallbacks;
+#endif
+
 void nimbleLoop(void* pvParameters) {
     NimBLEServer* pServer = (NimBLEServer*)pvParameters;
     /** Loop here and send notifications to connected peers */
@@ -182,10 +233,10 @@ void nimbleLoop(void* pvParameters) {
             messageQueue.pop();
             ossmInterface->ble_click(cmd);
             pChr->setValue("ok:" + cmd);
-            
+
             // Trigger LED communication pulse for command processing
             pulseForCommunication();
-            
+
             vTaskDelay(1);
         }
 
@@ -204,10 +255,10 @@ void nimbleLoop(void* pvParameters) {
         }
         pChr->setValue(currentState);
         pChr->notify();
-        
+
         // Trigger LED communication pulse for state update
         pulseForCommunication();
-        
+
         lastState = currentState;
         vTaskDelay(1);
     }
@@ -261,16 +312,32 @@ void initNimble() {
     // Start the device info service
     pDeviceInfoService->start();
 
+#ifdef PRETEND_TO_BE_FLESHY_THRUST_SYNC
+    // if this is true, then we'll start a service for the FTS
+    NimBLEService* pFTS = pServer->createService(
+        NimBLEUUID("0000ffe0-0000-1000-8000-00805f9b34fb"));
+    NimBLECharacteristic* pFTSCharacteristic = pFTS->createCharacteristic(
+        NimBLEUUID("0000ffe1-0000-1000-8000-00805f9b34fb"),
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE |
+            NIMBLE_PROPERTY::NOTIFY | NIMBLE_PROPERTY::INDICATE |
+            NIMBLE_PROPERTY::WRITE_NR);
+    pFTSCharacteristic->setCallbacks(&ftsCallbacks);
+    pFTS->start();
+#endif
+
     // Update advertising to include new services
     NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
     pAdvertising->setName("OSSM");
     pAdvertising->addServiceUUID(pService->getUUID());
     pAdvertising->addServiceUUID(pDeviceInfoService->getUUID());
+#ifdef PRETEND_TO_BE_FLESHY_THRUST_SYNC
+    pAdvertising->addServiceUUID(pFTS->getUUID());
+#endif
     pAdvertising->enableScanResponse(true);
 
-    // Configure advertising parameters for better reliability
-    pAdvertising->setMinInterval(0x20);  // 20ms minimum interval
-    pAdvertising->setMaxInterval(0x40);  // 40ms maximum interval
+    // // Configure advertising parameters for better reliability
+    // pAdvertising->setMinInterval(0x20);  // 20ms minimum interval
+    // pAdvertising->setMaxInterval(0x40);  // 40ms maximum interval
 
     pAdvertising->start();
 
