@@ -98,7 +98,8 @@ class FTSCallbacks : public NimBLECharacteristicCallbacks {
             ESP_LOGD("NIMBLE", "FTS Command - Position: %d, Time: %d ms",
                      position, time);
 
-            positionTimeQueue.push({position, time});
+            lastPositionTime = targetPositionTime;
+            targetPositionTime = {position, time};
         } else {
             ESP_LOGW("NIMBLE", "FTS write - Invalid data length: %d bytes",
                      value.length());

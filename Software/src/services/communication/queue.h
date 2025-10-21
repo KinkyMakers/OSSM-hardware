@@ -13,6 +13,7 @@ struct PositionTime {
 };
 
 extern std::queue<String> messageQueue;
+extern PositionTime lastPositionTime;
+extern PositionTime targetPositionTime;
 
-extern std::queue<PositionTime> positionTimeQueue;
 #endif  // OSSM_COMMUNICATION_QUEUE_H
