@@ -16,4 +16,6 @@ extern std::queue<String> messageQueue;
 extern PositionTime lastPositionTime;
 extern PositionTime targetPositionTime;
 
+bool hasTargetChanged();
+
 #endif  // OSSM_COMMUNICATION_QUEUE_H

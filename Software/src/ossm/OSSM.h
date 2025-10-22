@@ -72,6 +72,7 @@ class OSSM : public OSSMInterface {
                 o.startHoming();
             };
             auto drawPlayControls = [](OSSM &o) { o.drawPlayControls(); };
+            auto startStreaming = [](OSSM &o) { o.startStreaming(); };
             auto drawPatternControls = [](OSSM &o) { o.drawPatternControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
             auto resetSettings = [](OSSM &o) {
@@ -203,6 +204,13 @@ class OSSM : public OSSMInterface {
                 "strokeEngine.pattern"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
                 "strokeEngine.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
+                "streaming"_s [isNotHomed] = "homing"_s,
+                "streaming"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStreaming) = "streaming.idle"_s,
+                "streaming"_s / drawPreflight = "streaming.preflight"_s,
+                "streaming.preflight"_s + done / (resetSettings, drawPlayControls, startStreaming) = "streaming.idle"_s,
+                "streaming.preflight"_s + longPress = "menu"_s,
+                "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+
                 "update"_s [isOnline] / drawUpdate = "update.checking"_s,
                 "update"_s = "wifi"_s,
                 "update.checking"_s [isUpdateAvailable] / (drawUpdating, updateOSSM) = "update.updating"_s,
@@ -286,6 +294,8 @@ class OSSM : public OSSMInterface {
      */
     static void startHomingTask(void *pvParameters);
 
+    void startStreaming();
+
     void startStrokeEngine();
 
     static void drawHelloTask(void *pvParameters);
@@ -357,8 +367,10 @@ class OSSM : public OSSMInterface {
 
     int getSpeed() { return this->setting.speed; }
     // Implement the interface methods
-    template<typename EventType>
-    void process_event(const EventType &event) { sm->process_event(event); }
+    template <typename EventType>
+    void process_event(const EventType &event) {
+        sm->process_event(event);
+    }
     void ble_click(String commandString) {
         // Visit current state to handle state-specific commands
 
@@ -387,7 +399,7 @@ class OSSM : public OSSMInterface {
                 sm->process_event(LongPress{});
                 break;
             case Commands::setSpeed:
-                // BLE devices can be trusted to send true value 
+                // BLE devices can be trusted to send true value
                 // and can bypass potentiomer smoothing logic
                 lastSpeedCommandWasFromBLE = true;
                 // Use speed knob config to determine how to handle BLE speed
@@ -457,9 +469,7 @@ class OSSM : public OSSMInterface {
     }
 
     // BLE connection tracking methods
-    bool hasActiveBLE() const {
-        return hasActiveBLEConnection;
-    }
+    bool hasActiveBLE() const { return hasActiveBLEConnection; }
 
     void setBLEConnectionStatus(bool isConnected) {
         hasActiveBLEConnection = isConnected;

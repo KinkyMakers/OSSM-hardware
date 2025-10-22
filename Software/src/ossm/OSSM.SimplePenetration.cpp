@@ -4,6 +4,7 @@
 
 #include "constants/Config.h"
 #include "services/communication/nimble.h"
+#include "services/communication/queue.h"
 
 void OSSM::startSimplePenetrationTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
@@ -105,4 +106,101 @@ void OSSM::startSimplePenetration() {
         startSimplePenetrationTask, "startSimplePenetrationTask", stackSize,
         this, configMAX_PRIORITIES - 1, &Tasks::runSimplePenetrationTaskH,
         Tasks::operationTaskCore);
+}
+
+void startStreamingTask(void *pvParameters) {
+    OSSM *ossm = (OSSM *)pvParameters;
+
+    auto isInCorrectState = [](OSSM *ossm) {
+        return ossm->sm->is("streaming"_s) ||
+               ossm->sm->is("streaming.preflight"_s) ||
+               ossm->sm->is("streaming.idle"_s);
+    };
+    // Reset to home position
+    ossm->stepper->moveTo(0, true);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
+    // Motion state
+    float currentPosition = 0;
+    float currentVelocity = 0;
+
+    float targetPosition = 0.0f;
+    float targetVelocity = 0.0f;
+
+    // set stepper to max speed and max acceleration
+    ossm->stepper->setSpeedInHz((1_mm) * Config::Driver::maxSpeedMmPerSecond);
+    ossm->stepper->setAcceleration((1_mm) * Config::Driver::maxAcceleration);
+
+    // Speed multipliers for different speed levels
+    const float speedMultipliers[] = {10.0, 11.0, 12.0, 13.0, 14.0, 15.0};
+    int speedMultiplierIndex = 0;
+
+    float RMS_position = 0;
+    int rms_samples = 0;
+
+    int lastTime = 0;
+    long loopStart = 0;
+
+    while (isInCorrectState(ossm)) {
+        if (!hasTargetChanged()) {
+            vTaskDelay(1);
+            continue;
+        }
+
+        currentPosition =
+            static_cast<float>(ossm->stepper->getCurrentPosition());
+        currentVelocity =
+            static_cast<float>(ossm->stepper->getCurrentSpeedInMilliHz());
+
+        // Calculate target position
+        targetPosition =
+            -(constrain(static_cast<float>(180 - targetPositionTime.position),
+                        0.0f, 180.0f) /
+              180.0f) *
+            ossm->measuredStrokeSteps;
+
+        // Kinematic calculation: Always use max acceleration, compute required
+        // velocity Convert units: velocity from milliHz to Hz, time from ms to
+        // seconds
+        float v0 = currentVelocity / 1000.0f;  // Current velocity in steps/s
+        float deltaX =
+            targetPosition - currentPosition;           // Displacement in steps
+        float t = targetPositionTime.inTime / 1000.0f;  // Time in seconds
+
+        float maxSpeed = Config::Driver::maxSpeedMmPerSecond * (1_mm);
+        float maxAccel = Config::Driver::maxAcceleration * (1_mm);
+
+        // Always use maximum acceleration to guarantee we can meet timing
+        ossm->stepper->setAcceleration(maxAccel);
+
+        // Handle edge cases
+        if (t <= 0.001f) {
+            // If time is too small, use maximum speed
+            targetVelocity = maxSpeed;
+        } else {
+            // Calculate required velocity using: deltaX = (v0 + v1)/2 * t
+            // Solving for v1: v1 = 2*deltaX/t - v0
+            targetVelocity = 2.0f * deltaX / t - v0;
+
+            // Take absolute value and clamp to max speed
+            targetVelocity = constrain(abs(targetVelocity), 0.0f, maxSpeed);
+        }
+
+        ossm->stepper->setSpeedInHz(targetVelocity);
+
+        vTaskDelay(1);
+        ossm->stepper->moveTo(targetPosition, false);
+        vTaskDelay(1);
+        ossm->stepper->applySpeedAcceleration();
+    }
+
+    vTaskDelete(nullptr);
+}
+
+void OSSM::startStreaming() {
+    int stackSize = 10 * configMINIMAL_STACK_SIZE;
+
+    xTaskCreatePinnedToCore(startStreamingTask, "startStreamingTask", stackSize,
+                            this, configMAX_PRIORITIES - 1, nullptr,
+                            Tasks::operationTaskCore);
 }
