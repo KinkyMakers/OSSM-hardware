@@ -74,7 +74,9 @@ class OSSM : public OSSMInterface {
             auto drawPlayControls = [](OSSM &o) { o.drawPlayControls(); };
             auto drawPatternControls = [](OSSM &o) { o.drawPatternControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
-            auto resetSettings = [](OSSM &o) {
+            
+            // armpit: Distinct defaults for StrokeEngine and SimplePenetration for more tailored UX
+            auto resetSettingsStrokeEngine = [](OSSM &o) {
                 OSSM::setting.speed = 0;
                 OSSM::setting.stroke = 50;
                 OSSM::setting.depth = 10;
@@ -85,6 +87,19 @@ class OSSM : public OSSMInterface {
                 o.encoder.setBoundaries(0, 100, false);
                 o.encoder.setAcceleration(10);
                 o.encoder.setEncoderValue(OSSM::setting.depth);
+            };
+
+            auto resetSettingsSimplePen = [](OSSM &o) {
+                OSSM::setting.speed = 0;
+                OSSM::setting.stroke = 0;
+                OSSM::setting.depth = 50;
+                OSSM::setting.sensation = 50;
+                o.playControl = PlayControls::STROKE;
+
+                // Prepare the encoder
+                o.encoder.setBoundaries(0, 100, false);
+                o.encoder.setAcceleration(10);
+                o.encoder.setEncoderValue(OSSM::setting.stroke);
 
                 // record session start time rounded to the nearest second
                 o.sessionStartTime = millis();
@@ -185,16 +200,16 @@ class OSSM : public OSSMInterface {
                 "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
 
                 "simplePenetration"_s [isNotHomed] = "homing"_s,
-                "simplePenetration"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
+                "simplePenetration"_s [isPreflightSafe] / (resetSettingsSimplePen, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
-                "simplePenetration.preflight"_s + done / (resetSettings, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
+                "simplePenetration.preflight"_s + done / (resetSettingsSimplePen, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration.preflight"_s + longPress = "menu"_s,
                 "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
                 "strokeEngine"_s [isNotHomed] = "homing"_s,
-                "strokeEngine"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
+                "strokeEngine"_s [isPreflightSafe] / (resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
-                "strokeEngine.preflight"_s + done / (resetSettings, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
+                "strokeEngine.preflight"_s + done / (resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine.preflight"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
                 "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
