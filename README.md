@@ -1,4 +1,6 @@
 # OSSM - Open Source Sex Machine
+### **Maintained by Research and Desire, supported by the community!**
+### Check us out at [**researchanddesire.com**](https://researchanddesire.com)
 
 ![OSSM Overview Image](Documentation/_images/OSSM%20Banner%20Image.png)
 
