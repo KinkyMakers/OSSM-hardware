@@ -10,7 +10,7 @@
                     "offset": 4096
                 },
                 {
-                    "path": "https://www.researchanddesire.com/esp/partitions.bin",
+                    "path": "https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public/ossm-firmware/{{ branchName }}/partitions.bin",
                     "offset": 32768
                 },
                 {
