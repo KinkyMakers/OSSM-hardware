@@ -6,6 +6,6 @@ PositionTime lastPositionTime = {0, 0};
 PositionTime targetPositionTime = {0, 0};
 
 bool hasTargetChanged() {
-    return lastPositionTime.position != targetPositionTime.position ||
-           lastPositionTime.inTime != targetPositionTime.inTime;
+    return abs(lastPositionTime.position - targetPositionTime.position) > 2 ||
+           abs(lastPositionTime.inTime - targetPositionTime.inTime) > 10;
 }

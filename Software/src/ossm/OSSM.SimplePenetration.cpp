@@ -142,6 +142,16 @@ void startStreamingTask(void *pvParameters) {
     long loopStart = 0;
 
     while (isInCorrectState(ossm)) {
+        // Calculate target position
+        targetPosition =
+            -(constrain(static_cast<float>(180 - targetPositionTime.position),
+                        0.0f, 180.0f) /
+              180.0f) *
+            ossm->measuredStrokeSteps;
+
+        ESP_LOGD("Streaming", "%d, %d, %d", ossm->stepper->getCurrentPosition(),
+                 static_cast<int32_t>(targetPosition),
+                 targetPositionTime.inTime);
         if (!hasTargetChanged()) {
             vTaskDelay(1);
             continue;
@@ -151,13 +161,6 @@ void startStreamingTask(void *pvParameters) {
             static_cast<float>(ossm->stepper->getCurrentPosition());
         currentVelocity =
             static_cast<float>(ossm->stepper->getCurrentSpeedInMilliHz());
-
-        // Calculate target position
-        targetPosition =
-            -(constrain(static_cast<float>(180 - targetPositionTime.position),
-                        0.0f, 180.0f) /
-              180.0f) *
-            ossm->measuredStrokeSteps;
 
         // Kinematic calculation: Always use max acceleration, compute required
         // velocity Convert units: velocity from milliHz to Hz, time from ms to
@@ -183,15 +186,15 @@ void startStreamingTask(void *pvParameters) {
             targetVelocity = 2.0f * deltaX / t - v0;
 
             // Take absolute value and clamp to max speed
-            targetVelocity = constrain(abs(targetVelocity), 0.0f, maxSpeed);
+            targetVelocity = maxSpeed;
         }
 
-        ossm->stepper->setSpeedInHz(targetVelocity);
+        ossm->stepper->setSpeedInHz(maxSpeed);
+        ossm->stepper->applySpeedAcceleration();
 
         vTaskDelay(1);
         ossm->stepper->moveTo(targetPosition, false);
         vTaskDelay(1);
-        ossm->stepper->applySpeedAcceleration();
     }
 
     vTaskDelete(nullptr);
