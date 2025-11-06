@@ -204,7 +204,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const deploymentId = ${{ steps.create_deployment.outputs.result }}.id;
-            const flashUrl = 'https://www.researchanddesire.com/ossm?branch=${{ steps.encode_branch.outputs.encoded_branch }}';
+            const flashUrl = 'https://dashboard.researchanddesire.com/app/tools/web-flasher?device=ossm&branch=${{ steps.encode_branch.outputs.encoded_branch }}';
 
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
