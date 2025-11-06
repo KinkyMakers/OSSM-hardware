@@ -45,7 +45,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: "3.9"
 
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
@@ -54,12 +54,14 @@ jobs:
         run: |
           cd Software
           pio run -e production
-          
+
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
         with:
           name: firmware-bin
-          path: Software/.pio/build/production/firmware.bin
+          path: |
+            Software/.pio/build/production/firmware.bin
+            Software/.pio/build/production/partitions.bin
           retention-days: 1
 
   check:
@@ -80,7 +82,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: "3.9"
 
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
@@ -108,7 +110,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: "3.9"
 
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
@@ -133,20 +135,20 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Download firmware artifact
         uses: actions/download-artifact@v4
         with:
           name: firmware-bin
           path: ./firmware
-          
+
       - name: URL encode branch name
         id: encode_branch
         run: |
           BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
           URL_ENCODED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/\//%2F/g' | sed 's/+/%2B/g' | sed 's/ /%20/g')
           echo "encoded_branch=$URL_ENCODED_BRANCH" >> $GITHUB_OUTPUT
-          
+
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
@@ -157,25 +159,27 @@ jobs:
         run: |
           COMMIT_HASH=$(git rev-parse --short HEAD)
           echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
-          
+
       - name: Move existing firmware out of the way
         run: |
           supabase storage mv "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/${{ steps.get_commit_hash.outputs.commit_hash }}/firmware.bin" --experimental
+          supabase storage mv "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/partitions.bin" "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/${{ steps.get_commit_hash.outputs.commit_hash }}/partitions.bin" --experimental
           supabase storage mv "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/manifest.json" "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/${{ steps.get_commit_hash.outputs.commit_hash }}/manifest.json" --experimental
         continue-on-error: true
-          
+
       - name: Upload firmware to Supabase Storage
         run: |
           supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-      
+          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+
       - name: Create and upload manifest.json
         run: |
           # Create a temporary manifest file with the branch name replaced
           cat .github/artifacts/manifest.json | sed "s/{{ branchName }}/${{ steps.encode_branch.outputs.encoded_branch }}/g" > ./manifest.json
-          
+
           # Upload the manifest file to Supabase Storage
           supabase storage cp ./manifest.json "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
-      
+
       - name: Create GitHub Deployment
         id: create_deployment
         uses: actions/github-script@v7
@@ -191,17 +195,17 @@ jobs:
               required_contexts: [],
               description: 'OSSM Firmware Deployment'
             });
-            
+
             return { id: deployment.data.id };
-      
+
       - name: Create Deployment Status
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const deploymentId = ${{ steps.create_deployment.outputs.result }}.id;
-            const flashUrl = 'https://www.researchanddesire.com/ossm?branch=${{ steps.encode_branch.outputs.encoded_branch }}';
-            
+            const flashUrl = 'https://dashboard.researchanddesire.com/app/tools/web-flasher?device=ossm&branch=${{ steps.encode_branch.outputs.encoded_branch }}';
+
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,

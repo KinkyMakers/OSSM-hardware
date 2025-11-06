@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      
+
       - name: Check for Software directory changes
         id: check_software
         run: |
@@ -48,19 +48,9 @@ jobs:
             echo "bubble_version=test" >> "$GITHUB_ENV"
           fi
 
-      - name: Increment Build Number
-        if: github.ref_name == 'master' || github.ref_name == 'release'
-        run: |
-          response=$(
-            curl --location --request POST 'https://app.researchanddesire.com/version-${{ env.bubble_version }}/api/1.1/wf/increment-sw-version-ossm' \
-            --header 'Content-Type: application/json' \
-            --header 'Authorization: Bearer ${{ secrets.BUBBLE_API_KEY }}')
-          echo "SW_VERSION=$response" >> $GITHUB_ENV
-          echo "SW_VERSION=$response"
-
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio

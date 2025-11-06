@@ -54,9 +54,13 @@ namespace Pins {
     namespace Wifi {
         // Pin for Wi-Fi reset button (optional)
         constexpr int resetPin = 23;
-        // Pin for the toggle for Wi-Fi control (Can be targeted alone if no
-        // hardware toggle is required)
-        constexpr int controlTogglePin = 22;
+    }
+
+    namespace GPIO {
+        constexpr int pin1 = 2;
+        constexpr int pin2 = 15;
+        constexpr int pin3 = 22;
+        constexpr int pin4 = 33;
     }
 
     /** These are configured for the OSSM Remote - which has a screen, a
