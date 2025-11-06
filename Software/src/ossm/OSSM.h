@@ -75,8 +75,9 @@ class OSSM : public OSSMInterface {
             auto startStreaming = [](OSSM &o) { o.startStreaming(); };
             auto drawPatternControls = [](OSSM &o) { o.drawPatternControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
-            
-            // armpit: Distinct defaults for StrokeEngine and SimplePenetration for more tailored UX
+
+            // armpit: Distinct defaults for StrokeEngine and SimplePenetration
+            // for more tailored UX
             auto resetSettingsStrokeEngine = [](OSSM &o) {
                 OSSM::setting.speed = 0;
                 OSSM::setting.stroke = 50;
@@ -220,9 +221,9 @@ class OSSM : public OSSMInterface {
                 "strokeEngine.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
                 "streaming"_s [isNotHomed] = "homing"_s,
-                "streaming"_s [isPreflightSafe] / (resetSettings, drawPlayControls, startStreaming) = "streaming.idle"_s,
+                "streaming"_s [isPreflightSafe] / ( drawPlayControls, startStreaming) = "streaming.idle"_s,
                 "streaming"_s / drawPreflight = "streaming.preflight"_s,
-                "streaming.preflight"_s + done / (resetSettings, drawPlayControls, startStreaming) = "streaming.idle"_s,
+                "streaming.preflight"_s + done / ( drawPlayControls, startStreaming) = "streaming.idle"_s,
                 "streaming.preflight"_s + longPress = "menu"_s,
                 "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
