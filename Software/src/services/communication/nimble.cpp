@@ -11,6 +11,7 @@
 #include "command.hpp"
 #include "command/commands.hpp"
 #include "config.hpp"
+#include "gpio.hpp"
 #include "patterns.hpp"
 #include "services/led.h"
 #include "state.hpp"
@@ -182,10 +183,10 @@ void nimbleLoop(void* pvParameters) {
             messageQueue.pop();
             ossmInterface->ble_click(cmd);
             pChr->setValue("ok:" + cmd);
-            
+
             // Trigger LED communication pulse for command processing
             pulseForCommunication();
-            
+
             vTaskDelay(1);
         }
 
@@ -204,10 +205,10 @@ void nimbleLoop(void* pvParameters) {
         }
         pChr->setValue(currentState);
         pChr->notify();
-        
+
         // Trigger LED communication pulse for state update
         pulseForCommunication();
-        
+
         lastState = currentState;
         vTaskDelay(1);
     }
@@ -237,6 +238,9 @@ void initNimble() {
                                NimBLEUUID(CHARACTERISTIC_PATTERNS_UUID));
     initPatternDataCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_GET_PATTERN_DATA_UUID));
+
+    // GPIO write/read characteristic
+    initGPIOCharacteristic(pService, NimBLEUUID(CHARACTERISTIC_GPIO_UUID));
 
     // Start the services
     pService->start();

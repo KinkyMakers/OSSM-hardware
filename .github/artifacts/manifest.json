@@ -6,15 +6,15 @@
             "improv": false,
             "parts": [
                 {
-                    "path": "https://www.researchanddesire.com/esp/bootloader_dio_40m.bin",
+                    "path": "https://dashboard.researchanddesire.com/espOSSM/bootloader.bin",
                     "offset": 4096
                 },
                 {
-                    "path": "https://www.researchanddesire.com/esp/partitions.bin",
+                    "path": "https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public/ossm-firmware/{{ branchName }}/partitions.bin",
                     "offset": 32768
                 },
                 {
-                    "path": "https://www.researchanddesire.com/esp/boot_app0.bin",
+                    "path": "https://dashboard.researchanddesire.com/espOSSM/boot_app0.bin",
                     "offset": 57344
                 },
                 {
