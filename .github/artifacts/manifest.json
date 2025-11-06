@@ -6,7 +6,7 @@
             "improv": false,
             "parts": [
                 {
-                    "path": "https://www.researchanddesire.com/esp/bootloader_dio_40m.bin",
+                    "path": "https://dashboard.researchanddesire.com/espOSSM/bootloader.bin",
                     "offset": 4096
                 },
                 {
@@ -14,7 +14,7 @@
                     "offset": 32768
                 },
                 {
-                    "path": "https://www.researchanddesire.com/esp/boot_app0.bin",
+                    "path": "https://dashboard.researchanddesire.com/espOSSM/boot_app0.bin",
                     "offset": 57344
                 },
                 {
