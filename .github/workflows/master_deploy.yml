@@ -233,5 +233,5 @@ jobs:
         if: steps.cleanup_registry.outputs.merged_branch != ''
         run: |
           # Delete existing registry.json if it exists, then upload the updated one
-          supabase storage rm "ss:///ossm-firmware/registry.json" --experimental || true
+          supabase storage rm "ss:///ossm-firmware/registry.json" --experimental --yes || true
           supabase storage cp ./registry.json "ss:///ossm-firmware/registry.json" --content-type "application/json" --cache-control "no-cache" --experimental
