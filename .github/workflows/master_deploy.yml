@@ -129,3 +129,109 @@ jobs:
 
           # Upload the manifest file to Supabase Storage
           supabase storage cp ./manifest.json "ss:///ossm-firmware/master/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
+
+      - name: Download registry.json
+        id: download_registry
+        run: |
+          if supabase storage cp "ss:///ossm-firmware/registry.json" ./registry.json --experimental; then
+            echo "registry_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Registry.json does not exist. Failing workflow."
+            exit 1
+          fi
+
+      - name: Determine merged branch and clean up registry
+        id: cleanup_registry
+        run: |
+          # Get commits between before and after to find merge commits
+          MERGE_COMMITS=$(git log --format="%H %s" ${{ github.event.before }}..${{ github.event.after }} --merges || echo "")
+
+          MERGED_BRANCH=""
+          if [ -n "$MERGE_COMMITS" ]; then
+            # Try to extract branch name from merge commit message
+            # GitHub merge commits typically have format: "Merge pull request #X from owner/branch-name"
+            while IFS= read -r line; do
+              if echo "$line" | grep -q "Merge pull request"; then
+                # Extract branch name from merge commit message
+                BRANCH_NAME=$(echo "$line" | sed -n 's/.*from [^/]*\/\(.*\)/\1/p' | head -1)
+                if [ -n "$BRANCH_NAME" ]; then
+                  # URL encode the branch name
+                  ENCODED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/\//%2F/g' | sed 's/+/%2B/g' | sed 's/ /%20/g')
+                  
+                  # Check if this branch exists in registry
+                  if cat ./registry.json | jq -e "has(\"$ENCODED_BRANCH\")" > /dev/null 2>&1; then
+                    MERGED_BRANCH="$ENCODED_BRANCH"
+                    echo "Found merged branch in registry: $MERGED_BRANCH"
+                    break
+                  fi
+                fi
+              fi
+            done <<< "$MERGE_COMMITS"
+          fi
+
+          # If we didn't find it from merge commits, check all branches in registry
+          if [ -z "$MERGED_BRANCH" ]; then
+            echo "Checking all branches in registry for merged branches..."
+            for branch_path in $(cat ./registry.json | jq -r 'keys[]'); do
+              # Skip master branch
+              if [ "$branch_path" = "master" ]; then
+                continue
+              fi
+              
+              # Decode branch name (basic URL decode)
+              DECODED_BRANCH=$(echo "$branch_path" | sed 's/%2F/\//g' | sed 's/%2B/+/g' | sed 's/%20/ /g')
+              
+              # Check if branch still exists as a remote branch
+              if ! git ls-remote --heads origin "$DECODED_BRANCH" > /dev/null 2>&1; then
+                MERGED_BRANCH="$branch_path"
+                echo "Found merged branch (no longer exists): $MERGED_BRANCH"
+                break
+              fi
+            done
+          fi
+
+          if [ -n "$MERGED_BRANCH" ]; then
+            echo "merged_branch=$MERGED_BRANCH" >> $GITHUB_OUTPUT
+            echo "Will clean up branch: $MERGED_BRANCH"
+          else
+            echo "No merged branch found to clean up"
+          fi
+
+      - name: Remove merged branch from registry and storage
+        if: steps.cleanup_registry.outputs.merged_branch != ''
+        run: |
+          MERGED_BRANCH="${{ steps.cleanup_registry.outputs.merged_branch }}"
+          BUCKET="ossm-firmware"
+
+          # Remove branch from registry
+          REGISTRY=$(cat ./registry.json)
+          REGISTRY=$(echo "$REGISTRY" | jq "del(.[\"$MERGED_BRANCH\"])")
+          echo "$REGISTRY" > ./registry.json
+          echo "Removed $MERGED_BRANCH from registry"
+
+          # Delete all files for this branch from Supabase storage
+          # List all files with the branch prefix
+          RESPONSE=$(curl -s -X POST "https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/list/${BUCKET}" \
+            -H "apikey: ${SUPABASE_ACCESS_TOKEN}" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"prefix\": \"${MERGED_BRANCH}/\", \"limit\": 1000}")
+
+          # Delete each file
+          echo "$RESPONSE" | jq -r '.[]?.name // empty' | while read -r file; do
+            if [ -n "$file" ]; then
+              echo "Deleting file: $file"
+              curl -s -X DELETE "https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/${BUCKET}/${file}" \
+                -H "apikey: ${SUPABASE_ACCESS_TOKEN}" \
+                -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" || true
+            fi
+          done
+
+          echo "Cleaned up all files for branch: $MERGED_BRANCH"
+
+      - name: Upload updated registry.json
+        if: steps.cleanup_registry.outputs.merged_branch != ''
+        run: |
+          # Delete existing registry.json if it exists, then upload the updated one
+          supabase storage rm "ss:///ossm-firmware/registry.json" --experimental --yes || true
+          supabase storage cp ./registry.json "ss:///ossm-firmware/registry.json" --content-type "application/json" --cache-control "no-cache" --experimental
