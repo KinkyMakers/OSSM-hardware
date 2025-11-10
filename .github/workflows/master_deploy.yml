@@ -1,0 +1,130 @@
+name: Master Branch Deployment
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  check_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changes_detected: ${{ steps.check_changes.outputs.changes_detected }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check for changes in Software directory
+        id: check_changes
+        run: |
+          if git diff --name-only HEAD^ HEAD | grep -q "^Software/"; then
+            echo "Changes detected in Software directory"
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+          else
+            echo "No changes in Software directory, skipping build"
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+          fi
+
+  build:
+    needs: check_changes
+    if: needs.check_changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Build PlatformIO Project
+        run: |
+          cd Software
+          pio run -e production
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-bin
+          path: |
+            Software/.pio/build/production/firmware.bin
+            Software/.pio/build/production/partitions.bin
+          retention-days: 1
+
+  upload_to_supabase:
+    needs: [check_changes, build]
+    if: needs.check_changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download firmware artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware-bin
+          path: ./firmware
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Clear master directory in Supabase
+        run: |
+          # List all files in master directory and remove any that aren't our target files
+          BUCKET="ossm-firmware"
+          PREFIX="master/"
+          
+          # Get list of files via Supabase REST API
+          RESPONSE=$(curl -s -X POST "https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/list/${BUCKET}" \
+            -H "apikey: ${SUPABASE_ACCESS_TOKEN}" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"prefix\": \"${PREFIX}\", \"limit\": 1000}")
+          
+          # Extract file names and delete any that aren't our 3 target files
+          echo "$RESPONSE" | jq -r '.[]?.name // empty' | while read -r file; do
+            if [ -n "$file" ]; then
+              # Remove the prefix to get just the filename
+              filename="${file#$PREFIX}"
+              if [[ "$filename" != "firmware.bin" && "$filename" != "partitions.bin" && "$filename" != "manifest.json" ]]; then
+                echo "Removing unexpected file: $file"
+                curl -s -X DELETE "https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/${BUCKET}/${file}" \
+                  -H "apikey: ${SUPABASE_ACCESS_TOKEN}" \
+                  -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" || true
+              fi
+            fi
+          done
+        continue-on-error: true
+
+      - name: Upload firmware to Supabase Storage
+        run: |
+          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/master/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/master/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+
+      - name: Create and upload manifest.json
+        run: |
+          # Create a temporary manifest file with "master" as the branch name
+          cat .github/artifacts/manifest.json | sed "s/{{ branchName }}/master/g" > ./manifest.json
+
+          # Upload the manifest file to Supabase Storage
+          supabase storage cp ./manifest.json "ss:///ossm-firmware/master/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
+
