@@ -154,17 +154,86 @@ jobs:
         with:
           version: latest
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Get commit hash
         id: get_commit_hash
         run: |
           COMMIT_HASH=$(git rev-parse --short HEAD)
           echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
 
-      - name: Move existing firmware out of the way
+      - name: Download registry.json
+        id: download_registry
         run: |
-          supabase storage mv "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/${{ steps.get_commit_hash.outputs.commit_hash }}/firmware.bin" --experimental
-          supabase storage mv "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/partitions.bin" "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/${{ steps.get_commit_hash.outputs.commit_hash }}/partitions.bin" --experimental
-          supabase storage mv "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/manifest.json" "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/${{ steps.get_commit_hash.outputs.commit_hash }}/manifest.json" --experimental
+          if supabase storage cp "ss:///ossm-firmware/registry.json" ./registry.json --experimental; then
+            echo "registry_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Registry.json does not exist. Failing workflow."
+            exit 1
+          fi
+
+      - name: Determine old commit and update registry
+        id: update_registry
+        run: |
+          BRANCH_PATH="${{ steps.encode_branch.outputs.encoded_branch }}"
+          CURRENT_COMMIT="${{ steps.get_commit_hash.outputs.commit_hash }}"
+
+          # Read registry.json
+          REGISTRY=$(cat ./registry.json)
+
+          # Check if branch exists in registry, create empty array if not
+          if ! echo "$REGISTRY" | jq -e "has(\"$BRANCH_PATH\")" > /dev/null; then
+            echo "Branch $BRANCH_PATH not in registry, creating entry"
+            REGISTRY=$(echo "$REGISTRY" | jq ". + {\"$BRANCH_PATH\": []}")
+          fi
+
+          # Check if firmware exists at branch path
+          OLD_COMMIT=""
+          if supabase storage ls "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" --experimental > /dev/null 2>&1; then
+            # Firmware exists, need to determine old commit
+            # First, check if there's a previous commit in the registry for this branch
+            BRANCH_COMMITS=$(echo "$REGISTRY" | jq -r ".[\"$BRANCH_PATH\"] // []")
+            COMMIT_COUNT=$(echo "$BRANCH_COMMITS" | jq "length")
+            
+            if [ "$COMMIT_COUNT" -gt 0 ]; then
+              # Use the last commit in the array (most recent)
+              OLD_COMMIT=$(echo "$BRANCH_COMMITS" | jq -r ".[-1]")
+              echo "Found old commit from registry: $OLD_COMMIT"
+            else
+              # No commits in registry, try to find the commit from git history
+              # Find the last commit that modified Software files before current commit
+              OLD_COMMIT=$(git log --format="%h" -1 --skip=1 -- Software/ 2>/dev/null || echo "")
+              if [ -z "$OLD_COMMIT" ]; then
+                # Fallback: use parent commit
+                OLD_COMMIT=$(git rev-parse --short HEAD^ 2>/dev/null || echo "")
+              fi
+              if [ -n "$OLD_COMMIT" ]; then
+                echo "Determined old commit from git: $OLD_COMMIT"
+              else
+                echo "Warning: Could not determine old commit, using current commit"
+                OLD_COMMIT="$CURRENT_COMMIT"
+              fi
+            fi
+            
+            # Add old commit to registry if not already present
+            REGISTRY=$(echo "$REGISTRY" | jq ".[\"$BRANCH_PATH\"] |= (. + [\"$OLD_COMMIT\"] | unique)")
+          else
+            echo "No existing firmware found at $BRANCH_PATH, this is first upload"
+          fi
+
+          # Save updated registry
+          echo "$REGISTRY" > ./registry.json
+          echo "old_commit=$OLD_COMMIT" >> $GITHUB_OUTPUT
+
+      - name: Move existing firmware out of the way
+        if: steps.update_registry.outputs.old_commit != ''
+        run: |
+          OLD_COMMIT="${{ steps.update_registry.outputs.old_commit }}"
+          BRANCH_PATH="${{ steps.encode_branch.outputs.encoded_branch }}"
+          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/firmware.bin" --experimental || true
+          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/partitions.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/partitions.bin" --experimental || true
+          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/manifest.json" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/manifest.json" --experimental || true
         continue-on-error: true
 
       - name: Upload firmware to Supabase Storage
@@ -179,6 +248,10 @@ jobs:
 
           # Upload the manifest file to Supabase Storage
           supabase storage cp ./manifest.json "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
+
+      - name: Upload updated registry.json
+        run: |
+          supabase storage cp ./registry.json "ss:///ossm-firmware/registry.json" --content-type "application/json" --cache-control "no-cache" --experimental
 
       - name: Create GitHub Deployment
         id: create_deployment
