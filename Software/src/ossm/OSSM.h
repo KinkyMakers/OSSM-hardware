@@ -180,7 +180,6 @@ class OSSM : public OSSMInterface {
 #else
                 *"idle"_s + done / drawHello = "homing"_s,
 #endif
-
                 "homing"_s / startHoming = "homing.forward"_s,
                 "homing.forward"_s + error = "error"_s,
                 "homing.forward"_s + done / startHoming = "homing.backward"_s,
