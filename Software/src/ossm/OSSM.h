@@ -74,8 +74,9 @@ class OSSM : public OSSMInterface {
             auto drawPlayControls = [](OSSM &o) { o.drawPlayControls(); };
             auto drawPatternControls = [](OSSM &o) { o.drawPatternControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
-            
-            // armpit: Distinct defaults for StrokeEngine and SimplePenetration for more tailored UX
+
+            // armpit: Distinct defaults for StrokeEngine and SimplePenetration
+            // for more tailored UX
             auto resetSettingsStrokeEngine = [](OSSM &o) {
                 OSSM::setting.speed = 0;
                 OSSM::setting.stroke = 50;
@@ -179,7 +180,6 @@ class OSSM : public OSSMInterface {
 #else
                 *"idle"_s + done / drawHello = "homing"_s,
 #endif
-
                 "homing"_s / startHoming = "homing.forward"_s,
                 "homing.forward"_s + error = "error"_s,
                 "homing.forward"_s + done / startHoming = "homing.backward"_s,
@@ -372,8 +372,10 @@ class OSSM : public OSSMInterface {
 
     int getSpeed() { return this->setting.speed; }
     // Implement the interface methods
-    template<typename EventType>
-    void process_event(const EventType &event) { sm->process_event(event); }
+    template <typename EventType>
+    void process_event(const EventType &event) {
+        sm->process_event(event);
+    }
     void ble_click(String commandString) {
         // Visit current state to handle state-specific commands
 
@@ -402,7 +404,7 @@ class OSSM : public OSSMInterface {
                 sm->process_event(LongPress{});
                 break;
             case Commands::setSpeed:
-                // BLE devices can be trusted to send true value 
+                // BLE devices can be trusted to send true value
                 // and can bypass potentiomer smoothing logic
                 lastSpeedCommandWasFromBLE = true;
                 // Use speed knob config to determine how to handle BLE speed
@@ -472,9 +474,7 @@ class OSSM : public OSSMInterface {
     }
 
     // BLE connection tracking methods
-    bool hasActiveBLE() const {
-        return hasActiveBLEConnection;
-    }
+    bool hasActiveBLE() const { return hasActiveBLEConnection; }
 
     void setBLEConnectionStatus(bool isConnected) {
         hasActiveBLEConnection = isConnected;

@@ -13,12 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Check for changes in Software directory
         id: check_changes
         run: |
-          if git diff --name-only HEAD^ HEAD | grep -q "^Software/"; then
+          # Compare the previous state of master with the current state after merge
+          # This captures all commits that were merged in the PR
+          if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q "^Software/"; then
             echo "Changes detected in Software directory"
             echo "changes_detected=true" >> $GITHUB_OUTPUT
           else
@@ -92,14 +94,14 @@ jobs:
           # List all files in master directory and remove any that aren't our target files
           BUCKET="ossm-firmware"
           PREFIX="master/"
-          
+
           # Get list of files via Supabase REST API
           RESPONSE=$(curl -s -X POST "https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/list/${BUCKET}" \
             -H "apikey: ${SUPABASE_ACCESS_TOKEN}" \
             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
             -H "Content-Type: application/json" \
             -d "{\"prefix\": \"${PREFIX}\", \"limit\": 1000}")
-          
+
           # Extract file names and delete any that aren't our 3 target files
           echo "$RESPONSE" | jq -r '.[]?.name // empty' | while read -r file; do
             if [ -n "$file" ]; then
@@ -127,4 +129,3 @@ jobs:
 
           # Upload the manifest file to Supabase Storage
           supabase storage cp ./manifest.json "ss:///ossm-firmware/master/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
-
