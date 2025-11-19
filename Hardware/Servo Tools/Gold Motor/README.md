@@ -35,8 +35,9 @@ This tool runs entirely in your browser using the Web Serial API (Chrome, Edge, 
    - **Basic settings** are shown by default (recommended for OSSM)
    - **Advanced settings** can be shown but may make the motor unusable if changed incorrectly
 5. Click **"Write Settings"** to program the motor
-6. The tool writes settings multiple times for reliability
+   - The tool writes settings multiple times for reliability
 7. Verify the updated values are displayed correctly
+8. Unpower the motor and remove the programming wires
 
 ![alt text](_images/image.png)
 
