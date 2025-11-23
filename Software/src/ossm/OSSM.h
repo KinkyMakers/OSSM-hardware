@@ -72,6 +72,7 @@ class OSSM : public OSSMInterface {
                 o.startHoming();
             };
             auto drawPlayControls = [](OSSM &o) { o.drawPlayControls(); };
+            auto startStreaming = [](OSSM &o) { o.startStreaming(); };
             auto drawPatternControls = [](OSSM &o) { o.drawPatternControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
 
@@ -219,6 +220,13 @@ class OSSM : public OSSMInterface {
                 "strokeEngine.pattern"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
                 "strokeEngine.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
+                "streaming"_s [isNotHomed] = "homing"_s,
+                "streaming"_s [isPreflightSafe] / ( drawPlayControls, startStreaming) = "streaming.idle"_s,
+                "streaming"_s / drawPreflight = "streaming.preflight"_s,
+                "streaming.preflight"_s + done / ( drawPlayControls, startStreaming) = "streaming.idle"_s,
+                "streaming.preflight"_s + longPress = "menu"_s,
+                "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+
                 "update"_s [isOnline] / drawUpdate = "update.checking"_s,
                 "update"_s = "wifi"_s,
                 "update.checking"_s [isUpdateAvailable] / (drawUpdating, updateOSSM) = "update.updating"_s,
@@ -301,6 +309,8 @@ class OSSM : public OSSMInterface {
      * ///////////////////////////////////////////
      */
     static void startHomingTask(void *pvParameters);
+
+    void startStreaming();
 
     void startStrokeEngine();
 
