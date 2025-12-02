@@ -5,11 +5,13 @@
 #include "ossm/OSSM.h"
 #include "ossm/OSSMI.h"
 #include "services/board.h"
+#include "services/communication/http.h"
 #include "services/communication/nimble.h"
 #include "services/display.h"
 #include "services/encoder.h"
-#include "services/stepper.h"
 #include "services/led.h"
+#include "services/stepper.h"
+#include "services/telemetry.h"
 #include "services/wm.h"
 
 /*
@@ -44,6 +46,10 @@ void setup() {
 
     // Initialize header bar task
     initHeaderBar();
+
+    HttpService::init();
+    // Init Telemetry Service
+    Telemetry::init(stepper);
 
     ossm = new OSSM(display, encoder, stepper);
     ossmInterface = ossm;

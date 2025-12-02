@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <services/board.h>
+#include <services/telemetry.h>
 
 #include <command/commands.hpp>
 
@@ -126,13 +127,24 @@ class OSSM : public OSSMInterface {
             };
 
             auto startSimplePenetration = [](OSSM &o) {
+                Telemetry::startSession(o.stepper);
                 o.startSimplePenetration();
             };
 
-            auto startStrokeEngine = [](OSSM &o) { o.startStrokeEngine(); };
+            auto startStrokeEngine = [](OSSM &o) {
+                Telemetry::startSession(o.stepper);
+                o.startStrokeEngine();
+            };
             auto emergencyStop = [](OSSM &o) {
                 o.stepper->forceStop();
                 o.stepper->disableOutputs();
+            };
+
+            auto exitToMenu = [](OSSM &o) {
+                Telemetry::endSession();
+                o.stepper->forceStop();
+                o.stepper->disableOutputs();
+                o.isHomed = false;
             };
             auto drawHelp = [](OSSM &o) { o.drawHelp(); };
             auto drawWiFi = [](OSSM &o) { o.drawWiFi(); };
@@ -205,19 +217,19 @@ class OSSM : public OSSMInterface {
                 "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
                 "simplePenetration.preflight"_s + done / (resetSettingsSimplePen, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration.preflight"_s + longPress = "menu"_s,
-                "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+                "simplePenetration.idle"_s + longPress / exitToMenu = "menu"_s,
 
                 "strokeEngine"_s [isNotHomed] = "homing"_s,
                 "strokeEngine"_s [isPreflightSafe] / (resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
                 "strokeEngine.preflight"_s + done / (resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
-                "strokeEngine.preflight"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+                "strokeEngine.preflight"_s + longPress / exitToMenu = "menu"_s,
                 "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
                 "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
                 "strokeEngine.pattern"_s + doublePress / drawPlayControls = "strokeEngine.idle"_s,
-                "strokeEngine.pattern"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
-                "strokeEngine.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+                "strokeEngine.pattern"_s + longPress / exitToMenu = "menu"_s,
+                "strokeEngine.idle"_s + longPress / exitToMenu = "menu"_s,
 
                 "update"_s [isOnline] / drawUpdate = "update.checking"_s,
                 "update"_s = "wifi"_s,
