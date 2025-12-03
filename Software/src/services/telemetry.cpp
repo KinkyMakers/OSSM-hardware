@@ -123,9 +123,6 @@ namespace Telemetry {
             if (xSemaphoreTake(bufferMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
                 positionBuffer.addSample(timestamp, position);
                 xSemaphoreGive(bufferMutex);
-
-                ESP_LOGI("Telemetry", "Sampled position: %.2f mm at %lu ms",
-                         position, timestamp);
             }
 
             vTaskDelayUntil(&lastSampleTime, sampleInterval);
@@ -194,6 +191,9 @@ namespace Telemetry {
             xSemaphoreGive(bufferMutex);
         }
 
+        // Small delay before activating to let motor ramp up
+        vTaskDelay(pdMS_TO_TICKS(100));
+
         sessionActive = true;
         ESP_LOGI("Telemetry", "Session started: %s", sessionId.c_str());
     }
@@ -203,6 +203,8 @@ namespace Telemetry {
 
         sessionActive = false;
 
+        vTaskDelay(pdMS_TO_TICKS(100));  // give some time for last samples to
+                                         // be sent before clearning session ID
         ESP_LOGI("Telemetry", "Session ended: %s", sessionId.c_str());
         sessionId = "";
     }

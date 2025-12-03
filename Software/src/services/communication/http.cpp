@@ -11,8 +11,8 @@ namespace HttpService {
     // Configuration
     // ─────────────────────────────────────────────
 
-    static const char* BASE_URL = "http://192.168.2.15:3000";
-    static const int QUEUE_SIZE = 10;
+    static const char* BASE_URL = TELEMETRY_BASE_URL;
+    static const int QUEUE_SIZE = 5;
     static const int HTTP_TIMEOUT_MS = 5000;
     static const int MAX_RETRIES = 2;
 
@@ -21,8 +21,8 @@ namespace HttpService {
     // ─────────────────────────────────────────────
 
     struct HttpRequest {
-        String endpoint;
-        String payload;
+        char endpoint[64];
+        char payload[1536];
     };
 
     // ─────────────────────────────────────────────
@@ -46,19 +46,24 @@ namespace HttpService {
         HTTPClient http;
         String url = String(BASE_URL) + endpoint;
 
+        // Disable connection reuse to prevent stale data issues
+        http.setReuse(false);
         http.begin(url);
         http.setTimeout(HTTP_TIMEOUT_MS);
         http.addHeader("Content-Type", "application/json");
+        http.addHeader("Connection", "close");  // Force connection close
 
         int httpCode = http.POST(payload);
+        bool success = false;
 
         if (httpCode > 0) {
-            ESP_LOGI("HTTP", "POST %s → %d", endpoint.c_str(), httpCode);
+            ESP_LOGI("HTTP", "POST %s → %d", endpoint, httpCode);
+            String response = http.getString();
+            ESP_LOGI("HTTP", "Response: %s", response.c_str());
 
             if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_CREATED ||
                 httpCode == HTTP_CODE_NO_CONTENT) {
-                http.end();
-                return true;
+                success = true;
             }
         } else {
             ESP_LOGE("HTTP", "POST failed: %s",
@@ -66,7 +71,7 @@ namespace HttpService {
         }
 
         http.end();
-        return false;
+        return success;
     }
 
     static void httpTask(void* pvParameters) {
@@ -133,14 +138,27 @@ namespace HttpService {
     }
 
     void queuePost(const String& endpoint, const String& jsonPayload) {
+        ESP_LOGI("HTTP", "Queueing POST to %s", jsonPayload.c_str());
         if (requestQueue == nullptr) {
             ESP_LOGE("HTTP", "Queue not initialized");
             return;
         }
 
+        // Check payload size
+        if (jsonPayload.length() >= sizeof(HttpRequest::payload)) {
+            ESP_LOGE("HTTP", "Payload too large: %d bytes",
+                     jsonPayload.length());
+            return;
+        }
+
         HttpRequest request;
-        request.endpoint = endpoint;
-        request.payload = jsonPayload;
+        strncpy(request.endpoint, endpoint.c_str(),
+                sizeof(request.endpoint) - 1);
+        request.endpoint[sizeof(request.endpoint) - 1] = '\0';
+
+        strncpy(request.payload, jsonPayload.c_str(),
+                sizeof(request.payload) - 1);
+        request.payload[sizeof(request.payload) - 1] = '\0';
 
         // Non-blocking queue send (drop if full)
         if (xQueueSend(requestQueue, &request, 0) != pdTRUE) {
