@@ -16,8 +16,9 @@ namespace Telemetry {
 
     class PositionBuffer {
       private:
-        // Buffer sized for ~1 second of samples at 30Hz (30 samples) plus safety margin.
-        // At 30Hz sampling and 1Hz upload, expect ~30 samples per upload; 32 provides a small safety margin.
+        // Buffer sized for ~1 second of samples at 30Hz (30 samples) plus
+        // safety margin. At 30Hz sampling and 1Hz upload, expect ~30 samples
+        // per upload; 32 provides a small safety margin.
         static const int BUFFER_SIZE = 32;
         PositionSample buffer[BUFFER_SIZE];
         int writeIndex = 0;
@@ -51,21 +52,29 @@ namespace Telemetry {
          * Format: [{"time": 123, "position": 45.6}, ...]
          */
         String drainToJson() {
-            String json = "[";
+            // Pre-allocate: ~45 bytes per sample + overhead
+            const int estimatedSize = sampleCount * 50 + 10;
+            String json;
+            json.reserve(estimatedSize);
+
+            json = "[";
+
+            char sampleBuffer[48];  // Fixed buffer for one sample
             for (int i = 0; i < sampleCount; i++) {
-                if (i > 0) json += ",";
                 int idx =
                     (writeIndex - sampleCount + i + BUFFER_SIZE) % BUFFER_SIZE;
-                PositionSample sample = buffer[idx];
-                json += "{\"time\":";
-                json += String(sample.time);
-                json += ",\"position\":";
-                json += String(sample.position, 2);  // 2 decimal places
-                json += "}";
+                PositionSample& sample = buffer[idx];
+
+                // Format directly into fixed buffer (no heap allocation)
+                snprintf(sampleBuffer, sizeof(sampleBuffer),
+                         "%s{\"time\":%lu,\"position\":%.2f}", i > 0 ? "," : "",
+                         sample.time, sample.position);
+
+                json += sampleBuffer;
             }
             json += "]";
 
-            this->clear();  // Clear buffer after exporting
+            this->clear();
 
             return json;
         }
@@ -91,16 +100,26 @@ namespace Telemetry {
     static String generateSessionId() { return uuid(); }
 
     static String buildJsonPayload(String sampleJson) {
-        String json = "{";
-        json += "\"macAddress\":\"";
-        json += HttpService::getMacAddress();
-        json += "\"";
-        json += ",\"sessionId\":\"";
-        json += sessionId;
-        json += "\"";
-        json += ",\"data\":";
+        String localSessionId;
+        if (xSemaphoreTake(bufferMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
+            localSessionId = sessionId;  // Copy while protected
+            xSemaphoreGive(bufferMutex);
+        }
+        String macAddress = HttpService::getMacAddress();
+
+        // Pre-allocate: fixed parts (~60 bytes) + sessionId (~36 bytes) +
+        // sampleJson
+        String json;
+        json.reserve(100 + localSessionId.length() + sampleJson.length());
+
+        json = "{\"macAddress\":\"";
+        json += macAddress;
+        json += "\",\"sessionId\":\"";
+        json += localSessionId;
+        json += "\",\"data\":";
         json += sampleJson;
         json += "}";
+
         return json;
     }
 
@@ -187,10 +206,10 @@ namespace Telemetry {
         if (sessionActive) return;  // Already active
 
         ossmRef = ossm;
-        sessionId = generateSessionId();
 
         // Clear any stale data
         if (xSemaphoreTake(bufferMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+            sessionId = generateSessionId();
             positionBuffer.clear();
             xSemaphoreGive(bufferMutex);
         }
@@ -210,7 +229,14 @@ namespace Telemetry {
 
         vTaskDelay(pdMS_TO_TICKS(100));  // give some time for last samples to
                                          // be sent before clearning session ID
-        ESP_LOGI("Telemetry", "Session ended: %s", sessionId.c_str());
-        sessionId = "";
+        // Protect sessionId write
+        String endedSessionId;
+        if (xSemaphoreTake(bufferMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+            endedSessionId = sessionId;  // Copy for logging
+            sessionId = "";
+            xSemaphoreGive(bufferMutex);
+        }
+
+        ESP_LOGI("Telemetry", "Session ended: %s", endedSessionId.c_str());
     }
 }
