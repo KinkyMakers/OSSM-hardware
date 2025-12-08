@@ -14,9 +14,6 @@ namespace HttpService {
     // Get device MAC address (useful for device identification)
     String getMacAddress();
 
-    // Check if WiFi is connected
-    bool isOnline();
-
 }
 
 #endif

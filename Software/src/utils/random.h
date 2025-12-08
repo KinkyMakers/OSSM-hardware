@@ -1,5 +1,5 @@
-#ifndef UUID_HPP
-#define UUID_HPP
+#ifndef RANDOM_H
+#define RANDOM_H
 
 #include <Arduino.h>
 

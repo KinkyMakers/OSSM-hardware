@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <utils/random.h>
 
+#include <atomic>
+
 #include "communication/http.h"
 #include "esp_log.h"
 #include "ossm/OSSM.h"
@@ -74,7 +76,7 @@ namespace Telemetry {
     static SemaphoreHandle_t bufferMutex = nullptr;
     static OSSM* ossmRef = nullptr;
 
-    static volatile bool sessionActive = false;
+    static std::atomic<bool> sessionActive{false};
     static String sessionId = "";
 
     static TaskHandle_t samplingTaskHandle = nullptr;
@@ -165,7 +167,7 @@ namespace Telemetry {
         bufferMutex = xSemaphoreCreateMutex();
 
         // Create tasks once at startup (they sleep when inactive)
-        xTaskCreatePinnedToCore(positionSamplingTask, "TelemetrySample", 2048,
+        xTaskCreatePinnedToCore(positionSamplingTask, "TelemetrySample", 3072,
                                 nullptr,
                                 1,  // Low priority
                                 &samplingTaskHandle,
@@ -191,8 +193,9 @@ namespace Telemetry {
             xSemaphoreGive(bufferMutex);
         }
 
+        // COmmented out to see if it has any effect on telemetry timing
         // Small delay before activating to let motor ramp up
-        vTaskDelay(pdMS_TO_TICKS(100));
+        // vTaskDelay(pdMS_TO_TICKS(100));
 
         sessionActive = true;
         ESP_LOGI("Telemetry", "Session started: %s", sessionId.c_str());

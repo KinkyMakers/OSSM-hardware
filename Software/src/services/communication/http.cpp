@@ -138,7 +138,8 @@ namespace HttpService {
     }
 
     void queuePost(const String& endpoint, const String& jsonPayload) {
-        ESP_LOGI("HTTP", "Queueing POST to %s", jsonPayload.c_str());
+        ESP_LOGI("HTTP", "Queueing POST to %s (payload size: %d bytes)",
+                 endpoint.c_str(), jsonPayload.length());
         if (requestQueue == nullptr) {
             ESP_LOGE("HTTP", "Queue not initialized");
             return;
