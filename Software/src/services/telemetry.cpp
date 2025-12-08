@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include <utils/random.h>
 
-#include "FastAccelStepper.h"
 #include "communication/http.h"
 #include "esp_log.h"
+#include "ossm/OSSM.h"
 
 namespace Telemetry {
 
@@ -72,7 +72,7 @@ namespace Telemetry {
     // ─────────────────────────────────────────────
     static PositionBuffer positionBuffer;
     static SemaphoreHandle_t bufferMutex = nullptr;
-    static FastAccelStepper* stepperRef = nullptr;
+    static OSSM* ossmRef = nullptr;
 
     static volatile bool sessionActive = false;
     static String sessionId = "";
@@ -109,7 +109,7 @@ namespace Telemetry {
 
         while (true) {
             // If telemetry session is not active, sleep briefly and continue
-            if (!sessionActive) {
+            if (!sessionActive || ossmRef == nullptr) {
                 vTaskDelay(pdMS_TO_TICKS(100));
                 continue;
             }
@@ -117,7 +117,7 @@ namespace Telemetry {
             TickType_t lastSampleTime = xTaskGetTickCount();
 
             unsigned long timestamp = millis();
-            float position = stepperRef->getCurrentPosition();
+            float position = ossmRef->stepper->getCurrentPosition();
 
             // Thread-safe write to buffer
             if (xSemaphoreTake(bufferMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
@@ -161,8 +161,7 @@ namespace Telemetry {
     // ─────────────────────────────────────────────
     // Public API
     // ─────────────────────────────────────────────
-    void init(FastAccelStepper* stepper) {
-        stepperRef = stepper;
+    void init() {
         bufferMutex = xSemaphoreCreateMutex();
 
         // Create tasks once at startup (they sleep when inactive)
@@ -180,9 +179,10 @@ namespace Telemetry {
         ESP_LOGI("Telemetry", "Telemetry service initialized");
     }
 
-    void startSession(FastAccelStepper* stepper) {
+    void startSession(OSSM* ossm) {
         if (sessionActive) return;  // Already active
 
+        ossmRef = ossm;
         sessionId = generateSessionId();
 
         // Clear any stale data

@@ -49,7 +49,7 @@ void setup() {
 
     HttpService::init();
     // Init Telemetry Service
-    Telemetry::init(stepper);
+    Telemetry::init();
 
     ossm = new OSSM(display, encoder, stepper);
     ossmInterface = ossm;

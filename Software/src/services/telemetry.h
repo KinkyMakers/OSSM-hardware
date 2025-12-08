@@ -3,19 +3,15 @@
 
 #include <Arduino.h>
 
-#include "FastAccelStepper.h"
+class OSSM;
 
 namespace Telemetry {
 
-    // Session management
-    void startSession(FastAccelStepper* stepper);
+    void init();
+    void startSession(OSSM* ossm);
     void endSession();
     bool isSessionActive();
     String getSessionId();
-
-    // Initialize telemetry system (call once at startup)
-    void init(FastAccelStepper* stepper);
-
 }
 
 #endif

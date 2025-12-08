@@ -127,12 +127,12 @@ class OSSM : public OSSMInterface {
             };
 
             auto startSimplePenetration = [](OSSM &o) {
-                Telemetry::startSession(o.stepper);
+                Telemetry::startSession(&o);
                 o.startSimplePenetration();
             };
 
             auto startStrokeEngine = [](OSSM &o) {
-                Telemetry::startSession(o.stepper);
+                Telemetry::startSession(&o);
                 o.startStrokeEngine();
             };
             auto emergencyStop = [](OSSM &o) {
