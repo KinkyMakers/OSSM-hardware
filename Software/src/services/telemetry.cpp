@@ -16,6 +16,8 @@ namespace Telemetry {
 
     class PositionBuffer {
       private:
+        // Buffer sized for ~1 second of samples at 30Hz (30 samples) plus safety margin.
+        // At 30Hz sampling and 1Hz upload, expect ~30 samples per upload; 32 provides a small safety margin.
         static const int BUFFER_SIZE = 32;
         PositionSample buffer[BUFFER_SIZE];
         int writeIndex = 0;
