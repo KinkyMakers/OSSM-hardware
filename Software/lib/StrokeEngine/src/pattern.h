@@ -720,7 +720,7 @@ class TestPattern1 : public ArrayPattern {
   private:
     static constexpr PatternPoint _patternPoints[3] = {
         {0.0, 0.0},   // Start at min position
-        {0.5, 1.0},   // At 50% of cycle, reach max position
-        {1.0, 0.0}    // Return to min position
+        {0.8, 1.0},   // At 80% of cycle, reach max position (slow extension)
+        {1.0, 0.0}    // Return to min position (fast retraction)
     };
 };
