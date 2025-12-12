@@ -672,7 +672,11 @@ class ArrayPattern : public Pattern {
     }
 
     void setTimeOfStroke(float speed = 0) override {
-        _timeOfStroke = speed;
+        // Spec timing: Each interval gets 1/3 second at 100% speed
+        // Formula: adjusted_time = num_intervals * base_time * (5/3)
+        // This ensures patterns with more points take proportionally longer
+        int numIntervals = _numPoints - 1;
+        _timeOfStroke = numIntervals * speed * 5.0 / 3.0;
     }
 
     motionParameter nextTarget(unsigned int index) override {
