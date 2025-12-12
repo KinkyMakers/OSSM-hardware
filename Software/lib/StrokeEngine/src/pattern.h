@@ -47,7 +47,40 @@ typedef struct {
 typedef struct {
     float t;  //!< Time position in pattern cycle (0.0 to 1.0 where 1.0 = 100%)
     float y;  //!< Position value (0.0 to 1.0 where 0.0 = min, 1.0 = max)
+
+    // Bezier control points for curved segments (0 = linear)
+    float left_control_slope;       //!< Tangent angle entering point (radians)
+    float left_control_magnitude;   //!< Tangent length entering (0.0 to 1.0)
+    float right_control_slope;      //!< Tangent angle leaving point (radians)
+    float right_control_magnitude;  //!< Tangent length leaving (0.0 to 1.0)
 } PatternPoint;
+
+// Number of samples to use when converting curved segments to linear strokes
+#define BEZIER_SAMPLES_PER_SEGMENT 10
+
+/**************************************************************************/
+/*!
+  @brief  Helper function to evaluate cubic bezier curve at parameter u
+  @param p0 Start point
+  @param p1 First control point
+  @param p2 Second control point
+  @param p3 End point
+  @param u Parameter from 0.0 to 1.0
+  @return Interpolated value at u
+*/
+/**************************************************************************/
+inline float cubicBezier(float p0, float p1, float p2, float p3, float u) {
+    float u2 = u * u;
+    float u3 = u2 * u;
+    float inv_u = 1.0 - u;
+    float inv_u2 = inv_u * inv_u;
+    float inv_u3 = inv_u2 * inv_u;
+
+    return p0 * inv_u3 +
+           p1 * 3.0 * inv_u2 * u +
+           p2 * 3.0 * inv_u * u2 +
+           p3 * u3;
+}
 
 /**************************************************************************/
 /*!
@@ -660,15 +693,37 @@ class Insist : public Pattern {
 
 /**************************************************************************/
 /*!
+  @brief  Struct to hold a sampled stroke segment after curve processing
+*/
+/**************************************************************************/
+typedef struct {
+    float start_t;  //!< Start time (0.0 to 1.0)
+    float end_t;    //!< End time (0.0 to 1.0)
+    float start_y;  //!< Start position (0.0 to 1.0)
+    float end_y;    //!< End position (0.0 to 1.0)
+} StrokeSegment;
+
+/**************************************************************************/
+/*!
   @brief  Array-based pattern that interpolates between defined points.
-  Each linear segment between consecutive points becomes one discrete stroke.
+  Linear segments become one stroke each. Curved segments are sampled
+  into multiple linear strokes for smooth motion.
 */
 /**************************************************************************/
 class ArrayPattern : public Pattern {
   public:
     ArrayPattern(const char *name, const PatternPoint *points, int numPoints)
-        : Pattern(name), _points(points), _numPoints(numPoints) {
+        : Pattern(name), _points(points), _numPoints(numPoints),
+          _segments(nullptr), _numSegments(0) {
         if (_numPoints < 2) _numPoints = 2;
+        _buildSegments();
+    }
+
+    ~ArrayPattern() {
+        if (_segments) {
+            delete[] _segments;
+            _segments = nullptr;
+        }
     }
 
     void setTimeOfStroke(float speed = 0) override {
@@ -680,21 +735,23 @@ class ArrayPattern : public Pattern {
     }
 
     motionParameter nextTarget(unsigned int index) override {
-        int numSegments = _numPoints - 1;
-        int segmentIndex = index % numSegments;
+        if (_numSegments == 0) {
+            _nextMove.skip = true;
+            return _nextMove;
+        }
 
-        PatternPoint start = _points[segmentIndex];
-        PatternPoint end = _points[segmentIndex + 1];
+        int segmentIndex = index % _numSegments;
+        StrokeSegment seg = _segments[segmentIndex];
 
         // Calculate target position: position = depth - stroke * (1.0 - y)
-        _nextMove.stroke = _depth - int(_stroke * (1.0 - end.y));
+        _nextMove.stroke = _depth - int(_stroke * (1.0 - seg.end_y));
 
         // Time for this segment
-        float segmentDuration = end.t - start.t;
+        float segmentDuration = seg.end_t - seg.start_t;
         float timeForSegment = segmentDuration * _timeOfStroke;
 
         // Distance to travel
-        int startPos = _depth - int(_stroke * (1.0 - start.y));
+        int startPos = _depth - int(_stroke * (1.0 - seg.start_y));
         int distance = abs(_nextMove.stroke - startPos);
         if (distance < 1) distance = 1;
 
@@ -710,11 +767,93 @@ class ArrayPattern : public Pattern {
   protected:
     const PatternPoint *_points;
     int _numPoints;
+    StrokeSegment *_segments;
+    int _numSegments;
+
+    void _buildSegments() {
+        // Count total segments needed (including curve samples)
+        int totalSegments = 0;
+        for (int i = 0; i < _numPoints - 1; i++) {
+            if (_isCurved(_points[i], _points[i + 1])) {
+                totalSegments += BEZIER_SAMPLES_PER_SEGMENT;
+            } else {
+                totalSegments += 1;
+            }
+        }
+
+        // Allocate segment array
+        _segments = new StrokeSegment[totalSegments];
+        _numSegments = 0;
+
+        // Process each segment
+        for (int i = 0; i < _numPoints - 1; i++) {
+            PatternPoint start = _points[i];
+            PatternPoint end = _points[i + 1];
+
+            if (_isCurved(start, end)) {
+                _sampleCurvedSegment(start, end);
+            } else {
+                _addLinearSegment(start.t, start.y, end.t, end.y);
+            }
+        }
+    }
+
+    bool _isCurved(const PatternPoint &start, const PatternPoint &end) {
+        return (start.right_control_magnitude > 0.0001 ||
+                end.left_control_magnitude > 0.0001);
+    }
+
+    void _addLinearSegment(float t0, float y0, float t1, float y1) {
+        _segments[_numSegments].start_t = t0;
+        _segments[_numSegments].start_y = y0;
+        _segments[_numSegments].end_t = t1;
+        _segments[_numSegments].end_y = y1;
+        _numSegments++;
+    }
+
+    void _sampleCurvedSegment(const PatternPoint &start, const PatternPoint &end) {
+        // Calculate bezier control points from slope/magnitude
+        float dt = end.t - start.t;
+        float dy = end.y - start.y;
+
+        // Control point 1 (leaving start point)
+        // For slope=0, creates horizontal tangent (ease out)
+        float c1_t = start.t + start.right_control_magnitude * dt *
+                                   cos(start.right_control_slope);
+        float c1_y = start.y + start.right_control_magnitude * dy *
+                                   sin(start.right_control_slope);
+
+        // Control point 2 (approaching end point)
+        // For slope=0, creates horizontal tangent (ease in)
+        float c2_t =
+            end.t - end.left_control_magnitude * dt * cos(end.left_control_slope);
+        float c2_y =
+            end.y - end.left_control_magnitude * dy * sin(end.left_control_slope);
+
+        // Sample the curve with UNIFORM time distribution
+        float prev_t = start.t;
+        float prev_y = start.y;
+
+        for (int i = 1; i <= BEZIER_SAMPLES_PER_SEGMENT; i++) {
+            float u = (float)i / BEZIER_SAMPLES_PER_SEGMENT;
+
+            // Time is uniformly distributed (FIX: no bezier on time!)
+            float curr_t = start.t + dt * u;
+
+            // Only position follows the bezier curve
+            float curr_y = cubicBezier(start.y, c1_y, c2_y, end.y, u);
+
+            _addLinearSegment(prev_t, prev_y, curr_t, curr_y);
+
+            prev_t = curr_t;
+            prev_y = curr_y;
+        }
+    }
 };
 
 /**************************************************************************/
 /*!
-  @brief  Test Pattern 1 - Simple triangular wave
+  @brief  Test Pattern 1 - Simple triangular wave with slow extension, fast retraction
 */
 /**************************************************************************/
 class TestPattern1 : public ArrayPattern {
@@ -723,8 +862,37 @@ class TestPattern1 : public ArrayPattern {
 
   private:
     static constexpr PatternPoint _patternPoints[3] = {
-        {0.0, 0.0},   // Start at min position
-        {0.8, 1.0},   // At 80% of cycle, reach max position (slow extension)
-        {1.0, 0.0}    // Return to min position (fast retraction)
+        {.t = 0.0, .y = 0.0,
+         .left_control_slope = 0, .left_control_magnitude = 0,
+         .right_control_slope = 0, .right_control_magnitude = 0},
+        {.t = 0.8, .y = 1.0,
+         .left_control_slope = 0, .left_control_magnitude = 0,
+         .right_control_slope = 0, .right_control_magnitude = 0},
+        {.t = 1.0, .y = 0.0,
+         .left_control_slope = 0, .left_control_magnitude = 0,
+         .right_control_slope = 0, .right_control_magnitude = 0}
+    };
+};
+
+/**************************************************************************/
+/*!
+  @brief  Test Pattern 2 - Parabolic curve with smooth acceleration/deceleration
+*/
+/**************************************************************************/
+class TestPattern2 : public ArrayPattern {
+  public:
+    TestPattern2() : ArrayPattern("Test Pattern 2", _patternPoints, 3) {}
+
+  private:
+    static constexpr PatternPoint _patternPoints[3] = {
+        {.t = 0.0, .y = 0.0,
+         .left_control_slope = 0, .left_control_magnitude = 0,
+         .right_control_slope = 0, .right_control_magnitude = 0},
+        {.t = 0.5, .y = 1.0,
+         .left_control_slope = 0, .left_control_magnitude = 0.25,
+         .right_control_slope = 0, .right_control_magnitude = 0.25},
+        {.t = 1.0, .y = 0.0,
+         .left_control_slope = 0, .left_control_magnitude = 0,
+         .right_control_slope = 0, .right_control_magnitude = 0}
     };
 };

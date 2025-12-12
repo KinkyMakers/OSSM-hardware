@@ -63,6 +63,8 @@ static const char fr_StrokeEngineDescriptions_6[] PROGMEM =
     "direction.";
 static const char fr_StrokeEngineDescriptions_7[] PROGMEM =
     "Onde triangulaire linéaire de min à max et retour.";
+static const char fr_StrokeEngineDescriptions_8[] PROGMEM =
+    "Courbe parabolique douce avec accélération graduelle.";
 
 static const char fr_StrokeEngineNames_0[] PROGMEM = "Simple Stroke";
 static const char fr_StrokeEngineNames_1[] PROGMEM = "Teasing Pounding";
@@ -72,6 +74,7 @@ static const char fr_StrokeEngineNames_4[] PROGMEM = "Deeper";
 static const char fr_StrokeEngineNames_5[] PROGMEM = "Stop'n'Go";
 static const char fr_StrokeEngineNames_6[] PROGMEM = "Insist";
 static const char fr_StrokeEngineNames_7[] PROGMEM = "Motif de Test 1";
+static const char fr_StrokeEngineNames_8[] PROGMEM = "Motif de Test 2";
 
 static const LanguageStruct fr = {
     .DeepThroatTrainerSync = fr_DeepThroatTrainerSync,
@@ -110,10 +113,12 @@ static const LanguageStruct fr = {
                                  fr_StrokeEngineDescriptions_4,
                                  fr_StrokeEngineDescriptions_5,
                                  fr_StrokeEngineDescriptions_6,
-                                 fr_StrokeEngineDescriptions_7},
+                                 fr_StrokeEngineDescriptions_7,
+                                 fr_StrokeEngineDescriptions_8},
     .StrokeEngineNames = {fr_StrokeEngineNames_0, fr_StrokeEngineNames_1,
                           fr_StrokeEngineNames_2, fr_StrokeEngineNames_3,
                           fr_StrokeEngineNames_4, fr_StrokeEngineNames_5,
-                          fr_StrokeEngineNames_6, fr_StrokeEngineNames_7}};
+                          fr_StrokeEngineNames_6, fr_StrokeEngineNames_7,
+                          fr_StrokeEngineNames_8}};
 
 #endif  // OSSM_SOFTWARE_FR_H

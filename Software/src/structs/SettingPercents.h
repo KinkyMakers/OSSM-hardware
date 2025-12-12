@@ -10,6 +10,7 @@ enum class StrokePatterns {
     StopNGo,
     Insist,
     TestPattern1,
+    TestPattern2,
 };
 
 struct SettingPercents {

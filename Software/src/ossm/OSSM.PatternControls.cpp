@@ -7,7 +7,7 @@
 size_t numberOfDescriptions =
     sizeof(UserConfig::language.StrokeEngineDescriptions) /
     sizeof(UserConfig::language.StrokeEngineDescriptions[0]);
-size_t numberOfPatterns = 8;
+size_t numberOfPatterns = 9;
 
 void OSSM::drawPatternControlsTask(void *pvParameters) {
     // parse ossm from the parameters
