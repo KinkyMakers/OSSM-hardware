@@ -41,6 +41,16 @@ typedef struct {
 
 /**************************************************************************/
 /*!
+  @brief  struct to define a point in an array-based pattern
+*/
+/**************************************************************************/
+typedef struct {
+    float t;  //!< Time position in pattern cycle (0.0 to 1.0 where 1.0 = 100%)
+    float y;  //!< Position value (0.0 to 1.0 where 0.0 = min, 1.0 = max)
+} PatternPoint;
+
+/**************************************************************************/
+/*!
   @class Pattern
   @brief  Base class to derive your pattern from. Offers a unified set of
           functions to store all relevant paramteres. These function can be
@@ -646,4 +656,75 @@ class Insist : public Pattern {
         // Calculate fractional stroke length
         _realStroke = int((float)_stroke * _strokeFraction);
     }
+};
+
+/**************************************************************************/
+/*!
+  @brief  Array-based pattern that interpolates between defined points.
+  Each linear segment between consecutive points becomes one discrete stroke.
+*/
+/**************************************************************************/
+class ArrayPattern : public Pattern {
+  public:
+    ArrayPattern(const char *name, const PatternPoint *points, int numPoints)
+        : Pattern(name), _points(points), _numPoints(numPoints) {
+        if (_numPoints < 2) _numPoints = 2;
+    }
+
+    void setTimeOfStroke(float speed = 0) override {
+        // Spec timing: Each interval gets 1/3 second at 100% speed
+        // Formula: adjusted_time = num_intervals * base_time * (5/3)
+        // This ensures patterns with more points take proportionally longer
+        int numIntervals = _numPoints - 1;
+        _timeOfStroke = numIntervals * speed * 5.0 / 3.0;
+    }
+
+    motionParameter nextTarget(unsigned int index) override {
+        int numSegments = _numPoints - 1;
+        int segmentIndex = index % numSegments;
+
+        PatternPoint start = _points[segmentIndex];
+        PatternPoint end = _points[segmentIndex + 1];
+
+        // Calculate target position: position = depth - stroke * (1.0 - y)
+        _nextMove.stroke = _depth - int(_stroke * (1.0 - end.y));
+
+        // Time for this segment
+        float segmentDuration = end.t - start.t;
+        float timeForSegment = segmentDuration * _timeOfStroke;
+
+        // Distance to travel
+        int startPos = _depth - int(_stroke * (1.0 - start.y));
+        int distance = abs(_nextMove.stroke - startPos);
+        if (distance < 1) distance = 1;
+
+        // Trapezoidal profile (1/3, 1/3, 1/3)
+        _nextMove.speed = int(1.5 * distance / timeForSegment);
+        _nextMove.acceleration = int(3.0 * float(_nextMove.speed) / timeForSegment);
+        _nextMove.skip = false;
+        _index = index;
+
+        return _nextMove;
+    }
+
+  protected:
+    const PatternPoint *_points;
+    int _numPoints;
+};
+
+/**************************************************************************/
+/*!
+  @brief  Test Pattern 1 - Simple triangular wave
+*/
+/**************************************************************************/
+class TestPattern1 : public ArrayPattern {
+  public:
+    TestPattern1() : ArrayPattern("Test Pattern 1", _patternPoints, 3) {}
+
+  private:
+    static constexpr PatternPoint _patternPoints[3] = {
+        {0.0, 0.0},   // Start at min position
+        {0.8, 1.0},   // At 80% of cycle, reach max position (slow extension)
+        {1.0, 0.0}    // Return to min position (fast retraction)
+    };
 };

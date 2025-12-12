@@ -93,6 +93,9 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
                 case StrokePatterns::Insist:
                     Stroker.setPattern(new Insist("Insist"), false);
                     break;
+                case StrokePatterns::TestPattern1:
+                    Stroker.setPattern(new TestPattern1(), false);
+                    break;
                 default:
                     break;
             }
