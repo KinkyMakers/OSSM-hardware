@@ -29,14 +29,19 @@ public:
         int32_t targetPosition = stepper->targetPos();
 
         // Determine direction based on where motor is heading
-        currentMotionDirection = (currentPosition < targetPosition)
-            ? MotionDirection::EXTENDING
-            : MotionDirection::RETRACTING;
+        // Only update direction if motor hasn't reached target (is actively moving toward something)
+        MotionDirection newDirection = currentMotionDirection;
+        if (currentPosition != targetPosition) {
+            newDirection = (currentPosition > targetPosition)
+                ? MotionDirection::EXTENDING
+                : MotionDirection::RETRACTING;
+        }
 
         // Initialize tracking on first call
         if (!statsInitialized) {
             lastPositionForStats = currentPosition;
-            lastMotionDirection = currentMotionDirection;
+            lastMotionDirection = newDirection;
+            currentMotionDirection = newDirection;
             statsInitialized = true;
             return;
         }
@@ -46,14 +51,21 @@ public:
         double deltaSteps = abs(currentPosition - lastPositionForStats);
         sessionStatistics.distanceInMillimeters += deltaSteps / 20.0;
 
-        // Count direction changes as strokes
-        if (currentMotionDirection != lastMotionDirection) {
-            sessionStatistics.strokesTotal++;
+        // Count strokes on direction changes (happens when target changes)
+        if (newDirection != lastMotionDirection) {
+            // Count strokes on EXTENDING→RETRACTING transitions (one complete cycle)
+            if (lastMotionDirection == MotionDirection::EXTENDING &&
+                newDirection == MotionDirection::RETRACTING) {
+                sessionStatistics.strokesTotal++;
+            }
+
+            // Update direction tracking
+            lastMotionDirection = newDirection;
         }
 
-        // Update tracking variables for next iteration
+        // Update tracking variables
+        currentMotionDirection = newDirection;
         lastPositionForStats = currentPosition;
-        lastMotionDirection = currentMotionDirection;
     }
 
     void reset() {
@@ -206,11 +218,12 @@ void test_stroke_count_on_direction_change_retracting_to_extending(void) {
     ossm->updateStats();
 
     // Move to 0, now heading to -1000 (EXTENDING)
+    // This is RETRACTING→EXTENDING, which should NOT count as a stroke
     stepper->currentPosition = 0;
     stepper->targetPosition = -1000;
     ossm->updateStats();
 
-    TEST_ASSERT_EQUAL(1, ossm->sessionStatistics.strokesTotal);
+    TEST_ASSERT_EQUAL(0, ossm->sessionStatistics.strokesTotal);
 }
 
 void test_stroke_count_multiple_direction_changes(void) {
@@ -219,22 +232,22 @@ void test_stroke_count_multiple_direction_changes(void) {
     stepper->targetPosition = -1000;
     ossm->updateStats();  // Initialize, strokes = 0
 
-    // Move to -1000, retracting
+    // Move to -1000, retracting (EXTENDING→RETRACTING)
     stepper->currentPosition = -1000;
     stepper->targetPosition = 0;
-    ossm->updateStats();  // Direction change, strokes = 1
+    ossm->updateStats();  // Counts as stroke, strokes = 1
 
-    // Move to 0, extending
+    // Move to 0, extending (RETRACTING→EXTENDING)
     stepper->currentPosition = 0;
     stepper->targetPosition = -1000;
-    ossm->updateStats();  // Direction change, strokes = 2
+    ossm->updateStats();  // Does NOT count, strokes = 1
 
-    // Move to -1000, retracting
+    // Move to -1000, retracting (EXTENDING→RETRACTING)
     stepper->currentPosition = -1000;
     stepper->targetPosition = 0;
-    ossm->updateStats();  // Direction change, strokes = 3
+    ossm->updateStats();  // Counts as stroke, strokes = 2
 
-    TEST_ASSERT_EQUAL(3, ossm->sessionStatistics.strokesTotal);
+    TEST_ASSERT_EQUAL(2, ossm->sessionStatistics.strokesTotal);
 }
 
 void test_no_stroke_count_when_direction_unchanged(void) {
@@ -262,18 +275,18 @@ void test_no_stroke_count_when_direction_unchanged(void) {
 // DIRECTION DETECTION TESTS
 // ============================================================================
 
-void test_direction_extending_when_current_less_than_target(void) {
-    stepper->currentPosition = -500;
-    stepper->targetPosition = 0;
+void test_direction_extending_when_current_greater_than_target(void) {
+    stepper->currentPosition = 0;
+    stepper->targetPosition = -500;
 
     ossm->updateStats();
 
     TEST_ASSERT_EQUAL(MotionDirection::EXTENDING, ossm->currentMotionDirection);
 }
 
-void test_direction_retracting_when_current_greater_than_target(void) {
-    stepper->currentPosition = 0;
-    stepper->targetPosition = -500;
+void test_direction_retracting_when_current_less_than_target(void) {
+    stepper->currentPosition = -500;
+    stepper->targetPosition = 0;
 
     ossm->updateStats();
 
@@ -296,7 +309,7 @@ void test_direction_retracting_when_current_equals_target(void) {
 
 void test_complete_stroke_cycle_counting_and_distance(void) {
     // Full stroke cycle: 0 → -1000 → 0
-    // Expected: 2 strokes (2 direction changes), 100mm distance
+    // Expected: 1 stroke (one EXTENDING→RETRACTING transition), 100mm distance
 
     stepper->currentPosition = 0;
     stepper->targetPosition = -1000;
@@ -304,13 +317,13 @@ void test_complete_stroke_cycle_counting_and_distance(void) {
 
     stepper->currentPosition = -1000;
     stepper->targetPosition = 0;
-    ossm->updateStats();  // Stroke 1, Distance: 50mm
+    ossm->updateStats();  // EXTENDING→RETRACTING: Stroke 1, Distance: 50mm
 
     stepper->currentPosition = 0;
     stepper->targetPosition = -1000;
-    ossm->updateStats();  // Stroke 2, Distance: 100mm
+    ossm->updateStats();  // RETRACTING→EXTENDING: No stroke counted, Distance: 100mm
 
-    TEST_ASSERT_EQUAL(2, ossm->sessionStatistics.strokesTotal);
+    TEST_ASSERT_EQUAL(1, ossm->sessionStatistics.strokesTotal);
     TEST_ASSERT_EQUAL_FLOAT(100.0, ossm->sessionStatistics.distanceInMillimeters);
 }
 
@@ -385,8 +398,8 @@ int runUnityTests() {
     RUN_TEST(test_no_stroke_count_when_direction_unchanged);
 
     // Direction detection tests
-    RUN_TEST(test_direction_extending_when_current_less_than_target);
-    RUN_TEST(test_direction_retracting_when_current_greater_than_target);
+    RUN_TEST(test_direction_extending_when_current_greater_than_target);
+    RUN_TEST(test_direction_retracting_when_current_less_than_target);
     RUN_TEST(test_direction_retracting_when_current_equals_target);
 
     // Combined scenario tests

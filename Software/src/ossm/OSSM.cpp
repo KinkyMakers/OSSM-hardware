@@ -165,14 +165,19 @@ void OSSM::updateStats() {
     int32_t targetPosition = stepper->targetPos();
 
     // Determine direction based on where motor is heading
-    currentMotionDirection = (currentPosition < targetPosition)
-        ? MotionDirection::EXTENDING
-        : MotionDirection::RETRACTING;
+    // Only update direction if motor hasn't reached target (is actively moving toward something)
+    MotionDirection newDirection = currentMotionDirection;
+    if (currentPosition != targetPosition) {
+        newDirection = (currentPosition > targetPosition)
+            ? MotionDirection::EXTENDING
+            : MotionDirection::RETRACTING;
+    }
 
     // Initialize tracking on first call
     if (!statsInitialized) {
         lastPositionForStats = currentPosition;
-        lastMotionDirection = currentMotionDirection;
+        lastMotionDirection = newDirection;
+        currentMotionDirection = newDirection;
         statsInitialized = true;
         return;
     }
@@ -181,12 +186,19 @@ void OSSM::updateStats() {
     double deltaSteps = abs(currentPosition - lastPositionForStats);
     sessionStatistics.distanceInMillimeters += deltaSteps / (1_mm);
 
-    // Count direction changes as strokes
-    if (currentMotionDirection != lastMotionDirection) {
-        sessionStatistics.strokesTotal++;
+    // Count strokes on direction changes (happens when target changes)
+    if (newDirection != lastMotionDirection) {
+        // Count strokes on EXTENDING→RETRACTING transitions (one complete cycle)
+        if (lastMotionDirection == MotionDirection::EXTENDING &&
+            newDirection == MotionDirection::RETRACTING) {
+            sessionStatistics.strokesTotal++;
+        }
+
+        // Update direction tracking
+        lastMotionDirection = newDirection;
     }
 
-    // Update tracking variables for next iteration
+    // Update tracking variables
+    currentMotionDirection = newDirection;
     lastPositionForStats = currentPosition;
-    lastMotionDirection = currentMotionDirection;
 }
