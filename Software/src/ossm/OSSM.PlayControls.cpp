@@ -180,7 +180,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
              * These controls are associated with stroke and distance
              */
             ossm->display.setFont(Config::Font::small);
-            strokeString = "# " + String(ossm->sessionStrokeCount);
+            strokeString = "# " + String(ossm->sessionStatistics.strokesTotal);
             ossm->display.drawUTF8(14, lh4, strokeString.c_str());
 
             /**
@@ -191,12 +191,13 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
              * These controls are associated with stroke and distance
              */
 
-            if (!isStrokeEngine) {
-                strokeString = formatDistance(ossm->sessionDistanceMeters);
-                stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-                ossm->display.drawUTF8(104 - stringWidth, lh3,
-                                       strokeString.c_str());
-            }
+            // Display distance in both SimplePenetration and StrokeEngine modes
+            // Convert millimeters to meters for display
+            double distanceMeters = ossm->sessionStatistics.distanceInMillimeters / 1000.0;
+            strokeString = formatDistance(distanceMeters);
+            stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
+            ossm->display.drawUTF8(104 - stringWidth, lh3,
+                                   strokeString.c_str());
 
             strokeString =
                 formatTime(displayLastUpdated - ossm->sessionStartTime).c_str();

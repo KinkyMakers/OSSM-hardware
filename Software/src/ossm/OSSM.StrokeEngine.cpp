@@ -100,6 +100,12 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
             lastSetting.pattern = OSSM::setting.pattern;
         }
 
+        // Update session statistics (stroke count and distance)
+        if (OSSM::setting.speed > Config::Advanced::commandDeadZonePercentage &&
+            Stroker.getState() == PATTERN) {
+            ossm->updateStats();
+        }
+
         if(ossm->hasActiveBLEConnection) {
             // When connected to BLE, update more frequently for improved responsiveness
             vTaskDelay(100);

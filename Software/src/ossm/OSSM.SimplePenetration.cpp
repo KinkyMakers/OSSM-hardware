@@ -8,7 +8,6 @@
 void OSSM::startSimplePenetrationTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
 
-    int fullStrokeCount = 0;
     static int32_t targetPosition = 0;
 
     auto isInCorrectState = [](OSSM *ossm) {
@@ -56,6 +55,14 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
             ossm->stepper->setSpeedInHz(speed);
         }
 
+        // Update session statistics (stroke count and distance)
+        // Call this in the main loop to continuously track movement
+        if (OSSM::setting.speed > Config::Advanced::commandDeadZonePercentage &&
+            OSSM::setting.stroke >
+                (long)Config::Advanced::commandDeadZonePercentage) {
+            ossm->updateStats();
+        }
+
         // If the stepper is not at the target, then wait for the next loop
         if (!isAtTarget) {
             vTaskDelay(1);
@@ -77,20 +84,6 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
                  targetPosition, speed, acceleration);
 
         ossm->stepper->moveTo(targetPosition, false);
-
-        if (OSSM::setting.speed > Config::Advanced::commandDeadZonePercentage &&
-            OSSM::setting.stroke >
-                (long)Config::Advanced::commandDeadZonePercentage) {
-            fullStrokeCount++;
-            ossm->sessionStrokeCount = floor(fullStrokeCount / 2);
-
-            // This calculation assumes that at the end of every stroke you have
-            // a whole positive distance, equal to maximum target position.
-            ossm->sessionDistanceMeters +=
-                (((float)OSSM::setting.stroke / 100.0) *
-                 ossm->measuredStrokeSteps / (1_mm)) /
-                1000.0;
-        }
 
         vTaskDelay(1);
     }

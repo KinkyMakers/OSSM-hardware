@@ -4,6 +4,7 @@
 #include "constants/UserConfig.h"
 #include "extensions/u8g2Extensions.h"
 #include "services/encoder.h"
+#include "constants/Config.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -143,4 +144,49 @@ void OSSM::drawError() {
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }
+}
+
+/**
+ * Update session statistics based on current motor position.
+ *
+ * This method:
+ * 1. Tracks distance traveled by accumulating all motor movement
+ * 2. Counts strokes by detecting direction changes
+ *
+ * Direction is determined by comparing current position to target position:
+ * - EXTENDING: Moving away from home (toward negative position, inserting)
+ * - RETRACTING: Moving toward home (toward zero position, withdrawing)
+ *
+ * Should be called regularly from motion control loops (SimplePenetration and StrokeEngine).
+ */
+void OSSM::updateStats() {
+    // Get current motor state
+    int32_t currentPosition = stepper->getCurrentPosition();
+    int32_t targetPosition = stepper->targetPos();
+
+    // Determine direction based on where motor is heading
+    currentMotionDirection = (currentPosition < targetPosition)
+        ? MotionDirection::EXTENDING
+        : MotionDirection::RETRACTING;
+
+    // Initialize tracking on first call
+    if (!statsInitialized) {
+        lastPositionForStats = currentPosition;
+        lastMotionDirection = currentMotionDirection;
+        statsInitialized = true;
+        return;
+    }
+
+    // Accumulate distance traveled (convert steps to millimeters)
+    double deltaSteps = abs(currentPosition - lastPositionForStats);
+    sessionStatistics.distanceInMillimeters += deltaSteps / (1_mm);
+
+    // Count direction changes as strokes
+    if (currentMotionDirection != lastMotionDirection) {
+        sessionStatistics.strokesTotal++;
+    }
+
+    // Update tracking variables for next iteration
+    lastPositionForStats = currentPosition;
+    lastMotionDirection = currentMotionDirection;
 }

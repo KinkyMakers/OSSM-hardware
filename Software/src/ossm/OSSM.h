@@ -8,6 +8,24 @@
 #include <command/commands.hpp>
 
 #include "Actions.h"
+
+/**
+ * ///////////////////////////////////////////
+ * ////
+ * ////  Motion Direction and Session Statistics
+ * ////
+ * ///////////////////////////////////////////
+ */
+
+enum class MotionDirection {
+    EXTENDING,   // Moving away from home (negative position, inserting)
+    RETRACTING   // Moving toward home (zero position, withdrawing)
+};
+
+struct SessionStatistics {
+    int strokesTotal = 0;
+    double distanceInMillimeters = 0.0;
+};
 #include "AiEsp32RotaryEncoder.h"
 #include "Events.h"
 #include "FastAccelStepper.h"
@@ -89,6 +107,12 @@ class OSSM : public OSSMInterface {
                 o.encoder.setBoundaries(0, 100, false);
                 o.encoder.setAcceleration(10);
                 o.encoder.setEncoderValue(OSSM::setting.depth);
+
+                // Initialize session tracking
+                o.sessionStartTime = millis();
+                o.sessionStatistics.strokesTotal = 0;
+                o.sessionStatistics.distanceInMillimeters = 0.0;
+                o.statsInitialized = false;
             };
 
             auto resetSettingsSimplePen = [](OSSM &o) {
@@ -103,10 +127,11 @@ class OSSM : public OSSMInterface {
                 o.encoder.setAcceleration(10);
                 o.encoder.setEncoderValue(OSSM::setting.stroke);
 
-                // record session start time rounded to the nearest second
+                // Initialize session tracking
                 o.sessionStartTime = millis();
-                o.sessionStrokeCount = 0;
-                o.sessionDistanceMeters = 0;
+                o.sessionStatistics.strokesTotal = 0;
+                o.sessionStatistics.distanceInMillimeters = 0.0;
+                o.statsInitialized = false;
             };
 
             auto incrementControl = [](OSSM &o) {
@@ -268,10 +293,6 @@ class OSSM : public OSSMInterface {
 
     String errorMessage = "";
 
-    unsigned long sessionStartTime = 0;
-    int sessionStrokeCount = 0;
-    double sessionDistanceMeters = 0;
-
     PlayControls playControl = PlayControls::STROKE;
 
     bool lastSpeedCommandWasFromBLE = false;
@@ -383,7 +404,30 @@ class OSSM : public OSSMInterface {
     float targetVelocity = 0;
     uint16_t targetTime = 0;
 
+    /**
+     * ///////////////////////////////////////////
+     * ////
+     * ////  Session Telemetry and Statistics
+     * ////
+     * ///////////////////////////////////////////
+     */
+    unsigned long sessionStartTime = 0;
+    SessionStatistics sessionStatistics;
+
+    // Statistics tracking state
+    MotionDirection currentMotionDirection = MotionDirection::RETRACTING;
+    MotionDirection lastMotionDirection = MotionDirection::RETRACTING;
+    int32_t lastPositionForStats = 0;
+    bool statsInitialized = false;
+
     int getSpeed() { return this->setting.speed; }
+
+    /**
+     * Update session statistics based on current motor position.
+     * Tracks distance traveled and counts direction changes as strokes.
+     * Should be called regularly from the motion control loop.
+     */
+    void updateStats();
     // Implement the interface methods
     template <typename EventType>
     void process_event(const EventType &event) {

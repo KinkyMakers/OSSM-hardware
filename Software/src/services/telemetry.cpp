@@ -101,22 +101,35 @@ namespace Telemetry {
 
     static String buildJsonPayload(String sampleJson) {
         String localSessionId;
+        int strokesTotal = 0;
+        double distanceInMillimeters = 0.0;
+
         if (xSemaphoreTake(bufferMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
             localSessionId = sessionId;  // Copy while protected
+
+            // Get session statistics from OSSM instance
+            if (ossmRef != nullptr) {
+                strokesTotal = ossmRef->sessionStatistics.strokesTotal;
+                distanceInMillimeters = ossmRef->sessionStatistics.distanceInMillimeters;
+            }
+
             xSemaphoreGive(bufferMutex);
         }
         String macAddress = HttpService::getMacAddress();
 
-        // Pre-allocate: fixed parts (~60 bytes) + sessionId (~36 bytes) +
-        // sampleJson
+        // Pre-allocate: fixed parts + sessionId + sampleJson + metrics (~50 bytes)
         String json;
-        json.reserve(100 + localSessionId.length() + sampleJson.length());
+        json.reserve(150 + localSessionId.length() + sampleJson.length());
 
         json = "{\"macAddress\":\"";
         json += macAddress;
         json += "\",\"sessionId\":\"";
         json += localSessionId;
-        json += "\",\"data\":";
+        json += "\",\"strokesTotal\":";
+        json += String(strokesTotal);
+        json += ",\"distanceInMillimeters\":";
+        json += String((int)distanceInMillimeters);  // Rounded to whole number
+        json += ",\"data\":";
         json += sampleJson;
         json += "}";
 
