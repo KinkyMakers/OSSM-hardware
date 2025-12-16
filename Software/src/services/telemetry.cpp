@@ -9,25 +9,27 @@
 
 namespace Telemetry {
 
-    struct PositionSample {
+    struct Sample {
         unsigned long time;  // Timestamp in milliseconds
         float position;      // Position in millimeters
+        float watts;     // Power in watts
     };
 
-    class PositionBuffer {
+    class SampleBuffer {
       private:
         // Buffer sized for ~1 second of samples at 30Hz (30 samples) plus
         // safety margin. At 30Hz sampling and 1Hz upload, expect ~30 samples
         // per upload; 32 provides a small safety margin.
         static const int BUFFER_SIZE = 32;
-        PositionSample buffer[BUFFER_SIZE];
+        Sample buffer[BUFFER_SIZE];
         int writeIndex = 0;
         int sampleCount = 0;
 
       public:
-        void addSample(unsigned long time, float position) {
+        void addSample(unsigned long time, float position, float watts) {
             buffer[writeIndex].time = time;
             buffer[writeIndex].position = position;
+            buffer[writeIndex].watts = watts;
 
             // Move write pointer forward, wrap around if at end
             writeIndex = (writeIndex + 1) % BUFFER_SIZE;
@@ -49,7 +51,7 @@ namespace Telemetry {
 
         /**
          * Build JSON array string for all samples
-         * Format: [{"time": 123, "position": 45.6}, ...]
+         * Format: [{"time":123,"position":45.6,"watts":78.9},...]
          */
         String drainToJson() {
             // Pre-allocate: ~45 bytes per sample + overhead
@@ -59,16 +61,16 @@ namespace Telemetry {
 
             json = "[";
 
-            char sampleBuffer[48];  // Fixed buffer for one sample
+            char sampleBuffer[64];  // Fixed buffer for one sample
             for (int i = 0; i < sampleCount; i++) {
                 int idx =
                     (writeIndex - sampleCount + i + BUFFER_SIZE) % BUFFER_SIZE;
-                PositionSample& sample = buffer[idx];
+                Sample& sample = buffer[idx];
 
                 // Format directly into fixed buffer (no heap allocation)
                 snprintf(sampleBuffer, sizeof(sampleBuffer),
-                         "%s{\"time\":%lu,\"position\":%.2f}", i > 0 ? "," : "",
-                         sample.time, sample.position);
+                         "%s{\"time\":%lu,\"position\":%.2f,\"watts\":%.2f}", i > 0 ? "," : "",
+                         sample.time, sample.position, sample.watts);
 
                 json += sampleBuffer;
             }
@@ -83,7 +85,7 @@ namespace Telemetry {
     // ─────────────────────────────────────────────
     // State Variables
     // ─────────────────────────────────────────────
-    static PositionBuffer positionBuffer;
+    static SampleBuffer sampleBuffer;
     static SemaphoreHandle_t bufferMutex = nullptr;
     static OSSM* ossmRef = nullptr;
 
@@ -126,7 +128,7 @@ namespace Telemetry {
     // ─────────────────────────────────────────────
     // Background Tasks
     // ─────────────────────────────────────────────
-    static void positionSamplingTask(void* pvParameters) {
+    static void samplingTask(void* pvParameters) {
         const TickType_t sampleInterval =
             pdMS_TO_TICKS(33);  // ~30Hz (1000ms / 30 = 33ms)
 
@@ -142,9 +144,16 @@ namespace Telemetry {
             unsigned long timestamp = millis();
             float position = ossmRef->stepper->getCurrentPosition();
 
+            // Ballpark approximate power consumption
+            // Will vary from machine to machine
+            float watts = 4*(getAnalogAveragePercent(
+                        SampleOnPin{Pins::Driver::currentSensorPin, 3}) -
+                    ossmRef->currentSensorOffset);
+
+
             // Thread-safe write to buffer
             if (xSemaphoreTake(bufferMutex, pdMS_TO_TICKS(10)) == pdTRUE) {
-                positionBuffer.addSample(timestamp, position);
+                sampleBuffer.addSample(timestamp, position, watts);
                 xSemaphoreGive(bufferMutex);
             }
 
@@ -167,8 +176,8 @@ namespace Telemetry {
             // Drain buffer (thread-safe)
             String samplesJson;
             if (xSemaphoreTake(bufferMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
-                if (positionBuffer.getCount() > 0) {
-                    samplesJson = positionBuffer.drainToJson();
+                if (sampleBuffer.getCount() > 0) {
+                    samplesJson = sampleBuffer.drainToJson();
                 }
                 xSemaphoreGive(bufferMutex);
             }
@@ -188,7 +197,7 @@ namespace Telemetry {
         bufferMutex = xSemaphoreCreateMutex();
 
         // Create tasks once at startup (they sleep when inactive)
-        xTaskCreatePinnedToCore(positionSamplingTask, "TelemetrySample", 3072,
+        xTaskCreatePinnedToCore(samplingTask, "TelemetrySample", 3072,
                                 nullptr,
                                 1,  // Low priority
                                 &samplingTaskHandle,
@@ -210,7 +219,7 @@ namespace Telemetry {
         // Clear any stale data
         if (xSemaphoreTake(bufferMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
             sessionId = generateSessionId();
-            positionBuffer.clear();
+            sampleBuffer.clear();
             xSemaphoreGive(bufferMutex);
         }
 
