@@ -5,13 +5,12 @@
 #include "ossm/OSSM.h"
 #include "ossm/OSSMI.h"
 #include "services/board.h"
-#include "services/communication/http.h"
+#include "services/communication/mqtt.h"
 #include "services/communication/nimble.h"
 #include "services/display.h"
 #include "services/encoder.h"
 #include "services/led.h"
 #include "services/stepper.h"
-#include "services/telemetry.h"
 #include "services/wm.h"
 
 /*
@@ -40,21 +39,19 @@ void setup() {
     ESP_LOGD("MAIN", "Starting OSSM");
 
     initWM();
-
+    delay(5000);
+    initMQTT();
+    initNimble();
     // Display
     initDisplay();
 
     // Initialize header bar task
     initHeaderBar();
 
-    HttpService::init();
-    // Init Telemetry Service
-    Telemetry::init();
-
     ossm = new OSSM(display, encoder, stepper);
     ossmInterface = ossm;
 
-    // Initialize LED for BLE and machine status indication
+    // ialize LED for BLE and machine status indication
     ESP_LOGI("MAIN", "LED initialized for BLE and machine status indication");
     updateLEDForMachineStatus();  // Set initial LED state
 

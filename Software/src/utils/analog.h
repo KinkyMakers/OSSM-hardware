@@ -10,6 +10,7 @@ typedef struct {
 
 // public static function to get the analog value of a pin
 static float getAnalogAveragePercent(SampleOnPin sampleOnPin) {
+    return 0;
     int sum = 0;
     float average;
     float percentage;

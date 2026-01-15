@@ -182,13 +182,16 @@ void nimbleLoop(void* pvParameters) {
             String cmd = messageQueue.front();
             messageQueue.pop();
             ossmInterface->ble_click(cmd);
-            pChr->setValue("ok:" + cmd);
+            // pChr->setValue("ok:" + cmd);
 
-            // Trigger LED communication pulse for command processing
-            pulseForCommunication();
+            // // Trigger LED communication pulse for command processing
+            // pulseForCommunication();
 
-            vTaskDelay(1);
+            vTaskDelay(pdMS_TO_TICKS(50));
         }
+
+        vTaskDelay(1);
+        continue;
 
         int currentTime = millis();
         bool stateChanged = currentState != lastState;

@@ -73,9 +73,6 @@ void OSSM::startSimplePenetrationTask(void *pvParameters) {
             targetPosition = 0;
         }
 
-        ESP_LOGV("SimplePenetration", "target: %f,\tspeed: %f,\tacc: %f",
-                 targetPosition, speed, acceleration);
-
         ossm->stepper->moveTo(targetPosition, false);
 
         if (OSSM::setting.speed > Config::Advanced::commandDeadZonePercentage &&

@@ -59,8 +59,9 @@ class GPIOCallbacks : public NimBLECharacteristicCallbacks {
         int level = (stateStr == "high" || stateStr == "1") ? HIGH : LOW;
         digitalWrite(targetPin, level);
 
-        ESP_LOGD(NIMBLE_TAG, "GPIO set pin%d (GPIO %d) to %s", index, targetPin,
-                 level == HIGH ? "HIGH" : "LOW");
+        // ESP_LOGD(NIMBLE_TAG, "GPIO set pin%d (GPIO %d) to %s", index,
+        // targetPin,
+        //          level == HIGH ? "HIGH" : "LOW");
 
         // Respond with normalized acknowledgement
         String ack =

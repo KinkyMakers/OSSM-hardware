@@ -2,8 +2,8 @@
 
 #include "Events.h"
 #include "constants/UserConfig.h"
-#include "utils/analog.h"
 #include "services/led.h"
+#include "utils/analog.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -16,10 +16,10 @@ using namespace sml;
  */
 void OSSM::clearHoming() {
     ESP_LOGD("Homing", "Homing started");
-    
+
     // Set homing active flag for LED indication
     setHomingActive(true);
-    
+
     isForward = true;
 
     // Set acceleration and deceleration in steps/s^2
@@ -57,7 +57,8 @@ void OSSM::startHomingTask(void *pvParameters) {
     int32_t targetPositionInSteps =
         round(sign * Config::Driver::maxStrokeSteps);
 
-    ESP_LOGD("Homing", "Target position in steps: %d", targetPositionInSteps);
+    ESP_LOGD("Homing", "Target position in steps: %d",
+             int(targetPositionInSteps));
     ossm->stepper->moveTo(targetPositionInSteps, false);
 
     auto isInCorrectState = [](OSSM *ossm) {
@@ -79,10 +80,10 @@ void OSSM::startHomingTask(void *pvParameters) {
         if (msPassed > 40000) {
             ESP_LOGE("Homing", "Homing took too long. Check power and restart");
             ossm->errorMessage = UserConfig::language.HomingTookTooLong;
-            
+
             // Clear homing active flag for LED indication
             setHomingActive(false);
-            
+
             ossm->sm->process_event(Error{});
             break;
         }
@@ -97,11 +98,11 @@ void OSSM::startHomingTask(void *pvParameters) {
             current > Config::Driver::sensorlessCurrentLimit;
 
         if (!isCurrentOverLimit) {
-            vTaskDelay(10); // Increased from 1ms to 10ms to reduce CPU load
+            vTaskDelay(10);  // Increased from 1ms to 10ms to reduce CPU load
             continue;
         }
 
-        ESP_LOGD("Homing", "Current over limit: %f", current);
+        ESP_LOGD("Homing", "Current over limit: %f", float(current));
         ossm->stepper->stopMove();
 
         // step away from the hard stop, with your hands in the air!
