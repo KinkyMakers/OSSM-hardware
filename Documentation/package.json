@@ -1,0 +1,25 @@
+{
+  "name": "open-source-sex-machine",
+  "version": "1.0.0",
+  "description": "A hackable, snackable, portable, diy sex machine",
+  "homepage": "https://github.com/KinkyMakers/OSSM-hardware#readme",
+  "bugs": {
+    "url": "https://github.com/KinkyMakers/OSSM-hardware/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KinkyMakers/OSSM-hardware.git"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "Kinky Makers and Research And Desire",
+  "type": "module",
+  "main": "gulpfile.js",
+  "scripts": {
+    "mint": "cd Documentation && mint dev --port 3333",
+    "optimize": "optimizt images"
+  },
+  "dependencies": {
+    "@funboxteam/optimizt": "^5.0.2",
+    "mint": "^4.2.280"
+  }
+}

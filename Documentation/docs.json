@@ -1,0 +1,119 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "mint",
+  "colors": {
+    "primary": "#16A34A",
+    "light": "#07C983",
+    "dark": "#15803D"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Getting started",
+            "pages": [
+              "index",
+              "quickstart",
+              {
+                "group": "Build Guide",
+                "collapsed": true,
+                "pages": [
+                  "build-guide/step-0.0_introduction",
+                  "build-guide/step-1.0_required_tools_and_parts",
+                  "build-guide/step-2.0_rear_tensioner",
+                  "build-guide/step-3.0_end_effector",
+                  "build-guide/step-4.0_front_tensioner",
+                  "build-guide/step-5.0_ossm_motorhead",
+                  "build-guide/step-6.0_pulley_on_motor",
+                  "build-guide/step-7.0_ossm_motor_head_middle",
+                  "build-guide/step-8.0_cover",
+                  "build-guide/step-9.0_tension_adjustment",
+                  "build-guide/step-10.0_electronics_assembly",
+                  "build-guide/step-11.0_wiring",
+                  "build-guide/step-12.0_initial_test"
+                ]
+              },
+              "development"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "CAD Files",
+        "groups": [
+          {
+            "group": "CAD Files",
+            "pages": [
+              "cad-files/index"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Software",
+        "groups": [
+          {
+            "group": "Software",
+            "pages": [
+              "software/index"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "User Documentation",
+          "href": "https://docs.researchanddesire.com",
+          "icon": "book-open-cover"
+        },
+        {
+          "anchor": "R+D Store",
+          "href": "https://www.researchanddesire.com",
+          "icon": "store"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/images/logo/light.svg",
+    "dark": "/images/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:support@researchanddesire.com"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://dashboard.mintlify.com"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/mintlify",
+      "github": "https://github.com/mintlify",
+      "linkedin": "https://linkedin.com/company/mintlify"
+    }
+  }
+}

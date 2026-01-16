@@ -1,0 +1,153 @@
+---
+title: "10. Wiring"
+description: "Connect voltage input and data cables between the OSSM control board and motor"
+---
+
+Wiring connects the OSSM Control Board to the motor, providing both power and control signals. This step establishes the electrical connection that enables the motor to receive commands and operate properly.
+
+## Required Components and Tools
+
+### Components
+
+| Component | Count | Specification / Notes |
+|-----------|-------|----------------------|
+| Small Length of Wire | 1 Set | Red and black wires for voltage input |
+| Four-pin Data Cable | 1 | Cable for PU and Direction terminals |
+| OSSM Control Board | 1 | Assembled in the previous step |
+| Motor | 1 | Assembled in previous steps |
+
+### Tools
+
+| Tool | Count | Specification / Notes |
+|------|-------|----------------------|
+| Small Flathead Screwdriver | 1 | For wiring terminals |
+| Wire Strippers | 1 | If wires are not pre-stripped |
+
+<Info>
+The voltage input wires should be long enough to reach from the motor terminals to the control board terminals without excessive slack or tension. Typically, 6-12 inches (15-30 cm) is sufficient.
+</Info>
+
+## Step-by-Step Assembly: Wiring
+
+<Steps>
+<Step title="Prepare Voltage Wires">
+Take the small length of red and black wire. If the ends are not stripped, use wire strippers to expose about 3-5mm of wire.
+
+Lightly twist the exposed strands together to prevent fraying and ensure a clean connection.
+
+<Tip>
+If you're unsure about the proper stripping length, err on the side of slightly longer exposed wire. You can always trim excess, but too little exposed wire may not make proper contact in the terminal.
+</Tip>
+</Step>
+
+<Step title="Connect Voltage Wires to Motor">
+On the motor label, identify the "Voltage Plus" terminal (on the right) and the "Ground" terminal.
+
+Use the small flathead screwdriver to loosen the screws on these terminals.
+
+Insert the red wire into the Voltage Plus terminal.
+
+Insert the black wire into the Ground terminal.
+
+Tighten the screws to clamp down on the metal wire.
+
+<Warning>
+Ensure the wire strands are fully inserted into the terminal before tightening. Loose connections can cause arcing, overheating, or intermittent operation.
+</Warning>
+
+Give the wires a light tug to ensure they are secure, and inspect for any stray wire strands that could cause a short circuit.
+
+<Check>
+Both wires are securely connected to the motor terminals. The red wire is in the Voltage Plus terminal, and the black wire is in the Ground terminal. No stray wire strands are visible.
+</Check>
+</Step>
+
+<Step title="Connect Voltage Wires to Control Board">
+Identify the corresponding "Plus" and "Minus" terminals for the voltage input on the control board.
+
+Insert the other end of the red wire into the Plus terminal on the board.
+
+Insert the other end of the black wire into the Minus terminal on the board.
+
+Tighten the screws using the small flathead screwdriver.
+
+<Warning>
+Double-check the polarity before tightening. Reversing the voltage polarity can damage the motor and control board. Red should always connect to Plus/Positive terminals, and black should always connect to Minus/Negative/Ground terminals.
+</Warning>
+
+Perform a final tug test to ensure both connections are secure.
+
+<Check>
+Both voltage wires are securely connected to the control board. The red wire is in the Plus terminal, and the black wire is in the Minus terminal. All connections pass the tug test.
+</Check>
+</Step>
+
+<Step title="Connect Data Cable to Board">
+Take the four-pin data cable and locate the corresponding port on the OSSM Control Board.
+
+Connect the four-pin data cable plug into the corresponding port on the OSSM Control Board until you hear a nice click.
+
+<Info>
+The data cable carries pulse (PU) and direction signals from the control board to the motor. These signals control the motor's movement and direction.
+</Info>
+
+<Check>
+The data cable plug is fully seated in the control board port. You should hear or feel a click when it's properly connected.
+</Check>
+</Step>
+
+<Step title="Connect Data Cable to Motor">
+Match the wires from the data cable to the labeled terminals on the motor, which are (from right to left): PU plus, PU minus, Direction plus, and Direction minus.
+
+Connect the wire corresponding to PU+ on the cable to the PU plus terminal on the motor.
+
+Connect the wire corresponding to PU- on the cable to the PU minus terminal on the motor.
+
+Connect the wire corresponding to Direction+ on the cable to the Direction plus terminal on the motor.
+
+Connect the wire corresponding to Direction- on the cable to the Direction minus terminal on the motor.
+
+<Tip>
+If you're unsure which wire corresponds to which signal, check the cable documentation or use a multimeter to verify continuity. The cable should be labeled or color-coded to match the terminal labels.
+</Tip>
+
+<Warning>
+Incorrectly connecting the data wires can cause the motor to operate in the wrong direction or not respond to commands. Double-check each connection against the motor terminal labels before tightening.
+</Warning>
+</Step>
+
+<Step title="Secure and Test Data Connections">
+Tighten the terminal screws for all four data wires using the small flathead screwdriver.
+
+Perform a final light tug test on all four connections to ensure they are secure.
+
+Inspect all connections for any stray wire strands or loose connections.
+
+<Check>
+All four data cable wires are securely connected to their corresponding motor terminals:
+- PU+ to PU plus terminal
+- PU- to PU minus terminal
+- Direction+ to Direction plus terminal
+- Direction- to Direction minus terminal
+
+All connections pass the tug test, and no stray wire strands are visible.
+</Check>
+</Step>
+</Steps>
+
+## Verification
+
+Before proceeding, verify that all connections are correct:
+
+- **Voltage Input**: Red wire connects Plus to Plus, black wire connects Ground to Minus
+- **Data Cable**: Four-pin plug is fully seated in the control board
+- **Motor Terminals**: All four data wires are connected to the correct terminals (PU+, PU-, Direction+, Direction-)
+- **Security**: All terminal screws are tightened, and all connections pass the tug test
+
+<Warning>
+Do not apply power to the system until you have verified all connections are correct and secure. Incorrect wiring can cause permanent damage to the motor and control board.
+</Warning>
+
+## Next Steps
+
+With all wiring complete and verified, you're ready to proceed to the initial test section to verify that the motor responds correctly to control signals.
