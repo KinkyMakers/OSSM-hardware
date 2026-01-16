@@ -15,11 +15,12 @@
   "type": "module",
   "main": "gulpfile.js",
   "scripts": {
-    "mint": "cd Documentation && mint dev --port 3333",
+    "mint": "mint dev --port 3333",
     "optimize": "optimizt images"
   },
   "dependencies": {
     "@funboxteam/optimizt": "^5.0.2",
     "mint": "^4.2.280"
-  }
+  },
+  "packageManager": "pnpm@10.21.0+sha512.da3337267e400fdd3d479a6c68079ac6db01d8ca4f67572083e722775a796788a7a9956613749e000fac20d424b594f7a791a5f4e2e13581c5ef947f26968a40"
 }
