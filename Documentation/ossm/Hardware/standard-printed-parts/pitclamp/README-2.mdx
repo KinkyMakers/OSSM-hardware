@@ -1,86 +1,129 @@
-# Mounting
+---
+title: "Mounting Solutions Overview"
+description: "Standard mounting options for OSSM actuators and PCB enclosures"
+---
 
-### Standard Actuator mounting base: [PitClamp Mini](#pitclamp-mini)
+## Standard Mounting Options
 
-### Standard PCB mount: [PCB Enclosure](#pcb-enclosure)
+<CardGroup cols={2}>
+<Card title="PitClamp Mini" icon="grip" href="README">
+Quick-release adjustable mount for 57AIM, 42AIM, and iHSV57 motors.
+</Card>
 
+<Card title="PCB Enclosure" icon="microchip" href="#pcb-enclosure">
+Protective housing for the OSSM control board with extrusion mounting.
+</Card>
+</CardGroup>
 
-# PitClamp Mini v1.1
+## PitClamp Mini v1.1
 
-| (_images/Exploded%20-%20PitClamp%20Mini%20Base.png)
-| ---- | ---- |
+<Frame caption="PitClamp Mini exploded view showing all components">
+<img src="_images/Exploded%20-%20PitClamp%20Mini%20Base.png" alt="Exploded view of PitClamp Mini Base assembly" />
+</Frame>
 
 **Developed by: armpit**
 
-3d printed modular quick-release adjustable and removable mount ecosystem for 57AIM, 42AIM, iHSV57 NEMA23 motors.  
-  - 4 degree precision quick-adjustable rotation
-  - Motor can be quickly removed from mount for storage or use in another base  
+A 3D-printed modular quick-release mount ecosystem for NEMA23 motors, featuring:
 
-Stress tested to 50 ft-lb without grip being compromised. (PLA 6 walls 10% infill)  
+- 4-degree precision quick-adjustable rotation
+- Motor can be quickly removed for storage or use in another base
+- Stress tested to 50 ft-lb without grip compromise (PLA, 6 walls, 10% infill)
 
-### Supported motors:  
-| **57AIM** *(30/15/10)* | **47AIM** *(30/15/10)* | **iHSV57<sup>1</sup>** (180w<sup>2</sup>) |
-| ---- | ---- | ---- |
-(PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2057AIM30%20-%20Back%20Right.png) | (PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2042AIM30%20-%20Back%20Right.png) | (PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%20iHSV57%20-%20Back%20Right.png) |
-| (PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2057AIM30%20-%20Front%20Left.png) | (PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2042AIM30%20-%20Front%20Left.png) | (PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%20iHSV57%20-%20Front%20Left.png) |
+### Supported Motors
 
-<sup>1</sup>:The iHSV57 ring is two parts but snaps into two pieces after removing from printer. Clasp each half around the motor to assemble.  
-<sup>2</sup>: Smaller than 180w iHSV57 will require modifications to that ring. 
+| 57AIM (30/15/10) | 42AIM (30/15/10) | iHSV57 (180w) |
+|------------------|------------------|---------------|
+| <Frame><img src="PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2057AIM30%20-%20Back%20Right.png" alt="PitClamp Mini with 57AIM30 motor - back right view" /></Frame> | <Frame><img src="PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2042AIM30%20-%20Back%20Right.png" alt="PitClamp Mini with 42AIM30 motor - back right view" /></Frame> | <Frame><img src="PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%20iHSV57%20-%20Back%20Right.png" alt="PitClamp Mini with iHSV57 motor - back right view" /></Frame> |
+| <Frame><img src="PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2057AIM30%20-%20Front%20Left.png" alt="PitClamp Mini with 57AIM30 motor - front left view" /></Frame> | <Frame><img src="PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%2042AIM30%20-%20Front%20Left.png" alt="PitClamp Mini with 42AIM30 motor - front left view" /></Frame> | <Frame><img src="PitClamp%20Mini/Images/Workspace/PitClamp%20Mini%20-%20iHSV57%20-%20Front%20Left.png" alt="PitClamp Mini with iHSV57 motor - front left view" /></Frame> |
 
+<Note>
+The iHSV57 ring prints as one piece but snaps into two halves after removal from the printer. Clasp each half around the motor to assemble.
+</Note>
 
-### Printing
-**PitClamp Mini Standard Print Settings:**  
+<Warning>
+iHSV57 motors smaller than 180w require modifications to the ring design.
+</Warning>
 
-    6 Walls
-    Infill type: Cross Hatch (or gyroid) 10%
-    Supports: Tree Supports with 5 degree threshold angle
-    Seam: Nearest (or your personal preference)
- - **Filament estimate:** 150g
- - **Recommended filament:** PLA+
- - All parts are intended to print in the provided file default orientation. 
-   - **Printing the Base components in other orientations will cause structural weakness**
+### Print Settings
 
-**Printed parts:**
+| Setting | Value |
+|---------|-------|
+| Walls | 6 |
+| Infill type | Cross Hatch or Gyroid |
+| Infill percentage | 10% |
+| Supports | Tree Supports, 5° threshold angle |
+| Seam | Nearest (or your preference) |
+| Filament estimate | ~150g |
+| Recommended filament | PLA+ |
 
-    (Qty 1) Mounting Ring - PitClamp Mini - 57AIM V1.1
-    (Qty 1) Base - PitClamp Mini - Dogbone Bolts
-    (Qty 1) Base - PitClamp Mini - Dogbone Nuts
-    (Qty 1) Base - PitClamp Mini - Handle
-    (Qty 1) Base - PitClamp Mini - Lower V1.1
-    (Qty 1) Base - PitClamp Mini - Upper V1.1
+<Warning>
+Print all parts in the default file orientation. Printing base components in other orientations causes structural weakness.
+</Warning>
 
-If your printer is well calibrated and your material layer strength is optimal, the print-in-place Upper+Handle is recommended, found in the [/Non-Standard](Non-standard) folder.
+### Required Printed Parts
 
+```
+(Qty 1) Mounting Ring - PitClamp Mini - 57AIM V1.1
+(Qty 1) Base - PitClamp Mini - Dogbone Bolts
+(Qty 1) Base - PitClamp Mini - Dogbone Nuts
+(Qty 1) Base - PitClamp Mini - Handle
+(Qty 1) Base - PitClamp Mini - Lower V1.1
+(Qty 1) Base - PitClamp Mini - Upper V1.1
+```
 
-### [Bill Of Materials](PitClamp%20Mini/BOM.md)  
+<Tip>
+If your printer is well-calibrated with optimal layer adhesion, use the print-in-place Upper+Handle variant from the Non-Standard folder for reduced hardware requirements.
+</Tip>
 
-### [Assembly Guide Videos](PitClamp%20Mini/ASSEMBLY_GUIDES.md)
+### Additional Resources
 
-### [Updates](PitClamp%20Mini/UPDATES.md) (Last updated - 03.06.2025)
+<CardGroup cols={2}>
+<Card title="Bill of Materials" icon="list" href="BOM">
+Complete hardware list for your build.
+</Card>
 
-### [Additional Documentation](PitClamp%20Mini/README.md) 
+<Card title="Assembly Guides" icon="play" href="ASSEMBLY_GUIDES">
+Video tutorials for assembly.
+</Card>
 
+<Card title="Updates" icon="clock-rotate-left" href="UPDATES">
+Changelog and version history.
+</Card>
 
-(_images/Exploded%20-%20PitClamp%20Mini%20Base.gif)
+<Card title="Full Documentation" icon="book" href="README">
+Detailed features and specifications.
+</Card>
+</CardGroup>
 
-# PCB Enclosure
+<Frame caption="PitClamp Mini assembly animation">
+<img src="_images/Exploded%20-%20PitClamp%20Mini%20Base.gif" alt="Animated exploded view of PitClamp Mini assembly" />
+</Frame>
 
-### Printing
-**3030 Extrusion Mount Standard Print Settings:**  
+## PCB Enclosure
 
-    4 Walls
-    Infill type: Cross Hatch (or gyroid) 10%
-    Supports: None
- - **Filament estimate:** TODO
- - **Recommended filament:** PLA+
- - All parts are intended to print in the provided file default orientation. 
+Protective enclosure for the OSSM control board with direct mounting to 3030 extrusion.
 
-**Printed parts:**
+### Print Settings
 
-    (Qty 1) PCB - Box
-    (Qty 1) PCB - Lid
+| Setting | Value |
+|---------|-------|
+| Walls | 4 |
+| Infill type | Cross Hatch or Gyroid |
+| Infill percentage | 10% |
+| Supports | None |
+| Recommended filament | PLA+ |
 
-### Bill Of Materials
-    (Qty 6) M3x8 Socket Cap Head Bolt (Longer okay)
-    (Qty 2) M6x12 Socket Cap Head Bolt // Needs confirmation
-    (Qty 2) M6 T-nuts 
+### Required Printed Parts
+
+```
+(Qty 1) PCB - Box
+(Qty 1) PCB - Lid
+```
+
+### Bill of Materials
+
+| Quantity | Part |
+|----------|------|
+| 6 | M3x8 Socket Cap Head Bolt (longer acceptable) |
+| 2 | M6x12 Socket Cap Head Bolt |
+| 2 | M6 T-Nut |
