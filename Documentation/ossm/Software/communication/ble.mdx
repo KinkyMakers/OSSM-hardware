@@ -1,220 +1,255 @@
-# OSSM BLE Protocol Documentation
+---
+title: "BLE Protocol"
+description: "Control your OSSM wirelessly using Bluetooth Low Energy (BLE) from any compatible device or application"
+---
 
-## Overview
+The OSSM uses Bluetooth Low Energy (BLE) for wireless control and monitoring. You can build client applications that connect to the OSSM to send commands and receive real-time state updates.
 
-The OSSM (Open Source Sex Machine) uses Bluetooth Low Energy (BLE) for wireless control and monitoring. This document describes the complete BLE protocol implementation for technical users developing client applications.
+<Info>
+BLE provides low-latency wireless control with automatic reconnection and state synchronization.
+</Info>
 
-## Service Architecture
+## Before you begin
 
-### Primary Service UUID
+To connect to your OSSM via BLE, ensure:
+
+- Your device supports Bluetooth Low Energy (BLE 4.0+)
+- The OSSM is powered on and not connected to another BLE client
+- You're within approximately 10 meters of the device
+
+## Service architecture
+
+The OSSM implements a custom BLE service with multiple characteristics organized into functional groups.
+
+### Primary service UUID
 
 ```
 522b443a-4f53-534d-0001-420badbabe69
 ```
 
-The OSSM implements a custom BLE service with multiple characteristics organized into functional groups based on a [structured namespace](#namespace-ranges)
+Characteristics are organized by [namespace ranges](#uuid-namespace-structure) for easy expansion and discovery.
 
-## Characteristic Specifications
+## Characteristic reference
 
-### Command Characteristics (Writable)
+### Command characteristics (writable)
 
-#### Primary Command Characteristic
+Use these characteristics to send commands and configure the OSSM.
 
--   **UUID**: `522b443a-4f53-534d-1000-420badbabe69`
--   **Properties**: READ, WRITE
--   **Purpose**: Send commands to control OSSM behavior
+#### Primary command characteristic
 
-**Command Format**:
+| Property | Value |
+| -------- | ----- |
+| UUID | `522b443a-4f53-534d-1000-420badbabe69` |
+| Properties | READ, WRITE |
+| Purpose | Send commands to control OSSM behavior |
+
+**Command format**
 
 ```
 set:<parameter>:<value>
 go:<state>
 ```
 
-**Available Commands**:
+**Available commands**
 
-| Command                 | Parameter | Value Range | Description                                                         |
-| ----------------------- | --------- | ----------- | ------------------------------------------------------------------- |
-| `set:speed:<value>`     | speed     | 0-100       | Set stroke speed percentage                                         |
-| `set:stroke:<value>`    | stroke    | 0-100       | Set stroke length percentage                                        |
-| `set:depth:<value>`     | depth     | 0-100       | Set penetration depth percentage                                    |
-| `set:sensation:<value>` | sensation | 0-100       | Set sensation intensity percentage                                  |
-| `set:pattern:<value>`   | pattern   | 0-6         | Set stroke pattern (see patterns list)                              |
-| `go:simplePenetration`  | -         | -           | Switch to simple penetration mode from the menu                     |
-| `go:strokeEngine`       | -         | -           | Switch to stroke engine mode from the menu                          |
-| `go:menu`               | -         | -           | Return to main menu from either stroke engine or simple penetration |
+| Command | Parameter | Value Range | Description |
+| ------- | --------- | ----------- | ----------- |
+| `set:speed:<value>` | speed | 0-100 | Set stroke speed percentage |
+| `set:stroke:<value>` | stroke | 0-100 | Set stroke length percentage |
+| `set:depth:<value>` | depth | 0-100 | Set penetration depth percentage |
+| `set:sensation:<value>` | sensation | 0-100 | Set sensation intensity percentage |
+| `set:pattern:<value>` | pattern | 0-6 | Set stroke pattern (see [patterns](#pattern-information-characteristics)) |
+| `go:simplePenetration` | - | - | Switch to simple penetration mode from the menu |
+| `go:strokeEngine` | - | - | Switch to stroke engine mode from the menu |
+| `go:menu` | - | - | Return to main menu from either mode |
 
-**Response Format**:
+**Response format**
 
--   **Success**: `ok:<original_command>`
--   **Failure**: `fail:<original_command>`
+| Response | Meaning |
+| -------- | ------- |
+| `ok:<original_command>` | Command executed successfully |
+| `fail:<original_command>` | Command failed (check format or current state) |
 
-**Example Commands**:
+<Tip>
+Always wait for the response before sending another command. Commands are processed sequentially.
+</Tip>
 
-```
-set:speed:75
-set:pattern:3
-go:strokeEngine
-```
+#### Speed knob configuration characteristic
 
-#### Speed Knob Configuration Characteristic
+| Property | Value |
+| -------- | ----- |
+| UUID | `522b443a-4f53-534d-1010-420badbabe69` |
+| Properties | READ, WRITE |
+| Purpose | Configure whether the physical speed knob limits BLE speed commands |
 
--   **UUID**: `522b443a-4f53-534d-1010-420badbabe69`
--   **Properties**: READ, WRITE
--   **Purpose**: Configure whether speed knob acts as upper limit for BLE speed commands
+**Configuration values**
 
-**Configuration Values**:
-
-| Value             | Description                              |
-| ----------------- | ---------------------------------------- |
-| `true`, `1`, `t`  | Speed knob acts as upper limit (default) |
+| Value | Description |
+| ----- | ----------- |
+| `true`, `1`, `t` | Speed knob acts as upper limit (default) |
 | `false`, `0`, `f` | Speed knob and BLE speed are independent |
 
-**Behavior**:
+<Tabs>
+<Tab title="Knob as limit (default)">
+When set to `true`, BLE speed commands (0-100) are treated as a percentage of the current physical knob position.
 
--   **When `true`**: BLE speed commands (0-100) are treated as a percentage of the current physical knob value
-    -   Example: Knob at 50%, BLE command `set:speed:80` → Effective speed = 40%
--   **When `false`**: BLE speed commands (0-100) are used directly as the speed value
-    -   Example: BLE command `set:speed:80` → Effective speed = 80%
+**Example**: Knob at 50%, BLE command `set:speed:80` → Effective speed = 40%
 
-**Response Format**:
+This mode provides a hardware safety limit that users can control physically.
+</Tab>
 
--   **Success**: Current configuration value (`true` or `false`)
--   **Error**: `error:invalid_value` for invalid input
+<Tab title="Independent mode">
+When set to `false`, BLE speed commands (0-100) are used directly as the speed value, ignoring the knob position.
 
-### State Characteristics (Read-Only)
+**Example**: BLE command `set:speed:80` → Effective speed = 80%
 
-#### Current State Characteristic
+<Warning>
+In independent mode, BLE commands can override the physical knob. Ensure your application implements appropriate safety controls.
+</Warning>
+</Tab>
+</Tabs>
 
--   **UUID**: `522b443a-4f53-534d-2000-420badbabe69`
--   **Properties**: READ, NOTIFY
--   **Purpose**: Monitor current OSSM state and settings
+**Response format**
 
-**State JSON Format**:
+| Response | Meaning |
+| -------- | ------- |
+| `true` or `false` | Current configuration value |
+| `error:invalid_value` | Invalid input provided |
+
+### State characteristics (read-only)
+
+Subscribe to these characteristics to monitor the OSSM's current state.
+
+#### Current state characteristic
+
+| Property | Value |
+| -------- | ----- |
+| UUID | `522b443a-4f53-534d-2000-420badbabe69` |
+| Properties | READ, NOTIFY |
+| Purpose | Monitor current OSSM state and settings |
+
+**State JSON format**
 
 ```json
 {
   "state": "<state_name>",
-  "speed": <0-100>,
-  "stroke": <0-100>,
-  "sensation": <0-100>,
-  "depth": <0-100>,
-  "pattern": <0-6>
+  "speed": 0-100,
+  "stroke": 0-100,
+  "sensation": 0-100,
+  "depth": 0-100,
+  "pattern": 0-6
 }
 ```
 
-**Available States**:
+<AccordionGroup>
+<Accordion title="Available states">
+| State | Description |
+| ----- | ----------- |
+| `idle` | Initializing |
+| `homing` | Homing sequence active |
+| `homing.forward` | Forward homing in progress |
+| `homing.backward` | Backward homing in progress |
+| `menu` | Main menu displayed |
+| `menu.idle` | Menu idle state |
+| `simplePenetration` | Simple penetration mode |
+| `simplePenetration.idle` | Simple penetration idle |
+| `simplePenetration.preflight` | Pre-flight checks |
+| `strokeEngine` | Stroke engine mode |
+| `strokeEngine.idle` | Stroke engine idle |
+| `strokeEngine.preflight` | Pre-flight checks |
+| `strokeEngine.pattern` | Pattern selection |
+| `update` | Update mode |
+| `update.checking` | Checking for updates |
+| `update.updating` | Update in progress |
+| `update.idle` | Update idle |
+| `wifi` | WiFi setup mode |
+| `wifi.idle` | WiFi setup idle |
+| `help` | Help screen |
+| `help.idle` | Help idle |
+| `error` | Error state |
+| `error.idle` | Error idle |
+| `error.help` | Error help |
+| `restart` | Restart state |
 
-See the entire list here: [OSSM State Machine](../src/ossm/OSSM.h)
+For the complete state machine implementation, see [OSSM.h](../src/ossm/OSSM.h).
+</Accordion>
+</AccordionGroup>
 
--   `idle` - Initializing
--   `homing` - Homing sequence active
--   `homing.forward` - Forward homing in progress
--   `homing.backward` - Backward homing in progress
--   `menu` - Main menu displayed
--   `menu.idle` - Menu idle state
--   `simplePenetration` - Simple penetration mode
--   `simplePenetration.idle` - Simple penetration idle
--   `simplePenetration.preflight` - Pre-flight checks
--   `strokeEngine` - Stroke engine mode
--   `strokeEngine.idle` - Stroke engine idle
--   `strokeEngine.preflight` - Pre-flight checks
--   `strokeEngine.pattern` - Pattern selection
--   `update` - Update mode
--   `update.checking` - Checking for updates
--   `update.updating` - Update in progress
--   `update.idle` - Update idle
--   `wifi` - WiFi setup mode
--   `wifi.idle` - WiFi setup idle
--   `help` - Help screen
--   `help.idle` - Help idle
--   `error` - Error state
--   `error.idle` - Error idle
--   `error.help` - Error help
--   `restart` - Restart state
+**Notification behavior**
 
-**Notification Behavior**:
+- State changes trigger immediate notifications
+- Periodic notifications every 1000ms when no state change occurs
+- Notifications stop when no clients are connected
 
--   State changes trigger immediate notifications
--   Periodic notifications every 1000ms if no state change
--   Notifications stop when no clients connected
+### Pattern information characteristics
 
-### Pattern Information Characteristics
+#### Pattern list characteristic
 
-#### Pattern List Characteristic
+| Property | Value |
+| -------- | ----- |
+| UUID | `522b443a-4f53-534d-3000-420badbabe69` |
+| Properties | READ |
+| Purpose | Get available stroke patterns |
 
--   **UUID**: `522b443a-4f53-534d-3000-420badbabe69`
--   **Properties**: READ
--   **Purpose**: Get available stroke patterns
-
-**Pattern JSON Format**:
+**Response format**
 
 ```json
 [
-    {
-        "name": "Simple Stroke",
-        "idx": 0
-    },
-    {
-        "name": "Teasing Pounding",
-        "idx": 1
-    },
-    {
-        "name": "Robo Stroke",
-        "idx": 2
-    },
-    {
-        "name": "Half'n'Half",
-        "idx": 3
-    },
-    {
-        "name": "Deeper",
-        "idx": 4
-    },
-    {
-        "name": "Stop'n'Go",
-        "idx": 5
-    },
-    {
-        "name": "Insist",
-        "idx": 6
-    }
+  { "name": "Simple Stroke", "idx": 0 },
+  { "name": "Teasing Pounding", "idx": 1 },
+  { "name": "Robo Stroke", "idx": 2 },
+  { "name": "Half'n'Half", "idx": 3 },
+  { "name": "Deeper", "idx": 4 },
+  { "name": "Stop'n'Go", "idx": 5 },
+  { "name": "Insist", "idx": 6 }
 ]
 ```
 
-#### Pattern Description Characteristic
+#### Pattern description characteristic
 
--   **UUID**: `522b443a-4f53-534d-3010-420badbabe69`
--   **Properties**: READ, WRITE
--   **Purpose**: Get the description for a stroke pattern
+| Property | Value |
+| -------- | ----- |
+| UUID | `522b443a-4f53-534d-3010-420badbabe69` |
+| Properties | READ, WRITE |
+| Purpose | Get descriptions for individual stroke patterns |
 
-Write the pattern index to the characteristic to obtain the pattern description
+To retrieve a pattern description:
 
-For example to read the description of the pattern with an index of 0:
-1. Write `0` to the characteristic
-2. Read "Acceleration, coasting, deceleration equally split; no sensation." from the characteristic
+<Steps>
+<Step title="Write the pattern index">
+Write the index number (0-6) to the characteristic.
+</Step>
 
+<Step title="Read the description">
+Read the characteristic to receive the pattern description string.
+</Step>
+</Steps>
 
-**Pattern Descriptions**:
+**Pattern descriptions**
 
--   **Simple Stroke (0)**: Acceleration, coasting, deceleration equally split; no sensation
--   **Teasing Pounding (1)**: Speed shifts with sensation; balances faster strokes
--   **Robo Stroke (2)**: Sensation varies acceleration; from robotic to gradual
--   **Half'n'Half (3)**: Full and half depth strokes alternate; sensation affects speed
--   **Deeper (4)**: Stroke depth increases per cycle; sensation sets count
--   **Stop'n'Go (5)**: Pauses between strokes; sensation adjusts length
--   **Insist (6)**: Modifies length, maintains speed; sensation influences direction
+| Pattern | Index | Description |
+| ------- | ----- | ----------- |
+| Simple Stroke | 0 | Acceleration, coasting, deceleration equally split; no sensation |
+| Teasing Pounding | 1 | Speed shifts with sensation; balances faster strokes |
+| Robo Stroke | 2 | Sensation varies acceleration; from robotic to gradual |
+| Half'n'Half | 3 | Full and half depth strokes alternate; sensation affects speed |
+| Deeper | 4 | Stroke depth increases per cycle; sensation sets count |
+| Stop'n'Go | 5 | Pauses between strokes; sensation adjusts length |
+| Insist | 6 | Modifies length, maintains speed; sensation influences direction |
 
-## Device Information Service
+## Device information service
 
-The OSSM also implements the standard Device Information Service (UUID: `180A`) with:
+The OSSM implements the standard BLE Device Information Service for identification.
 
--   **Manufacturer Name** (UUID: `2A29`): "Research And Desire"
--   **System ID** (UUID: `2A23`): `88:1A:14:FF:FE:34:29:63`
+| Characteristic | UUID | Value |
+| -------------- | ---- | ----- |
+| Service | `180A` | Device Information Service |
+| Manufacturer Name | `2A29` | "Research And Desire" |
+| System ID | `2A23` | `88:1A:14:FF:FE:34:29:63` |
 
-## UUID Namespace Structure
+## UUID namespace structure
 
-The OSSM uses a structured UUID namespace for easy expansion:
+The OSSM uses a structured UUID namespace for organized expansion.
 
 ### Service UUID
 
@@ -222,202 +257,255 @@ The OSSM uses a structured UUID namespace for easy expansion:
 0x0001 = Service UUID
 ```
 
-### Namespace Ranges
+### Namespace ranges
 
-| Range | Hex Range     | Description                         |
-| ----- | ------------- | ----------------------------------- |
-| 0x0   | 0x0000–0x0FFF | Reserved for future System Messages |
-| 0x1   | 0x1000–0x1FFF | Commands and Configuration          |
-| 0x2   | 0x2000–0x2FFF | State Information                   |
-| 0x3   | 0x3000–0x3FFF | Pattern Information                 |
-| 0x4   | 0x4000–0x4FFF | GPIO Pin Setting                    |
-| 0x5   | 0x5000–0x5FFF | Future                              |
-| 0x6   | 0x6000–0x6FFF | Future                              |
-| 0x7   | 0x7000–0x7FFF | Future                              |
-| 0x8   | 0x8000–0x8FFF | Future                              |
-| 0x9   | 0x9000–0x9FFF | Future                              |
-| 0xA   | 0xA000–0xAFFF | Future                              |
-| 0xB   | 0xB000–0xBFFF | Future                              |
-| 0xC   | 0xC000–0xCFFF | Future                              |
-| 0xD   | 0xD000–0xDFFF | Future                              |
-| 0xE   | 0xE000–0xEFFF | Reserved For Statistics             |
-| 0xF   | 0xF000–0xFFFF | Experimental / Sandbox - Volatile   |
+| Range | Hex Range | Description |
+| ----- | --------- | ----------- |
+| 0x0 | 0x0000–0x0FFF | Reserved for system messages |
+| 0x1 | 0x1000–0x1FFF | Commands and configuration |
+| 0x2 | 0x2000–0x2FFF | State information |
+| 0x3 | 0x3000–0x3FFF | Pattern information |
+| 0x4 | 0x4000–0x4FFF | GPIO pin setting |
+| 0x5–0xD | 0x5000–0xDFFF | Reserved for future use |
+| 0xE | 0xE000–0xEFFF | Reserved for statistics |
+| 0xF | 0xF000–0xFFFF | Experimental / sandbox (volatile) |
 
-### Current Characteristic Assignments
+### Current characteristic assignments
 
-#### Commands and Configuration (0x1000-0x1FFF)
-
+<Tabs>
+<Tab title="Commands (0x1xxx)">
 ```
 522b443a-4f53-534d-1000-420badbabe69  # Primary command
 522b443a-4f53-534d-1010-420badbabe69  # Speed knob configuration
 ```
+</Tab>
 
-#### State Information (0x2000-0x2FFF)
-
+<Tab title="State (0x2xxx)">
 ```
 522b443a-4f53-534d-2000-420badbabe69  # Current state
 ```
+</Tab>
 
-#### Pattern Information (0x3000–0x3FFF)
-
+<Tab title="Patterns (0x3xxx)">
 ```
 522b443a-4f53-534d-3000-420badbabe69  # Pattern list
 522b443a-4f53-534d-3010-420badbabe69  # Pattern description
 ```
+</Tab>
+</Tabs>
 
-## Connection Management
+## Connection management
 
 ### Advertising
 
--   **Device Name**: "OSSM"
--   **Service UUIDs**: Primary service + Device Information Service
--   **Advertising Interval**: 20-40ms (optimized for reliability)
--   **Auto-restart**: Advertising resumes when all clients disconnect
+| Setting | Value |
+| ------- | ----- |
+| Device Name | `OSSM` |
+| Service UUIDs | Primary service + Device Information Service |
+| Advertising Interval | 20-40ms (optimized for reliability) |
+| Auto-restart | Advertising resumes when all clients disconnect |
 
 ### Security
 
--   **Pairing**: "Just Works" pairing (no authentication required)
--   **Encryption**: BLE Secure Connections enabled
--   **Bonding**: Disabled (no persistent pairing)
+| Setting | Value |
+| ------- | ----- |
+| Pairing | "Just Works" (no authentication required) |
+| Encryption | BLE Secure Connections enabled |
+| Bonding | Disabled (no persistent pairing) |
 
-## Implementation Notes
+<Note>
+The OSSM uses "Just Works" pairing for ease of use. Anyone within BLE range can connect when the device is advertising.
+</Note>
 
-### Command Processing
+## Client implementation guide
 
--   Commands are validated using regex patterns
--   Invalid commands return `fail:` response
--   Valid commands are processed by the state machine
--   Command processing is non-blocking
+### Connection flow
 
-### State Monitoring
+Follow these steps to establish a connection and begin controlling your OSSM:
 
--   State updates are sent via notifications
--   Clients should subscribe to notifications for real-time updates
--   State changes are logged at DEBUG level
+<Steps>
+<Step title="Scan for the device">
+Scan for BLE devices with the name "OSSM".
 
-### Error Handling
+<Check>
+Device appears in scan results.
+</Check>
+</Step>
 
--   Invalid commands are logged and rejected
--   Connection errors are handled gracefully
--   Device automatically restarts advertising on disconnect
+<Step title="Connect to the device">
+Initiate a GATT connection to the OSSM.
+</Step>
 
-## Client Implementation Guidelines
+<Step title="Discover services">
+Discover all services and characteristics on the device.
 
-### Connection Flow
+<Check>
+Primary service UUID `522b443a-4f53-534d-0001-420badbabe69` is found.
+</Check>
+</Step>
 
-1. Scan for "OSSM" device name
-2. Connect to device
-3. Discover services and characteristics
-4. Subscribe to state notifications
-5. Read initial state and pattern list
-6. Send commands as needed
+<Step title="Subscribe to state notifications">
+Enable notifications on the state characteristic to receive real-time updates.
+</Step>
 
-### Command Best Practices
+<Step title="Read initial state">
+Read the current state and pattern list to initialize your application.
+</Step>
 
--   Always validate command format before sending
--   Handle both `ok:` and `fail:` responses
--   Implement retry logic for critical commands
--   Monitor state changes for command confirmation
+<Step title="Send commands">
+Begin sending commands to control the OSSM.
+</Step>
+</Steps>
 
-### State Monitoring
+### Best practices
 
--   Subscribe to state characteristic notifications
--   Parse JSON state updates
--   Handle state transitions appropriately
--   Implement timeout for missing updates
+<CardGroup cols={2}>
+<Card title="Command handling" icon="terminal">
+- Validate command format before sending
+- Handle both `ok:` and `fail:` responses
+- Implement retry logic for critical commands
+- Monitor state changes to confirm command execution
+</Card>
 
-## Example Client Code
+<Card title="State monitoring" icon="eye">
+- Subscribe to state characteristic notifications
+- Parse JSON state updates reliably
+- Handle state transitions appropriately
+- Implement timeout handling for missing updates
+</Card>
+</CardGroup>
 
-### JavaScript/Web Bluetooth
+## Example code
 
-```javascript
+<CodeGroup>
+```javascript Web Bluetooth (JavaScript)
 // Connect to OSSM
 const device = await navigator.bluetooth.requestDevice({
-    filters: [{ name: "OSSM" }],
-    optionalServices: ["522b443a-4f53-534d-0001-420badbabe69"],
+  filters: [{ name: "OSSM" }],
+  optionalServices: ["522b443a-4f53-534d-0001-420badbabe69"],
 });
 
 const server = await device.gatt.connect();
-const service = await server.getPrimaryService("522b443a-4f53-534d-0001-420badbabe69");
+const service = await server.getPrimaryService(
+  "522b443a-4f53-534d-0001-420badbabe69"
+);
 
 // Get characteristics
-const commandChar = await service.getCharacteristic("522b443a-4f53-534d-1000-420badbabe69");
-const stateChar = await service.getCharacteristic("522b443a-4f53-534d-2000-420badbabe69");
-const speedKnobConfigChar = await service.getCharacteristic("522b443a-4f53-534d-1010-420badbabe69");
-const patternsChar = await service.getCharacteristic("522b443a-4f53-534d-3000-420badbabe69");
+const commandChar = await service.getCharacteristic(
+  "522b443a-4f53-534d-1000-420badbabe69"
+);
+const stateChar = await service.getCharacteristic(
+  "522b443a-4f53-534d-2000-420badbabe69"
+);
+const speedKnobConfigChar = await service.getCharacteristic(
+  "522b443a-4f53-534d-1010-420badbabe69"
+);
+const patternsChar = await service.getCharacteristic(
+  "522b443a-4f53-534d-3000-420badbabe69"
+);
 
 // Subscribe to state updates
 await stateChar.startNotifications();
 stateChar.addEventListener("characteristicvaluechanged", (event) => {
-    const state = JSON.parse(new TextDecoder().decode(event.target.value));
-    console.log("State update:", state);
+  const state = JSON.parse(new TextDecoder().decode(event.target.value));
+  console.log("State update:", state);
 });
 
-// Configure speed knob behavior
-await speedKnobConfigChar.writeValue(new TextEncoder().encode("true")); // Knob as limit
-// or
-await speedKnobConfigChar.writeValue(new TextEncoder().encode("false")); // Independent
+// Configure speed knob behavior (true = knob as limit, false = independent)
+await speedKnobConfigChar.writeValue(new TextEncoder().encode("true"));
 
-// Send command
+// Send a command
 const command = "set:speed:75";
 await commandChar.writeValue(new TextEncoder().encode(command));
 
-// Read patterns
+// Read available patterns
 const patterns = await patternsChar.readValue();
 const patternList = JSON.parse(new TextDecoder().decode(patterns));
 console.log("Available patterns:", patternList);
 ```
 
-### Python (bleak)
-
-```python
+```python Python (bleak)
 import asyncio
 import json
 from bleak import BleakClient
 
-async def connect_to_ossm():
-    async with BleakClient("OSSM") as client:
-        # Subscribe to state updates
-        await client.start_notify(
-            "522b443a-4f53-534d-2000-420badbabe69",
-            state_callback
-        )
-
-        # Configure speed knob behavior
-        await client.write_gatt_char(
-            "522b443a-4f53-534d-1010-420badbabe69",
-            "true".encode()  # Knob as limit
-        )
-
-        # Send command
-        command = "set:speed:75"
-        await client.write_gatt_char(
-            "522b443a-4f53-534d-1000-420badbabe69",
-            command.encode()
-        )
+SERVICE_UUID = "522b443a-4f53-534d-0001-420badbabe69"
+COMMAND_UUID = "522b443a-4f53-534d-1000-420badbabe69"
+STATE_UUID = "522b443a-4f53-534d-2000-420badbabe69"
+SPEED_KNOB_UUID = "522b443a-4f53-534d-1010-420badbabe69"
 
 def state_callback(sender, data):
+    """Handle state update notifications."""
     state = json.loads(data.decode())
     print(f"State update: {state}")
 
+async def connect_to_ossm():
+    async with BleakClient("OSSM") as client:
+        # Subscribe to state updates
+        await client.start_notify(STATE_UUID, state_callback)
+
+        # Configure speed knob behavior
+        await client.write_gatt_char(
+            SPEED_KNOB_UUID,
+            "true".encode()  # Knob acts as upper limit
+        )
+
+        # Send a command
+        command = "set:speed:75"
+        await client.write_gatt_char(COMMAND_UUID, command.encode())
+
+        # Keep connection alive to receive notifications
+        await asyncio.sleep(10)
+
 asyncio.run(connect_to_ossm())
 ```
+</CodeGroup>
 
 ## Troubleshooting
 
-### Common Issues
+<AccordionGroup>
+<Accordion title="Connection fails">
+**Symptoms**: Unable to discover or connect to the OSSM.
 
--   **Connection fails**: Ensure device is in range and advertising
--   **Commands not working**: Check command format and current state
--   **No state updates**: Verify notification subscription
--   **Invalid responses**: Check command validation logic
+**Solutions**:
+- Ensure the OSSM is powered on and within range (~10 meters)
+- Check that no other device is currently connected to the OSSM
+- Restart the OSSM to reset the BLE stack
+- Try moving closer to the device
+</Accordion>
 
-### Debug Information
+<Accordion title="Commands not working">
+**Symptoms**: Commands return `fail:` or have no effect.
 
--   Enable ESP32 logging at DEBUG level for detailed protocol information
--   Monitor BLE connection status and MTU changes
--   Check command parsing and state machine transitions
+**Solutions**:
+- Verify the command format matches the specification exactly
+- Check that the OSSM is in a state that accepts commands (e.g., `strokeEngine` or `simplePenetration`)
+- Use `go:strokeEngine` or `go:simplePenetration` first if in menu state
+- Read the current state to understand which commands are valid
+</Accordion>
 
----
+<Accordion title="No state updates">
+**Symptoms**: State characteristic never updates after subscribing.
 
-_This documentation is maintained alongside the OSSM firmware. For updates and issues, refer to the project repository._
+**Solutions**:
+- Verify notification subscription was successful
+- Check that your BLE library supports notifications
+- Ensure you're reading notifications from the correct characteristic UUID
+- Try disconnecting and reconnecting
+</Accordion>
+
+<Accordion title="Invalid responses">
+**Symptoms**: Receiving unexpected or malformed data.
+
+**Solutions**:
+- Ensure you're decoding responses as UTF-8 text
+- Verify JSON parsing handles the state format correctly
+- Check for encoding issues in your BLE library
+</Accordion>
+</AccordionGroup>
+
+### Debug information
+
+<Tip>
+Enable ESP32 logging at DEBUG level for detailed protocol information. Monitor BLE connection status, MTU changes, and state machine transitions.
+</Tip>

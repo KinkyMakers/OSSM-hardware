@@ -117,40 +117,6 @@
                 ]
               },
               {
-                "group": "CAD Files",
-                "pages": [
-                  "ossm/Hardware/motor/standard-build-motor",
-                  {
-                    "group": "Alternatives",
-                    "pages": [
-                      "ossm/Hardware/motor/alternatives/42AIM30",
-                      "ossm/Hardware/motor/alternatives/iHSV57"
-                    ]
-                  }
-                ]
-              },
-              {
-                "group": "Motor",
-                "pages": [
-                  "ossm/Hardware/motor/standard-build-motor",
-                  {
-                    "group": "Alternatives",
-                    "pages": [
-                      "ossm/Hardware/motor/alternatives/42AIM30",
-                      "ossm/Hardware/motor/alternatives/iHSV57"
-                    ]
-                  },
-                  "ossm/Hardware/motor/programming"
-                ]
-              },
-              {
-                "group": "OSSM PCB v2.3",
-                "pages": [
-                  "ossm/Hardware/PCB/board-design",
-                  "ossm/Hardware/PCB/introduction"
-                ]
-              },
-              {
                 "group": "Standard Printed Parts",
                 "pages": [
                   "ossm/Hardware/standard-printed-parts/contibution-guidelines",
@@ -167,6 +133,20 @@
                       "ossm/Hardware/standard-printed-parts/pitclamp/UPDATES"
                     ]
                   }
+                ]
+              },
+              {
+                "group": "Motor",
+                "pages": [
+                  "ossm/Hardware/motor/standard-build-motor",
+                  {
+                    "group": "Alternatives",
+                    "pages": [
+                      "ossm/Hardware/motor/alternatives/42AIM30",
+                      "ossm/Hardware/motor/alternatives/iHSV57"
+                    ]
+                  },
+                  "ossm/Hardware/motor/programming"
                 ]
               },
               {
@@ -213,26 +193,24 @@
               {
                 "group": "Getting Started",
                 "pages": [
-                  "ossm/Software/README",
-                  "ossm/Software/introduction/quick-start",
-                  "ossm/Software/introduction/PlatformIO",
-                  "ossm/Software/introduction/LED_Status",
-                  "ossm/Software/display"
+                  "ossm/Software/getting-started/introduction",
+                  "ossm/Software/getting-started/PlatformIO",
+                  "ossm/Software/getting-started/LED_Status",
+                  "ossm/Software/getting-started/display"
                 ]
               },
               {
                 "group": "Communication",
                 "pages": [
-                  "ossm/Software/communication/ble",
-                  "ossm/Software/communication/mqtt"
+                  "ossm/Software/communication/ble"
                 ]
               },
     
               {
                 "group": "Motion Libaries",
                 "pages": [
-                  "ossm/Software/motion/stroke-engine/Pattern",
-                  "ossm/Software/motion/stroke-engine/README"
+                  "ossm/Software/motion/stroke-engine/introduction",
+                  "ossm/Software/motion/stroke-engine/Pattern"
                 ]
               }
             ]
