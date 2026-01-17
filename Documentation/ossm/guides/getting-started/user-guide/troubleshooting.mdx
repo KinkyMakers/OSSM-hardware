@@ -1,0 +1,86 @@
+---
+title: "Troubleshooting"
+description: "Diagnose and resolve common OSSM issues including homing problems, power supply issues, and actuator failures"
+---
+
+This guide helps you diagnose and fix the most common issues with your OSSM. Start by identifying your symptom, then follow the troubleshooting steps.
+
+## Homing is too slow
+
+If your OSSM homes very slowly or stalls during the homing sequence, the motor may need to be programmed.
+
+<Steps>
+<Step title="Check motor programming">
+The motor requires specific parameters to operate correctly with OSSM. If you assembled the motor yourself or it was reset, you may need to flash the motor firmware.
+
+See the [motor programming guide](/Hardware/motor/programming) for detailed instructions.
+</Step>
+
+<Step title="Verify motor parameters">
+After programming, the motor should home at a reasonable speed. If problems persist, double-check that all parameters were applied correctly.
+</Step>
+</Steps>
+
+## Controller powers on but actuator does not move
+
+When the controller turns on but the actuator remains stationary, the issue is typically related to power delivery, wiring, or belt tension.
+
+<AccordionGroup>
+<Accordion title="Insufficient power supply">
+**Symptoms:**
+- Green light on motor is dim or flickering
+- Motor light is visible but actuator doesn't respond
+- Actuator moves weakly or stalls under load
+
+**Solution:**
+Ensure you're using a power supply that meets the minimum requirements:
+- Voltage: 24V DC
+- Current: At least 5A (10A recommended)
+
+<Warning>
+Using an underpowered supply can damage components over time. Always use a supply rated for your motor's requirements.
+</Warning>
+</Accordion>
+
+<Accordion title="Motor wiring disconnected">
+**Symptoms:**
+- Motor light is completely off
+- No response from motor when commands are sent
+- Visible loose or disconnected wires
+
+**Diagnosis:**
+1. Inspect the wiring between the controller and motor
+2. Check that all connectors are fully seated
+3. Look for damaged or frayed wires
+
+**Solution:**
+Reconnect any loose wiring following the [wiring guide](/guides/getting-started/build-guide/step-11.0_wiring). If wires are damaged, replace them before operating.
+</Accordion>
+
+<Accordion title="Belt or pulley tension too loose">
+**Symptoms:**
+- Motor spins but actuator doesn't move
+- Belt slips or makes noise during operation
+- Inconsistent or jerky movement
+
+**Solution:**
+Adjust the belt tension following the [tension adjustment guide](/guides/getting-started/build-guide/step-9.0_tension_adjustment). The belt should be tight enough to prevent slipping but not so tight that it strains the motor.
+
+<Tip>
+A properly tensioned belt should deflect slightly when pressed but return to position immediately.
+</Tip>
+</Accordion>
+</AccordionGroup>
+
+## Still having issues?
+
+If you've worked through these troubleshooting steps and still have problems:
+
+<CardGroup cols={2}>
+<Card title="Report an issue" icon="bug" href="/guides/contributing/reporting-issues">
+Found a bug or design problem? Submit a detailed issue on GitHub.
+</Card>
+<Card title="Join the community" icon="discord" href="https://discord.gg/kinkymakers">
+Get real-time help from experienced builders on Discord.
+</Card>
+</CardGroup>

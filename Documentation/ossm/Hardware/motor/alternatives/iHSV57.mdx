@@ -1,0 +1,46 @@
+---
+title: "iHSV57 Legacy Motor"
+description: "Pre-2024 recommended motor option, now superseded by the Gold Motor"
+---
+
+The iHSV57 series was the original recommended motor for OSSM builds before 2024.
+
+<Warning>
+This motor is no longer recommended for new builds. Use the [57AIM30 Gold Motor](/ossm/Hardware/motor/standard-build-motor) instead.
+</Warning>
+
+## Why the iHSV57 is No Longer Recommended
+
+The 57AIM30 Gold Motor replaced the iHSV57 as the standard build motor due to several significant improvements:
+
+| Factor | iHSV57 | 57AIM30 Gold Motor |
+|--------|--------|-------------------|
+| Length | 100% (baseline) | 40% shorter |
+| Weight | 100% (baseline) | 50% lighter |
+| Peak force | 100% (baseline) | 30% higher |
+| Cost | 100% (baseline) | ~20% cheaper |
+| Over-torque handling | Motor disables | Configurable torque reduction |
+
+## Existing iHSV57 Builds
+
+If you have an existing OSSM with an iHSV57 motor:
+
+<Note>
+Your build remains fully functional. The iHSV57 is a capable motor—you do not need to upgrade unless you want the benefits of the Gold Motor.
+</Note>
+
+### Upgrading to Gold Motor
+
+The 57AIM30 Gold Motor is a drop-in replacement for the iHSV57:
+
+- Same NEMA23 mounting pattern
+- Same shaft diameter
+- Compatible with existing actuator hardware
+
+<Info>
+If upgrading from iHSV57 to Gold Motor, you may need to add a 1500µF capacitor (minimum 50V) to PCB versions older than V2.3 to handle regenerative braking.
+</Info>
+
+## Programming Requirements
+
+Like all OSSM motors, the iHSV57 requires programming to set the steps per revolution to 800. Refer to the [motor programming guide](/ossm/Hardware/motor/programming) for instructions.

@@ -1,0 +1,77 @@
+---
+title: "PCB Overview"
+description: "Introduction to the OSSM printed circuit board designs and wiring options"
+---
+
+This section covers the electronics that connect your ESP32 controller to the motor driver. You can choose between the official OSSM PCB or build your own wiring configuration.
+
+## Available Options
+
+<CardGroup cols={2}>
+  <Card title="Official OSSM PCB" icon="microchip" href="/ossm/Hardware/PCB/board-design#official-ossm-wiring">
+    Purpose-built reference board with integrated level shifting and standardized connections for reliable operation.
+  </Card>
+  <Card title="DIY Wiring" icon="plug" href="/ossm/Hardware/PCB/board-design#alternative-wiring-configurations">
+    Breadboard and custom wiring options for prototyping or using alternative motor drivers.
+  </Card>
+</CardGroup>
+
+## Choosing Your Approach
+
+<Tabs>
+  <Tab title="Official PCB">
+    The official OSSM PCB provides:
+    - Pre-configured GPIO connections
+    - Built-in 3.3V to 5V level shifting for reliable high-speed operation
+    - JST connectors for clean cable management
+    - Tested and validated design
+
+    <Tip>
+    The official PCB is recommended for most builders. It simplifies wiring, reduces assembly time, and eliminates common signal integrity issues.
+    </Tip>
+  </Tab>
+  <Tab title="DIY Wiring">
+    Custom wiring is a good choice if you:
+    - Want to prototype before committing to a PCB
+    - Use a non-standard motor driver
+    - Already have components on hand
+    - Prefer to understand the system at a component level
+
+    <Warning>
+    DIY wiring requires careful attention to voltage levels and signal integrity. You must use a level shifter when connecting a 3.3V ESP32 to a 5V motor driver.
+    </Warning>
+  </Tab>
+</Tabs>
+
+## Key Considerations
+
+Before selecting your approach, understand these critical factors:
+
+<AccordionGroup>
+  <Accordion title="Voltage level compatibility">
+    Most ESP32 development boards operate at 3.3V logic levels, while many motor drivers expect 5V signals. Without proper level shifting, you may experience:
+    - Missed steps at high speeds
+    - Unreliable motor communication
+    - Potential damage to components
+
+    Always verify the input voltage requirements of your specific motor driver before wiring.
+  </Accordion>
+  <Accordion title="Signal integrity">
+    High-speed step signals (up to 200 kHz) require clean wiring to prevent noise and signal degradation:
+    - Keep step and direction wires as short as practical
+    - Route signal wires away from motor power cables
+    - Use twisted pairs or shielded cable for runs longer than 30 cm
+  </Accordion>
+  <Accordion title="Power supply requirements">
+    Your motor driver requires a separate power supply sized for your motor:
+    - Servo motors typically need 24-48V DC
+    - Stepper motors vary by model (12-48V common)
+    - The ESP32 runs from USB or a 5V supply independent of the motor power
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<Card title="Board Design and Wiring" icon="diagram-project" href="/ossm/Hardware/PCB/board-design">
+  View detailed pinouts, connection diagrams, and wiring configurations for your specific motor driver setup.
+</Card>

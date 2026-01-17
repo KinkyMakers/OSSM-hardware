@@ -1,0 +1,59 @@
+---
+title: "High Voltage Failure"
+description: "How to fix the DC-DC converter failure issue on early Rev 2 OSSM boards when using 30V+ power supplies"
+---
+
+## Affected boards
+
+<Warning>
+This issue affects **Rev 2 boards with order number #1214 or lower**. If your order number is higher than #1214, this fix has already been applied to your board.
+</Warning>
+
+## Problem
+
+When you connect a 30V or higher power supply to the board **without a motor connected**, a brief voltage spike (approximately 1 microsecond) destroys the DC-DC converter.
+
+<Note>
+This issue does **not** occur if you:
+- Use a standard 24V power supply
+- Have a motor connected to the board before powering on
+</Note>
+
+## Solution
+
+Add a <Tooltip tip="Transient Voltage Suppression - a component that clamps voltage spikes to protect sensitive electronics">TVS diode</Tooltip> to clamp the input spike to a voltage the DC-DC converter can tolerate.
+
+### Required part
+
+| Part Number | Description | Approximate Cost |
+|-------------|-------------|------------------|
+| [1.5KE51CA](https://www.digikey.ca/en/products/detail/littelfuse-inc/1-5KE51CA/688036) | TVS Diode | ~$1 USD |
+
+### Installation steps
+
+<Steps>
+<Step title="Prepare the diode">
+Bend the leads of the 1.5KE51CA diode to match the solder pad spacing on your board.
+</Step>
+
+<Step title="Trim the nearby pin">
+Trim the pin marked in the image below to ensure it doesn't contact the diode lead after installation.
+
+<Warning>
+Skipping this step may cause a short circuit between the pin and diode lead.
+</Warning>
+</Step>
+
+<Step title="Solder the diode">
+Solder the diode directly to the board as shown in the reference image below.
+
+<Check>
+Verify that the diode leads have good solder joints and no leads are touching unintended pads or components.
+</Check>
+</Step>
+</Steps>
+
+{/* TODO: Add installation reference image */}
+{/* <Frame caption="TVS diode installation showing proper lead placement">
+<img src="/images/hardware/tvs-diode-install.png" alt="TVS diode soldered to OSSM board with trimmed pin visible" />
+</Frame> */}

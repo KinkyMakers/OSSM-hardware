@@ -9,57 +9,232 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "tabs": [
+    "products": [
       {
-        "tab": "Guides",
-        "groups": [
+        "product": "Open Source Sex Machine",
+        "description": "User guides and technical documentation for the OSSM",    
+        "icon": "robot",
+        "tabs": [
           {
-            "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
+            "tab": "Guides",
+            "groups": [
               {
-                "group": "Build Guide",
-                "collapsed": true,
+                "group": "Getting started",
                 "pages": [
-                  "build-guide/step-0.0_introduction",
-                  "build-guide/step-1.0_required_tools_and_parts",
-                  "build-guide/step-2.0_rear_tensioner",
-                  "build-guide/step-3.0_end_effector",
-                  "build-guide/step-4.0_front_tensioner",
-                  "build-guide/step-5.0_ossm_motorhead",
-                  "build-guide/step-6.0_pulley_on_motor",
-                  "build-guide/step-7.0_ossm_motor_head_middle",
-                  "build-guide/step-8.0_cover",
-                  "build-guide/step-9.0_tension_adjustment",
-                  "build-guide/step-10.0_electronics_assembly",
-                  "build-guide/step-11.0_wiring",
-                  "build-guide/step-12.0_initial_test"
+                  "ossm/guides/getting-started/index",
+                  "ossm/guides/getting-started/quickstart",
+                  {
+                    "group": "Build Guide",
+                    "collapsed": true,
+                    "pages": [
+                      "ossm/guides/getting-started/build-guide/step-0.0_introduction",
+                      "ossm/guides/getting-started/build-guide/step-1.0_required_tools_and_parts",
+                      "ossm/guides/getting-started/build-guide/step-1.1_purchasing-parts",
+                      "ossm/guides/getting-started/build-guide/step-1.2_3d-printing-parts",
+                      "ossm/guides/getting-started/build-guide/step-2.0_rear_tensioner",
+                      "ossm/guides/getting-started/build-guide/step-3.0_end_effector",
+                      "ossm/guides/getting-started/build-guide/step-4.0_front_tensioner",
+                      "ossm/guides/getting-started/build-guide/step-5.0_ossm_motorhead",
+                      "ossm/guides/getting-started/build-guide/step-6.0_pulley_on_motor",
+                      "ossm/guides/getting-started/build-guide/step-7.0_ossm_motor_head_middle",
+                      "ossm/guides/getting-started/build-guide/step-8.0_cover",
+                      "ossm/guides/getting-started/build-guide/step-9.0_tension_adjustment",
+                      "ossm/guides/getting-started/build-guide/step-10.0_electronics_assembly",
+                      "ossm/guides/getting-started/build-guide/step-11.0_wiring",
+                      "ossm/guides/getting-started/build-guide/step-12.0_initial_test"
+                    ]
+                  },
+                  {
+                    "group": "User Guide",
+                    "collapsed": true,
+                    "pages": [
+                      "ossm/guides/getting-started/user-guide/index",
+                      "ossm/guides/getting-started/user-guide/troubleshooting"
+                    ]
+                  },
+                  "ossm/guides/getting-started/official-add-ons"
                 ]
               },
-              "development"
+              {
+                "group": "Contributing",
+                "pages": [
+                  "ossm/guides/contributing/forking",
+                  "ossm/guides/contributing/how-to-become-a-contributor",
+                  "ossm/guides/contributing/roadmap",
+                  "ossm/guides/contributing/reporting-issues"
+                ]
+              },
+              {
+                "group": "Third Party Extensions",
+                "pages": [
+                ]
+              },
+              {
+                "group": "Community",
+                "pages": [
+                  "ossm/guides/community/index",
+                  {
+                    "group": "Third Party Hardware",
+                    "pages": [
+                      "ossm/guides/community/hardware/m5-remote",
+                      "ossm/guides/community/hardware/x-toys"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Housekeeping",
+                "pages": [
+                  "ossm/guides/housekeeping/about-kinky-makers",
+                  "ossm/guides/housekeeping/about-research-and-desire",
+                  "ossm/guides/housekeeping/faqs",
+                  {
+                    "group": "Open Source",
+                    "pages": [
+                      "ossm/guides/housekeeping/open-source/index",
+                      "ossm/guides/housekeeping/open-source/licence"
+                    ]
+                  },
+                  {
+                    "group": "Safety",
+                    "pages": [
+                      "ossm/guides/housekeeping/safety/index",
+                      "ossm/guides/housekeeping/safety/hazards",
+                      "ossm/guides/housekeeping/safety/guidance"
+                    ]
+                  }
+                ]
+              }
             ]
-          }
-        ]
-      },
-      {
-        "tab": "CAD Files",
-        "groups": [
+          },
           {
-            "group": "CAD Files",
-            "pages": [
-              "cad-files/index"
+            "tab": "Hardware",
+            "groups": [
+              {
+                "group": "Getting Started",
+                "pages": [
+                  "ossm/Hardware/getting-started/introduction"
+                ]
+              },
+              {
+                "group": "CAD Files",
+                "pages": [
+                  "ossm/Hardware/motor/standard-build-motor",
+                  {
+                    "group": "Alternatives",
+                    "pages": [
+                      "ossm/Hardware/motor/alternatives/42AIM30",
+                      "ossm/Hardware/motor/alternatives/iHSV57"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Motor",
+                "pages": [
+                  "ossm/Hardware/motor/standard-build-motor",
+                  {
+                    "group": "Alternatives",
+                    "pages": [
+                      "ossm/Hardware/motor/alternatives/42AIM30",
+                      "ossm/Hardware/motor/alternatives/iHSV57"
+                    ]
+                  },
+                  "ossm/Hardware/motor/programming"
+                ]
+              },
+              {
+                "group": "OSSM PCB v2.3",
+                "pages": [
+                  "ossm/Hardware/PCB/board-design",
+                  "ossm/Hardware/PCB/introduction"
+                ]
+              },
+              {
+                "group": "Standard Printed Parts",
+                "pages": [
+                  "ossm/Hardware/standard-printed-parts/contibution-guidelines",
+                  "ossm/Hardware/standard-printed-parts/actuator",
+                  "ossm/Hardware/standard-printed-parts/remote",
+                  "ossm/Hardware/standard-printed-parts/stand",
+                  {
+                    "group": "PitClamp",
+                    "pages": [
+                      "ossm/Hardware/standard-printed-parts/pitclamp/ASSEMBLY_GUIDES",
+                      "ossm/Hardware/standard-printed-parts/pitclamp/BOM",
+                      "ossm/Hardware/standard-printed-parts/pitclamp/README-2",
+                      "ossm/Hardware/standard-printed-parts/pitclamp/README",
+                      "ossm/Hardware/standard-printed-parts/pitclamp/UPDATES"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "OSSM PCB v2.3",
+                "pages": [
+                  "ossm/Hardware/PCB/board-design",
+                  "ossm/Hardware/PCB/introduction"
+                ]
+              },
+              {
+                "group": "OSSM Mods",
+                "pages": [
+                  {
+                    "group": "Pitclamp Reinforced",
+                    "pages": [
+                      "ossm/Hardware/ossm-mods/pitclamp-reinforced/hinges",
+                      "ossm/Hardware/ossm-mods/pitclamp-reinforced/standard-base"
+                    ]
+                  },
+                  {
+                    "group": "Salad Dressing",
+                    "pages": [
+                      "ossm/Hardware/ossm-mods/salad-dressing/belt-clamp-v2",
+                      "ossm/Hardware/ossm-mods/salad-dressing/capstan",
+                      "ossm/Hardware/ossm-mods/salad-dressing/suction-cup-bracket",
+                      "ossm/Hardware/ossm-mods/salad-dressing/weight-plate",
+                      "ossm/Hardware/ossm-mods/salad-dressing/quick-change-toy-mount"
+                    ]
+                  }
+                ]
+              },
+    
+              {
+                "group": "Known Issues",
+                "pages": [
+                 "ossm/Hardware/known-issues/high-voltage-failure"
+                ]
+              }
             ]
-          }
-        ]
-      },
-      {
-        "tab": "Software",
-        "groups": [
+          },
           {
-            "group": "Software",
-            "pages": [
-              "software/index"
+            "tab": "Software",
+            "groups": [
+              {
+                "group": "Getting Started",
+                "pages": [
+                  "ossm/Software/README",
+                  "ossm/Software/introduction/quick-start",
+                  "ossm/Software/introduction/PlatformIO",
+                  "ossm/Software/introduction/LED_Status",
+                  "ossm/Software/display"
+                ]
+              },
+              {
+                "group": "Communication",
+                "pages": [
+                  "ossm/Software/communication/ble",
+                  "ossm/Software/communication/mqtt"
+                ]
+              },
+    
+              {
+                "group": "Motion Libaries",
+                "pages": [
+                  "ossm/Software/motion/stroke-engine/Pattern",
+                  "ossm/Software/motion/stroke-engine/README"
+                ]
+              }
             ]
           }
         ]
@@ -67,11 +242,6 @@
     ],
     "global": {
       "anchors": [
-        {
-          "anchor": "User Documentation",
-          "href": "https://docs.researchanddesire.com",
-          "icon": "book-open-cover"
-        },
         {
           "anchor": "R+D Store",
           "href": "https://www.researchanddesire.com",
@@ -94,7 +264,7 @@
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "href": "https://dashboard.researchanddesire.com"
     }
   },
   "contextual": {

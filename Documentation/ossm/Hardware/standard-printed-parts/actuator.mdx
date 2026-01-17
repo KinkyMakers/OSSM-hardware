@@ -1,0 +1,146 @@
+---
+title: "Actuator Assembly"
+description: "Print settings, bill of materials, and assembly instructions for the OSSM actuator"
+---
+
+<Frame>
+  <img src="_images/Overview%20-%20Actuator%20Default.png" alt="OSSM Actuator overview showing the assembled linear actuator" />
+</Frame>
+
+## Printing
+
+Follow these print settings for optimal strength and durability.
+
+### Print Settings
+
+| Setting | Value |
+| ------- | ----- |
+| Walls | 6 |
+| Infill Type | Cross Hatch or Gyroid |
+| Infill Percentage | 15% |
+| Supports | None |
+| Filament Estimate | 200g |
+| Recommended Filament | PLA+ |
+
+<Warning>
+Print all parts in the default file orientation. Printing threaded components in other orientations causes structural weakness.
+</Warning>
+
+<Tip>
+For the 24mm Clamping Thread, use 2 raft layers to promote better bed adhesion.
+</Tip>
+
+<Accordion title="Troubleshooting: 24mm Clamping Thread issues">
+If you have issues printing the 24mm Clamping Thread, use the [Non-standard](Non-standard/) 24mm Thread and Belt Clamp files instead. These require additional hardware:
+
+- (Qty 2) M3x8
+- (Qty 1) M3x16
+- (Qty 3) M3 Hex Nut
+</Accordion>
+
+### Printed Parts List
+
+| Quantity | Part Name |
+| -------- | --------- |
+| 1 | Body - Bottom |
+| 1 | Body - Middle |
+| 1 | Body - Cover |
+| 1 | Belt Tensioner |
+| 1 | 24mm Clamping Thread - End Effector |
+| 1 | 24mm Clamping Thread - Belt Clamp |
+| 2 | 24mm Nut - 5 Sided |
+
+<Note>
+For additional documentation, see the [3030 Extrusion Base guide](3030%20Extrusion%20Base/README.md).
+</Note>
+
+## Bill of Materials
+
+### GT2 Pulley
+
+| Specification | Value |
+| ------------- | ----- |
+| Bore | 8mm |
+| Teeth | 20 |
+| Width | 10mm |
+
+### GT2 Timing Belt
+
+| Specification | Value |
+| ------------- | ----- |
+| Width | 10mm |
+| Length | 500mm |
+
+### MGN12H Linear Rail + Bearing Block
+
+| Specification | Value |
+| ------------- | ----- |
+| Minimum Length | 250mm |
+| Suggested Length | 350mm |
+| Maximum Length | 550mm |
+
+<Info>
+Calculate your rail length using this formula: **desired maximum stroke + 180mm**
+
+You must use an MGN**12H** rail. The "H" designates a longer bearing block than "C" for greater stability. The "12" indicates a 12mm rail width.
+</Info>
+
+### Ball Bearings
+
+| Quantity | Specification |
+| -------- | ------------- |
+| 6 | MR115-2RS 5x11x4mm |
+
+### Fasteners
+
+| Quantity | Specification |
+| -------- | ------------- |
+| 8 | M3x8 Socket Cap Head Bolt |
+| 2 | M3x16 Socket Cap Head Bolt |
+| 1 | M3x20 Socket Cap Head Bolt |
+| 7 | M3 Hex Nut |
+| 3 | M5x20 Socket Cap Head Bolt |
+| 1 | M5 Hex Nut |
+| 4 | M5x35 Socket Cap Head Bolt |
+| 4 | M5 20mm Hex Coupling Nut (or M5 Hex Nut) |
+
+## Assembly
+
+<Frame caption="Animated exploded view of actuator assembly">
+  <img src="_images/Exploded%20ALT%20-%20Actuator%20Default.gif" alt="Animated exploded view showing how actuator components fit together" />
+</Frame>
+
+<CardGroup cols={2}>
+  <Card>
+    <Frame caption="Exploded view - front angle">
+      <img src="_images/Exploded%20-%20Actuator%20Default.png" alt="Exploded view of actuator from front angle" />
+    </Frame>
+  </Card>
+  <Card>
+    <Frame caption="Exploded view - alternate angle">
+      <img src="_images/Exploded%20ALT%20-%20Actuator%20Default.png" alt="Exploded view of actuator from alternate angle" />
+    </Frame>
+  </Card>
+</CardGroup>
+
+### Belt Routing
+
+Route the GT2 timing belt through the actuator body following these reference images:
+
+<CardGroup cols={3}>
+  <Card title="Tensioner">
+    <Frame>
+      <img src="_images/Cut%20View%20-%20Belt%20Routing%20Rear.png" alt="Cross-section showing belt routing through the rear tensioner" />
+    </Frame>
+  </Card>
+  <Card title="Body">
+    <Frame>
+      <img src="_images/Cut%20View%20-%20Belt%20Routing%20Middle.png" alt="Cross-section showing belt routing through the middle body section" />
+    </Frame>
+  </Card>
+  <Card title="Belt Clamp">
+    <Frame>
+      <img src="_images/Cut%20View%20-%20Belt%20Routing%20Front.png" alt="Cross-section showing belt routing through the front belt clamp" />
+    </Frame>
+  </Card>
+</CardGroup>

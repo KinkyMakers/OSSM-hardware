@@ -1,0 +1,232 @@
+---
+title: "FAQs"
+description: "Common questions about OSSM hardware, motors, printing, mounting, and control options"
+---
+
+## General
+
+<AccordionGroup>
+<Accordion title="What is OSSM?">
+OSSM is a compact, customizable sex machine based around the NEMA23 motor mount pattern. You can drive it with stepper motors or, for best results, servo motors. The design combines 3D printed parts with off-the-shelf components, giving you full control over your build.
+</Accordion>
+
+<Accordion title="Why build an OSSM instead of buying a ready-made machine?">
+OSSM offers several advantages over commercial alternatives:
+
+- **Full control**: Adjust stroke speed and depth precisely
+- **Open platform**: You're not locked into a specific company's ecosystem
+- **Customizable**: Create patterns, write your own control software, or modify the hardware
+- **Adaptable**: Swap attachments, use different toy mounts, or upgrade to a larger motor
+- **Cost-effective**: More features than equivalently priced commercial machines
+</Accordion>
+
+<Accordion title="What parts do I need?">
+Check the [Bill of Materials](/guides/getting-started/build-guide/step-1.0_required_tools_and_parts) for the complete parts list. The BOM is regularly maintained and includes links to suppliers.
+</Accordion>
+
+<Accordion title="How powerful is the OSSM?">
+**Standard recommended build specs:**
+
+- **32 lbs (14 kg) of force** at 20V DC
+- **Up to 50 lbs (22 kg) of force** at 36V DC
+- **8" (20 cm) stroke** with a 350mm rail
+
+Many users successfully use large knotted toys anally without issue.
+</Accordion>
+
+<Accordion title="Is the OSSM quiet?">
+Yes. OSSM uses a nearly silent belt drive system. When paired with a servo motor (recommended), the machine operates very quietly.
+</Accordion>
+
+<Accordion title="Is the OSSM really open source?">
+Yes—OSSM is certified open-source hardware under the **CERN Open Hardware Licence Version 2 - Strongly Reciprocal**.
+
+<a href="https://certification.oshwa.org/ca000057.html">
+  <img width="287" src="https://github.com/user-attachments/assets/af168015-b80a-4464-8778-e391278d9748" alt="OSHWA Certification Badge" />
+</a>
+
+All contributions to the GitHub repository are assumed to use the same license.
+</Accordion>
+</AccordionGroup>
+
+## Motors
+
+<AccordionGroup>
+<Accordion title="Which motor should I use?">
+While you can theoretically use any NEMA23 mount motor, some work better than others. The community recommends **closed-loop servo motors** over stepper motors because they are:
+
+- More efficient
+- Quieter during operation
+- Easier to program
+- More responsive across the full speed range
+
+<Tip>
+Stepper motors are cheaper but significantly noisier. For the best experience, invest in a servo motor.
+</Tip>
+</Accordion>
+
+<Accordion title="What motor strength do I need?">
+Your motor choice depends on several factors:
+
+- Vaginal or anal use
+- Size of toys
+- Desired speed
+
+**Motor recommendations:**
+
+| Motor | Use Case | Force |
+|-------|----------|-------|
+| **57AIM30 (Gold Motor)** | General purpose, recommended for new builds | ~20 lbs |
+| **100W iHSV57 Servo** | Vaginal with medium toys, anal with smaller toys | 10 lbs |
+| **140W iHSV57 Servo** | Vaginal with larger toys, anal with medium toys | 15 lbs |
+| **180W iHSV57 Servo** | Wide range of toys, vaginal or anal | 20 lbs |
+
+<Note>
+Servo motors deliver consistent torque across the entire speed range. Stepper motors produce maximum force at lower speeds and have a lower top speed than servos.
+</Note>
+
+For extremely large toys, consider the Squooter build (see Discord) which uses the larger NEMA34 motor mount.
+</Accordion>
+
+<Accordion title="Why does anal use require more powerful motors?">
+The muscles in the anal region are powerful. Users commonly bear down or clench during stimulation, which creates significant resistance. Larger toys combined with strong muscles require more motor power to maintain consistent motion.
+</Accordion>
+</AccordionGroup>
+
+## 3D Printing
+
+<AccordionGroup>
+<Accordion title="What printer bed size do I need?">
+**Minimum requirements:**
+- Bed size: 105mm × 105mm
+- Print height: ~125mm (for the Vac-U-Lock compatible adapter)
+
+The plate mount is significantly shorter if height is a constraint.
+</Accordion>
+
+<Accordion title="What material should I use?">
+**Structural parts**: Use strong materials such as:
+- PLA
+- PETG
+- ABS
+- ASA
+- PCTG
+
+**Non-structural parts**: Print in whatever material you prefer.
+
+<Warning>
+Additives used in matte filaments may weaken the material. Check the material properties before using specialty filaments.
+</Warning>
+
+If you experiment with unusual materials, share your results in the Discord!
+</Accordion>
+
+<Accordion title="What infill percentage should I use?">
+**30% infill** works well for PLA on non-flexible parts.
+</Accordion>
+
+<Accordion title="What wall thickness should I use?">
+Use at least **3mm walls** for non-flexible parts.
+</Accordion>
+
+<Accordion title="How do I print the flexible parts?">
+Some mounting solutions use clamps that require flexibility. For these parts:
+
+- Wall thickness: 2mm
+- Lower infill percentage
+- Gyroid infill pattern
+</Accordion>
+</AccordionGroup>
+
+## Mounting and Toys
+
+<AccordionGroup>
+<Accordion title="How do I mount toys onto the OSSM?">
+After choosing your motor, selecting a toy mount is your next decision. Options include:
+
+- **Vac-U-Lock compatible mount**: Works with the popular Vac-U-Lock system
+- **Double-double mount**: Alternative mounting system
+- **OSSM Platten**: Plate mount for suction cup toys with tie-down points
+</Accordion>
+
+<Accordion title="What can I mount the machine on?">
+Several mounting options are available:
+
+- Standard pipe mounts (US/Canadian sizing)
+- 80/20 aluminum extrusion rails (modular construction system)
+- Manfrotto boom compatible adapters
+
+Your mounting solution is limited only by your imagination and use case.
+</Accordion>
+</AccordionGroup>
+
+## Control and Software
+
+<AccordionGroup>
+<Accordion title="How do I control my OSSM?">
+Control options depend on your use case:
+
+- **Wired remote**: Basic control included with standard builds
+- **M5 Remote**: Advanced wireless remote available from community members
+- **Custom solutions**: Build your own controller—that's the advantage of open-source hardware
+</Accordion>
+
+<Accordion title="Can I control OSSM over the internet?">
+<Warning>
+As of August 2023, you cannot control an OSSM over the internet.
+</Warning>
+
+Previously, Research & Desire offered a web page for basic WiFi control with speed and depth settings. This feature is no longer available.
+</Accordion>
+
+<Accordion title="What about X-Toys and Funscript support?">
+<Warning>
+As of August 2023, X-Toys firmware is highly experimental and **not considered safe for use on humans**. Known issues include frequent pauses, position tracking errors, and random extension to maximum depth.
+</Warning>
+
+Development of improved X-Toys firmware is ongoing but complex.
+</Accordion>
+
+<Accordion title="Why is X-Toys/Funscript/Buttplug.io integration so difficult?">
+Several technical challenges make this integration complex:
+
+1. **Motion core limitations**: The current motion system doesn't support position streaming. A complete redesign of the safety architecture is required—you don't want accidental rapid movements to maximum depth.
+
+2. **Latency constraints**: Experimental testing revealed extremely tight latency margins. Bluetooth communication struggles to meet these requirements.
+
+3. **Data model incompatibility**: X-Toys and Buttplug.io don't support the complex data models OSSM requires. Scaling commands to OSSM's full stroke length isn't straightforward. Emulating another toy might work as a workaround, but you won't have full control over all OSSM features.
+</Accordion>
+</AccordionGroup>
+
+## Hardware and Power
+
+<AccordionGroup>
+<Accordion title="Do I need to buy the OSSM reference board?">
+No, the reference board is optional. However, it significantly simplifies the build process by eliminating the need for soldering.
+</Accordion>
+
+<Accordion title="What power supply do I need?">
+Power supply requirements depend on your motor wattage:
+
+| Motor | Recommended Power Supply |
+|-------|-------------------------|
+| 100W JMC | 24V, 4A |
+| 140W / 180W JMC | 24V, 6A |
+
+<Warning>
+For safety, use a desktop power supply that is ideally double-insulated. Supplies from reputable distributors (Mouser, Digikey, Conrad, RS) cost more than unbranded units from AliExpress/eBay/Amazon, but unbranded supplies have shown inconsistent quality and long-term stability issues.
+</Warning>
+</Accordion>
+
+<Accordion title="How long should my H-rail be?">
+Rail length determines maximum stroke depth. A **350mm rail** provides approximately **195mm of usable depth**.
+</Accordion>
+
+<Accordion title="What thread size is used on the end effector?">
+The end effector uses **M24×3** threading.
+
+<Tip>
+Print a test piece when creating a new end effector—you may need to upsize by 3-5% depending on your printer's tolerances.
+</Tip>
+</Accordion>
+</AccordionGroup>

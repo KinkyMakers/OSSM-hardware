@@ -1,0 +1,127 @@
+---
+title: "User Guide"
+description: "Learn how to operate your OSSM, navigate the interface, and use stroke engine patterns"
+---
+
+This guide walks you through operating your fully assembled OSSM. You'll learn how to power on, navigate the menu system, and control stroke patterns.
+
+<Note>
+This guide covers the wired remote interface. If you're using a wireless remote, refer to the [Research and Desire guides](https://researchanddesire.com/guides) for wireless-specific instructions.
+</Note>
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- A fully assembled OSSM (complete all [build guide](/guides/getting-started/build-guide/step-0.0_introduction) steps)
+- Either a wired remote or wireless remote connected
+- A sufficient power supply (24V, 5A minimum)
+
+## Powering on and homing
+
+<Steps>
+<Step title="Connect power">
+Plug your OSSM into a sufficient power supply. The controller should power on and display the startup screen.
+</Step>
+
+<Step title="Wait for homing">
+The OSSM automatically begins the homing sequence. The actuator moves slowly to find its home position.
+
+<Warning>
+If homing is too slow or stalls, see the [troubleshooting guide](/guides/getting-started/user-guide/troubleshooting#homing-is-too-slow).
+</Warning>
+</Step>
+
+<Step title="Enter the main menu">
+After homing completes, the main menu appears on the wired remote display.
+</Step>
+</Steps>
+
+## Main menu options
+
+The main menu provides four operating modes:
+
+| Option | Description |
+|--------|-------------|
+| **Simple Penetration** | Basic operation with minimal controls |
+| **Stroke Engine** | Advanced pattern-based control with depth, stroke, and sensation settings |
+| **WiFi** | Configure wireless connectivity |
+| **Restart** | Restart the controller and re-home |
+
+## Using Stroke Engine
+
+Stroke Engine provides the most control over your OSSM's behavior. Select it from the main menu to enter pattern-based operation.
+
+<Info>
+You may see a "speed is too high" warning when entering Stroke Engine. This safety feature activates when the speed potentiometer isn't at zero. Turn the left knob fully counterclockwise to clear the warning.
+</Info>
+
+### Display layout
+
+The Stroke Engine interface shows:
+
+- **Left bar** — Speed (0–100%), controlled by the left knob
+- **Right bars** — Three stacked indicators for depth, stroke, and sensation
+- **Center** — Currently active pattern name
+
+### Controls
+
+<Tabs>
+<Tab title="Speed control">
+Use the **left encoder** to adjust speed from 0% to 100%.
+
+- Turn clockwise to increase speed
+- Turn counterclockwise to decrease speed
+</Tab>
+
+<Tab title="Stroke settings">
+The **right encoder** controls three parameters:
+
+| Setting | Description |
+|---------|-------------|
+| **Depth** | How far "into" the body the actuator travels at its deepest point |
+| **Stroke** | How far the actuator retracts "out" from the deepest point |
+| **Sensation** | A pattern-specific modifier that changes behavior |
+
+**To adjust settings:**
+1. Press the right encoder once to cycle between depth, stroke, and sensation
+2. Turn the right encoder to increase or decrease the selected value
+</Tab>
+
+<Tab title="Emergency stop">
+**Hold the right encoder for 3 seconds** to perform a rapid stop. This immediately halts movement and returns you to the main menu.
+
+<Warning>
+Emergency stop may cause the OSSM to lose its homing position. You may need to restart and re-home after using this feature.
+</Warning>
+</Tab>
+</Tabs>
+
+### Changing patterns
+
+Press the right encoder **twice quickly** to open the pattern selection menu.
+
+**Available patterns:**
+
+| Pattern | Behavior |
+|---------|----------|
+| **Simple Stroke** | Balanced acceleration, coasting, and deceleration; sensation has no effect |
+| **Teasing Pounding** | Speed shifts with sensation setting; balances faster strokes |
+| **Robo Stroke** | Sensation varies acceleration from robotic to gradual |
+| **Half'n'Half** | Alternates between full and half depth strokes; sensation affects speed |
+| **Deeper** | Stroke depth increases each cycle; sensation sets cycle count |
+| **Stop'n'Go** | Pauses between strokes; sensation adjusts pause length |
+| **Insist** | Modifies stroke length while maintaining speed; sensation influences direction |
+
+Scroll to your desired pattern and press the encoder to select it. The pattern changes immediately.
+
+## Next steps
+
+<CardGroup cols={2}>
+<Card title="Troubleshooting" icon="wrench" href="/guides/getting-started/user-guide/troubleshooting">
+Diagnose and resolve common issues with your OSSM.
+</Card>
+<Card title="Community mods" icon="puzzle-piece" href="/guides/community">
+Explore community-built extensions and modifications.
+</Card>
+</CardGroup>
