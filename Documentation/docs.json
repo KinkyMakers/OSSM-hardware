@@ -12,7 +12,7 @@
     "products": [
       {
         "product": "Open Source Sex Machine",
-        "description": "User guides and technical documentation for the OSSM",    
+        "description": "User guides and technical documentation for the OSSM",
         "icon": "robot",
         "tabs": [
           {
@@ -66,8 +66,7 @@
               },
               {
                 "group": "Third Party Extensions",
-                "pages": [
-                ]
+                "pages": []
               },
               {
                 "group": "Community",
@@ -178,11 +177,10 @@
                   }
                 ]
               },
-    
               {
                 "group": "Known Issues",
                 "pages": [
-                 "ossm/Hardware/known-issues/high-voltage-failure"
+                  "ossm/Hardware/known-issues/high-voltage-failure"
                 ]
               }
             ]
@@ -205,7 +203,6 @@
                   "ossm/Software/communication/ble"
                 ]
               },
-    
               {
                 "group": "Motion Libaries",
                 "pages": [
