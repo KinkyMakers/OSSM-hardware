@@ -191,7 +191,7 @@ jobs:
       - name: Download registry.json
         id: download_registry
         run: |
-          if supabase storage cp "ss:///ossm-firmware/registry.json" ./registry.json --experimental; then
+          if supabase storage cp "ss:///ossm-firmware/registry.json" ./registry.json --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}; then
             echo "registry_exists=true" >> $GITHUB_OUTPUT
           else
             echo "Registry.json does not exist. Failing workflow."
@@ -215,7 +215,7 @@ jobs:
 
           # Check if firmware exists at branch path
           OLD_COMMIT=""
-          if supabase storage ls "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" --experimental > /dev/null 2>&1; then
+          if supabase storage ls "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} > /dev/null 2>&1; then
             # Firmware exists, need to determine old commit
             # First, check if there's a previous commit in the registry for this branch
             BRANCH_COMMITS=$(echo "$REGISTRY" | jq -r ".[\"$BRANCH_PATH\"] // []")
@@ -256,15 +256,15 @@ jobs:
         run: |
           OLD_COMMIT="${{ steps.update_registry.outputs.old_commit }}"
           BRANCH_PATH="${{ steps.encode_branch.outputs.encoded_branch }}"
-          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/firmware.bin" --experimental || true
-          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/partitions.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/partitions.bin" --experimental || true
-          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/manifest.json" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/manifest.json" --experimental || true
+          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/firmware.bin" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} || true
+          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/partitions.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/partitions.bin" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} || true
+          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/manifest.json" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/manifest.json" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} || true
         continue-on-error: true
 
       - name: Upload firmware to Supabase Storage
         run: |
-          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
 
       - name: Create and upload manifest.json
         run: |
@@ -272,13 +272,13 @@ jobs:
           cat .github/artifacts/manifest.json | sed "s/{{ branchName }}/${{ steps.encode_branch.outputs.encoded_branch }}/g" > ./manifest.json
 
           # Upload the manifest file to Supabase Storage
-          supabase storage cp ./manifest.json "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
+          supabase storage cp ./manifest.json "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/manifest.json" --content-type "application/json" --cache-control "no-cache" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
 
       - name: Upload updated registry.json
         run: |
           # Delete existing registry.json if it exists, then upload the updated one
-          supabase storage rm "ss:///ossm-firmware/registry.json" --experimental --yes 
-          supabase storage cp ./registry.json "ss:///ossm-firmware/registry.json" --content-type "application/json" --cache-control "no-cache" --experimental
+          supabase storage rm "ss:///ossm-firmware/registry.json" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --yes 
+          supabase storage cp ./registry.json "ss:///ossm-firmware/registry.json" --content-type "application/json" --cache-control "no-cache" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
 
       - name: Create GitHub Deployment
         id: create_deployment
