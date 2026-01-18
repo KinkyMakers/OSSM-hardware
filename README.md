@@ -4,7 +4,7 @@
 
 ### Check us out at [**researchanddesire.com**](https://researchanddesire.com)
 
-![OSSM Overview Image](Documentation/_images/OSSM%20Banner%20Image.png)
+![OSSM Overview Image](Documentation/ossm/images/_images/OSSM%20Banner%20Image.webp)
 
 ### [**KinkyMakers Discord Community**](https://discord.gg/VtZcudpxT6)
 
@@ -12,7 +12,7 @@
 Most OSSM development takes place through ideas and CAD contributions made by
 enthusiastic discord members, join the discussion or show off your build!
 
-### Check out our docs at [GitBook](https://docs.researchanddesire.com/)
+### Check out our [documentation](https://docs.researchanddesire.com/ossm)
 
 ### [**Read the Frequently Asked Questions**](FAQ.md)
 
