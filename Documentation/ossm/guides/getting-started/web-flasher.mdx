@@ -1,0 +1,54 @@
+---
+title: "Web Flasher"
+description: "Flash firmware to your OSSM or RADR device using the browser-based web flasher utility"
+---
+
+Both OSSM and RADR devices use the same web-based flashing process. You can update or reinstall firmware directly from your browser without installing any additional software.
+
+## Flash your device
+
+<Steps>
+<Step title="Open the web flasher">
+  Navigate to the [Web Flasher](https://dashboard.researchanddesire.com/app/tools/web-flasher) in your browser.
+
+  <Note>
+  The web flasher requires a browser with Web Serial API support. Use **Chrome**, **Edge**, or **Safari** for best results.
+  </Note>
+</Step>
+
+<Step title="Connect your device">
+  Plug your OSSM or RADR into your computer using a USB cable. The web flasher will detect the device automatically.
+</Step>
+
+<Step title="Follow the on-screen instructions">
+  The web flasher guides you through selecting your device and firmware version. Click **Flash** when ready.
+
+  <Check>
+  Once flashing completes, your device will restart with the new firmware installed.
+  </Check>
+</Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="Device not detected">
+If your computer doesn't recognize the device, you may need to install USB UART drivers.
+
+<Tabs>
+<Tab title="Windows">
+Download and install the [CP210x Windows Drivers](https://www.silabs.com/documents/public/software/CP210x_Windows_Drivers.zip) from Silicon Labs.
+</Tab>
+
+<Tab title="macOS / Linux">
+Download the appropriate driver from the [Silicon Labs USB to UART Bridge VCP Drivers](https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads) page.
+</Tab>
+</Tabs>
+
+After installing drivers, disconnect and reconnect your device, then refresh the web flasher page.
+</Accordion>
+
+<Accordion title="Browser not supported">
+The Web Serial API is only available in Chromium-based browsers. If you're using Firefox or another unsupported browser, switch to **Chrome**, **Edge**, or **Safari**.
+</Accordion>
+</AccordionGroup>

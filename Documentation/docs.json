@@ -12,7 +12,6 @@
     "products": [
       {
         "product": "Open Source Sex Machine",
-        "description": "User guides and technical documentation for the OSSM",
         "icon": "robot",
         "tabs": [
           {
@@ -23,6 +22,17 @@
                 "pages": [
                   "ossm/guides/getting-started/index",
                   "ossm/guides/getting-started/quickstart",
+                  "ossm/guides/getting-started/video-intro",
+                  "ossm/guides/getting-started/web-flasher",
+                  {
+                    "group": "Ready to Play",
+                    "collapsed": true,
+                    "pages": [
+                      "ossm/guides/getting-started/ready-to-play/index",
+                      "ossm/guides/getting-started/ready-to-play/info-sheet",
+                      "ossm/guides/getting-started/ready-to-play/spec-sheet"
+                    ]
+                  },
                   {
                     "group": "Build Guide",
                     "collapsed": true,
@@ -138,6 +148,7 @@
                 "group": "Motor",
                 "pages": [
                   "ossm/Hardware/motor/standard-build-motor",
+                  "ossm/Hardware/motor/wiring-gold-motor",
                   {
                     "group": "Alternatives",
                     "pages": [
