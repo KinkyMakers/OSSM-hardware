@@ -12,7 +12,7 @@
 Most OSSM development takes place through ideas and CAD contributions made by
 enthusiastic discord members, join the discussion or show off your build!
 
-### Check out our docs at [GitBook](https://kinky-makers.gitbook.io/)
+### Check out our docs at [GitBook](https://docs.researchanddesire.com/)
 
 ### [**Read the Frequently Asked Questions**](FAQ.md)
 
@@ -37,7 +37,6 @@ interest.\
 A second objective is optionally learning how mechanics, electronics, physics
 and computing are involved in your sexual pleasure.
 
-
 <p align="center">
 <img width="750" alt="image" src="https://github.com/KinkyMakers/OSSM-hardware/assets/43324815/a756a8d5-c075-4e86-8206-b553a0b77127">
 </p>
@@ -47,8 +46,6 @@ with the current BOM going forward, but it's not guaranteed.
 
 ## **Building Your OSSM**
 
-
-
 ### Bill Of Materials for Standard Recommended Build
 
 ### Electronics
@@ -57,7 +54,7 @@ with the current BOM going forward, but it's not guaranteed.
   - 57AIM30
     ["Gold Motor"](https://www.researchanddesire.com/products/ossm-motor-gold-motor)
 
-      [Gold Motor Programming Tool](/Hardware/Servo%20Tools/Gold%20Motor/)
+    [Gold Motor Programming Tool](/Hardware/Servo%20Tools/Gold%20Motor/)
 - OSSM Reference Board, Remote, Wiring
   - [OSSM Reference PCB](https://www.researchanddesire.com/products/ossm-reference-board)
     or ESP32 Development Board
