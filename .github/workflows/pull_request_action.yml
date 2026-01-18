@@ -174,11 +174,6 @@ jobs:
           URL_ENCODED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/\//%2F/g' | sed 's/+/%2B/g' | sed 's/ /%20/g')
           echo "encoded_branch=$URL_ENCODED_BRANCH" >> $GITHUB_OUTPUT
 
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
@@ -191,7 +186,16 @@ jobs:
       - name: Download registry.json
         id: download_registry
         run: |
-          if supabase storage cp "ss:///ossm-firmware/registry.json" ./registry.json --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}; then
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X GET \
+            "https://${{ secrets.SUPABASE_PROJECT_ID }}.supabase.co/storage/v1/object/ossm-firmware/registry.json" \
+            -H "apikey: ${{ secrets.SUPABASE_ACCESS_TOKEN }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ACCESS_TOKEN }}")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "$BODY" > ./registry.json
             echo "registry_exists=true" >> $GITHUB_OUTPUT
           else
             echo "Registry.json does not exist. Failing workflow."
@@ -215,7 +219,12 @@ jobs:
 
           # Check if firmware exists at branch path
           OLD_COMMIT=""
-          if supabase storage ls "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} > /dev/null 2>&1; then
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X HEAD \
+            "https://${{ secrets.SUPABASE_PROJECT_ID }}.supabase.co/storage/v1/object/ossm-firmware/$BRANCH_PATH/firmware.bin" \
+            -H "apikey: ${{ secrets.SUPABASE_ACCESS_TOKEN }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ACCESS_TOKEN }}")
+          
+          if [ "$HTTP_CODE" = "200" ]; then
             # Firmware exists, need to determine old commit
             # First, check if there's a previous commit in the registry for this branch
             BRANCH_COMMITS=$(echo "$REGISTRY" | jq -r ".[\"$BRANCH_PATH\"] // []")
