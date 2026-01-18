@@ -20,14 +20,14 @@
               {
                 "group": "Getting started",
                 "pages": [
-                  "ossm/guides/getting-started/index",
+                  "ossm/guides/getting-started/introduction",
                   "ossm/guides/getting-started/quickstart",
                   "ossm/guides/getting-started/video-intro",
                   "ossm/guides/getting-started/web-flasher",
                   {
                     "group": "Ready to Play",
                     "pages": [
-                      "ossm/guides/getting-started/ready-to-play/index",
+                      "ossm/guides/getting-started/ready-to-play/introduction",
                       "ossm/guides/getting-started/ready-to-play/info-sheet",
                       "ossm/guides/getting-started/ready-to-play/spec-sheet"
                     ]
@@ -55,7 +55,7 @@
                   {
                     "group": "User Guide",
                     "pages": [
-                      "ossm/guides/getting-started/user-guide/index",
+                      "ossm/guides/getting-started/user-guide/introduction",
                       "ossm/guides/getting-started/user-guide/troubleshooting"
                     ]
                   },
@@ -78,7 +78,7 @@
               {
                 "group": "Community",
                 "pages": [
-                  "ossm/guides/community/index",
+                  "ossm/guides/community/introduction",
                   {
                     "group": "Third Party Hardware",
                     "pages": [
@@ -97,14 +97,14 @@
                   {
                     "group": "Open Source",
                     "pages": [
-                      "ossm/guides/housekeeping/open-source/index",
+                      "ossm/guides/housekeeping/open-source/introduction",
                       "ossm/guides/housekeeping/open-source/licence"
                     ]
                   },
                   {
                     "group": "Safety",
                     "pages": [
-                      "ossm/guides/housekeeping/safety/index",
+                      "ossm/guides/housekeeping/safety/introduction",
                       "ossm/guides/housekeeping/safety/hazards",
                       "ossm/guides/housekeeping/safety/guidance"
                     ]
