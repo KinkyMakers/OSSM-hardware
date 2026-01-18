@@ -174,6 +174,11 @@ jobs:
           URL_ENCODED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/\//%2F/g' | sed 's/+/%2B/g' | sed 's/ /%20/g')
           echo "encoded_branch=$URL_ENCODED_BRANCH" >> $GITHUB_OUTPUT
 
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
@@ -186,16 +191,7 @@ jobs:
       - name: Download registry.json
         id: download_registry
         run: |
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X GET \
-            "https://${{ secrets.SUPABASE_PROJECT_ID }}.supabase.co/storage/v1/object/ossm-firmware/registry.json" \
-            -H "apikey: ${{ secrets.SUPABASE_ACCESS_TOKEN }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ACCESS_TOKEN }}")
-          
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-          BODY=$(echo "$RESPONSE" | sed '$d')
-          
-          if [ "$HTTP_CODE" = "200" ]; then
-            echo "$BODY" > ./registry.json
+          if supabase storage cp "ss:///ossm-firmware/registry.json" ./registry.json --experimental; then
             echo "registry_exists=true" >> $GITHUB_OUTPUT
           else
             echo "Registry.json does not exist. Failing workflow."
@@ -219,12 +215,7 @@ jobs:
 
           # Check if firmware exists at branch path
           OLD_COMMIT=""
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X HEAD \
-            "https://${{ secrets.SUPABASE_PROJECT_ID }}.supabase.co/storage/v1/object/ossm-firmware/$BRANCH_PATH/firmware.bin" \
-            -H "apikey: ${{ secrets.SUPABASE_ACCESS_TOKEN }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ACCESS_TOKEN }}")
-          
-          if [ "$HTTP_CODE" = "200" ]; then
+          if supabase storage ls "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" --experimental > /dev/null 2>&1; then
             # Firmware exists, need to determine old commit
             # First, check if there's a previous commit in the registry for this branch
             BRANCH_COMMITS=$(echo "$REGISTRY" | jq -r ".[\"$BRANCH_PATH\"] // []")
@@ -265,15 +256,15 @@ jobs:
         run: |
           OLD_COMMIT="${{ steps.update_registry.outputs.old_commit }}"
           BRANCH_PATH="${{ steps.encode_branch.outputs.encoded_branch }}"
-          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/firmware.bin" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} || true
-          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/partitions.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/partitions.bin" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} || true
-          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/manifest.json" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/manifest.json" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} || true
+          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/firmware.bin" --experimental || true
+          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/partitions.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/partitions.bin" --experimental || true
+          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/manifest.json" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/manifest.json" --experimental || true
         continue-on-error: true
 
       - name: Upload firmware to Supabase Storage
         run: |
-          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
-          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
 
       - name: Create and upload manifest.json
         run: |
@@ -281,13 +272,13 @@ jobs:
           cat .github/artifacts/manifest.json | sed "s/{{ branchName }}/${{ steps.encode_branch.outputs.encoded_branch }}/g" > ./manifest.json
 
           # Upload the manifest file to Supabase Storage
-          supabase storage cp ./manifest.json "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/manifest.json" --content-type "application/json" --cache-control "no-cache" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+          supabase storage cp ./manifest.json "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
 
       - name: Upload updated registry.json
         run: |
           # Delete existing registry.json if it exists, then upload the updated one
-          supabase storage rm "ss:///ossm-firmware/registry.json" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }} --yes 
-          supabase storage cp ./registry.json "ss:///ossm-firmware/registry.json" --content-type "application/json" --cache-control "no-cache" --linked --experimental --project-ref ${{ secrets.SUPABASE_PROJECT_ID }}
+          supabase storage rm "ss:///ossm-firmware/registry.json" --experimental --yes 
+          supabase storage cp ./registry.json "ss:///ossm-firmware/registry.json" --content-type "application/json" --cache-control "no-cache" --experimental
 
       - name: Create GitHub Deployment
         id: create_deployment
