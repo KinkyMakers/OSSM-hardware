@@ -70,6 +70,43 @@ Before selecting your approach, understand these critical factors:
   </Accordion>
 </AccordionGroup>
 
+## Specifications
+
+### Power Input
+
+| Parameter | Value |
+|-----------|-------|
+| Voltage | 24V DC |
+| Max current | 5A |
+
+<Warning>
+Use a high-quality, UL-certified power supply. Low-quality supplies often cannot deliver their rated power and may cause damage to the motor or control board.
+</Warning>
+
+### Signal Outputs
+
+| Parameter | Specification |
+|-----------|---------------|
+| Signal type | Step-Dir |
+| Logic level | 5V active low |
+| Connector | PH-4 |
+
+### Motor Power Output
+
+| Parameter | Specification |
+|-----------|---------------|
+| Voltage | 24V |
+| Max current | 6A |
+| Terminals | 2× screw terminals |
+| Wire gauge | 16–24 AWG |
+
+### Back-EMF Protection
+
+The board includes built-in protection against regenerative voltage spikes:
+
+- **Inline diode** protects the power supply from reverse current
+- **1500µF capacitor** absorbs regenerative energy up to 50V
+
 ## Next Steps
 
 <Card title="Board Design and Wiring" icon="diagram-project" href="/ossm/Hardware/PCB/board-design">
