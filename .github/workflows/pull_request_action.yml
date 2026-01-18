@@ -3,8 +3,7 @@ name: PlatformIO CI
 on:
   pull_request:
     branches:
-      - master
-      - release
+      - main
 
 jobs:
   check_changes:
