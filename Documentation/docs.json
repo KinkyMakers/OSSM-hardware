@@ -26,7 +26,6 @@
                   "ossm/guides/getting-started/web-flasher",
                   {
                     "group": "Ready to Play",
-                    "collapsed": true,
                     "pages": [
                       "ossm/guides/getting-started/ready-to-play/index",
                       "ossm/guides/getting-started/ready-to-play/info-sheet",
@@ -35,7 +34,6 @@
                   },
                   {
                     "group": "Build Guide",
-                    "collapsed": true,
                     "pages": [
                       "ossm/guides/getting-started/build-guide/step-0.0_introduction",
                       "ossm/guides/getting-started/build-guide/step-1.0_required_tools_and_parts",
@@ -56,7 +54,6 @@
                   },
                   {
                     "group": "User Guide",
-                    "collapsed": true,
                     "pages": [
                       "ossm/guides/getting-started/user-guide/index",
                       "ossm/guides/getting-started/user-guide/troubleshooting"
