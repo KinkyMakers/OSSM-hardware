@@ -27,7 +27,7 @@ Understanding these concepts helps you get up and running with StrokeEngine fast
 The machine uses an internal coordinate system that converts real-world metric units into encoder/stepper steps. This abstraction works with all machine sizes regardless of the motor you choose.
 
 <Frame caption="StrokeEngine coordinate system showing physical travel, keepout boundaries, and stroke parameters">
-  <img src="https://github.com/theelims/StrokeEngine/blob/main/doc/coordinates.svg" alt="Coordinate system diagram showing the relationship between physicalTravel, keepoutBoundary, depth, and stroke parameters" />
+  <img src="doc/coordinates.svg" alt="Coordinate system diagram showing the relationship between physicalTravel, keepoutBoundary, depth, and stroke parameters" />
 </Frame>
 
 **Key coordinate concepts:**
@@ -57,7 +57,7 @@ Each pattern accepts four parameters:
 - **sensation** — Arbitrary modifier for pattern behavior (-100 to 100)
 
 <Info>
-See the [Pattern documentation](/ossm/Software/motion/stroke-engine/Pattern) for detailed descriptions of available patterns and instructions for creating your own.
+See the [Pattern documentation](Pattern.md) for detailed descriptions of available patterns and instructions for creating your own.
 </Info>
 
 ### Graceful error handling
@@ -319,5 +319,5 @@ Stroker.registerTelemetryCallback(callbackTelemetry);
 ```
 
 <Note>
-Consult [StrokeEngine.h](https://github.com/theelims/StrokeEngine/blob/main/src/StrokeEngine.h) in the source repository for the complete API reference, including overloaded functions and additional features.
+Consult [StrokeEngine.h](src/StrokeEngine.h) for the complete API reference, including overloaded functions and additional features.
 </Note> 
