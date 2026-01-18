@@ -2,7 +2,11 @@
 #define OSSM_SOFTWARE_OSSM_H
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <services/board.h>
+// #include <services/telemetry.h>
+
+#include <services/communication/mqtt.h>
 
 #include <command/commands.hpp>
 
@@ -26,6 +30,7 @@
 #include "utils/StateLogger.h"
 #include "utils/StrokeEngineHelper.h"
 #include "utils/analog.h"
+#include "utils/getEfuseMac.h"
 #include "utils/update.h"
 
 namespace sml = boost::sml;
@@ -126,13 +131,24 @@ class OSSM : public OSSMInterface {
             };
 
             auto startSimplePenetration = [](OSSM &o) {
+                // Telemetry::startSession(&o);
                 o.startSimplePenetration();
             };
 
-            auto startStrokeEngine = [](OSSM &o) { o.startStrokeEngine(); };
+            auto startStrokeEngine = [](OSSM &o) {
+                // Telemetry::startSession(&o);
+                o.startStrokeEngine();
+            };
             auto emergencyStop = [](OSSM &o) {
                 o.stepper->forceStop();
                 o.stepper->disableOutputs();
+            };
+
+            auto exitToMenu = [](OSSM &o) {
+                // Telemetry::endSession();
+                o.stepper->forceStop();
+                o.stepper->disableOutputs();
+                o.isHomed = false;
             };
             auto drawHelp = [](OSSM &o) { o.drawHelp(); };
             auto drawWiFi = [](OSSM &o) { o.drawWiFi(); };
@@ -169,7 +185,14 @@ class OSSM : public OSSMInterface {
                 }
                 return false;
             };
-            auto isNotHomed = [](OSSM &o) { return o.isHomed == false; };
+            auto isNotHomed = [](OSSM &o) {
+#ifdef AJ_DEVELOPMENT_HARDWARE
+                return false;
+#else
+                return o.isHomed == false;
+#endif
+            };
+
             auto setHomed = [](OSSM &o) { o.isHomed = true; };
             auto setNotHomed = [](OSSM &o) { o.isHomed = false; };
 
@@ -205,19 +228,19 @@ class OSSM : public OSSMInterface {
                 "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
                 "simplePenetration.preflight"_s + done / (resetSettingsSimplePen, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
                 "simplePenetration.preflight"_s + longPress = "menu"_s,
-                "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+                "simplePenetration.idle"_s + longPress / exitToMenu = "menu"_s,
 
                 "strokeEngine"_s [isNotHomed] = "homing"_s,
                 "strokeEngine"_s [isPreflightSafe] / (resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
                 "strokeEngine.preflight"_s + done / (resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
-                "strokeEngine.preflight"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+                "strokeEngine.preflight"_s + longPress / exitToMenu = "menu"_s,
                 "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
                 "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
                 "strokeEngine.pattern"_s + doublePress / drawPlayControls = "strokeEngine.idle"_s,
-                "strokeEngine.pattern"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
-                "strokeEngine.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+                "strokeEngine.pattern"_s + longPress / exitToMenu = "menu"_s,
+                "strokeEngine.idle"_s + longPress / exitToMenu = "menu"_s,
 
                 "update"_s [isOnline] / drawUpdate = "update.checking"_s,
                 "update"_s = "wifi"_s,
@@ -330,11 +353,6 @@ class OSSM : public OSSMInterface {
                   AiEsp32RotaryEncoder &rotaryEncoder,
                   FastAccelStepper *stepper);
 
-    std::unique_ptr<
-        sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
-                sml::logger<StateLogger>>>
-        sm = nullptr;  // The state machine
-
     static SettingPercents setting;
     Menu menuOption;
 
@@ -345,10 +363,15 @@ class OSSM : public OSSMInterface {
      * ////
      * ///////////////////////////////////////////
      */
-    FastAccelStepper *stepper;
     U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display;
-    StateLogger logger;
     AiEsp32RotaryEncoder &encoder;
+    FastAccelStepper *stepper;
+    std::unique_ptr<
+        sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
+                sml::logger<StateLogger>>>
+        sm = nullptr;  // The state machine
+
+    StateLogger logger;
 
     /**
      * ///////////////////////////////////////////
@@ -377,12 +400,9 @@ class OSSM : public OSSMInterface {
     void process_event(const EventType &event) {
         sm->process_event(event);
     }
-    void ble_click(String commandString) {
+    void ble_click(const String &commandString) {
         // Visit current state to handle state-specific commands
-
-        ESP_LOGD("OSSM", "PROCESSING CLICK");
         CommandValue command = commandFromString(commandString);
-        ESP_LOGD("OSSM", "COMMAND: %d", command.command);
 
         String currentState;
         sm->visit_current_states(
@@ -392,17 +412,21 @@ class OSSM : public OSSMInterface {
             case Commands::goToStrokeEngine:
                 menuOption = Menu::StrokeEngine;
                 sm->process_event(ButtonPress{});
+                ESP_LOGD("OSSM", "Button press: go to stroke engine");
                 break;
             case Commands::goToSimplePenetration:
                 menuOption = Menu::SimplePenetration;
                 sm->process_event(ButtonPress{});
+                ESP_LOGD("OSSM", "Button press: go to simple penetration");
                 break;
             case Commands::goToStreaming:
                 menuOption = Menu::Streaming;
                 sm->process_event(ButtonPress{});
+                ESP_LOGD("OSSM", "Button press: go to streaming");
                 break;
             case Commands::goToMenu:
                 sm->process_event(LongPress{});
+                ESP_LOGD("OSSM", "Long press: go to menu");
                 break;
             case Commands::setSpeed:
                 // BLE devices can be trusted to send true value
@@ -411,27 +435,33 @@ class OSSM : public OSSMInterface {
                 // Use speed knob config to determine how to handle BLE speed
                 // command
                 setting.speedBLE = command.value;
+                ESP_LOGD("OSSM", "Set speed: %d", command.value);
                 break;
             case Commands::setStroke:
                 playControl = PlayControls::STROKE;
                 encoder.setEncoderValue(command.value);
                 setting.stroke = command.value;
+                ESP_LOGD("OSSM", "Set stroke: %d", command.value);
                 break;
             case Commands::setDepth:
                 playControl = PlayControls::DEPTH;
                 encoder.setEncoderValue(command.value);
                 setting.depth = command.value;
+                ESP_LOGD("OSSM", "Set depth: %d", command.value);
                 break;
             case Commands::setSensation:
                 playControl = PlayControls::SENSATION;
                 encoder.setEncoderValue(command.value);
                 setting.sensation = command.value;
+                ESP_LOGD("OSSM", "Set sensation: %d", command.value);
                 break;
             case Commands::setPattern:
                 setting.pattern =
                     static_cast<StrokePatterns>(command.value % 7);
+                ESP_LOGD("OSSM", "Set pattern: %d", command.value);
                 break;
             case Commands::ignore:
+                ESP_LOGD("OSSM", "Ignore command: %s", commandString.c_str());
                 break;
         }
     }
@@ -447,17 +477,20 @@ class OSSM : public OSSMInterface {
         sm->visit_current_states(
             [&currentState](auto state) { currentState = state.c_str(); });
 
-        String json = "{";
-        json += "\"state\":\"" + currentState + "\",";
-        json += "\"speed\":" + String((int)setting.speed) + ",";
-        json += "\"stroke\":" + String((int)setting.stroke) + ",";
-        json += "\"sensation\":" + String((int)setting.sensation) + ",";
-        json += "\"depth\":" + String((int)setting.depth) + ",";
-        json += "\"pattern\":" + String(static_cast<int>(setting.pattern));
-        json += "}";
-        currentState = json;
+        JsonDocument doc;
+        doc["timestamp"] = millis();
+        doc["state"] = currentState;
+        doc["speed"] = static_cast<int>(setting.speed);
+        doc["stroke"] = static_cast<int>(setting.stroke);
+        doc["sensation"] = static_cast<int>(setting.sensation);
+        doc["depth"] = static_cast<int>(setting.depth);
+        doc["pattern"] = static_cast<int>(setting.pattern);
+        doc["position"] = float(-stepper->getCurrentPosition()) / float(1_mm);
+        doc["sessionId"] = sessionId;
 
-        return currentState;
+        String output;
+        serializeJson(doc, output);
+        return output;
     }
 
     // BLE command tracking methods

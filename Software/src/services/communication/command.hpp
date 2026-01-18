@@ -30,7 +30,7 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
             return;
         }
         messageQueue.push(String(cmd.c_str()));
-        
+
         // Trigger LED communication pulse for received command
         pulseForCommunication();
     }

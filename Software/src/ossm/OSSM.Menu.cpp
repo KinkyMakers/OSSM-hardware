@@ -34,10 +34,11 @@ void OSSM::drawMenuTask(void *pvParameters) {
 
     while (isInCorrectState(ossm)) {
         wl_status_t newWifiState = WiFiClass::status();
-        
+
         // Force redraw on first draw or when conditions change
-        bool shouldRedraw = isFirstDraw || ossm->encoder.encoderChanged() || (wifiState != newWifiState);
-        
+        bool shouldRedraw = isFirstDraw || ossm->encoder.encoderChanged() ||
+                            (wifiState != newWifiState);
+
         if (!shouldRedraw) {
             vTaskDelay(50);
             continue;
@@ -49,7 +50,8 @@ void OSSM::drawMenuTask(void *pvParameters) {
         currentEncoderValue = ossm->encoder.readEncoder();
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-            clearPage(true, false); // Clear page content but preserve header icons
+            clearPage(true,
+                      false);  // Clear page content but preserve header icons
 
             // Drawing Variables.
             int leftPadding = 6;  // Padding on the left side of the screen
@@ -74,7 +76,7 @@ void OSSM::drawMenuTask(void *pvParameters) {
             drawShape::scroll(100 * ossm->encoder.readEncoder() /
                               (clicksPerRow * Menu::NUM_OPTIONS - 1));
             const char *menuName = menuStrings[menuOption];
-            ESP_LOGD("Menu", "Hovering over state: %s", menuName);
+            // ESP_LOGD("Menu", "Hovering over state: %s", menuName);
 
             // Loop around to make an infinite menu.
             int lastIdx =
@@ -112,7 +114,8 @@ void OSSM::drawMenuTask(void *pvParameters) {
             ossm->display.drawLine(120, 4 + fontSize / 2 + itemHeight, 120,
                                    1 + fontSize / 2 + 2 * itemHeight);
 
-            refreshPage(true, true); // Include both footer and header in refresh
+            refreshPage(true,
+                        true);  // Include both footer and header in refresh
             xSemaphoreGive(displayMutex);
         }
 
@@ -121,9 +124,9 @@ void OSSM::drawMenuTask(void *pvParameters) {
 
     // Clear header icons when exiting menu
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearIcons(); // Clear the header icons
-        ossm->display.setMaxClipWindow(); // Reset clipping 
-        ossm->display.sendBuffer(); // Send the cleared buffer to display
+        clearIcons();                      // Clear the header icons
+        ossm->display.setMaxClipWindow();  // Reset clipping
+        ossm->display.sendBuffer();        // Send the cleared buffer to display
         xSemaphoreGive(displayMutex);
     }
 

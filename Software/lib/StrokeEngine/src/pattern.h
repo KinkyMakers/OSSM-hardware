@@ -61,6 +61,9 @@ class Pattern {
     */
     Pattern(const char *str) { strcpy(_name, str); }
 
+    //! Virtual destructor for proper polymorphic cleanup
+    virtual ~Pattern() = default;
+
     //! Set the time a normal stroke should take to complete
     /*!
       @param speed time of a full stroke in [sec]

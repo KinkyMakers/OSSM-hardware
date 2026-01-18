@@ -11,7 +11,7 @@ class OSSMInterface {
     template <typename EventType>
     void process_event(const EventType& event);  // Ensure proper type handling
 
-    virtual void ble_click(String command) = 0;
+    virtual void ble_click(const String& command) = 0;
     virtual void moveTo(float intensity = 0,
                         uint16_t inTime = 0) = 0;  // intensity: 0-10
 
