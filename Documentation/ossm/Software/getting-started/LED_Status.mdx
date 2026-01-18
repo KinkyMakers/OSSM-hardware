@@ -1,0 +1,96 @@
+---
+title: "RGB LED Status Indication"
+description: "Understand the RGB LED patterns that indicate BLE connection status and machine operations on your OSSM"
+---
+
+The RGB LED on pin 25 provides visual feedback about your OSSM's current state. You can quickly identify whether the machine is homing, searching for a Bluetooth connection, or actively communicating with a connected device.
+
+## Understanding status priority
+
+The LED displays different patterns based on the current operational state. Machine operations always take priority over BLE status indications.
+
+| Priority | State | LED Pattern |
+|----------|-------|-------------|
+| Highest | Homing | Deep purple breathing effect |
+| Lower | BLE Status | Varies by connection state |
+
+## Machine status patterns
+
+<AccordionGroup>
+<Accordion title="Homing in progress">
+When your OSSM is homing, the LED displays a **deep purple breathing effect** with a smooth pulsing pattern. This continues until homing completes or fails.
+
+<Info>
+The homing indicator takes priority over all BLE status patterns. You won't see BLE status changes until homing finishes.
+</Info>
+</Accordion>
+</AccordionGroup>
+
+## BLE connection status patterns
+
+<AccordionGroup>
+<Accordion title="Advertising (searching for connections)">
+When your OSSM is searching for a Bluetooth connection:
+
+1. **Rainbow effect** displays for 1 second
+2. **Fast breathing blue** follows with rapid pulsing (10x normal speed)
+3. **Auto-dim** activates after 30 seconds, reducing to ~12% brightness with gentle pulsing
+
+<Tip>
+The auto-dim feature reduces visual distraction if you're using a wired remote instead of Bluetooth. The LED remains visible but won't be distracting during extended sessions.
+</Tip>
+</Accordion>
+
+<Accordion title="Connected">
+When a device connects via Bluetooth:
+
+1. **Rainbow effect** displays for 1 second to confirm connection
+2. **Blue LED fades** to a dim level (~12% brightness) and stays dimmed
+3. **Communication pulses** appear as subtle brightness increases during data transfer
+
+</Accordion>
+
+<Accordion title="Disconnected">
+When no Bluetooth connection exists:
+
+- **LED turns off** completely
+
+<Note>
+A disconnected state differs from advertising. If you power on the OSSM, it begins advertising immediately, so you'll see the blue breathing pattern rather than no light.
+</Note>
+</Accordion>
+</AccordionGroup>
+
+## Communication indication
+
+When BLE is connected and the LED is dimmed, you'll see brief brightness pulses during:
+
+- **Receiving commands** from your connected device
+- **Sending responses** back to the device
+- **State updates** transmitted to the device
+
+<Info>
+The communication pulse is subtle—a 100ms fade with minimal brightness increase. This provides feedback without being distracting during operation.
+</Info>
+
+## Technical reference
+
+<AccordionGroup>
+<Accordion title="Configuration constants">
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `ADVERTISING_TIMEOUT` | 30 seconds | Time before advertising dims automatically |
+| Dimmed brightness | ~12% | Brightness level when connected or after timeout |
+| Communication pulse | 100ms | Duration of data transfer indication |
+</Accordion>
+
+<Accordion title="Key functions">
+| Function | Purpose |
+|----------|---------|
+| `showBLEAdvertisingDimmed()` | Displays gentle pulsing at reduced brightness |
+
+<Note>
+The advertising timeout resets automatically when the BLE connection status changes (connect or disconnect events).
+</Note>
+</Accordion>
+</AccordionGroup>

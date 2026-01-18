@@ -1,0 +1,85 @@
+---
+title: "How to Become a Contributor"
+description: "Join the OSSM community as a contributor and help improve the project's hardware and software"
+---
+
+OSSM is built by a global community of makers, engineers, and enthusiasts. Whether you're fixing a typo or designing new features, every contribution matters. This guide walks you through the process of becoming a contributor.
+
+## Before you start
+
+Familiarize yourself with the project structure:
+
+- **Software** — Firmware and control code in the `/Software` directory
+- **Hardware** — CAD files, PCB designs, and printed parts in their respective directories
+- **Documentation** — Guides and references in the `/Documentation` directory
+
+<Card title="Forking the Repository" icon="code-fork" href="/ossm/guides/contributing/forking">
+Learn how to create your own copy of the OSSM repository to work on.
+</Card>
+
+## Contribution workflow
+
+<Steps>
+<Step title="Find something to work on">
+Browse [open issues](https://github.com/KinkyMakers/OSSM-hardware/issues) to find something that interests you. Issues labeled **good first issue** are ideal starting points for new contributors.
+
+<Tip>
+If you have an idea that isn't already an issue, open one first to discuss it with maintainers before investing significant time.
+</Tip>
+</Step>
+
+<Step title="Fork and clone the repository">
+Create your own fork on GitHub, then clone it locally:
+
+```bash
+git clone https://github.com/YOUR-USERNAME/OSSM-hardware.git
+cd OSSM-hardware
+```
+</Step>
+
+<Step title="Create a branch for your changes">
+Use a descriptive branch name that reflects your work:
+
+```bash
+git checkout -b fix/motor-calibration-bug
+```
+</Step>
+
+<Step title="Make your changes">
+Follow the contribution guidelines for your area of work:
+
+<CardGroup cols={2}>
+<Card title="Hardware Contribution Guide" icon="wrench" href="/ossm/Hardware/standard-printed-parts/contibution-guidelines">
+Standards for CAD models, printed parts, and mechanical design.
+</Card>
+
+<Card title="Software Contribution Guide" icon="code" href="https://github.com/KinkyMakers/OSSM-hardware/tree/main/Software">
+Coding standards, testing requirements, and firmware guidelines.
+</Card>
+</CardGroup>
+</Step>
+
+<Step title="Submit a pull request">
+Push your branch and open a pull request on GitHub. Include:
+
+- A clear description of what you changed and why
+- Reference to any related issues (e.g., "Fixes #123")
+- Screenshots or test results if applicable
+
+<Check>
+Maintainers will review your pull request and may request changes. This is a normal part of the process—it helps maintain code quality.
+</Check>
+</Step>
+</Steps>
+
+## Getting help
+
+If you get stuck or have questions:
+
+- **Ask in the pull request** — Maintainers and other contributors can help
+- **Join the community Discord** — Connect with other makers for real-time help
+- **Check existing documentation** — Many common questions are already answered
+
+<Note>
+We appreciate contributors of all skill levels. Don't hesitate to ask questions—the community is here to help you succeed.
+</Note>

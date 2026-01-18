@@ -1,0 +1,136 @@
+---
+title: "Standard Build Motor"
+description: "The 57AIM30 Gold Motor is the recommended motor for all new OSSM builds"
+---
+
+The **57AIM30 Gold Motor** is the current standard motor for OSSM builds, offering the best combination of performance, size, and cost.
+
+<Card title="Purchase Gold Motor" icon="cart-shopping" href="https://www.researchanddesire.com/products/ossm-motor-gold-motor">
+Available pre-programmed from Research and Desire, ready to use with your OSSM.
+</Card>
+
+## Why the Gold Motor?
+
+The 57AIM30 replaced the legacy iHSV57 motor as the build standard due to significant improvements across all key metrics:
+
+| Improvement | Benefit |
+|-------------|---------|
+| 60% shorter | More compact builds, easier mounting |
+| 50% lighter | Reduced overall weight |
+| 30% higher peak force | Better performance under load |
+| ~20% cheaper | Lower build cost |
+| Better over-torque handling | Configurable torque reduction vs hard disable |
+| Drop-in replacement | Compatible with existing NEMA23 hardware |
+
+## Sourcing Your Motor
+
+### From Research and Desire (Recommended)
+
+Motors from [Research and Desire](https://www.researchanddesire.com/products/ossm-motor-gold-motor) are:
+
+- Pre-programmed for OSSM
+- Tested and verified
+- Ready to install
+
+<Check>
+No additional programming required when purchasing from R&D.
+</Check>
+
+### From Other Suppliers
+
+If sourcing a generic 57AIM30, verify these specifications:
+
+| Specification | Required Value |
+|--------------|----------------|
+| Speed rating | 1500 RPM |
+| Interface | RS485 |
+| Model | 57AIM30 |
+
+<Warning>
+Do **not** purchase the 3000 RPM or CANBUS versions—these are incompatible with OSSM.
+</Warning>
+
+<Note>
+Motors from third-party suppliers require programming before use. See the [programming guide](/ossm/Hardware/motor/programming) for instructions.
+</Note>
+
+## PCB Compatibility
+
+The Gold Motor's improved efficiency generates more regenerative power during certain motion conditions, requiring additional capacitance on the PCB.
+
+| PCB Version | Compatibility |
+|-------------|---------------|
+| V2.3 or newer | Fully compatible, capacitor included |
+| V2.2 | Compatible with simple PH-4 cable wiring |
+| Older than V2.2 | Requires soldering wires to 10-pin header |
+
+<Warning>
+If using a PCB older than V2.3, add a **1500µF capacitor (minimum 50V)** to handle regenerative braking. Without this capacitor, voltage spikes may damage your electronics.
+</Warning>
+
+## Technical Specifications
+
+### Advantages
+
+- **Compact size**: 40% of the length of the 180W standard motor
+- **Lightweight**: 50% of the weight of the 180W motor
+- **High performance**: 30% higher peak force in real-world testing
+- **Configurable protection**: Reduces torque output instead of disabling on overload
+- **Hardware compatible**: Same mounting pattern and shaft diameter as iHSV57
+
+### Considerations
+
+<AccordionGroup>
+<Accordion title="Regenerative power handling">
+The motor's efficiency means it generates more power during deceleration. PCB V2.3 includes the necessary capacitor; older boards require manual addition.
+</Accordion>
+
+<Accordion title="RS485 communication">
+The Gold Motor uses RS485 digital communication. This is handled by the OSSM PCB V2.2 and newer—no user configuration needed.
+</Accordion>
+
+<Accordion title="Software configuration">
+Default firmware settings work for most users. Advanced users can tune motor behavior through the programming tool, but incorrect settings may cause the motor to disable under torque.
+</Accordion>
+
+<Accordion title="Speed limits">
+The Gold Motor's maximum speed exceeds the OSSM software's default speed limit. Standard users won't notice any difference; only custom firmware modifications might encounter this limit.
+</Accordion>
+</AccordionGroup>
+
+## Motor Programming
+
+<Info>
+Motors must be programmed to set steps per revolution to **800** for OSSM compatibility.
+</Info>
+
+- **R&D motors**: Pre-programmed, no action needed
+- **Third-party motors**: Require programming via USB to RS485 adapter
+
+<Card title="Programming Guide" icon="code" href="/ossm/Hardware/motor/programming">
+Complete instructions for programming your motor with the web-based tool.
+</Card>
+
+## Software Compatibility
+
+The OSSM firmware supports closed-loop servo motors and is tested with:
+
+- 57AIM30 (Gold Motor) — **Recommended**
+- 42AIM30 (Round Motor variant)
+- iHSV57 (Legacy motor)
+
+<Note>
+All supported motors use the NEMA23 form factor. Using stepper motors or other motor types requires custom hardware design and advanced firmware modifications.
+</Note>
+
+## Alternative Motors
+
+<CardGroup cols={2}>
+<Card title="42AIM30 Round Motor" icon="circle" href="/ossm/Hardware/motor/alternatives/42AIM30">
+Compact variant with smaller diameter but limited mounting options.
+</Card>
+
+<Card title="iHSV57 Legacy Motor" icon="clock-rotate-left" href="/ossm/Hardware/motor/alternatives/iHSV57">
+Pre-2024 standard motor, still functional but no longer recommended for new builds.
+</Card>
+</CardGroup>

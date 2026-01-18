@@ -1,0 +1,117 @@
+---
+title: "11. Initial Test"
+description: "Connect the remote and power source to perform homing and verify the OSSM actuator functions correctly"
+---
+
+The initial test verifies that your OSSM actuator is properly assembled and functioning. This test includes connecting the remote control, applying power, observing the homing sequence, and performing a test stroke to confirm everything works as expected.
+
+## Required Components and Tools
+
+### Components
+
+| Component | Count | Specification / Notes |
+|-----------|-------|----------------------|
+| 24 mm Nut | 1 | Used for securing attachments to the End Effector |
+| OSSM Remote | 1 | Attaches to the RJ45 Ethernet port on the control board |
+| Power Source | 1 | Electrical supply for the OSSM |
+
+### Tools
+
+No tools are explicitly required for the initial test.
+
+<Info>
+The 24 mm nut is used to secure most attachments to the threaded end of the End Effector. While not strictly necessary for the test itself, having it in place prepares the unit for use with attachments.
+</Info>
+
+## Step-by-Step Assembly: Initial Test
+
+<Steps>
+<Step title="Prepare for Attachments">
+Put the 24 mm nut onto the threaded end of the End Effector. This nut is how most attachments are secured to the OSSM.
+
+<Info>
+Having the nut in place during testing helps verify that the End Effector is properly threaded and ready for use with attachments.
+</Info>
+
+<Check>
+The 24 mm nut is threaded onto the End Effector and sits flush against the end of the threaded section.
+</Check>
+</Step>
+
+<Step title="Connect the Remote">
+Attach the OSSM Remote to the RJ45 Ethernet port on the control board.
+
+Ensure the connection is secure and the connector is fully seated in the port.
+
+<Tip>
+The RJ45 connector should click into place when properly inserted. If it feels loose, check that it's oriented correctly and fully inserted.
+</Tip>
+
+<Check>
+The remote is securely connected to the RJ45 port on the control board.
+</Check>
+</Step>
+
+<Step title="Apply Power">
+Plug in the power source to provide electrical power to the OSSM.
+
+<Warning>
+Ensure the power source matches the voltage requirements for your OSSM control board. Using incorrect voltage can damage the electronics.
+</Warning>
+
+<Check>
+Power is connected and the control board receives electrical supply.
+</Check>
+</Step>
+
+<Step title="Observe Homing">
+When power is applied, the board will boot up and the remote should light up. The homing process should begin automatically.
+
+Watch for the following indicators:
+- The remote display or LEDs activate
+- The actuator begins to move
+- The homing sequence initiates
+
+<Info>
+The homing process is automatic and occurs whenever the OSSM is powered on. This process establishes the reference position for the actuator.
+</Info>
+
+<Check>
+The remote lights up and the homing process begins automatically after power is applied.
+</Check>
+</Step>
+
+<Step title="Verify Homing Direction">
+Observe the direction of movement during the homing sequence.
+
+The correct homing direction is for the threaded end to first extend, and then retract.
+
+<Warning>
+If the homing direction is reversed (retracts first, then extends), this indicates a wiring issue with the motor direction. You may need to check your motor wiring connections.
+</Warning>
+
+<Check>
+The threaded end extends first, then retracts during the homing sequence. This confirms the motor direction is correct.
+</Check>
+</Step>
+
+<Step title="Perform a Test Stroke">
+Once homing is complete, perform a test stroke to verify the actuator moves correctly.
+
+1. On the remote, select "stroke engine."
+2. Set a small stroke and a small depth.
+3. Add some speed to make sure the unit moves.
+
+<Tip>
+Start with conservative settings (small stroke, small depth, low speed) for the initial test. Once you confirm everything works, you can increase these values as needed.
+</Tip>
+
+<Check>
+The actuator performs a smooth stroke motion according to the settings you configured on the remote. The movement should be consistent and without binding or unusual sounds.
+</Check>
+</Step>
+</Steps>
+
+## Next Steps
+
+With the initial test complete and the OSSM functioning correctly, your actuator is ready for use. You can now attach compatible accessories using the 24 mm threaded connection on the End Effector.
