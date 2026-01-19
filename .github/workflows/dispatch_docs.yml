@@ -3,7 +3,6 @@ name: Dispatch Documentation Update
 on:
   push:
     branches:
-      - aj/mintlify-docs
       - main
     paths:
       - 'Documentation/**'

@@ -24,10 +24,7 @@
   },
   "scripts": {
     "mint": "mint dev --port 3333",
-    "mint:validate": "mint validate && mint broken-links",
-    "mint:broken-links": "mint broken-links",
-    "optimize": "optimizt .",
-    "ossm": "node ./_scripts/run.js"
+    "mint:validate": "node ./_scripts/run.js validate-links"
   },
   "oclif": {
     "bin": "ossm",
