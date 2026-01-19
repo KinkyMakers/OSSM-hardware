@@ -1,5 +1,5 @@
 import { Command, Flags } from '@oclif/core';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
@@ -7,12 +7,19 @@ import { dirname } from 'node:path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Content directories to scan for orphaned pages
+const CONTENT_DIRS = ['ossm', 'dtt', 'lkbx', 'radr', 'dashboard', 'shop'];
+
+// Directories to ignore (scripts, assets, etc.)
+const IGNORE_DIRS = ['_scripts', '_archive', 'logo', 'images', 'snippets', 'node_modules'];
+
 export default class OrphanPages extends Command {
-  static description = 'Find MDX files in ossm/ that are not listed in docs.json';
+  static description = 'Find MDX files that are not listed in docs.json';
 
   static examples = [
     '<%= config.bin %> <%= command.id %>',
     '<%= config.bin %> <%= command.id %> --verbose',
+    '<%= config.bin %> <%= command.id %> --dir ossm',
   ];
 
   static flags = {
@@ -21,6 +28,11 @@ export default class OrphanPages extends Command {
       description: 'Show all files, not just orphaned ones',
       default: false,
     }),
+    dir: Flags.string({
+      char: 'd',
+      description: 'Only scan a specific directory (e.g., ossm, dtt, lkbx)',
+      required: false,
+    }),
   };
 
   /**
@@ -28,6 +40,11 @@ export default class OrphanPages extends Command {
    */
   findMdxFiles(dir, basePath = '') {
     const files = [];
+    
+    if (!existsSync(dir)) {
+      return files;
+    }
+    
     const entries = readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
@@ -35,10 +52,14 @@ export default class OrphanPages extends Command {
       const relativePath = basePath ? `${basePath}/${entry.name}` : entry.name;
 
       if (entry.isDirectory()) {
+        // Skip ignored directories
+        if (IGNORE_DIRS.includes(entry.name)) {
+          continue;
+        }
         files.push(...this.findMdxFiles(fullPath, relativePath));
       } else if (entry.isFile() && entry.name.endsWith('.mdx')) {
-        // Convert to docs.json format: ossm/path/to/file (without .mdx extension)
-        const docPath = `ossm/${relativePath.replace(/\.mdx$/, '')}`;
+        // Convert to docs.json format: dir/path/to/file (without .mdx extension)
+        const docPath = relativePath.replace(/\.mdx$/, '');
         files.push(docPath);
       }
     }
@@ -101,23 +122,39 @@ export default class OrphanPages extends Command {
 
     // Paths relative to the Documentation directory
     const docsRoot = join(__dirname, '..', '..');
-    const ossmDir = join(docsRoot, 'ossm');
     const docsJsonPath = join(docsRoot, 'docs.json');
 
-    // Find all MDX files in ossm/
-    const mdxFiles = this.findMdxFiles(ossmDir);
+    // Determine which directories to scan
+    const dirsToScan = flags.dir ? [flags.dir] : CONTENT_DIRS;
+
+    // Find all MDX files in content directories
+    let mdxFiles = [];
+    for (const contentDir of dirsToScan) {
+      const dirPath = join(docsRoot, contentDir);
+      const filesInDir = this.findMdxFiles(dirPath, contentDir);
+      mdxFiles.push(...filesInDir);
+    }
 
     // Parse docs.json and extract all page references
     const docsJson = JSON.parse(readFileSync(docsJsonPath, 'utf-8'));
     const listedPages = this.extractPagesFromNav(docsJson);
 
-    // Find orphaned files (in ossm/ but not in docs.json)
+    // Find orphaned files (exist on disk but not in docs.json)
     const orphanedFiles = mdxFiles.filter((file) => !listedPages.has(file));
 
     if (flags.verbose) {
-      this.log(`\nTotal MDX files found: ${mdxFiles.length}`);
+      this.log(`\nDirectories scanned: ${dirsToScan.join(', ')}`);
+      this.log(`Total MDX files found: ${mdxFiles.length}`);
       this.log(`Pages listed in docs.json: ${listedPages.size}`);
       this.log(`Orphaned files: ${orphanedFiles.length}\n`);
+      
+      if (flags.verbose) {
+        this.log('Pages in docs.json:');
+        for (const page of [...listedPages].sort()) {
+          this.log(`  ${page}`);
+        }
+        this.log('');
+      }
     }
 
     if (orphanedFiles.length === 0) {
@@ -126,10 +163,22 @@ export default class OrphanPages extends Command {
     }
 
     this.log(`\n⚠ Found ${orphanedFiles.length} orphaned MDX file(s):\n`);
+    
+    // Group by directory for better readability
+    const byDir = {};
     for (const file of orphanedFiles.sort()) {
-      this.log(`  - ${file}`);
+      const dir = file.split('/')[0];
+      if (!byDir[dir]) byDir[dir] = [];
+      byDir[dir].push(file);
     }
-    this.log('');
+    
+    for (const [dir, files] of Object.entries(byDir)) {
+      this.log(`${dir}/ (${files.length} orphaned):`);
+      for (const file of files) {
+        this.log(`  - ${file}`);
+      }
+      this.log('');
+    }
 
     // Exit with error code if orphans found (useful for CI)
     this.exit(1);
