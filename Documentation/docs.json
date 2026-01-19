@@ -22,7 +22,6 @@
                 "pages": [
                   "ossm/guides/getting-started/introduction",
                   "ossm/guides/getting-started/quickstart",
-                  "ossm/guides/getting-started/video-intro",
                   "ossm/guides/getting-started/web-flasher",
                   {
                     "group": "Ready to Play",
