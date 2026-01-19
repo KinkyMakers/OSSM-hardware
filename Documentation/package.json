@@ -24,7 +24,8 @@
   },
   "scripts": {
     "mint": "mint dev --port 3333",
-    "mint:validate": "node ./_scripts/run.js validate-links"
+    "mint:validate": "node ./_scripts/run.js validate-links",
+    "orphan-pages": "node ./_scripts/run.js orphan-pages"
   },
   "oclif": {
     "bin": "ossm",
