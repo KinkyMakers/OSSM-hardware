@@ -138,6 +138,12 @@
                       "ossm/Hardware/standard-printed-parts/pitclamp/README",
                       "ossm/Hardware/standard-printed-parts/pitclamp/UPDATES"
                     ]
+                  },
+                  {
+                    "group": "Part by Part",
+                    "pages": [
+                      "ossm/Hardware/standard-printed-parts/part-by-part/introduction"
+                    ]
                   }
                 ]
               },
