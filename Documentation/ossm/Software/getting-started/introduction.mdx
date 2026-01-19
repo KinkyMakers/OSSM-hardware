@@ -1,0 +1,159 @@
+---
+title: "Introduction"
+description: ""
+---
+
+# Firmware Overview
+
+The Open Source Sex Machine (OSSM) firmware is an ESP32-based control system that manages motion, user input, and communication for your device. This guide walks you through the project architecture and helps you set up your development environment.
+
+## Core Technologies
+
+The OSSM firmware relies on four key technologies that work together to deliver responsive, reliable motion control.
+
+<AccordionGroup>
+<Accordion title="State Machine - Boost SML" icon="diagram-project">
+[Boost SML](https://boost-ext.github.io/sml/) (State Machine Language) is a header-only C++ library that provides a domain-specific language for defining state machines.
+
+**Why we use it:**
+- Compile-time state machine verification catches errors before runtime
+- Zero runtime overhead compared to manual switch/case implementations
+- Clean, declarative syntax makes complex state transitions readable
+- Handles transitions between states like idle, running, error, and homing
+
+The state machine governs the device's operational modes, ensuring safe transitions and predictable behavior.
+</Accordion>
+
+<Accordion title="Display - U8G2 Library" icon="display">
+[U8G2](https://github.com/olikraus/u8g2) is a monochrome graphics library optimized for embedded systems and OLED displays.
+
+**Why we use it:**
+- Supports a wide range of display controllers including SSD1306 and SH1106
+- Minimal memory footprint suitable for ESP32's constrained RAM
+- Built-in font rendering with multiple sizes and styles
+- Hardware-accelerated drawing for smooth UI updates
+
+U8G2 renders the on-device interface including speed, depth, pattern selection, and system status.
+</Accordion>
+
+<Accordion title="Task Management - FreeRTOS" icon="layer-group">
+[FreeRTOS](https://www.freertos.org/) is a real-time operating system kernel that enables multitasking on embedded devices.
+
+**Why we use it:**
+- Runs multiple concurrent tasks (motion control, display updates, input handling)
+- Priority-based scheduling ensures time-critical motion tasks execute reliably
+- Inter-task communication via queues and semaphores
+- Integrated into the ESP32 Arduino framework by default
+
+FreeRTOS allows the firmware to simultaneously process user input, update the display, and maintain precise motor timing.
+</Accordion>
+
+<Accordion title="Motion Control - StrokeEngine" icon="wave-pulse">
+[StrokeEngine](https://github.com/theelims/StrokeEngine) is a motion pattern library created by theelims, modified for OSSM-specific requirements.
+
+**Why we use it:**
+- Generates smooth, customizable motion patterns with configurable speed and depth
+- Supports multiple pattern types (constant, random, oscillating, and more)
+- Handles acceleration ramping for motor protection
+- Provides real-time parameter adjustment without motion interruption
+
+StrokeEngine translates user settings into precise motor commands, enabling the variety of motion patterns available in OSSM.
+</Accordion>
+</AccordionGroup>
+
+## Getting Started
+
+Set up your development environment by following these steps.
+
+### Prerequisites
+
+Before you begin, ensure you have:
+- A computer running Windows, macOS, or Linux
+- Git installed on your system
+- An internet connection to download dependencies
+
+<Steps>
+<Step title="Install VS Code and PlatformIO">
+Download and install [Visual Studio Code](https://code.visualstudio.com/), then add the PlatformIO extension.
+
+1. Open VS Code
+2. Navigate to the Extensions panel (Ctrl+Shift+X / Cmd+Shift+X)
+3. Search for "PlatformIO IDE"
+4. Click **Install** and wait for the installation to complete
+5. Restart VS Code when prompted
+
+<Tip>
+For detailed PlatformIO setup instructions, see our [PlatformIO setup guide](/ossm/Software/getting-started/PlatformIO).
+</Tip>
+</Step>
+
+<Step title="Clone the repository">
+Open a terminal and clone the OSSM repository to your local machine.
+
+<Tabs>
+<Tab title="HTTPS">
+```bash
+git clone https://github.com/KinkyMakers/OSSM-hardware.git
+cd OSSM-hardware/Software
+```
+</Tab>
+
+<Tab title="SSH">
+```bash
+git clone git@github.com:KinkyMakers/OSSM-hardware.git
+cd OSSM-hardware/Software
+```
+</Tab>
+
+<Tab title="GitHub CLI">
+```bash
+gh repo clone KinkyMakers/OSSM-hardware
+cd OSSM-hardware/Software
+```
+</Tab>
+</Tabs>
+
+<Note>
+If you plan to contribute changes, fork the repository first, then clone your fork instead.
+</Note>
+</Step>
+
+<Step title="Open the project in VS Code">
+Launch the project using PlatformIO.
+
+1. Open VS Code
+2. Select **File > Open Folder**
+3. Navigate to the `OSSM-hardware/Software` directory you just cloned
+4. Click **Select Folder** (or **Open** on macOS)
+
+PlatformIO automatically detects the `platformio.ini` file and configures the project.
+
+<Check>
+You should see the PlatformIO toolbar appear at the bottom of VS Code with build, upload, and monitor buttons.
+</Check>
+</Step>
+
+<Step title="Build and upload the firmware">
+Compile the project and flash it to your ESP32.
+
+1. Connect your ESP32 board via USB
+2. Click the **PlatformIO: Build** button (checkmark icon) to compile
+3. Once the build succeeds, click **PlatformIO: Upload** (arrow icon) to flash the firmware
+
+<Warning>
+Ensure you select the correct COM port if you have multiple serial devices connected. You can configure this in `platformio.ini` or through the PlatformIO device monitor.
+</Warning>
+</Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="PlatformIO Setup" icon="wrench" href="/ossm/Software/getting-started/PlatformIO">
+  Detailed guide for configuring PlatformIO, managing libraries, and troubleshooting build issues.
+</Card>
+
+<Card title="LED Status Codes" icon="lightbulb" href="/ossm/Software/getting-started/LED_Status">
+  Learn what the LED indicators mean and how to diagnose common issues.
+</Card>
+</CardGroup>

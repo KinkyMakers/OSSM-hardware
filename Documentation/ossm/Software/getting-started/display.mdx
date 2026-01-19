@@ -1,0 +1,316 @@
+---
+title: "Display Service"
+description: "Learn how to use the thread-safe display service for drawing to the SSD1306 OLED screen"
+---
+
+The display service provides a thread-safe interface for drawing to the 128x64 pixel SSD1306 OLED display. You can access this global singleton from anywhere in the codebase using the U8G2 library.
+
+## Hardware Configuration
+
+| Property | Value |
+|----------|-------|
+| Display Type | SSD1306 OLED |
+| Resolution | 128x64 pixels |
+| Interface | I2C (Hardware) |
+| Rotation | U8G2_R0 (0 degrees) |
+| I2C Address | 0x3C (shifted left by 1 for U8G2) |
+| Contrast | 255 (maximum) |
+
+## Display Layout
+
+The display uses a grid system where U8G2 breaks the 128x64 pixel screen into 8x8 pixel cells:
+
+- **Grid Size**: 8 cells tall × 16 cells wide
+- **Cell Origin**: (0,0) at top-left corner
+- **Cell Dimensions**: 8×8 pixels each
+
+<Frame caption="Display layout showing header, page area, and footer regions">
+```
+┌─────────────────────────────────────────────────────────┐
+│ Header (12 cells)                     │ Icons (4 cells) │  Row 0
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│                                                         │
+│                                                         │
+│                    Page Area                            │
+│                   (6 rows)                              │
+│                                                         │
+│                                                         │
+├─────────────────────────────────────────────────────────┤
+│ Footer (16 cells)                                       │  Row 7
+└─────────────────────────────────────────────────────────┘
+```
+</Frame>
+
+### Layout Regions
+
+<AccordionGroup>
+<Accordion title="Header Row (Row 0)">
+- **Cells 0-12**: Header text (13 cells = 104 pixels)
+- **Cells 13-15**: State icons (3 cells = 24 pixels)
+  - WiFi status
+  - Bluetooth status
+  - Other system indicators
+</Accordion>
+
+<Accordion title="Page Area (Rows 1-6)">
+- **6 rows** of main content
+- **16 cells wide** (128 pixels)
+- **48 pixels tall** (6 × 8 pixels)
+- Content clips to this area when you use `clearPage()`
+</Accordion>
+
+<Accordion title="Footer Row (Row 7)">
+- **Cells 0-14**: Footer text (15 cells = 120 pixels)
+- **Cell 15**: Timeout indicator (1 cell = 8 pixels)
+</Accordion>
+</AccordionGroup>
+
+## Thread Safety
+
+The display uses a FreeRTOS mutex to ensure thread-safe access from multiple tasks.
+
+```cpp display_mutex.h
+extern SemaphoreHandle_t displayMutex;
+```
+
+<Warning>
+Always acquire the mutex before drawing and release it when finished. Failing to release the mutex will block all other display operations.
+</Warning>
+
+### Basic Usage Pattern
+
+```cpp example_usage.cpp
+// Always acquire mutex before drawing
+if (xSemaphoreTake(displayMutex, portMAX_DELAY) == pdTRUE) {
+    // Perform drawing operations
+    display.drawStr(x, y, "Hello World");
+
+    // Always release mutex when done
+    xSemaphoreGive(displayMutex);
+}
+```
+
+## Initialization
+
+Call `initDisplay()` at startup to initialize the display service:
+
+```cpp
+void initDisplay();
+```
+
+This function:
+1. Creates the display mutex
+2. Initializes the U8G2 display object
+3. Sets the I2C address and display parameters
+4. Clears the display buffer
+
+## Clearing Functions
+
+Use clearing functions to efficiently update specific display regions. All clearing functions use `updateDisplayArea()` for partial updates.
+
+| Function | Description | Area Cleared |
+|----------|-------------|--------------|
+| `clearHeader()` | Clears header text area | Cells 0-12, row 0 (preserves icons) |
+| `clearIcons()` | Clears icon area | Cells 13-15, row 0 (preserves header) |
+| `clearFooter()` | Clears footer text area | Cells 0-14, row 7 (preserves timeout) |
+| `clearTimeout()` | Clears timeout indicator | Cell 15, row 7 |
+| `clearPage()` | Clears main content area | Rows 1-6 |
+
+### clearPage() Parameters
+
+```cpp
+void clearPage(bool includeFooter = false, bool includeHeader = false);
+```
+
+<Note>
+`clearPage()` sets a clipping window to prevent content from overflowing into the header or footer areas.
+</Note>
+
+## Refresh Functions
+
+Refresh functions update specific display regions after you modify them:
+
+| Function | Description | Area Updated |
+|----------|-------------|--------------|
+| `refreshHeader()` | Updates header text | Cells 3-15, row 0 |
+| `refreshIcons()` | Updates icon area | Cells 0-2, row 0 |
+| `refreshFooter()` | Updates footer area | Cells 1-15, row 0 |
+| `refreshPage()` | Updates main content | Rows 1-6 |
+| `refreshTimeout()` | Updates timeout indicator | Timeout cell |
+
+### refreshPage() Parameters
+
+```cpp
+void refreshPage(bool includeFooter = false, bool includeHeader = false);
+```
+
+## Content Functions
+
+### setHeader()
+
+Sets the header text, automatically converting to uppercase:
+
+```cpp
+void setHeader(String &text);
+```
+
+<Tip>
+The display caches header text to avoid unnecessary redraws. Calling `setHeader()` with the same text won't trigger a redraw.
+</Tip>
+
+### setFooter()
+
+Sets left and right footer text with automatic alignment:
+
+```cpp
+void setFooter(String &left, String &right);
+```
+
+- Left text aligns to the left edge
+- Right text aligns to the right edge
+- Both texts convert to uppercase automatically
+- Text caching prevents unnecessary redraws
+
+### drawWrappedText()
+
+Draws text with automatic word wrapping:
+
+```cpp
+int drawWrappedText(int x, int y, const String &text, bool center = false);
+```
+
+**Parameters:**
+- `x`, `y`: Starting position
+- `text`: Text to draw (supports literal `\n` for line breaks)
+- `center`: Enable center alignment
+
+**Returns:** Number of lines drawn
+
+## Drawing Guidelines
+
+<Steps>
+<Step title="Always use mutex protection">
+Wrap all drawing operations in a mutex lock:
+
+```cpp
+if (xSemaphoreTake(displayMutex, portMAX_DELAY) == pdTRUE) {
+    // Drawing operations here
+    xSemaphoreGive(displayMutex);
+}
+```
+</Step>
+
+<Step title="Use provided clearing functions">
+Prefer the clearing functions over manual buffer clearing:
+
+<CodeGroup>
+```cpp Recommended
+clearPage();
+display.drawStr(0, 16, "Content");
+```
+
+```cpp Avoid
+display.clearBuffer();
+display.drawStr(0, 16, "Content");
+```
+</CodeGroup>
+</Step>
+
+<Step title="Respect layout boundaries">
+Keep content within designated areas:
+
+- Header content: cells 0-12
+- Footer content: cells 0-14
+- Icons: cells 13-15
+- Use `clearPage()` to prevent content overflow
+</Step>
+
+<Step title="Select appropriate fonts">
+| Area | Recommended Font |
+|------|-----------------|
+| Header/Footer | `u8g2_font_spleen5x8_mu` |
+| Page content | Choose based on readability needs |
+
+<Note>
+Consider font height when calculating vertical spacing between lines.
+</Note>
+</Step>
+</Steps>
+
+## Common Patterns
+
+### Drawing a Complete Screen
+
+```cpp draw_screen.cpp
+if (xSemaphoreTake(displayMutex, portMAX_DELAY) == pdTRUE) {
+    clearPage();
+    display.setFont(u8g2_font_spleen5x8_mu);
+    display.drawStr(0, 16, "Main Content");
+    refreshPage();
+    xSemaphoreGive(displayMutex);
+}
+```
+
+<Check>
+This pattern clears the page area, draws new content, and refreshes only the affected region.
+</Check>
+
+### Updating Header Only
+
+```cpp update_header.cpp
+if (xSemaphoreTake(displayMutex, portMAX_DELAY) == pdTRUE) {
+    String headerText = "NEW HEADER";
+    setHeader(headerText);
+    xSemaphoreGive(displayMutex);
+}
+```
+
+### Drawing Wrapped Text
+
+```cpp wrapped_text.cpp
+if (xSemaphoreTake(displayMutex, portMAX_DELAY) == pdTRUE) {
+    clearPage();
+    int lines = drawWrappedText(0, 16, "Long text that will wrap", true);
+    refreshPage();
+    xSemaphoreGive(displayMutex);
+}
+```
+
+## Performance Considerations
+
+- **Partial updates**: `updateDisplayArea()` only refreshes specific regions
+- **Text caching**: Reduces redundant drawing operations
+- **Clipping windows**: Prevents unnecessary buffer operations
+- **Atomic operations**: Mutex ensures drawing operations complete without interruption
+
+## Memory Management
+
+- U8G2 library manages the display buffer
+- Text caching prevents unnecessary redraws
+- PROGMEM stores constant strings (following project guidelines)
+
+## Dependencies
+
+| Dependency | Purpose |
+|------------|---------|
+| U8G2 Library | Core display functionality |
+| FreeRTOS | Mutex for thread safety |
+| ESP32 | Hardware I2C interface |
+| Pins.h | Hardware pin definitions |
+
+## References
+
+<CardGroup cols={3}>
+<Card title="U8G2 Reference" icon="book" href="https://github.com/olikraus/u8g2/wiki/u8g2reference">
+  Complete U8G2 library documentation
+</Card>
+
+<Card title="U8G2 Fonts" icon="font" href="https://github.com/olikraus/u8g2/wiki/fntlistallplain">
+  Available font list for display rendering
+</Card>
+
+<Card title="FreeRTOS Mutex" icon="lock" href="https://www.freertos.org/Real-time-embedded-RTOS-mutexes.html">
+  Mutex documentation for thread safety
+</Card>
+</CardGroup>

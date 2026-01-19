@@ -3,8 +3,7 @@ name: PlatformIO CI
 on:
   pull_request:
     branches:
-      - master
-      - release
+      - main
 
 jobs:
   check_changes:
@@ -92,6 +91,7 @@ jobs:
           cd Software
           pio check --skip-packages --fail-on-defect high -e production -f src
 
+
   test:
     needs: check_changes
     if: needs.check_changes.outputs.changes_detected == 'true'
@@ -119,6 +119,31 @@ jobs:
         run: |
           cd Software
           pio test -e test
+
+  check_docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: Documentation/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: |
+          cd Documentation
+          pnpm install
+
+      - name: Validate documentation
+        run: |
+          cd Documentation
+          pnpm run mint:validate
 
   upload_to_supabase:
     needs: [check_changes, build]

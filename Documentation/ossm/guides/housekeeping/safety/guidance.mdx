@@ -1,0 +1,100 @@
+---
+title: "Design Guidelines"
+description: "Safety principles and guidance for OSSM designers, builders, and users"
+---
+
+The OSSM can be modified by anyone, which means you need to understand the risks and potential hazards whether you use, modify, or contribute to the project. The device operates in intimate areas with moving belts and motors that generate surprising force—all of which can cause injury.
+
+## Understanding Your Role
+
+The hazard analysis identifies three areas of concern: design, build, and use. These map to three groups of people, and you may belong to one or all of them.
+
+<AccordionGroup>
+  <Accordion title="Designers" icon="compass-drafting">
+    You contribute to the OSSM project or create modifications. Your role is to ensure your designs are safe—whether a physical part, code, or motion pattern. You should provide guidance to builders and users on hazards and mitigation strategies.
+    
+    <Tip>
+    Download and review the hazard analysis spreadsheet for detailed risk information.
+    </Tip>
+  </Accordion>
+  
+  <Accordion title="Builders" icon="wrench">
+    You transform the OSSM from concept into physical reality using components, printed parts, and assembly. Your responsibility is ensuring what you build has sufficient strength for use and maintains the designed safety controls.
+  </Accordion>
+  
+  <Accordion title="Users" icon="user">
+    You fall into two subgroups (and can be both simultaneously):
+    
+    - **Operators** — Control the device during use
+    - **Receptive users** — Experience the device directly
+    
+    Good design and quality builds provide protection, but a misused OSSM creates hazards that cannot be mitigated by design alone.
+  </Accordion>
+</AccordionGroup>
+
+## Guidance for Designers
+
+<Warning>
+Some ideas cannot be made safe. Evaluate whether your design introduces hazards that cannot be adequately mitigated.
+</Warning>
+
+- **Identify new hazards** — Consider what risks your design may introduce and how to manage them
+- **Design inclusively** — Designing for users with visual, physical, or cognitive impairments often produces safer designs overall
+- **Understand FDM limitations** — Layer orientation and material choice significantly impact safety of 3D printed parts
+- **Limit reliance on software** — Programming for safety is harder than it appears. Physical controls like power switches are more reliable than software interrupts for safety-critical functions
+- **Don't assume compliance** — Users and builders may not "do the right thing." Designers are best positioned to understand and address potential issues
+
+<Note>
+For safety-critical applications, consider that extensive research exists on safety-critical software development. Hardware controls provide more reliable failsafes than software.
+</Note>
+
+## Guidance for Builders
+
+<Tip>
+Get to know your 3D printer and filament. For critical parts, print with thicker walls, larger layer heights, and hotter temperatures to maximize strength.
+</Tip>
+
+- **Optimize print settings** — Use appropriate wall thickness, infill, and temperature settings for structural parts
+- **Avoid resin printing for structural parts** — Resin printers typically do not produce parts strong enough for safe use
+- **Finish edges carefully** — The OSSM is frequently used with minimal clothing by distracted users—eliminate sharp edges
+- **Don't rely on user compliance** — Work around build deficiencies proactively rather than expecting users to compensate for missing parts or covers
+
+<Warning>
+Never assume users will work around missing safety covers or incomplete builds. Install all protective components.
+</Warning>
+
+## Guidance for Users
+
+<Steps>
+  <Step title="Understand the risks">
+    Review the hazards documentation and understand the potential risks before operation.
+  </Step>
+  
+  <Step title="Use appropriate toys">
+    Select toys designed for powered use with appropriate materials and secure mounting.
+  </Step>
+  
+  <Step title="Take frequent breaks">
+    Extended use increases risk of injury. Schedule regular breaks during sessions.
+  </Step>
+  
+  <Step title="Inspect before use">
+    Check your OSSM for missing or broken parts before each use. Do not operate with damaged components.
+  </Step>
+  
+  <Step title="Maintain clear judgment">
+    Do not operate while experiencing cognitive impairment from any source.
+  </Step>
+  
+  <Step title="Consider over-penetration risks">
+    Being restrained and unable to move away from the machine greatly increases risk and chance of injury.
+    
+    <Warning>
+    If using restraints, ensure an attentive partner can intervene immediately.
+    </Warning>
+  </Step>
+  
+  <Step title="Use adequate lubrication">
+    Proper lubrication reduces friction and risk of tissue damage.
+  </Step>
+</Steps>

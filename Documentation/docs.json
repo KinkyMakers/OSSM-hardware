@@ -1,0 +1,378 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "mint",
+  "colors": {
+    "primary": "#16A34A",
+    "light": "#07C983",
+    "dark": "#15803D"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "products": [
+      {
+        "product": "Open Source Sex Machine",
+        "icon": "robot",
+        "tabs": [
+          {
+            "tab": "Guides",
+            "groups": [
+              {
+                "group": "Getting started",
+                "pages": [
+                  "ossm/guides/getting-started/introduction",
+                  "ossm/guides/getting-started/quickstart",
+                  "ossm/guides/getting-started/web-flasher",
+                  {
+                    "group": "Ready to Play",
+                    "pages": [
+                      "ossm/guides/getting-started/ready-to-play/introduction",
+                      "ossm/guides/getting-started/ready-to-play/info-sheet",
+                      "ossm/guides/getting-started/ready-to-play/spec-sheet"
+                    ]
+                  },
+                  {
+                    "group": "Build Guide",
+                    "pages": [
+                      "ossm/guides/getting-started/build-guide/step-0.0_introduction",
+                      "ossm/guides/getting-started/build-guide/step-1.0_required_tools_and_parts",
+                      "ossm/guides/getting-started/build-guide/step-1.1_purchasing-parts",
+                      "ossm/guides/getting-started/build-guide/step-1.2_3d-printing-parts",
+                      "ossm/guides/getting-started/build-guide/step-2.0_rear_tensioner",
+                      "ossm/guides/getting-started/build-guide/step-3.0_end_effector",
+                      "ossm/guides/getting-started/build-guide/step-4.0_front_tensioner",
+                      "ossm/guides/getting-started/build-guide/step-5.0_ossm_motorhead",
+                      "ossm/guides/getting-started/build-guide/step-6.0_pulley_on_motor",
+                      "ossm/guides/getting-started/build-guide/step-7.0_ossm_motor_head_middle",
+                      "ossm/guides/getting-started/build-guide/step-8.0_cover",
+                      "ossm/guides/getting-started/build-guide/step-9.0_tension_adjustment",
+                      "ossm/guides/getting-started/build-guide/step-10.0_electronics_assembly",
+                      "ossm/guides/getting-started/build-guide/step-11.0_wiring",
+                      "ossm/guides/getting-started/build-guide/step-12.0_initial_test"
+                    ]
+                  },
+                  {
+                    "group": "User Guide",
+                    "pages": [
+                      "ossm/guides/getting-started/user-guide/introduction",
+                      "ossm/guides/getting-started/user-guide/troubleshooting"
+                    ]
+                  },
+                  "ossm/guides/getting-started/official-add-ons"
+                ]
+              },
+              {
+                "group": "Contributing",
+                "pages": [
+                  "ossm/guides/contributing/forking",
+                  "ossm/guides/contributing/how-to-become-a-contributor",
+                  "ossm/guides/contributing/roadmap",
+                  "ossm/guides/contributing/reporting-issues"
+                ]
+              },
+              {
+                "group": "Third Party Extensions",
+                "pages": []
+              },
+              {
+                "group": "Community",
+                "pages": [
+                  "ossm/guides/community/introduction",
+                  {
+                    "group": "Third Party Hardware",
+                    "pages": [
+                      "ossm/guides/community/hardware/m5-remote",
+                      "ossm/guides/community/hardware/x-toys"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Housekeeping",
+                "pages": [
+                  "ossm/guides/housekeeping/about-kinky-makers",
+                  "ossm/guides/housekeeping/about-research-and-desire",
+                  "ossm/guides/housekeeping/faqs",
+                  {
+                    "group": "Open Source",
+                    "pages": [
+                      "ossm/guides/housekeeping/open-source/introduction",
+                      "ossm/guides/housekeeping/open-source/licence"
+                    ]
+                  },
+                  {
+                    "group": "Safety",
+                    "pages": [
+                      "ossm/guides/housekeeping/safety/introduction",
+                      "ossm/guides/housekeeping/safety/hazards",
+                      "ossm/guides/housekeeping/safety/guidance"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Hardware",
+            "groups": [
+              {
+                "group": "Getting Started",
+                "pages": [
+                  "ossm/Hardware/getting-started/introduction"
+                ]
+              },
+              {
+                "group": "Standard Printed Parts",
+                "pages": [
+                  "ossm/Hardware/standard-printed-parts/contibution-guidelines",
+                  {
+                    "group": "Actuator Assembly",
+                    "pages": [
+                      "ossm/Hardware/standard-printed-parts/actuator/introduction",
+                      {
+                        "group": "Part by Part",
+                        "pages": [
+                          "ossm/Hardware/standard-printed-parts/actuator/part-by-part/24mm-clamping-thread-belt-clamp",
+                          "ossm/Hardware/standard-printed-parts/actuator/part-by-part/24mm-clamping-thread-end-effector",
+                          "ossm/Hardware/standard-printed-parts/actuator/part-by-part/24mm-nut-5-sided",
+                          "ossm/Hardware/standard-printed-parts/actuator/part-by-part/actuator-body-bottom",
+                          "ossm/Hardware/standard-printed-parts/actuator/part-by-part/actuator-body-cover",
+                          "ossm/Hardware/standard-printed-parts/actuator/part-by-part/actuator-body-middle",
+                          "ossm/Hardware/standard-printed-parts/actuator/part-by-part/belt-tensioner",
+                          {
+                            "group": "Non-Standard",
+                            "pages": [
+                              "ossm/Hardware/standard-printed-parts/actuator/part-by-part/non-standard/24mm-nut-hex-flower",
+                              "ossm/Hardware/standard-printed-parts/actuator/part-by-part/non-standard/24mm-nut-hex-flower-wrench",
+                              "ossm/Hardware/standard-printed-parts/actuator/part-by-part/non-standard/24mm-thread",
+                              "ossm/Hardware/standard-printed-parts/actuator/part-by-part/non-standard/actuator-body-middle-pivot",
+                              "ossm/Hardware/standard-printed-parts/actuator/part-by-part/non-standard/belt-clamp-bottom",
+                              "ossm/Hardware/standard-printed-parts/actuator/part-by-part/non-standard/belt-clamp-top"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "Wired Remote Control",
+                    "pages": [
+                      "ossm/Hardware/standard-printed-parts/remote/introduction",
+                      {
+                        "group": "Part by Part",
+                        "pages": [
+                          "ossm/Hardware/standard-printed-parts/remote/part-by-part/remote-body",
+                          "ossm/Hardware/standard-printed-parts/remote/part-by-part/remote-knob-rounded",
+                          "ossm/Hardware/standard-printed-parts/remote/part-by-part/remote-top-cover",
+                          {
+                            "group": "Non-Standard",
+                            "pages": [
+                              "ossm/Hardware/standard-printed-parts/remote/part-by-part/non-standard/remote-knob-knurled",
+                              "ossm/Hardware/standard-printed-parts/remote/part-by-part/non-standard/remote-knob-knurled-with-position-indicator",
+                              "ossm/Hardware/standard-printed-parts/remote/part-by-part/non-standard/remote-knob-simple",
+                              "ossm/Hardware/standard-printed-parts/remote/part-by-part/non-standard/remote-knob-simple-with-position-indicator"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "Stand (3030 Extrusion)",
+                    "pages": [
+                      "ossm/Hardware/standard-printed-parts/stand/introduction",
+                      {
+                        "group": "Part by Part",
+                        "pages": [
+                          "ossm/Hardware/standard-printed-parts/stand/part-by-part/extrusion-cap",
+                          "ossm/Hardware/standard-printed-parts/stand/part-by-part/extrusion-foot",
+                          "ossm/Hardware/standard-printed-parts/stand/part-by-part/handle-spacer",
+                          "ossm/Hardware/standard-printed-parts/stand/part-by-part/pivot-plate-left",
+                          "ossm/Hardware/standard-printed-parts/stand/part-by-part/pivot-plate-right"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "PitClamp",
+                    "pages": [
+                      "ossm/Hardware/standard-printed-parts/pitclamp/ASSEMBLY_GUIDES",
+                      "ossm/Hardware/standard-printed-parts/pitclamp/BOM",
+                      "ossm/Hardware/standard-printed-parts/pitclamp/README-2",
+                      "ossm/Hardware/standard-printed-parts/pitclamp/README",
+                      "ossm/Hardware/standard-printed-parts/pitclamp/UPDATES",
+                      {
+                        "group": "Part by Part",
+                        "pages": [
+                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/mounting-ring-pitclamp-mini-57aim",
+                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pcb-lid",
+                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pitclamp-mini-dogbone-bolts",
+                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pitclamp-mini-dogbone-nuts",
+                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pitclamp-mini-lower",
+                          {
+                            "group": "Non-Standard",
+                            "pages": [
+                              "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/non-standard/pitclamp-mini-upper-handle-print-in-place"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "Toy Mounting",
+                    "pages": [
+                      "ossm/Hardware/standard-printed-parts/toy-mounting/introduction",
+                      {
+                        "group": "Part by Part",
+                        "pages": [
+                          "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/double-double-24mm-threaded",
+                          "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/double-double-rail-mounted",
+                          "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/flange-base-24mm-threaded",
+                          "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/flange-base-dildo-ring-50mm",
+                          "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/flange-base-dildo-ring-63mm",
+                          {
+                            "group": "Non-Standard",
+                            "pages": [
+                              "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/non-standard/sucson-mount-base-plate-24mm-threaded",
+                              "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/non-standard/sucson-mount-ring-insert-55mm",
+                              "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/non-standard/sucson-mount-threaded-ring",
+                              "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/non-standard/tie-down-suction-plate-110mm",
+                              "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/non-standard/tie-down-suction-plate-135mm"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Motor",
+                "pages": [
+                  "ossm/Hardware/motor/standard-build-motor",
+                  "ossm/Hardware/motor/wiring-gold-motor",
+                  {
+                    "group": "Alternatives",
+                    "pages": [
+                      "ossm/Hardware/motor/alternatives/42AIM30",
+                      "ossm/Hardware/motor/alternatives/iHSV57"
+                    ]
+                  },
+                  "ossm/Hardware/motor/programming"
+                ]
+              },
+              {
+                "group": "OSSM PCB v2.3",
+                "pages": [
+                  "ossm/Hardware/PCB/board-design",
+                  "ossm/Hardware/PCB/introduction"
+                ]
+              },
+              {
+                "group": "OSSM Mods",
+                "pages": [
+                  {
+                    "group": "Pitclamp Reinforced",
+                    "pages": [
+                      "ossm/Hardware/ossm-mods/pitclamp-reinforced/hinges",
+                      "ossm/Hardware/ossm-mods/pitclamp-reinforced/standard-base"
+                    ]
+                  },
+                  {
+                    "group": "Salad Dressing",
+                    "pages": [
+                      "ossm/Hardware/ossm-mods/salad-dressing/belt-clamp-v2",
+                      "ossm/Hardware/ossm-mods/salad-dressing/capstan",
+                      "ossm/Hardware/ossm-mods/salad-dressing/suction-cup-bracket",
+                      "ossm/Hardware/ossm-mods/salad-dressing/weight-plate",
+                      "ossm/Hardware/ossm-mods/salad-dressing/quick-change-toy-mount"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Known Issues",
+                "pages": [
+                  "ossm/Hardware/known-issues/high-voltage-failure"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Software",
+            "groups": [
+              {
+                "group": "Getting Started",
+                "pages": [
+                  "ossm/Software/getting-started/introduction",
+                  "ossm/Software/getting-started/PlatformIO",
+                  "ossm/Software/getting-started/LED_Status",
+                  "ossm/Software/getting-started/display"
+                ]
+              },
+              {
+                "group": "Communication",
+                "pages": [
+                  "ossm/Software/communication/ble"
+                ]
+              },
+              {
+                "group": "Motion Libaries",
+                "pages": [
+                  "ossm/Software/motion/stroke-engine/introduction",
+                  "ossm/Software/motion/stroke-engine/Pattern"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "R+D Store",
+          "href": "https://www.researchanddesire.com",
+          "icon": "store"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/images/logo/light.svg",
+    "dark": "/images/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:support@researchanddesire.com"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://dashboard.researchanddesire.com"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/mintlify",
+      "github": "https://github.com/mintlify",
+      "linkedin": "https://linkedin.com/company/mintlify"
+    }
+  }
+}

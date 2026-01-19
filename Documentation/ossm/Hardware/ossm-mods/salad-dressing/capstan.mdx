@@ -1,0 +1,159 @@
+---
+title: "Capstan OSSM XL"
+description: "A capstan-based drive mechanism for OSSM that enables higher load capacity with the 60AIM40F motor"
+---
+
+<Frame>
+  <img src="./_images/c26ea6da-c220-4e42-8925-d1a913f3a561.webp" alt="Capstan OSSM XL complete assembly" />
+</Frame>
+
+<Note>
+The AIO version shown in these pictures mounts the control board in the front with cables routing to the motor in the back, based on a concept by @thearmpit. The AIO Cover part used here is a custom design not covered under CC BY-NC-SA 4.0 license.
+</Note>
+
+This modification replaces the standard belt drive with a capstan-based system, enabling higher load capacity with the more powerful 60AIM40F motor.
+
+## What is a capstan drive?
+
+A capstan drive uses rope and a pulley to transmit motion. For an excellent explanation of the mechanism, watch this video by Aaed Musa:
+
+<Card title="Capstan Drive Explained" icon="play" href="https://www.youtube.com/watch?v=MwIBTbumd1Q">
+  Learn how capstan drives work and why they're effective for high-torque applications.
+</Card>
+
+## Why choose capstan over belt?
+
+The standard belt-driven OSSM can experience slipping at higher torques. While this may result from build errors, the capstan drive eliminates this issue entirely.
+
+### Comparison to standard OSSM
+
+<Tabs>
+  <Tab title="Advantages">
+    - Same form factor as standard OSSM
+    - Equal or quieter operation
+    - Only 13cm effective rail length loss (450mm rail = 32cm stroke)
+    - **2.7x stronger** (32kg vs 12kg capacity)
+    - Same maximum speed
+    - No belt slipping
+    - No custom PCBs required
+    - PitClamp compatible
+    - Compatible with all custom end effectors
+  </Tab>
+  <Tab title="Disadvantages">
+    - More complex build process
+    - Larger motor increases cost (~110€ shipped including tax to Germany)
+    - More parts to print
+    - Rail may slip in extreme use cases (resolved by re-homing)
+    - Limited community testing (single builder verified)
+  </Tab>
+</Tabs>
+
+<Tip>
+This design has been tested extensively by the creator over several months with excellent results. Share your feedback in the Discord thread linked below.
+</Tip>
+
+## Configuration options
+
+### AIO vs normal version
+
+<Tabs>
+  <Tab title="AIO (Recommended)">
+    The AIO mod version mounts the control board in the front of the motor head with integrated cable routing. This is the recommended configuration.
+  </Tab>
+  <Tab title="Normal">
+    The normal version includes no mounting solution for the control board. Choose this if you want to create your own custom mounting arrangement.
+  </Tab>
+</Tabs>
+
+### Pulley versions
+
+<Tabs>
+  <Tab title="Bushing Pulley (Recommended)">
+    The bushing pulley is superior in every way:
+    - Better durability
+    - No deformation over time
+    - Supports rail lengths up to 450mm (500mm likely possible)
+    
+    **Requirements**: Appropriately sized bushing and epoxy glue for assembly.
+  </Tab>
+  <Tab title="3D Printed Pulley">
+    Use the 3D printed pulley if you cannot source a suitable bushing:
+    - Functional but will deform over time under constant force
+    - Requires periodic replacement
+    - Maximum supported rail length: 400mm
+  </Tab>
+</Tabs>
+
+### Supported rail lengths
+
+| Pulley Type | Tested Length | Maximum Recommended |
+|-------------|---------------|---------------------|
+| Bushing | 450mm | 500mm (untested) |
+| 3D Printed | 400mm | 400mm |
+
+<Warning>
+Rail lengths above 500mm are not recommended for this design.
+</Warning>
+
+## Rope selection
+
+<Warning>
+Use only the specified rope type. Incorrect rope selection will result in stretching and failure.
+</Warning>
+
+**Required rope**: Liros DC pro 161 (or equivalent Dyneema DM20, SK99, SK75 with max 1mm diameter)
+
+<AccordionGroup>
+  <Accordion title="Why rope selection matters">
+    The rope must have minimal stretch under load. Testing by community member @neos demonstrated that generic UHMWPE rope from AliExpress stretches excessively and breaks under load. The specified Dyneema rope maintains consistent tension for reliable operation.
+  </Accordion>
+  <Accordion title="Alternative rope specifications">
+    If you cannot source Liros DC pro 161, look for:
+    - Material: Dyneema DM20, SK99, or SK75
+    - Maximum diameter: 1mm
+    - Verified low-stretch construction
+    
+    Deviate from these specifications at your own risk.
+  </Accordion>
+</AccordionGroup>
+
+## Print settings
+
+<Note>
+Pre-configured .3mf files are included for most parts with optimal settings.
+</Note>
+
+| Setting | Value |
+|---------|-------|
+| Walls | 6 |
+| Infill | 20% |
+| Supports | Try without for AIO_cover (bridges only); enable if needed |
+
+## Bill of materials
+
+| Part | Estimated Cost | Source |
+|------|----------------|--------|
+| 60AIM40F Motor | ~110€ | [Superbuy/Taobao](https://www.superbuy.com/en/page/buy/?url=https://item.taobao.com/item.htm?id=668578585661) |
+| OSSM Control Board + Remote | $91 USD (excl. tax/shipping) | [Research and Desire](https://www.researchanddesire.com/products/ossm-reference-board) |
+| MR115 Bearings (5x) | ~3€ | [AliExpress](https://de.aliexpress.com/item/1005007175995775.html) |
+| Hardware kit | ~30€ | See hardware/Hardware.txt |
+| PLA Filament (1kg) | ~8€/kg | [AliExpress](https://de.aliexpress.com/item/1005006639640810.html) |
+| Liros DC pro 161 Rope (5m) | ~15€ | [Kite Line Shop](https://www.kitelineshop.com/ligne-liros-dcpro161-au-metre-c2x38222201) |
+| Bushing 20x23x30mm | ~5€ | [Agrolager](https://www.agrolager.de/product_info.php?products_id=91534519) |
+| MGN12H Linear Rail + Wagon | ~10-15€ | [AliExpress (450mm)](https://de.aliexpress.com/item/1000007480470.html) |
+| Epoxy Glue | ~3€ | [AliExpress](https://de.aliexpress.com/item/1005007115129874.html) |
+| 4-pin JST Header Cable | ~2€ | [AliExpress](https://de.aliexpress.com/item/1005007389108799.html) |
+| 2-pin AWG 18+ Wire (30cm) | ~2€ | [AliExpress](https://de.aliexpress.com/item/1005006614755156.html) |
+| Kinesio Tape | ~3€ | Local drug store |
+| 36V 5+A Power Supply | ~68€ | [Voelkner (PSU)](https://www.voelkner.de/products/2995507/MW-Mean-Well-GST220A36-R7B-Tischnetzteil-Festspannung-36-V-DC-6.1A-219.6W.html) + [Adapter](https://www.voelkner.de/products/6716585/MW-Mean-Well-DC-PLUG-R7BF-P1J-Adapter.html) |
+| **Total** | **~345€** | |
+
+## Community support
+
+<Card title="Discord Thread" icon="discord" href="https://discord.com/channels/559409652425687041/1395456804464623817">
+  Join the discussion, share feedback, and get help with your Capstan OSSM XL build.
+</Card>
+
+<Check>
+Special thanks to everyone who provided suggestions and helped overcome challenges during development!
+</Check>

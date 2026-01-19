@@ -1,0 +1,164 @@
+---
+title: "Hazard Reference"
+description: "Known hazards, vulnerabilities, and mitigation strategies for OSSM designers, builders, and users"
+---
+
+<Warning>
+This document identifies known hazards. Your specific build may have additional risks not listed here. Perform your own hazard assessment for any modifications or non-standard configurations.
+</Warning>
+
+## Mechanical Hazards
+
+<AccordionGroup>
+  <Accordion title="Body parts caught in mechanism" icon="gears">
+    **Vulnerability:** Exposed pulleys and bearings create pinch points at the front and rear of the linear rail.
+    
+    **Likely consequence:** Trauma to tissue
+    
+    | Role | Mitigation |
+    |------|------------|
+    | Designer | Provide covers for pulleys and bearings |
+    | Builder | Install all protective covers |
+    | User | Avoid placing hands near moving parts |
+  </Accordion>
+  
+  <Accordion title="Hair caught in mechanism" icon="scissors">
+    **Vulnerability:** Hair can get dragged into the drive mechanism.
+    
+    **Likely consequence:** Trauma to tissue, hair loss, potential partial scalping in severe cases
+    
+    | Role | Mitigation |
+    |------|------------|
+    | Designer | Provide covers for pulleys and bearings |
+    | Builder | Install all protective covers |
+    | User | Tie back hair, avoid leaning over device during operation, position device below waist level |
+  </Accordion>
+  
+  <Accordion title="Dildo screw mount failure" icon="bolt">
+    **Vulnerability:** FDM prints can fail along deposition lines, creating sharp splinters or exposing the rail.
+    
+    **Likely consequence:** Trauma to tissue, internal injuries, cuts and bleeding
+    
+    | Role | Mitigation |
+    |------|------------|
+    | Designer | Design screw threads that protect the metal rail; rail should support the thread to reduce FDM stress; specify recommended wall thickness and infill |
+    | Builder | Use appropriate materials with sufficient adhesion, optimize layer height for strength, use thicker walls and appropriate infill |
+    | User | Mount toys correctly to reduce stress on the mount |
+  </Accordion>
+  
+  <Accordion title="Interchangeable head failure" icon="circle-exclamation">
+    **Vulnerability:** FDM prints can fail along deposition lines, creating sharp splinters.
+    
+    **Likely consequence:** Trauma to tissue, internal injuries, cuts and bleeding
+    
+    | Role | Mitigation |
+    |------|------------|
+    | Designer | Ensure sufficient strength around likely failure points (screw threads, mounting plates, external walls); design to prevent shards pointing toward user; specify recommended settings |
+    | Builder | Use appropriate materials with sufficient adhesion, optimize layer height for strength |
+    | User | Mount toys correctly to reduce stress |
+  </Accordion>
+</AccordionGroup>
+
+## Over-Penetration Hazards
+
+<Warning>
+GPIO and software controls do not effectively mitigate over-penetration risks. In a software failure scenario, they will not interrupt in sufficient time. Physical controls are essential.
+</Warning>
+
+<AccordionGroup>
+  <Accordion title="Software fault causing over-penetration" icon="code">
+    **Vulnerability:** A software fault causes the OSSM to penetrate too deeply.
+    
+    **Likely consequence:** Trauma to tissue, internal injuries
+    
+    | Role | Mitigation |
+    |------|------------|
+    | Designer | Implement code review and testing; isolate depth and positional controls in tightly managed code sections; design emergency stop that cuts motor power; provide hardware rear stop; design dildo adapters with wide bases as physical stops; recommend safer rail lengths |
+    | Builder | Use shortest practical rail length; don't over-specify motor torque; implement emergency stop control |
+    | User | Maintain ability to move away from hazard; avoid restraints; use shorter toys with wider bases |
+  </Accordion>
+  
+  <Accordion title="Operator error causing over-penetration" icon="user-xmark">
+    **Vulnerability:** Operator error causes the OSSM to penetrate too deeply.
+    
+    **Likely consequence:** Trauma to tissue, internal injuries
+    
+    | Role | Mitigation |
+    |------|------------|
+    | Designer | Design dildo adapters with wide bases; specify clear stand requirements including weight and dynamic load; specify recommended materials, wall thicknesses, and infill; ensure stands have multiple securing points; ensure stand stability in all dimensions |
+    | Builder | Use shortest practical rail length; don't over-specify motor torque; implement emergency stop control |
+    | User | Maintain operator awareness and communication; don't adjust while operating; maintain ability to move away; use shorter toys with wider bases |
+  </Accordion>
+  
+  <Accordion title="Stand failure causing over-penetration" icon="triangle-exclamation">
+    **Vulnerability:** Stand failure causes the OSSM to penetrate too deeply.
+    
+    **Likely consequence:** Trauma to tissue, internal injuries
+    
+    | Role | Mitigation |
+    |------|------------|
+    | Designer | Design dildo adapters with wide bases; specify clear stand requirements; consider failure modes of FDM and material orientation; specify recommended materials and settings; ensure stands have multiple securing points |
+    | Builder | Build stands from appropriate materials following designer guidance; use fasteners of sufficient strength |
+    | User | Maintain ability to move away; use shorter toys with wider bases; use within design parameters; perform hazard assessment if repurposing a design |
+  </Accordion>
+</AccordionGroup>
+
+## Electrical Hazards
+
+<AccordionGroup>
+  <Accordion title="Electrical fire from over-amperage" icon="fire">
+    **Vulnerability:** Over-amperage results in electrical fire.
+    
+    **Likely consequence:** Burns, electrocution
+    
+    | Role | Mitigation |
+    |------|------------|
+    | Designer | Specify power supplies with correct amperage; design PCB cover to protect high-voltage components; use 50V or less power supplies |
+    | Builder | Purchase power supplies with correct amperage; install appropriate covers |
+    | User | Don't handle with wet hands; don't touch OSSM body during operation—adjust via the stand |
+  </Accordion>
+  
+  <Accordion title="Fluid contact with electronics" icon="droplet">
+    **Vulnerability:** Circuit board is splashed with body fluids.
+    
+    **Likely consequence:** Burns, electrocution
+    
+    | Role | Mitigation |
+    |------|------------|
+    | Designer | Design cover to protect PCB from fluids (cover should protect the user-facing side); design stand orientation to avoid fluid contact and pooling |
+    | Builder | Implement appropriate cover for your design and stand combination |
+    | User | Use within design parameters; perform hazard assessment if repurposing a design |
+  </Accordion>
+  
+  <Accordion title="EMI causing unpredictable movement" icon="bolt">
+    **Vulnerability:** Electromagnetic interference from a poor quality power supply causes unpredictable movement of the effector via the wired remote.
+    
+    **Likely consequence:** Trauma to tissue, internal injuries
+    
+    <Note>
+    This hazard was reported by a community member using an unbranded budget power supply. The issue was resolved by substituting a quality PSU from a reputable manufacturer.
+    </Note>
+    
+    | Role | Mitigation |
+    |------|------------|
+    | User | Use good quality power supplies from reputable manufacturers |
+  </Accordion>
+</AccordionGroup>
+
+## Security Hazards
+
+<AccordionGroup>
+  <Accordion title="Malicious remote control" icon="user-secret">
+    **Vulnerability:** A malicious remote user takes over internet remote control during manual operation, causing over-penetration.
+    
+    **Likely consequence:** Trauma to tissue, internal injuries
+    
+    <Note>
+    Dual control capability is often used in remote scenarios with inexperienced operators. Consider whether an override option is appropriate for your use case.
+    </Note>
+    
+    | Role | Mitigation |
+    |------|------------|
+    | Designer | Implement remote control lockout during local control by default; require remote enablement after each restart |
+  </Accordion>
+</AccordionGroup>

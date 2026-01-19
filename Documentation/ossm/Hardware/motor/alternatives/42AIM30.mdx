@@ -1,0 +1,65 @@
+---
+title: "42AIM30 Round Motor"
+description: "Alternative compact motor option with smaller form factor but limited mounting support"
+---
+
+The 42AIM30 is a variant of the Gold Motor with identical internals and specifications in a more compact cylindrical form factor.
+
+<Warning>
+The 42AIM30 has limited mounting support and requires custom hardware. Only consider this motor if you have specific size constraints.
+</Warning>
+
+## Overview
+
+The 42AIM30 (sometimes called the "Round Motor") shares the same internal components as the standard 57AIM30 Gold Motor but removes the heatsink housing, leaving only the cylindrical motor body with connectors at the base.
+
+<Note>
+When ordering, ensure you select the correct model variant—the 42AIM30 with RS485 interface and 1500 RPM rating.
+</Note>
+
+## Comparison with 57AIM30 Gold Motor
+
+### Advantages
+
+| Feature | Benefit |
+|---------|---------|
+| Smaller diameter | 26% reduction compared to 57AIM30 |
+| Cylindrical shape | Easier to fit in tight spaces vs square housing |
+| Lighter weight | Estimated 25% reduction (exact data needed) |
+
+### Disadvantages
+
+| Limitation | Impact |
+|------------|--------|
+| No mounting ears | Requires precise face-mounted machine screws |
+| Incompatible housings | Standard housings do not fit; community mods available on Discord |
+| Heat management | No heatsink may cause thermal issues in enclosed housings |
+| No clear advantage | Same specs, length, and limitations as 57AIM30 |
+
+<Warning>
+Using the 42AIM30 requires modifications to the standard Bill of Materials (BOM). Ensure you have access to compatible mounting hardware before purchasing.
+</Warning>
+
+## Mounting Considerations
+
+Unlike the 57AIM30 with its bolt-through mounting ears, you must mount the 42AIM30 using machine screws threaded directly into the motor face:
+
+- Measure the exact screw length required for your mounting solution
+- Use the correct thread pitch for the motor face holes
+- Check Discord community resources for tested mounting solutions
+
+<Tip>
+Join the KinkyMakers Discord to find community-designed housings compatible with the 42AIM30.
+</Tip>
+
+## Thermal Performance
+
+The 42AIM30 lacks the integrated heatsink found on the 57AIM30. When enclosed in a 3D-printed housing:
+
+- Monitor motor temperature during extended use
+- Consider adding ventilation holes to your housing design
+- Reduce duty cycle if you observe thermal throttling
+
+<Info>
+Community testing on thermal performance is ongoing. Share your temperature data on Discord to help improve recommendations.
+</Info>
