@@ -131,3 +131,8 @@ dmypy.json
 .DS_Store
 PlatformIO ESP32 code/OSSM_ESP32/.vscode/c_cpp_properties.json
 PlatformIO ESP32 code/OSSM_ESP32/.vscode/launch.json
+
+node_modules/
+scratch/
+
+Documentation/node_modules/
