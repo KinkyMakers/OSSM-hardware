@@ -1,6 +1,7 @@
 #include "wm.h"
 
 #include "WiFi.h"
+#include "utils/getEfuseMac.h"
 
 WiFiManager wm;
 
@@ -21,4 +22,10 @@ void initWM() {
         delay(500);
         retry++;
     }
+
+    // TESTING PURPOSES ONLY - print mac addres
+    ESP_LOGD("WM", "\n\n\n\n\nMAC Address: %s\n\n\n\n",
+             getMacAddress().c_str());
+
+    delay(5000);
 }

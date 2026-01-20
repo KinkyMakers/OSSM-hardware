@@ -87,8 +87,7 @@ void initMQTT() {
         .lwt_retain = true,
         .keepalive = 15,
         .buffer_size = 1024,
-        .cert_pem = root_ca
-    };
+        .cert_pem = root_ca};
 
     // Initialize and start new client with updated credentials
     ESP_LOGD("MQTT", "Initializing MQTT client");
