@@ -15,7 +15,7 @@ String sessionId = "";
 const char* mqtt_server = MQTT_SERVER;
 const int mqtt_port = 1883;
 #else
-const char* mqtt_server = "mqtts://c071b760.ala.us-east-1.emqxsl.com";
+const char* mqtt_server = "mqtts://te9acc16.ala.us-east-1.emqxsl.com";
 const int mqtt_port = 8883;
 #endif
 
@@ -79,15 +79,15 @@ void initMQTT() {
         .uri = mqtt_server,
         .port = mqtt_port,
         .client_id = macAddress.c_str(),
-        .username = "TEST",
-        .password = "Hello123!",
+        .username = "5k0vjgg9hCwZGAFnmFJg7nTU6sDElr43",
+        .password = "tJDV2u8eGdMBPzHlGKQBnirCrrA9zg5w",
         .lwt_topic = String("ossm/" + macAddress).c_str(),
         .lwt_msg = lwt.c_str(),
         .lwt_qos = 2,
         .lwt_retain = true,
         .keepalive = 15,
         .buffer_size = 1024,
-        // .cert_pem = root_ca,
+        .cert_pem = root_ca
     };
 
     // Initialize and start new client with updated credentials

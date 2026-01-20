@@ -66,12 +66,6 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         // Always assume the display should not update.
         shouldUpdateDisplay = false;
 
-#ifdef AJ_DEVELOPMENT_HARDWARE
-        next.speedKnob = 0;
-#else
-        next.speedKnob =
-            getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
-#endif
         OSSM::setting.speedKnob = next.speedKnob;
         encoder = ossm->encoder.readEncoder();
 
@@ -215,7 +209,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
 };
 
 void OSSM::drawPlayControls() {
-    int stackSize = 3 * configMINIMAL_STACK_SIZE;
+    int stackSize = 12 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawPlayControlsTask, "drawPlayControlsTask", stackSize, this,
                 1, &Tasks::drawPlayControlsTaskH);
 }

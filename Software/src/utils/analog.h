@@ -10,7 +10,6 @@ typedef struct {
 
 // public static function to get the analog value of a pin
 static float getAnalogAveragePercent(SampleOnPin sampleOnPin) {
-    return 0;
     int sum = 0;
     float average;
     float percentage;
@@ -18,6 +17,7 @@ static float getAnalogAveragePercent(SampleOnPin sampleOnPin) {
     for (int i = 0; i < sampleOnPin.samples; i++) {
         // TODO: Possibly use fancier filters?
         sum += analogRead(sampleOnPin.pinNumber);
+        vTaskDelay(1);  // to allow other tasks to run
     }
     average = (float)sum / (float)sampleOnPin.samples;
     // TODO: Might want to add a dead-band

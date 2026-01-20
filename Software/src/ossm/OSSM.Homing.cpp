@@ -32,7 +32,9 @@ void OSSM::clearHoming() {
 
     // Recalibrate the current sensor offset.
     this->currentSensorOffset = (getAnalogAveragePercent(
-        SampleOnPin{Pins::Driver::currentSensorPin, 1000}));
+        SampleOnPin{Pins::Driver::currentSensorPin, 5}));
+
+    ESP_LOGD("Homing", "Current sensor offset: %f", this->currentSensorOffset);
 };
 
 void OSSM::startHomingTask(void *pvParameters) {
@@ -90,7 +92,7 @@ void OSSM::startHomingTask(void *pvParameters) {
 
         // measure the current analog value.
         float current = getAnalogAveragePercent(
-                            SampleOnPin{Pins::Driver::currentSensorPin, 200}) -
+                            SampleOnPin{Pins::Driver::currentSensorPin, 5}) -
                         ossm->currentSensorOffset;
 
         ESP_LOGV("Homing", "Current: %f", current);
