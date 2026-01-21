@@ -5,6 +5,69 @@
 SemaphoreHandle_t displayMutex = nullptr;
 static auto TAG = "DISPLAY";
 
+#ifdef LOG_SCREEN_STATE
+static TaskHandle_t screenLogTaskHandle = nullptr;
+
+// Chunk size for serial output (avoid ESP_LOG truncation)
+static constexpr size_t BYTES_PER_LINE = 128;  // One tile row at a time
+
+static void screenLogTask(void* pvParameters) {
+    while (true) {
+        vTaskDelay(pdMS_TO_TICKS(62));  // ~16 fps
+
+        if (xSemaphoreTake(displayMutex, pdMS_TO_TICKS(50)) == pdTRUE) {
+            display.setClipWindow(0, 0, 128, 64);
+            uint8_t* buffer = display.getBufferPtr();
+
+            // Get actual buffer dimensions from U8g2
+            const size_t tileWidth =
+                display
+                    .getBufferTileWidth();  // tiles horizontally (16 for 128px)
+            const size_t tileHeight =
+                display.getBufferTileHeight();  // tiles vertically (8 for 64px)
+            const size_t rowBytes = tileWidth * 8;  // bytes per tile row
+            const size_t totalBytes =
+                rowBytes * tileHeight;  // total buffer size
+
+            // Frame start marker with dimensions
+            printf("FRAME_START:%dx%d:%zu\n", display.getDisplayWidth(),
+                   display.getDisplayHeight(), totalBytes);
+
+            // Output buffer in tile rows to avoid log truncation
+            // Buffer hex for one row: 128 bytes * 2 chars + null
+            static char hexBuffer[BYTES_PER_LINE * 2 + 1];
+
+            for (size_t row = 0; row < tileHeight; row++) {
+                const size_t offset = row * rowBytes;
+
+                // Convert this row to hex
+                for (size_t i = 0; i < rowBytes; i++) {
+                    sprintf(&hexBuffer[i * 2], "%02X", buffer[offset + i]);
+                }
+                hexBuffer[rowBytes * 2] = '\0';
+
+                // Output row with index
+                printf("ROW%zu:%s\n", row, hexBuffer);
+            }
+
+            printf("FRAME_END\n");
+            fflush(stdout);
+
+            xSemaphoreGive(displayMutex);
+        }
+    }
+}
+
+static void startScreenLogTask() {
+    xTaskCreatePinnedToCore(screenLogTask, "screenLog", 4096, nullptr,
+                            1,  // Low priority
+                            &screenLogTaskHandle,
+                            0  // Core 0
+    );
+    ESP_LOGI(TAG, "Screen logging task started");
+}
+#endif
+
 static auto ROTATION = U8G2_R0;
 
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C display(ROTATION, Pins::Display::oledReset,
@@ -29,6 +92,10 @@ void initDisplay() {
     display.sendBuffer();
 
     ESP_LOGI(TAG, "Display initialization complete.");
+
+#ifdef LOG_SCREEN_STATE
+    startScreenLogTask();
+#endif
 }
 
 #define ICON_TILES 4
