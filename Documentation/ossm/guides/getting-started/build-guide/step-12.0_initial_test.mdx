@@ -1,117 +1,240 @@
 ---
 title: "11. Initial Test"
-description: "Connect the remote and power source to perform homing and verify the OSSM actuator functions correctly"
+description: "Connect a controller and power to perform homing and verify your OSSM actuator operates correctly"
 ---
 
-The initial test verifies that your OSSM actuator is properly assembled and functioning. This test includes connecting the remote control, applying power, observing the homing sequence, and performing a test stroke to confirm everything works as expected.
+The initial test confirms that your OSSM actuator is assembled correctly and ready for use. You will connect a controller (wired remote or RADR wireless remote), apply power, observe the automatic homing sequence, and run a short test stroke.
+
+## Prerequisites
+
+- Actuator fully assembled and securely mounted
+- Motor and control board wired per your kit instructions
+- Clear workspace with at least 200 mm of free travel in front of the end effector
+- If using the RADR wireless remote, update your OSSM firmware to 2.0.0 or newer. See <a href="/open-source-sex-machine/flashing-your-ossm">Flashing your OSSM</a>
+
+<Warning>
+Keep hands, hair, cables, and clothing away from moving parts and pinch points during power‑on and testing.
+</Warning>
 
 ## Required Components and Tools
 
 ### Components
 
 | Component | Count | Specification / Notes |
-|-----------|-------|----------------------|
-| 24 mm Nut | 1 | Used for securing attachments to the End Effector |
-| OSSM Remote | 1 | Attaches to the RJ45 Ethernet port on the control board |
-| Power Source | 1 | Electrical supply for the OSSM |
+|-----------|-------|-----------------------|
+| 24 mm Nut | 1 | Secures attachments to the threaded end of the End Effector |
+| OSSM Wired Remote (RJ45) or RADR Wireless Remote | 1 | Choose the controller you have on hand |
+| Power Source | 1 | 24 V DC power supply compatible with your OSSM control board |
 
 ### Tools
 
-No tools are explicitly required for the initial test.
+No tools are required for this test.
 
-<Info>
-The 24 mm nut is used to secure most attachments to the threaded end of the End Effector. While not strictly necessary for the test itself, having it in place prepares the unit for use with attachments.
-</Info>
+<Note>
+The 24 mm nut is not required for motion testing, but installing it now confirms the threads are clean and ready for attachments.
+</Note>
 
-## Step-by-Step Assembly: Initial Test
+## Step-by-Step: Initial Test
 
 <Steps>
-<Step title="Prepare for Attachments">
-Put the 24 mm nut onto the threaded end of the End Effector. This nut is how most attachments are secured to the OSSM.
+<Step title="Prepare the end effector">
+Install the 24 mm nut on the threaded end of the End Effector by turning it clockwise until it seats on the flat.
 
 <Info>
-Having the nut in place during testing helps verify that the End Effector is properly threaded and ready for use with attachments.
+This confirms the threading is clean and that the nut engages fully before you add any attachments.
 </Info>
 
 <Check>
-The 24 mm nut is threaded onto the End Effector and sits flush against the end of the threaded section.
+The 24 mm nut threads on smoothly by hand and sits flush against the end of the threaded section.
 </Check>
 </Step>
 
-<Step title="Connect the Remote">
-Attach the OSSM Remote to the RJ45 Ethernet port on the control board.
-
-Ensure the connection is secure and the connector is fully seated in the port.
-
-<Tip>
-The RJ45 connector should click into place when properly inserted. If it feels loose, check that it's oriented correctly and fully inserted.
-</Tip>
-
-<Check>
-The remote is securely connected to the RJ45 port on the control board.
-</Check>
-</Step>
-
-<Step title="Apply Power">
-Plug in the power source to provide electrical power to the OSSM.
+<Step title="Prepare your workspace">
+Ensure the actuator has unobstructed travel and the stand/mount is stable.
 
 <Warning>
-Ensure the power source matches the voltage requirements for your OSSM control board. Using incorrect voltage can damage the electronics.
+Never place body parts in line with the actuator during power‑on. Keep the rail area clear to avoid pinch points.
 </Warning>
 
 <Check>
-Power is connected and the control board receives electrical supply.
+The OSSM is stable and there is at least 200 mm of free travel ahead of the End Effector.
 </Check>
 </Step>
 
-<Step title="Observe Homing">
-When power is applied, the board will boot up and the remote should light up. The homing process should begin automatically.
+<Step title="Connect your controller">
+Use the tab that matches your setup.
 
-Watch for the following indicators:
-- The remote display or LEDs activate
-- The actuator begins to move
-- The homing sequence initiates
+<Tabs>
+<Tab title="Wired Remote (RJ45)">
+Firmly insert the wired remote’s RJ45 connector into the control board’s remote port until it clicks.
 
 <Info>
-The homing process is automatic and occurs whenever the OSSM is powered on. This process establishes the reference position for the actuator.
+This is a remote-control port that uses an RJ45 connector style. It is not an Ethernet/network connection.
 </Info>
 
 <Check>
-The remote lights up and the homing process begins automatically after power is applied.
+The RJ45 plug is fully seated and does not pull out with a light tug.
 </Check>
+</Tab>
+
+<Tab title="RADR Wireless Remote">
+- Confirm your OSSM runs firmware 2.0.0+ (update via <a href="/open-source-sex-machine/flashing-your-ossm">Flashing your OSSM</a>).
+- Leave the OSSM powered off for now; you will power it on in the next step.
+- Ensure the RADR has charge and is within a few feet of the OSSM. For control basics, see <a href="/research-and-desire-remote/quick-start">RADR Quick Start</a>.
+
+<Check>
+RADR has battery charge and is near the OSSM. Firmware requirements are met.
+</Check>
+</Tab>
+</Tabs>
 </Step>
 
-<Step title="Verify Homing Direction">
-Observe the direction of movement during the homing sequence.
-
-The correct homing direction is for the threaded end to first extend, and then retract.
+<Step title="Apply power">
+Connect the 24 V DC power supply and switch the OSSM on.
 
 <Warning>
-If the homing direction is reversed (retracts first, then extends), this indicates a wiring issue with the motor direction. You may need to check your motor wiring connections.
+Use only the specified voltage for your board. Incorrect voltage can damage electronics.
 </Warning>
 
 <Check>
-The threaded end extends first, then retracts during the homing sequence. This confirms the motor direction is correct.
+The control board powers up. Any status LEDs on the board or controller illuminate.
 </Check>
 </Step>
 
-<Step title="Perform a Test Stroke">
-Once homing is complete, perform a test stroke to verify the actuator moves correctly.
+<Step title="Observe automatic homing">
+After power‑on, the actuator will perform automatic sensorless homing.
 
-1. On the remote, select "stroke engine."
-2. Set a small stroke and a small depth.
-3. Add some speed to make sure the unit moves.
+- Expect a brief movement as the system finds its reference position
+- The controller display (wired) or board LEDs will indicate the unit is active
+
+<Info>
+OSSM boards use sensorless homing—no limit switches required. A small extend/retract motion is normal as the controller establishes its zero position.
+</Info>
+
+<Check>
+Homing completes without errors and the actuator stops at a reference position.
+</Check>
+</Step>
+
+<Step title="Verify homing direction">
+Watch the first movement during homing.
+
+- Expected behavior: the threaded end extends slightly, then retracts to its reference
+
+<Warning>
+If the actuator retracts first and then extends (reversed direction), power off and review your motor wiring before continuing. See <a href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">Motor Wiring</a>
+</Warning>
+
+<Check>
+The threaded end extends first, then retracts. Direction is correct.
+</Check>
+</Step>
+
+<Step title="Perform a short test stroke">
+Run a gentle motion test using your controller.
+
+<Tabs>
+<Tab title="Wired Remote (RJ45)">
+- Set a small stroke length (for example, 10–20 mm) and a shallow depth
+- Slowly increase speed to ~10–20% until the actuator moves
+- Observe for smooth, consistent motion without binding or unusual sounds
 
 <Tip>
-Start with conservative settings (small stroke, small depth, low speed) for the initial test. Once you confirm everything works, you can increase these values as needed.
+Make only small adjustments at a time. If you hear grinding or see stuttering, stop and investigate alignment, belt tension, and wiring before proceeding.
 </Tip>
 
 <Check>
-The actuator performs a smooth stroke motion according to the settings you configured on the remote. The movement should be consistent and without binding or unusual sounds.
+The actuator moves smoothly at low speed with the configured small stroke.
+</Check>
+</Tab>
+
+<Tab title="RADR Wireless Remote">
+- Power on the RADR. After the OSSM finishes homing, RADR should auto‑pair
+- Use the left knob to set a low speed
+- Use the right knob to select Stroke mode, then set a small stroke (one or two rings)
+- Verify smooth motion at low speed; adjust depth slightly if needed
+
+<Info>
+For RADR control details (Play Controls and Pattern Mode), see <a href="/research-and-desire-remote/quick-start">RADR Quick Start</a>
+</Info>
+
+<Check>
+RADR is connected and the actuator performs a small, smooth stroke at low speed.
+</Check>
+</Tab>
+</Tabs>
+</Step>
+
+<Step title="Stop the test safely">
+- Reduce speed to zero, then pause/stop motion
+- Power off the OSSM when finished
+
+<Tip>
+On RADR, a single press of the middle button pauses; a double press stops and resets to defaults. See <a href="/research-and-desire-remote/quick-start">RADR Quick Start</a> for control references.
+</Tip>
+
+<Check>
+Motion has stopped and the OSSM is powered down or idle.
 </Check>
 </Step>
 </Steps>
 
-## Next Steps
+## Troubleshooting
 
-With the initial test complete and the OSSM functioning correctly, your actuator is ready for use. You can now attach compatible accessories using the 24 mm threaded connection on the End Effector.
+<AccordionGroup>
+<Accordion title="No movement during homing">
+- Confirm the 24 V supply is connected and switched on
+- Check all board connectors are fully seated
+- Power cycle the OSSM and try again
+- If still stuck, recheck <a href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">motor wiring</a>
+</Accordion>
+
+<Accordion title="Movement direction is reversed">
+- Power off immediately
+- Verify motor phase wiring order and polarity
+- Correct wiring per <a href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">Motor Wiring guide</a>, then retest
+</Accordion>
+
+<Accordion title="Wired remote does not light or respond">
+- Reseat the RJ45 until it clicks; try the other end of the cable
+- Inspect the connector for bent pins or debris
+- Confirm the board is powered and LEDs are on
+</Accordion>
+
+<Accordion title="RADR will not connect">
+- Ensure OSSM firmware is 2.0.0+ and complete homing first
+- Keep the RADR within a few feet of the OSSM
+- Power cycle both devices, then try again
+- See <a href="/research-and-desire-remote/quick-start">RADR Quick Start</a> and <a href="/research-and-desire-remote/device-support">Device Support</a>
+</Accordion>
+
+<Accordion title="Unusual noise, binding, or stuttering">
+- Stop the motion and power off
+- Check rail alignment, belt tension, and that nothing obstructs travel
+- Resume testing at low speed and short stroke
+</Accordion>
+</AccordionGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+<Card title="RADR Quick Start" icon="remote" href="/research-and-desire-remote/quick-start">
+Pairing, play controls, and pattern mode.
+</Card>
+
+<Card title="Update or Reflash Firmware" icon="cpu" href="/open-source-sex-machine/flashing-your-ossm">
+Use the Web Flasher to install the latest firmware.
+</Card>
+
+<Card title="Motor Wiring Guide" icon="bolt" href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">
+Fix reversed motion or connection issues.
+</Card>
+
+<Card title="Ready-to-Play Info" icon="rocket" href="/open-source-sex-machine/ossm-ready-to-play/ossm-info-sheet-ready-to-play">
+Safety notes, included accessories, and setup tips.
+</Card>
+</CardGroup>
+
+<Check>
+If you completed all checks without issues, your OSSM actuator passed the initial test and is ready for attachments and further configuration.
+</Check>

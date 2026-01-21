@@ -3,29 +3,51 @@ title: "How to Become a Contributor"
 description: "Join the OSSM community as a contributor and help improve the project's hardware and software"
 ---
 
-OSSM is built by a global community of makers, engineers, and enthusiasts. Whether you're fixing a typo or designing new features, every contribution matters. This guide walks you through the process of becoming a contributor.
+OSSM is built by a global community of makers, engineers, and enthusiasts. Whether you're fixing a typo or designing new features, every contribution matters. This guide walks you through how to start contributing with confidence and get your work reviewed and merged.
 
 ## Before you start
 
-Familiarize yourself with the project structure:
+<Info>
+Set yourself up for success by preparing the basics before making changes.
+</Info>
 
-- **Software** — Firmware and control code in the `/Software` directory
-- **Hardware** — CAD files, PCB designs, and printed parts in their respective directories
-- **Documentation** — Guides and references in the `/Documentation` directory
+- A GitHub account and a local Git setup
+- Familiarity with pull requests (PRs) and branching workflows
+- The tools required for your contribution area:
+  - Software: a C/C++ toolchain and your preferred IDE/editor
+  - Hardware: your preferred CAD/PCB tools and access to a printer/fab as needed
+  - Documentation: a Markdown/MDX-capable editor
+
+Familiarize yourself with the repository structure:
+
+- Software — firmware and control code in the `/Software` directory
+- Hardware — CAD files, PCB designs, and printed parts in their respective directories
+- Documentation — guides and references in the `/Documentation` directory
 
 <Card title="Forking the Repository" icon="code-fork" href="/ossm/guides/contributing/forking">
 Learn how to create your own copy of the OSSM repository to work on.
 </Card>
 
+## Types of contributions
+
+- Bug fixes and performance improvements
+- New features and hardware iterations
+- Documentation updates and examples
+- Issue triage, testing, and review feedback
+
+<Tip>
+Small, incremental changes are easier to review and merge than large, multi-purpose PRs.
+</Tip>
+
 ## Contribution workflow
 
 <Steps>
 <Step title="Find something to work on">
-Browse [open issues](https://github.com/KinkyMakers/OSSM-hardware/issues) to find something that interests you. Issues labeled **good first issue** are ideal starting points for new contributors.
+Browse open issues to find something that interests you. Issues labeled <strong>good first issue</strong> are ideal starting points for new contributors.
 
-<Tip>
-If you have an idea that isn't already an issue, open one first to discuss it with maintainers before investing significant time.
-</Tip>
+<Check>
+You’ve picked an issue or created one to discuss your idea before building a solution.
+</Check>
 </Step>
 
 <Step title="Fork and clone the repository">
@@ -35,6 +57,10 @@ Create your own fork on GitHub, then clone it locally:
 git clone https://github.com/YOUR-USERNAME/OSSM-hardware.git
 cd OSSM-hardware
 ```
+
+<Check>
+Your local repository is set up and you can run basic build or validation steps relevant to your contribution area.
+</Check>
 </Step>
 
 <Step title="Create a branch for your changes">
@@ -43,13 +69,17 @@ Use a descriptive branch name that reflects your work:
 ```bash
 git checkout -b fix/motor-calibration-bug
 ```
+
+<Tip>
+Use short, consistent prefixes like `fix/`, `feat/`, or `docs/` to make your intent clear.
+</Tip>
 </Step>
 
 <Step title="Make your changes">
 Follow the contribution guidelines for your area of work:
 
 <CardGroup cols={2}>
-<Card title="Hardware Contribution Guide" icon="wrench" href="/ossm/Hardware/standard-printed-parts/contibution-guidelines">
+<Card title="Hardware Contribution Guide" icon="wrench" href="/ossm/Hardware/standard-printed-parts/contribution-guidelines">
 Standards for CAD models, printed parts, and mechanical design.
 </Card>
 
@@ -57,17 +87,52 @@ Standards for CAD models, printed parts, and mechanical design.
 Coding standards, testing requirements, and firmware guidelines.
 </Card>
 </CardGroup>
+
+<Tip>
+Keep changes focused on a single goal. If you discover unrelated issues, open separate PRs.
+</Tip>
 </Step>
 
-<Step title="Submit a pull request">
+<Step title="Test and verify locally">
+- Software: build and bench-test; add or update unit tests if available
+- Hardware: validate dimensions, tolerances, and fit; include images or test prints where possible
+- Documentation: build or preview the docs locally and fix broken links
+
+<Check>
+Your change works as intended and does not break existing functionality.
+</Check>
+</Step>
+
+<Step title="Commit your changes">
+Write clear, conventional commit messages so reviewers understand your intent:
+
+```bash
+git add .
+git commit -m "fix: correct motor calibration routine to prevent stall at startup"
+```
+
+<Note>
+Group related changes into logical commits. Avoid mixing refactors and feature changes in one commit.
+</Note>
+</Step>
+
+<Step title="Push your branch and open a pull request">
 Push your branch and open a pull request on GitHub. Include:
 
 - A clear description of what you changed and why
-- Reference to any related issues (e.g., "Fixes #123")
-- Screenshots or test results if applicable
+- References to any related issues (for example, "Fixes #123")
+- Screenshots, test results, or photos of hardware prints if applicable
 
 <Check>
-Maintainers will review your pull request and may request changes. This is a normal part of the process—it helps maintain code quality.
+Your PR description helps reviewers reproduce your results and understand your approach.
+</Check>
+</Step>
+
+<Step title="Collaborate during review and iterate">
+Maintainers may request changes—this is a normal part of keeping quality high. Address feedback with follow-up commits on the same branch.
+
+<Check>
+All review comments are resolved, CI (if applicable) is passing, and your PR is ready to merge.
 </Check>
 </Step>
 </Steps>
@@ -76,10 +141,46 @@ Maintainers will review your pull request and may request changes. This is a nor
 
 If you get stuck or have questions:
 
-- **Ask in the pull request** — Maintainers and other contributors can help
-- **Join the community Discord** — Connect with other makers for real-time help
-- **Check existing documentation** — Many common questions are already answered
+- Ask in your pull request — maintainers and contributors can help
+- Join the community Discord — connect with other makers for real-time help
+- Check existing documentation — many common questions are already answered
 
 <Note>
-We appreciate contributors of all skill levels. Don't hesitate to ask questions—the community is here to help you succeed.
+We welcome contributors of all skill levels. Don’t hesitate to ask questions—the community is here to help you succeed.
 </Note>
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="I’m seeing merge conflicts when I open my PR">
+- Ensure your branch is up to date with `main`:
+
+```bash
+git fetch origin
+git checkout main
+git pull --ff-only
+git checkout your-branch
+git rebase main
+```
+- Resolve conflicts locally, run your tests, and force-push the updated branch.
+</Accordion>
+
+<Accordion title="CI or checks are failing">
+- Read the failure logs to identify the exact step that failed
+- Verify formatting/linting requirements and re-run tests locally
+- Ask for guidance in the PR if the failure isn’t clear
+</Accordion>
+
+<Accordion title="Hardware part doesn’t fit or prints poorly">
+- Re-check critical dimensions and tolerances
+- Share photos and notes in your PR so others can reproduce and advise
+</Accordion>
+</AccordionGroup>
+
+<Warning>
+Only contribute content you have the rights to share. Do not include sensitive information, private data, or keys in commits, code, or screenshots.
+</Warning>
+
+<Check>
+By following this guide, you’ll be able to propose changes, collaborate with maintainers, and get your contributions merged with confidence.
+</Check>

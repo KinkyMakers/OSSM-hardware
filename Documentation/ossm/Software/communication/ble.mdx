@@ -61,7 +61,8 @@ go:<state>
 | `set:pattern:<value>` | pattern | 0-6 | Set stroke pattern (see [patterns](#pattern-information-characteristics)) |
 | `go:simplePenetration` | - | - | Switch to simple penetration mode from the menu |
 | `go:strokeEngine` | - | - | Switch to stroke engine mode from the menu |
-| `go:menu` | - | - | Return to main menu from either mode |
+| `go:streaming` | - | - | Switch to streaming mode (beta) from the menu |
+| `go:menu` | - | - | Return to main menu from any mode |
 
 **Response format**
 
@@ -158,6 +159,7 @@ Subscribe to these characteristics to monitor the OSSM's current state.
 | `strokeEngine.idle` | Stroke engine idle |
 | `strokeEngine.preflight` | Pre-flight checks |
 | `strokeEngine.pattern` | Pattern selection |
+| `streaming` | Streaming mode (beta) |
 | `update` | Update mode |
 | `update.checking` | Checking for updates |
 | `update.updating` | Update in progress |
@@ -237,6 +239,39 @@ Read the characteristic to receive the pattern description string.
 | Stop'n'Go | 5 | Pauses between strokes; sensation adjusts length |
 | Insist | 6 | Modifies length, maintains speed; sensation influences direction |
 
+### GPIO characteristics
+
+#### GPIO control characteristic
+
+| Property | Value |
+| -------- | ----- |
+| UUID | `522b443a-4f53-534d-4000-420badbabe69` |
+| Properties | READ, WRITE |
+| Purpose | Control GPIO output pins for accessories and integrations |
+
+Write commands in the format `<pin>:<state>` where pin is 1-4 and state is `high`/`low` or `1`/`0`.
+
+**Pin mapping:**
+
+| Logical Pin | ESP32 GPIO |
+| ----------- | ---------- |
+| 1 | GPIO 2 |
+| 2 | GPIO 15 |
+| 3 | GPIO 22 |
+| 4 | GPIO 33 |
+
+**Response format:**
+
+| Response | Meaning |
+| -------- | ------- |
+| `ok:<pin>:<state>` | Pin successfully set |
+| `error:invalid_format` | Command format not recognized |
+| `error:pin_out_of_range` | Pin number not 1-4 |
+
+<Info>
+For detailed GPIO documentation including hardware integration examples, see [GPIO Control](/ossm/Software/communication/gpio).
+</Info>
+
 ## Device information service
 
 The OSSM implements the standard BLE Device Information Service for identification.
@@ -292,6 +327,12 @@ The OSSM uses a structured UUID namespace for organized expansion.
 522b443a-4f53-534d-3010-420badbabe69  # Pattern description
 ```
 </Tab>
+
+<Tab title="GPIO (0x4xxx)">
+```
+522b443a-4f53-534d-4000-420badbabe69  # GPIO control
+```
+</Tab>
 </Tabs>
 
 ## Connection management
@@ -316,6 +357,28 @@ The OSSM uses a structured UUID namespace for organized expansion.
 <Note>
 The OSSM uses "Just Works" pairing for ease of use. Anyone within BLE range can connect when the device is advertising.
 </Note>
+
+### Disconnection safety
+
+When a BLE connection is lost unexpectedly, the OSSM automatically ramps down speed to prevent runaway operation.
+
+**Ramp-down behavior:**
+
+1. Connection lost detected
+2. **1 second delay** — allows for brief signal dropouts without triggering
+3. **2 second ramp** — speed decreases from current value to zero using ease-in-out-sine curve
+4. Device continues at zero speed until reconnected or manually stopped
+
+<Info>
+The ease-in-out-sine curve provides smooth deceleration that feels natural and reduces mechanical stress. If speed was already zero at disconnect, no ramp occurs.
+</Info>
+
+**Client considerations:**
+
+- Implement connection monitoring to detect disconnects quickly
+- Consider automatic reconnection logic
+- Local controls (potentiometer, encoder) remain active during and after disconnect
+- Users can manually stop via the speed knob or long-press for emergency stop
 
 ## Client implementation guide
 

@@ -7,30 +7,105 @@ import { STLViewer } from '/snippets/ossm/stl-render.jsx';
 
 <STLViewer url="https://raw.githubusercontent.com/KinkyMakers/OSSM-hardware/main/Printed%20Parts/Remote/OSSM%20-%20Remote%20-%20Knob%20-%20Rounded.stl" />
 
-## Function
+## Overview
 
-The Rounded Knob is the default control knob for the remote. This component:
+The Rounded Knob is the default, ergonomic press-fit knob for the wired OSSM remote’s rotary encoders. You print two per remote and press them onto the encoder shafts for precise, comfortable control.
 
-- Press-fits onto the rotary encoder shafts
-- Features a smooth, rounded profile for comfortable finger control
-- Provides tactile feedback when adjusting speed and stroke settings
-- Two knobs are required per remote (one for each encoder)
+<Info>
+Encoder functions can vary by firmware and device (wired vs. wireless). For an overview of current knob behavior on the wireless RADR remote, see <a href="/research-and-desire-remote/quick-start">Wireless Remote: Quick Start</a>.
+</Info>
+
+## Features
+
+- Smooth, rounded profile for comfortable, non-slip fingertip control
+- Positive, tactile feel for fine speed and stroke adjustments
+- Designed to press-fit onto the wired remote’s rotary encoder shafts
+- Two knobs required per remote (one per encoder)
 
 <Tip>
-Additional knob designs are available in the Non-standard directory if you prefer alternative grip styles like knurled or simple profiles.
+Prefer a different feel? Alternate knob shapes are available in the project’s “Non-standard” designs (e.g., knurled or tall profiles).
 </Tip>
 
-## Print Settings
+## Print settings
 
-| Setting | Value |
-|---------|-------|
-| Walls | 3 |
-| Infill Type | Cross Hatch or Gyroid |
-| Infill Percentage | 25% |
-| Supports | Yes - Auto |
+- Material: PLA or PETG (PETG recommended for durability)
+- Nozzle: 0.4 mm
+- Layer height: 0.2 mm
+- Walls (perimeters): 3
+- Top/bottom: 4–5 layers
+- Infill: 25% (Gyroid or Crosshatch)
+- Supports: Yes (Auto)
+- Adhesion: Brim optional (2–4 mm) for small-part stability
+- Orientation: Print with the shaft cavity facing upward for best surface quality inside the bore
 
-## Download Files
+<Tip>
+If your printer runs tight on press-fit features, reduce horizontal expansion (elephant foot compensation) or scale X/Y by −0.5% before slicing.
+</Tip>
 
-<Card title="STL File" icon="cube" href="https://github.com/KinkyMakers/OSSM-hardware/blob/main/Printed%20Parts/Remote/OSSM%20-%20Remote%20-%20Knob%20-%20Rounded.stl">
+## Install
+
+<Steps>
+<Step title="Prepare the part">
+  Remove supports and lightly deburr the bore with a hobby knife or small round file.
+
+  <Check>
+  The bore is clean and smooth; no support nubs remain inside.
+  </Check>
+</Step>
+
+<Step title="Test fit on the encoder shaft">
+  Align the knob with the encoder shaft. Do not force it—ensure alignment first.
+
+  <Warning>
+  Excessive force can damage the encoder. Apply steady, straight pressure only.
+  </Warning>
+</Step>
+
+<Step title="Press-fit the knob">
+  Press straight down until fully seated and flush with the encoder bushing. Repeat for the second encoder.
+
+  <Check>
+  Knobs rotate smoothly and the remote registers encoder turns and clicks.
+  </Check>
+</Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="Fit is too tight">
+- Lightly ream the bore with a 6–6.5 mm round file or deburring tool.
+- Re-slice with −0.5% to −1% XY scale or use a negative horizontal expansion value.
+- Warm the knob slightly (hair dryer) and press-fit while warm.
+</Accordion>
+
+<Accordion title="Fit is too loose">
+- Re-slice with +0.5% to +1% XY scale.
+- Add a thin wrap of PTFE/plumber’s tape to the shaft as a temporary shim.
+- Use a tiny drop of removable (blue) threadlocker—keep it off the encoder body.
+</Accordion>
+
+<Accordion title="Support marks inside the bore">
+- Increase support Z‑distance/interface layers.
+- Switch to tree supports or reduce support density.
+- Orient with the bore up to minimize internal supports.
+</Accordion>
+</AccordionGroup>
+
+## Related docs
+
+<CardGroup cols={2}>
+<Card title="Wireless Remote: Quick Start" icon="bolt" href="/research-and-desire-remote/quick-start">
+Understand current knob behaviors and controls on RADR.
+</Card>
+
+<Card title="OSSM: Info Sheet (Ready-to-Play)" icon="info" href="/ossm/guides/getting-started/ready-to-play/info-sheet">
+What’s in the box and remote basics for OSSM.
+</Card>
+</CardGroup>
+
+## Download files
+
+<Card title="STL: Rounded Knob" icon="cube" href="https://github.com/KinkyMakers/OSSM-hardware/blob/main/Printed%20Parts/Remote/OSSM%20-%20Remote%20-%20Knob%20-%20Rounded.stl">
   Download for slicing
 </Card>

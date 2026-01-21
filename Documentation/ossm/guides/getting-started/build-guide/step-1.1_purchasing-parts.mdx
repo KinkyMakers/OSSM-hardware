@@ -3,83 +3,141 @@ title: "Purchasing Components"
 description: "Complete list of purchased components required to build your OSSM, including motor, PCB, belts, bearings, and hardware"
 ---
 
-## Purchased Parts
+## Bill of materials (purchased components)
 
-You need to purchase the following components to build your OSSM. This list covers the official build configuration.
+Use this checklist to buy all non-printed parts for the official OSSM home-assembly configuration. Printed parts, linear rail, and extrusion mounts are covered separately in the mounting guides.
 
 <Note>
-This guide covers the complete official OSSM build. Many modifications are available to customize your specific build—check the [community mods](/ossm/guides/community) section for alternatives.
+For variations (different mounts, hardware layouts, or rail lengths), see <a href="/open-source-sex-machine/ossm-mounting">OSSM Mounting</a>. If you’re buying our bundles, see the <a href="/open-source-sex-machine/purchase-guide-for-the-ossm-home-assembly-kit">Purchase Guide for the OSSM Home Assembly Kit</a>.
 </Note>
 
 ### Motor
 
-<Frame caption="NEMA 23 Servo Motor – IHSV57-30-18">
-  <img src="/ossm/images/_images/legacy_instructions/legacy_assembly_instructions_IHS57-30-18.jpg" alt="IHSV57-30-18 servo motor with cable" />
+<Frame caption="NEMA 23 integrated servo (Gold Motor 57AIM30 class)">
+  <img src="/ossm/images/_images/legacy_instructions/legacy_assembly_instructions_IHS57-30-18.jpg" alt="NEMA 23 integrated servo motor with wiring connector" />
 </Frame>
 
-**NEMA 23 Servo Motor – IHSV57-30-18**
+**Recommended: NEMA 23 integrated servo (57AIM30 class)**
 
-Most builders choose the 180W model for maximum power. The 140W and 100W variants are also available if you prefer lower power consumption.
+- Standard build: 100W motor (recommended for most users)
+- Higher power options: 140W or 180W motors increase available force; ensure your mount and fasteners are robust if you choose these.
+
+<Tip>
+If you purchase the motor from R+D, you’ll receive the correct cables and connectors. See <a href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">Wiring Your Gold Motor</a> for step-by-step wiring.
+</Tip>
 
 <Warning>
-Avoid the StepperOnline version of this motor due to compatibility issues with the OSSM firmware.
+Use only motors known to be compatible with the OSSM firmware and PCB. Third‑party clones may appear similar but can cause wiring or firmware incompatibilities.
 </Warning>
 
 ### Electronics
 
-<Frame caption="OSSM PCB and Remote control unit">
-  <img src="/ossm/images/_images/legacy_instructions/legacy_assembly_instructions_ossm_pcb_and_remote.jpg" alt="OSSM PCB controller board and wireless remote" />
+<Frame caption="OSSM PCB and wired/wireless remote">
+  <img src="/ossm/images/_images/legacy_instructions/legacy_assembly_instructions_ossm_pcb_and_remote.jpg" alt="OSSM controller PCB and remote" />
 </Frame>
 
-**OSSM PCB & Remote**
+**OSSM PCB + Remote**
 
-The official OSSM control board and wireless remote for operating your machine.
+- OSSM control board (24V system)
+- Remote: wired hand controller or the RADR wireless remote
 
-### Mechanical Components
-
-<Frame caption="GT2 20-tooth pulley with 8mm bore">
-  <img src="/ossm/images/_images/legacy_instructions/legacy_assembly_instructions_gt2_pulley.jpg" alt="GT2 timing pulley, 20 tooth, 8mm bore" />
-</Frame>
-
-**GT2 Pulley – 20 Tooth, 8mm Bore, 10mm Belt Width**
-
-<Frame caption="GT2 timing belt, 10mm width">
-  <img src="/ossm/images/_images/legacy_instructions/legacy_assembly_instructions_gt2_timing_belt.png" alt="GT2 timing belt coil" />
-</Frame>
-
-**GT2 Timing Belt – 10mm Width × 500mm Length (minimum)**
+<Info>
+Board specs: 24V input up to ~5A, step/dir outputs and PH‑4 connector, on‑board back‑EMF protection. See <a href="/open-source-sex-machine/ossm-electronics/ossm-pcb-spec-sheet">OSSM PCB Spec sheet</a> for details and limits.
+</Info>
 
 <Tip>
-Purchase belt in bulk. While 500mm is the minimum for a standard build, having extra belt allows for adjustments and future modifications.
+After assembly, update firmware using the Web Flasher. See <a href="/open-source-sex-machine/flashing-your-ossm">Flashing your OSSM</a>. For RADR setup, see <a href="/research-and-desire-remote/quick-start">Wireless Remote – Quick Start</a>.
 </Tip>
 
-<Frame caption="MR115 roller bearings">
-  <img src="/ossm/images/_images/legacy_instructions/legacy_assembly_instructions_roller_bearings.jpg" alt="MR115 miniature roller bearings, 5x11x4mm" />
+### Mechanical components
+
+<Frame caption="GT2 20‑tooth pulley, 8 mm bore">
+  <img src="/ossm/images/_images/legacy_instructions/legacy_assembly_instructions_gt2_pulley.jpg" alt="GT2 timing pulley, 20 teeth, 8 mm bore" />
 </Frame>
 
-**Roller Bearings MR115 – 5×11×4mm (Quantity: 6)**
+**GT2 pulley — 20T, 8 mm bore, 10 mm belt width**
 
-### Power Supply
-
-<Frame caption="24V 5A enclosed power supply">
-  <img src="/ossm/images/_images/legacy_instructions/legacy_assembly_instructions_24v_fully_enclosed_power_supply.jpg" alt="24V 5A fully enclosed switching power supply" />
+<Frame caption="GT2 timing belt, 10 mm width">
+  <img src="/ossm/images/_images/legacy_instructions/legacy_assembly_instructions_gt2_timing_belt.png" alt="Coiled GT2 timing belt" />
 </Frame>
 
-**24V 5A Fully Enclosed Power Supply**
+**GT2 timing belt — 10 mm width × 500 mm length (minimum)**
+
+<Tip>
+Buy extra belt (1–2 m). It’s inexpensive and gives room for tuning stroke length or future mods.
+</Tip>
+
+<Frame caption="MR115 roller bearings (5×11×4 mm)">
+  <img src="/ossm/images/_images/legacy_instructions/legacy_assembly_instructions_roller_bearings.jpg" alt="MR115 miniature roller bearings, 5x11x4 mm" />
+</Frame>
+
+**MR115 bearings — 5 × 11 × 4 mm (Qty: 6)**
+
+<Tip>
+Grab a couple of spares if you can; small bearings are easy to misplace during assembly.
+</Tip>
+
+### Power supply
+
+<Frame caption="24V 5A enclosed switching power supply">
+  <img src="/ossm/images/_images/legacy_instructions/legacy_assembly_instructions_24v_fully_enclosed_power_supply.jpg" alt="24V 5A enclosed power supply" />
+</Frame>
+
+**24V 5A fully enclosed power supply**
+
+- Input: AC mains appropriate for your region
+- Output: 24V DC, continuous 5A
 
 <Warning>
-Ensure your power supply is certified for use in your country (UL, CE, or equivalent certification).
+Use a safety‑certified supply (UL/ETL in the U.S., CE or local equivalent). Cheap, unlabeled supplies can sag under load and may damage the board or motor.
 </Warning>
+
+<Info>
+The PCB is designed for a 24V input and can deliver up to ~6A to the motor. See the <a href="/open-source-sex-machine/ossm-electronics/ossm-pcb-spec-sheet">OSSM PCB Spec sheet</a> for exact limits.
+</Info>
 
 ### Hardware
 
-<Frame caption="Metric cap screw assortment kit">
-  <img src="/ossm/images/_images/legacy_instructions/legacy_assembly_instructions_metric_cap_screw_kit.png" alt="Assorted metric cap head screws in organizer case" />
+<Frame caption="Metric cap screw assortment">
+  <img src="/ossm/images/_images/legacy_instructions/legacy_assembly_instructions_metric_cap_screw_kit.png" alt="Assorted metric cap head screws in organizer" />
 </Frame>
 
-**Metric Cap Screw Kit** (approximately $20 USD)
+**Metric cap screw kit** (typical cost ≈ $20 USD)
 
-The build uses M3, M4, and M5 screws in various lengths:
+You’ll use M3, M4, and M5 fasteners in several lengths during assembly.
 
-- Most M5 cap head screws are 20mm or 25mm long
-- The middle pivot mount requires 4× M5×35mm screws
+- Common M5 lengths: 20 mm and 25 mm
+- Pivot mount: 4 × M5 × 35 mm (used in the extrusion mount)
+- Include matching nuts and flat washers; nylon‑insert lock nuts are helpful for high‑vibration joints
+
+<Tip>
+Sort fasteners by length before starting and keep a few extras on hand. A drop of medium threadlocker on high‑vibration joints prevents loosening.
+</Tip>
+
+## Quick pre‑purchase checklist
+
+- [ ] NEMA 23 integrated servo, 100W (or 140W/180W if needed)
+- [ ] OSSM PCB and remote (wired or RADR wireless)
+- [ ] GT2 pulley, 20T, 8 mm bore, 10 mm belt width
+- [ ] GT2 belt, 10 mm width, ≥ 500 mm length
+- [ ] MR115 bearings, 5 × 11 × 4 mm — Qty: 6
+- [ ] 24V 5A enclosed power supply (UL/ETL/CE certified)
+- [ ] Metric cap screw kit (M3/M4/M5) plus washers and nuts
+
+<CardGroup cols={2}>
+<Card title="OSSM PCB spec sheet" icon="chip" href="/open-source-sex-machine/ossm-electronics/ossm-pcb-spec-sheet">
+Electrical limits, connectors, and protection details.
+</Card>
+
+<Card title="Wire the Gold Motor" icon="bolt" href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">
+Correct wiring order and connector prep for the 57AIM30‑class motor.
+</Card>
+
+<Card title="Flashing your OSSM" icon="software" href="/open-source-sex-machine/flashing-your-ossm">
+Update firmware using the Web Flasher tool.
+</Card>
+
+<Card title="OSSM Mounting" icon="build" href="/open-source-sex-machine/ossm-mounting">
+Choose between the Basic or Extrusion mount and review their BoMs.
+</Card>
+</CardGroup>

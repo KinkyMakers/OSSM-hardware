@@ -1,30 +1,115 @@
 ---
 title: "24mm Nut - Hex Flower"
-description: "Alternative hexagonal flower-shaped nut for the 24mm threaded interface"
+description: "Ergonomic hex‑flower nut for the OSSM 24 mm threaded clamping interface; designed for comfortable hand tightening with optional wrench assist."
 ---
 
 import { STLViewer } from '/snippets/ossm/stl-render.jsx';
 
 <STLViewer url="https://raw.githubusercontent.com/KinkyMakers/OSSM-hardware/main/Printed%20Parts/Actuator/Non-standard/OSSM%20-%2024mm%20Nut%20-%20Hex%20Flower.stl" />
 
-## Function
+## Overview
 
-The 24mm Nut - Hex Flower is an alternative to the standard 5-sided nut. This component:
-
-- Features internal 24mm threading matching the clamping thread components
-- Hex flower shape provides multiple grip points for comfortable hand tightening
-- Compatible with the included hex flower wrench for additional torque
-- Locks toy mounting accessories against the end effector
+The 24 mm Nut – Hex Flower is a drop‑in alternative to the standard 5‑sided nut used on the OSSM clamping thread. Its petal‑shaped exterior gives you more grip positions for controlled, comfortable tightening—especially when your hands are slippery or you need a little extra leverage.
 
 <Note>
-This is a non-standard part. The default build uses the 24mm Nut - 5 Sided instead.
+This is a non‑standard part. The default build uses the "24 mm Nut – 5‑Sided" design. Use this variant if you prefer improved finger grip or want to pair with the Hex Flower wrench.
 </Note>
 
+## Function
+
+- Internal 24 mm printed thread matches the OSSM clamping thread components
+- Hex‑flower profile provides multiple contact points for confident hand torque
+- Works with the Hex Flower wrench when additional leverage is needed
+- Secures toy mounting accessories against the end effector and prevents loosening during use
+
 <Warning>
-Print this part in the default file orientation. Printing threaded components in other orientations causes structural weakness.
+Print this nut in the provided file orientation. Reorienting printed threads typically weakens the first few layers and can cause delamination or stripped threads under load.
 </Warning>
 
-## Download Files
+## Compatibility
+
+- Interface: OSSM 24 mm clamping thread family
+- Use cases: Locking vac‑style adapters, harness inserts, and other end‑effector accessories
+- Tools: Optional Hex Flower wrench (manual use only; do not use power tools)
+
+<Warning>
+Avoid cross‑threading. Start every install by turning the nut counter‑clockwise until you feel the threads "drop," then tighten by hand. If resistance spikes or the nut binds, stop and inspect the mating threads.
+</Warning>
+
+## Print recommendations
+
+<Tabs>
+<Tab title="Material">
+- Preferred: PETG or ABS/ASA for heat and impact resistance
+- Acceptable: PLA+ for prototypes; monitor for creep if left tightened under heat
+</Tab>
+
+<Tab title="Slicing">
+- Layer height: 0.2–0.28 mm
+- Perimeters: 4–6 (thicker walls improve thread durability)
+- Top/bottom: 5–7 layers
+- Infill: 35–50% (gyroid or grid)
+- Supports: Not required in the default orientation
+</Tab>
+
+<Tab title="Post‑processing">
+- Lightly deburr the lead‑in of the internal thread with a hobby knife
+- Run the nut onto a spare 24 mm mating thread to "chase" the print and smooth high spots
+- Apply a small amount of PTFE or silicone grease to reduce wear and assembly torque
+</Tab>
+</Tabs>
+
+## Installation
+
+<Steps>
+<Step title="Prepare the mating threads">
+Verify the clamping thread and accessory shoulder are clean and free of debris.
+
+<Check>
+The nut should spin freely by hand for at least one full turn before resistance increases.
+</Check>
+</Step>
+
+<Step title="Start by hand">
+Align carefully and begin threading by hand only. Use steady, even pressure.
+
+<Warning>
+If you feel grinding or sudden binding, back off immediately to avoid damaging printed threads.
+</Warning>
+</Step>
+
+<Step title="Seat the accessory">
+Tighten until the accessory shoulder firmly contacts the end effector. If you need more leverage, use the Hex Flower wrench for the final quarter‑turn only.
+
+<Check>
+With moderate hand force, the accessory should not rotate relative to the end effector.
+</Check>
+</Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="Threads feel rough or tight on first install">
+- Chase the threads by running the nut on/off a few times
+- Add a small amount of PTFE/silicone grease
+- Increase nozzle temperature 5–10 °C on the next print to improve layer bonding
+</Accordion>
+
+<Accordion title="Nut loosens during use">
+- Ensure the accessory shoulder is fully seated against the end effector
+- Add an extra 1/8–1/4 turn with the Hex Flower wrench
+- Consider a light application of removable thread locker formulated for plastics
+</Accordion>
+
+<Accordion title="Layer splitting or cracked petals">
+- Reprint with higher perimeter count and 45–50% infill
+- Switch to PETG/ASA for better impact resistance
+- Confirm print in the default file orientation
+</Accordion>
+</AccordionGroup>
+
+## Download files
 
 <CardGroup cols={2}>
   <Card title="STL File" icon="cube" href="https://github.com/KinkyMakers/OSSM-hardware/blob/main/Printed%20Parts/Actuator/Non-standard/OSSM%20-%2024mm%20Nut%20-%20Hex%20Flower.stl">
@@ -34,3 +119,7 @@ Print this part in the default file orientation. Printing threaded components in
     For CAD modification
   </Card>
 </CardGroup>
+
+<Tip>
+For long sessions or frequent accessory swaps, print two nuts and rotate between them to extend thread life.
+</Tip>

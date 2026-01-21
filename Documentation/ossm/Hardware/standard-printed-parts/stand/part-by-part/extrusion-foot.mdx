@@ -1,37 +1,113 @@
 ---
 title: "Stand - Extrusion Foot"
-description: "Protective foot cap for the 3030 aluminum extrusion frame legs"
+description: "Press-fit protective foot for 3030 aluminum extrusion stand legs; adds grip and protects floors."
 ---
 
 import { STLViewer } from '/snippets/ossm/stl-render.jsx';
 
 <STLViewer url="https://raw.githubusercontent.com/KinkyMakers/OSSM-hardware/main/Printed%20Parts/Stand/OSSM%20-%20Stand%20-%203030%20Extrusion%20Base%20-%20Extrusion%20Foot.stl" />
 
-## Function
+## Overview
 
-The Extrusion Foot provides floor contact and protection. This component:
+The Extrusion Foot protects floors from the sharp edges of 3030 aluminum extrusion and improves stand stability. Each foot:
 
-- Press-fits into the open ends of the 3030 extrusion
-- Accepts adhesive non-slip furniture pads on the bottom surface
-- Protects floors from the sharp aluminum extrusion edges
-- Provides additional grip and stability during operation
+- Press-fits into the open ends of 3030 extrusion legs
+- Provides a flat, wide contact patch for better grip
+- Accepts adhesive non-slip pads on the bottom surface
 
-You need **4 Extrusion Feet** per stand assembly.
+<Info>
+You need <strong>4 Extrusion Feet</strong> per stand assembly.
+</Info>
 
-## Print Settings
+## Compatibility
 
-| Setting | Value |
-|---------|-------|
-| Walls | 6 |
-| Infill Type | Cross Hatch or Gyroid |
-| Infill Percentage | 25% |
+- Designed for 30 × 30 mm aluminum extrusion ("3030") with open ends
+- Works with the OSSM Extrusion Stand/Base
+- Press-fit tolerances vary by printer and filament; minor sanding or shimming may be required
+
+## Print settings
+
+Use these as a solid starting point. Adjust to your printer and filament.
+
+| Setting | Recommended |
+|---|---|
+| Material | PETG or PLA+ (rigid, durable). TPU 95A optional for maximum grip (fit may change). |
+| Nozzle | 0.4 mm |
+| Layer height | 0.20 mm (0.28 mm acceptable for speed) |
+| Walls/Perimeters | 6 |
+| Top/Bottom layers | 6 (≈ 1.2 mm) |
+| Infill type | Gyroid or Cross Hatch |
+| Infill percentage | 25% |
 | Supports | None |
+| Adhesion | None or 2–4 mm brim if corners lift |
+| Orientation | Flat pad face down on the build plate |
+
+<Tip>
+Prefer PETG for impact resistance and long-term durability. If printing in TPU for extra grip, reduce print speed and expect a tighter press-fit—test-fit before installing all four.
+</Tip>
+
+<Warning>
+Adhesive pads can leave residue on some surfaces. Test on a scrap area first. Always verify the stand cannot slide on your specific floor before use.
+</Warning>
+
+## Installation
+
+<Steps>
+<Step title="Print and clean">
+Print four feet. Remove any stringing; lightly chamfer or deburr the press-fit edges if needed for a smooth insertion.
+
+<Check>
+The foot should seat flush against the extrusion end and not rock.
+</Check>
+</Step>
+
+<Step title="Apply non-slip pads">
+Apply a <strong>1.5" (38 mm)</strong> square non-slip furniture pad to the bottom of each foot.
 
 <Note>
-Apply 1.5" (38mm) square non-slip furniture pads to the bottom of each foot for maximum stability.
+Center the pad so it does not overhang; overhang can peel during lateral loads.
 </Note>
+</Step>
 
-## Download Files
+<Step title="Press-fit into extrusion">
+Align the foot with the open end of the 3030 extrusion and press in by hand. Use a soft mallet if necessary—avoid striking the pad surface directly.
+
+<Tip>
+If the fit is too tight: lightly sand the outer walls or warm the foot slightly to ease insertion. If too loose: add a single wrap of thin tape to the extrusion end or use a small bead of flexible adhesive.
+</Tip>
+</Step>
+
+<Step title="Verify stability">
+Place the stand on a level surface and push gently from multiple directions to confirm there is no sliding or wobble.
+
+<Check>
+All four feet should contact the floor evenly and stay seated after load.
+</Check>
+</Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="Foot pops out during use">
+- Ensure a fully seated press-fit; remove and reinsert with firm pressure.
+- Add a thin wrap of painter’s tape to the extrusion end to increase friction.
+- For TPU prints, increase wall count or reprint in PETG/PLA+ for a stiffer interface.
+</Accordion>
+
+<Accordion title="Stand still slides on floor">
+- Replace worn pads or upgrade to higher-friction furniture pads.
+- Clean both floor and pad with isopropyl alcohol to remove dust and oils.
+- Consider TPU feet for added grip.
+</Accordion>
+
+<Accordion title="Visible wobble on uneven floors">
+- Mix pad thicknesses or add a thin shim under the shortest foot.
+- Verify all four feet are fully inserted and flush.
+</Accordion>
+</AccordionGroup>
+
+## Download files
 
 <CardGroup cols={2}>
   <Card title="STL File" icon="cube" href="https://github.com/KinkyMakers/OSSM-hardware/blob/main/Printed%20Parts/Stand/OSSM%20-%20Stand%20-%203030%20Extrusion%20Base%20-%20Extrusion%20Foot.stl">

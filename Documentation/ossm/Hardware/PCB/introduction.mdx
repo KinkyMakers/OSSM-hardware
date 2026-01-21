@@ -3,16 +3,16 @@ title: "PCB Overview"
 description: "Introduction to the OSSM printed circuit board designs and wiring options"
 ---
 
-This section covers the electronics that connect your ESP32 controller to the motor driver. You can choose between the official OSSM PCB or build your own wiring configuration.
+This section explains how the OSSM PCB connects your ESP32-based controller to the motor driver. You can use the official OSSM PCB or create a DIY wiring setup.
 
 ## Available Options
 
 <CardGroup cols={2}>
-  <Card title="Official OSSM PCB" icon="microchip" href="/ossm/Hardware/PCB/board-design#official-ossm-wiring">
-    Purpose-built reference board with integrated level shifting and standardized connections for reliable operation.
+  <Card title="Official OSSM PCB" icon="microchip" href="#official-ossm-wiring">
+    Reference board with 5V step/dir outputs, integrated protection, and standardized connectors for reliable operation.
   </Card>
-  <Card title="DIY Wiring" icon="plug" href="/ossm/Hardware/PCB/board-design#alternative-wiring-configurations">
-    Breadboard and custom wiring options for prototyping or using alternative motor drivers.
+  <Card title="DIY Wiring" icon="plug" href="#alternative-wiring-configurations">
+    Breadboard or custom harnesses for prototyping or using alternative motor drivers.
   </Card>
 </CardGroup>
 
@@ -21,56 +21,143 @@ This section covers the electronics that connect your ESP32 controller to the mo
 <Tabs>
   <Tab title="Official PCB">
     The official OSSM PCB provides:
-    - Pre-configured GPIO connections
-    - Built-in 3.3V to 5V level shifting for reliable high-speed operation
-    - JST connectors for clean cable management
-    - Tested and validated design
+    - Pre-mapped GPIO to step/dir/enable
+    - 3.3V-to-5V signal conversion for high‑speed, noise‑resistant control
+    - JST‑PH connectors for tidy cable management
+    - Built‑in power and back‑EMF protection
+    - A design validated by the OSSM community
 
     <Tip>
-    The official PCB is recommended for most builders. It simplifies wiring, reduces assembly time, and eliminates common signal integrity issues.
+    For most builders, the official PCB is the fastest and most reliable path to success.
     </Tip>
   </Tab>
   <Tab title="DIY Wiring">
-    Custom wiring is a good choice if you:
+    Choose DIY wiring if you:
     - Want to prototype before committing to a PCB
-    - Use a non-standard motor driver
-    - Already have components on hand
-    - Prefer to understand the system at a component level
+    - Need to interface with a non‑standard driver
+    - Already have compatible parts on hand
+    - Prefer to learn the system at the signal level
 
     <Warning>
-    DIY wiring requires careful attention to voltage levels and signal integrity. You must use a level shifter when connecting a 3.3V ESP32 to a 5V motor driver.
+    An ESP32 uses 3.3V logic. Many motor drivers expect 5V step/dir signals. Always include a level shifter when wiring directly from an ESP32 to a 5V driver.
     </Warning>
   </Tab>
 </Tabs>
 
 ## Key Considerations
 
-Before selecting your approach, understand these critical factors:
+Before you decide, keep these factors in mind:
 
 <AccordionGroup>
   <Accordion title="Voltage level compatibility">
-    Most ESP32 development boards operate at 3.3V logic levels, while many motor drivers expect 5V signals. Without proper level shifting, you may experience:
-    - Missed steps at high speeds
-    - Unreliable motor communication
-    - Potential damage to components
+    ESP32 boards operate at 3.3V logic while many drivers use 5V inputs. Without proper level shifting, you may see:
+    - Missed steps at higher speeds
+    - Unreliable direction changes
+    - Risk of damaging components
 
-    Always verify the input voltage requirements of your specific motor driver before wiring.
+    Verify input voltage requirements for your specific driver before wiring.
   </Accordion>
   <Accordion title="Signal integrity">
-    High-speed step signals (up to 200 kHz) require clean wiring to prevent noise and signal degradation:
-    - Keep step and direction wires as short as practical
-    - Route signal wires away from motor power cables
+    High‑speed step signals (up to 200 kHz) demand clean wiring:
+    - Keep step and direction leads short
+    - Route signals away from motor power cables
     - Use twisted pairs or shielded cable for runs longer than 30 cm
   </Accordion>
   <Accordion title="Power supply requirements">
-    Your motor driver requires a separate power supply sized for your motor:
-    - Servo motors typically need 24-48V DC
-    - Stepper motors vary by model (12-48V common)
-    - The ESP32 runs from USB or a 5V supply independent of the motor power
+    Size the driver supply for your motor:
+    - Servo motors commonly use 24–48V DC
+    - Stepper drivers vary by model (12–48V typical)
+    - Power the ESP32 from USB or a regulated 5V rail, independent of motor power
   </Accordion>
 </AccordionGroup>
 
+## Official OSSM wiring
+
+Use this section if you are wiring the OSSM PCB to the OSSM Gold Motor (57AIM series) or a compatible step/dir driver.
+
+<Steps>
+<Step title="Gather parts">
+  - OSSM PCB
+  - 24V power supply (UL‑certified recommended)
+  - PH‑4 signal cable and green motor power connector (included with OSSM motor kits)
+  - Appropriate motor and driver
+
+  <Note>
+  For the OSSM Gold Motor wiring walkthrough, see <a href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">Wiring your Gold Motor</a>.
+  </Note>
+</Step>
+
+<Step title="Connect motor power">
+  - Strip the red/black power leads.
+  - Insert red (+) and black (–) into the two‑position motor power terminal on the PCB.
+  - Tighten firmly to prevent intermittent connections.
+
+  <Check>
+  Tug each wire gently. If it moves, retighten the terminal.
+  </Check>
+</Step>
+
+<Step title="Connect step/dir signals">
+  - Plug the keyed PH‑4 signal cable into the PCB’s 4‑pin header.
+  - Route the other end to the motor/driver control input as labeled.
+
+  <Tip>
+  The PCB outputs 5V, active‑low step/dir signals on the PH‑4 header, which improves noise immunity with many drivers.
+  </Tip>
+</Step>
+
+<Step title="Apply power and verify">
+  - Connect the 24V supply to the PCB’s 2.1 mm x 5.5 mm barrel jack.
+  - Power on. The motor/driver should indicate power and be ready.
+
+```bash
+# Quick preflight
+1) Power on the PCB
+2) Confirm motor/driver status LED indicates power
+3) Connect your controller and home the axis when mechanically assembled
+```
+
+  <Check>
+  If the remote is connected during bench testing, homing may not complete until the actuator is fully assembled on a rail.
+  </Check>
+</Step>
+</Steps>
+
+## Alternative wiring configurations
+
+If you are interfacing a different step/dir driver or prototyping on a breadboard:
+
+<Steps>
+<Step title="Add a level shifter (required for 5V drivers)">
+  Use a unidirectional 3.3V→5V level shifter for STEP, DIR, and ENABLE. Tie grounds between the ESP32, level shifter, and driver.
+
+  ```text
+  ESP32 (3.3V) → Level Shifter → Driver (5V)
+       STEP  ────────────────→  STEP
+       DIR   ────────────────→  DIR
+       EN    ────────────────→  EN (if used)
+       GND   ─────────────────  GND (common)
+  ```
+
+  <Warning>
+  Do not drive a 5V input directly from an ESP32 pin.
+  </Warning>
+</Step>
+
+<Step title="Wire power correctly">
+  - Keep motor power separate from 5V logic rails.
+  - Size supply wiring for current. Use 16–24 AWG on the PCB motor output terminals.
+</Step>
+
+<Step title="Validate signals">
+  - Start at a low step rate and increase gradually.
+  - Confirm direction changes cleanly and that no steps are missed.
+</Step>
+</Steps>
+
 ## Specifications
+
+These specifications summarize the OSSM PCB capabilities.
 
 ### Power Input
 
@@ -78,18 +165,19 @@ Before selecting your approach, understand these critical factors:
 |-----------|-------|
 | Voltage | 24V DC |
 | Max current | 5A |
+| Connector | 2.1 mm × 5.5 mm barrel jack |
 
 <Warning>
-Use a high-quality, UL-certified power supply. Low-quality supplies often cannot deliver their rated power and may cause damage to the motor or control board.
+Use a high‑quality, UL‑certified power supply. Low‑quality supplies often fail to deliver rated power and can damage the motor or board.
 </Warning>
 
 ### Signal Outputs
 
 | Parameter | Specification |
 |-----------|---------------|
-| Signal type | Step-Dir |
+| Signal type | Step‑Dir |
 | Logic level | 5V active low |
-| Connector | PH-4 |
+| Connector | JST‑PH‑4 |
 
 ### Motor Power Output
 
@@ -100,15 +188,23 @@ Use a high-quality, UL-certified power supply. Low-quality supplies often cannot
 | Terminals | 2× screw terminals |
 | Wire gauge | 16–24 AWG |
 
-### Back-EMF Protection
+### Back‑EMF Protection
 
-The board includes built-in protection against regenerative voltage spikes:
+The PCB includes built‑in protection against regenerative voltage spikes:
 
-- **Inline diode** protects the power supply from reverse current
-- **1500µF capacitor** absorbs regenerative energy up to 50V
+- Inline diode to protect the power supply from reverse current
+- 1500 µF capacitor to handle regenerative energy
 
-## Next Steps
+## Related guides
 
-<Card title="Board Design and Wiring" icon="diagram-project" href="/ossm/Hardware/PCB/board-design">
-  View detailed pinouts, connection diagrams, and wiring configurations for your specific motor driver setup.
-</Card>
+<CardGroup cols={2}>
+  <Card title="OSSM PCB spec sheet" icon="file" href="/open-source-sex-machine/ossm-electronics/ossm-pcb-spec-sheet">
+    Detailed electrical specifications and connector pinouts.
+  </Card>
+  <Card title="Wiring your Gold Motor" icon="bolt" href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">
+    Step‑by‑step wiring for the OSSM Gold Motor (57AIM series).
+  </Card>
+  <Card title="Flash your OSSM" icon="cpu" href="/open-source-sex-machine/flashing-your-ossm">
+    Use the web flasher to load firmware onto your board.
+  </Card>
+</CardGroup>

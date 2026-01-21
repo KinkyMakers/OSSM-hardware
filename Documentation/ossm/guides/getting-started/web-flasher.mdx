@@ -1,54 +1,108 @@
 ---
 title: "Web Flasher"
-description: "Flash firmware to your OSSM or RADR device using the browser-based web flasher utility"
+description: "Flash firmware to your OSSM or RADR device using the browser-based Web Flasher"
 ---
 
-Both OSSM and RADR devices use the same web-based flashing process. You can update or reinstall firmware directly from your browser without installing any additional software.
+Update or reinstall firmware for OSSM and RADR directly in your browser—no separate download or installer required.
+
+<Info>
+Before you begin, use a data-capable USB cable, charge or power your device, and close any apps that might use serial ports (Arduino IDE, serial terminals, 3D printer hosts, etc.).
+</Info>
 
 ## Flash your device
 
 <Steps>
-<Step title="Open the web flasher">
-  Navigate to the [Web Flasher](https://dashboard.researchanddesire.com/app/tools/web-flasher) in your browser.
+<Step title="Open the Web Flasher">
+  Open the Web Flasher in your browser: 
+  <a href="https://dashboard.researchanddesire.com/app/tools/web-flasher">Open Web Flasher</a>
 
   <Note>
-  The web flasher requires a browser with Web Serial API support. Use **Chrome**, **Edge**, or **Safari** for best results.
+  The Web Flasher requires a browser with Web Serial API support. Use the latest versions of Chrome, Edge, or Safari.
   </Note>
 </Step>
 
 <Step title="Connect your device">
-  Plug your OSSM or RADR into your computer using a USB cable. The web flasher will detect the device automatically.
-</Step>
-
-<Step title="Follow the on-screen instructions">
-  The web flasher guides you through selecting your device and firmware version. Click **Flash** when ready.
+  Plug your OSSM or RADR into your computer with a USB cable. When prompted, select your device’s serial port (often shown as “CP210x USB to UART Bridge”).
 
   <Check>
-  Once flashing completes, your device will restart with the new firmware installed.
+  The Web Flasher shows your selected port and enables the Connect/Flash controls.
+  </Check>
+</Step>
+
+<Step title="Choose firmware and flash">
+  Select your device (OSSM or RADR) and the firmware version shown in the flasher, then click <strong>Flash</strong>.
+
+  <Tip>
+  If you’re unsure which version to use, choose the latest stable release presented in the flasher.
+  </Tip>
+
+  <Check>
+  After flashing completes, your device restarts automatically with the new firmware.
   </Check>
 </Step>
 </Steps>
+
+## Verify the update
+
+- Reconnect the device in the Web Flasher to confirm it is detected without errors.
+- For OSSM, wait for the homing routine to complete after reboot.
+- For RADR, continue with pairing and controls in the Quick Start guide: <a href="/research-and-desire-remote/quick-start">RADR Quick Start</a>.
 
 ## Troubleshooting
 
 <AccordionGroup>
 <Accordion title="Device not detected">
-If your computer doesn't recognize the device, you may need to install USB UART drivers.
+If your computer doesn’t recognize the device, you may need a USB-to-UART driver (especially on Windows). Also try:
+
+- Use a different USB port or a known data-capable cable
+- Disconnect and reconnect the device, then refresh the Web Flasher page
+- Close other apps that might hold the serial port (Arduino IDE, serial consoles)
 
 <Tabs>
 <Tab title="Windows">
-Download and install the [CP210x Windows Drivers](https://www.silabs.com/documents/public/software/CP210x_Windows_Drivers.zip) from Silicon Labs.
+Download and install the CP210x drivers from Silicon Labs:
+
+- <a href="https://www.silabs.com/documents/public/software/CP210x_Windows_Drivers.zip">CP210x Windows Drivers (direct download)</a>
 </Tab>
 
 <Tab title="macOS / Linux">
-Download the appropriate driver from the [Silicon Labs USB to UART Bridge VCP Drivers](https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads) page.
+Most systems include drivers out of the box. If needed, get the latest VCP drivers here:
+
+- <a href="https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-drivers?tab=downloads">Silicon Labs USB to UART Bridge VCP Drivers</a>
 </Tab>
 </Tabs>
-
-After installing drivers, disconnect and reconnect your device, then refresh the web flasher page.
 </Accordion>
 
-<Accordion title="Browser not supported">
-The Web Serial API is only available in Chromium-based browsers. If you're using Firefox or another unsupported browser, switch to **Chrome**, **Edge**, or **Safari**.
+<Accordion title="Browser not supported or no serial prompt">
+- Use the latest Chrome, Edge, or Safari
+- If you previously blocked serial permissions, click your browser’s site permissions (lock icon) and allow serial ports, then reload
+- Firefox does not currently support the Web Serial API—switch to a supported browser
+</Accordion>
+
+<Accordion title="Flashing fails or gets stuck">
+- Unplug the device, wait 10 seconds, and reconnect
+- Try a different USB port/cable and refresh the flasher page
+- Restart your browser or computer and try again
+- Ensure no other app is using the serial port
 </Accordion>
 </AccordionGroup>
+
+## Related guides
+
+<CardGroup cols={2}>
+<Card title="Flashing your OSSM/RADR" icon="bolt" href="/open-source-sex-machine/flashing-your-ossm">
+Step-by-step guide and links to the Web Flasher.
+</Card>
+
+<Card title="RADR Quick Start" icon="rocket" href="/research-and-desire-remote/quick-start">
+Power on, pair, and start using RADR after flashing.
+</Card>
+
+<Card title="Device Support" icon="devices" href="/research-and-desire-remote/device-support">
+Check currently supported and tested devices.
+</Card>
+
+<Card title="Troubleshooting" icon="wrench" href="/all-devices/troubleshooting">
+General troubleshooting tips and how to contact support.
+</Card>
+</CardGroup>

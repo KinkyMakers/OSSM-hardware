@@ -3,58 +3,61 @@ title: "Board Design and Wiring"
 description: "Wiring diagrams and GPIO pinouts for the official OSSM PCB and alternative configurations"
 ---
 
-This page provides connection diagrams and pinout references for both the official OSSM PCB and alternative wiring configurations.
+This guide shows you how to connect the official OSSM PCB and how to wire alternative configurations using an ESP32, level shifting, and common motor drivers.
 
 ## Prerequisites
 
-Before wiring your OSSM electronics, ensure you have:
+Before you begin, make sure you have:
 
-- An ESP32 development board (ESP32-DevKitC or compatible)
-- A motor driver compatible with step/direction control
-- Appropriate power supply for your motor
-- Basic electronics tools (wire strippers, multimeter)
+- An ESP32 development board (ESP32‑DevKitC or compatible)
+- A motor driver that accepts step/direction inputs
+- A power supply sized for your motor and driver
+- Basic tools: wire strippers, small screwdriver set, multimeter
 
 <Note>
-The 3.3V logic level on most ESP32 boards can cause missed steps at high speeds. Use a level shifter to convert signals to 5V for reliable motor driver communication.
+Most ESP32 boards use 3.3V logic. At higher speeds this can cause missed steps with 5V‑logic drivers. Use a level shifter to convert step/direction/enable to 5V for reliable operation.
 </Note>
 
-### Prototyping Components
+### Prototyping components (for custom wiring)
 
-If you're building a custom wiring setup without the official PCB, you'll need these additional components:
+If you are wiring without the official PCB, you will typically need:
 
-| Component | Purpose | Notes |
-|-----------|---------|-------|
-| [Adafruit Level Shifter](https://www.adafruit.com/product/3405) | Converts 3.3V signals to 5V | Required for reliable high-speed operation |
-| [Breadboard](https://www.amazon.ca/Breadboard-Solderless-Prototype-Distribution-Connecting/dp/B01EV6LJ7G/) | Solderless prototyping | 400 tie-point minimum recommended |
-| [Dupont Jumpers](https://www.amazon.ca/120pcs-Multicolored-Breadboard-Arduino-raspberry/dp/B01LZF1ZSZ/) | Wire connections | Male-to-male and male-to-female needed |
+- Logic level shifter (3.3V → 5V, 4+ channels)
+- Solderless breadboard or proto board
+- Dupont jumpers (male↔male and male↔female)
+- 5V rail for the high‑side of the level shifter (often available from your driver or a separate regulator)
 
-## Official OSSM Wiring
+<Tip>
+Keep signal wiring short and tidy. Route step/direction/enable away from motor and power leads to minimize noise.
+</Tip>
 
-The official OSSM reference board provides standardized connections with built-in level shifting. This is the recommended approach for most builds.
+## Official OSSM wiring
 
-### Reference Board Layout
+The reference OSSM PCB includes level shifting and standardized headers. This is the recommended approach for most builds.
+
+### Reference board layout
 
 <Frame caption="OSSM reference board (version 1) - front view showing component placement">
   <img src="./_images/150361448-80e9fdaf-4a8c-4054-a920-6eab9aa68678.webp" alt="OSSM version 1 reference board showing ESP32 socket, level shifters, and JST connectors" />
 </Frame>
 
-### PCB Connection Diagram
+### PCB connection diagram
 
 <Frame caption="Connection diagram showing motor driver and peripheral connections">
   <img src="./_images/150355658-2ab2c53f-8da0-41ce-ad61-cfe9965b9ab2.webp" alt="OSSM PCB connection diagram with labeled motor driver output, encoder input, and power connections" />
 </Frame>
 
-### GPIO Pinout Reference
+### ESP32 GPIO pinout (default)
 
-The ESP32 GPIO assignments for the OSSM PCB are configured in the firmware. These are the default pin mappings:
+These are the default firmware mappings for the OSSM PCB:
 
-| Signal | GPIO Pin | Function |
-|--------|----------|----------|
-| Step | GPIO 14 | Step pulse output to motor driver |
-| Direction | GPIO 27 | Direction signal to motor driver |
-| Enable | GPIO 26 | Enable/disable motor driver |
-| Encoder A | GPIO 36 | Quadrature encoder channel A |
-| Encoder B | GPIO 39 | Quadrature encoder channel B |
+| Signal      | GPIO Pin | Function                                      |
+|-------------|----------|-----------------------------------------------|
+| Step        | GPIO 14  | Step pulse output to motor driver             |
+| Direction   | GPIO 27  | Direction signal to motor driver              |
+| Enable      | GPIO 26  | Enable/disable motor driver                   |
+| Encoder A   | GPIO 36  | Quadrature encoder channel A (input‑only)     |
+| Encoder B   | GPIO 39  | Quadrature encoder channel B (input‑only)     |
 
 <Frame caption="ESP32 GPIO pinout showing control signal routing">
   <img src="./_images/152600401-80b986ea-6f5b-480d-ba74-5b5001079c1b.webp" alt="OSSM GPIO pinout diagram showing step, direction, and enable pins on ESP32" />
@@ -64,29 +67,42 @@ The ESP32 GPIO assignments for the OSSM PCB are configured in the firmware. Thes
   <img src="./_images/226189433-db28dfc6-22ac-4fdb-8b45-afe0c3fa9a7b.webp" alt="JST connector header locations on the OSSM PCB showing motor output, encoder input, and auxiliary connections" />
 </Frame>
 
-## Alternative Wiring Configurations
-
 <Info>
-The following configurations are community-tested alternatives. Your specific hardware combination may require different pin assignments or wiring modifications.
+Firmware can remap pins if needed. If you change wiring, update your firmware configuration to match.
 </Info>
 
-### TB6600 Stepper Driver
+## Alternative wiring configurations
 
-The TB6600 is a common stepper driver for OSSM builds using stepper motors instead of servos.
+<Info>
+The following setups are community‑tested patterns. Your hardware may require different pin assignments or minor wiring changes. Always consult your driver and motor datasheets.
+</Info>
+
+### TB6600 stepper driver
+
+Use this when driving a stepper motor with a TB6600‑style external driver.
 
 <Steps>
-  <Step title="Connect power">
-    Wire your stepper motor power supply (typically 24V) to the TB6600 DC+ and DC- terminals. Connect the motor phases to A+, A-, B+, B-.
+  <Step title="Connect motor power and phases">
+    Wire the motor supply (commonly 24V) to the TB6600 DC+ and DC‑. Connect the motor phases to A+, A‑, B+, B‑ per the motor’s wiring diagram.
+
+    <Warning>
+    Never hot‑plug stepper motors. Disconnect power before changing motor wiring.
+    </Warning>
   </Step>
-  <Step title="Wire control signals">
-    Connect the OSSM control signals through your level shifter:
+  <Step title="Wire control signals (via level shifter)">
+    Connect ESP32 signals through the 3.3V→5V level shifter to the driver inputs:
+    
     - Step (GPIO 14) → PUL+
     - Direction (GPIO 27) → DIR+
-    - Enable (GPIO 26) → ENA+ (if used)
-    - Ground → PUL-, DIR-, ENA-
+    - Enable (GPIO 26, if used) → ENA+
+    - GND (ESP32/level shifter) → PUL‑, DIR‑, ENA‑
+
+    <Check>
+    All grounds are common between ESP32, level shifter, and driver.
+    </Check>
   </Step>
-  <Step title="Configure driver switches">
-    Set the TB6600 DIP switches for your motor's current rating and desired microstepping. Consult your motor's datasheet for the appropriate current setting.
+  <Step title="Set DIP switches">
+    Configure current limit to match your motor and choose a microstep setting appropriate for your mechanics. Start conservative, then fine‑tune during testing.
   </Step>
 </Steps>
 
@@ -94,90 +110,121 @@ The TB6600 is a common stepper driver for OSSM builds using stepper motors inste
   <img src="./_images/159145946-a9960bba-c9bc-4717-b3b4-5b5c34b4a3d2.webp" alt="Connection diagram showing OSSM PCB signal outputs wired through level shifter to TB6600 stepper motor driver inputs" />
 </Frame>
 
-### Servo Motor Wiring
+### Servo motor with integrated driver (iHSV57, 42AIM30, etc.)
 
-For builds using servo motors with integrated drivers (such as the iHSV57 or 42AIM30):
+Many integrated servos accept step/direction/enable just like a stepper driver.
 
 <Frame caption="Servo motor wiring configuration showing step/direction interface">
   <img src="./_images/783876cf-f5bf-4708-9b4f-bd89723713f9.webp" alt="Wiring diagram for closed-loop servo motor connection to OSSM controller via step/direction interface" />
 </Frame>
 
 <Tip>
-Servo motors with integrated drivers often accept both 3.3V and 5V logic levels. Check your servo's documentation—you may not need a level shifter.
+Some integrated servos accept 3.3V logic directly; others require 5V. Check your servo’s documentation— you may be able to omit the level shifter.
 </Tip>
 
-### Stepper Motor Wiring
+### Additional stepper driver options
 
-For additional stepper driver configurations and archived designs, refer to the hardware files in the repository:
+For more designs and archived schematics, see the repository’s hardware archive:
 
 ```
 /ossm/Hardware/PCB Files/Archive/
 ```
 
-## Verifying Your Wiring
+## Power and grounding best practices
 
-After completing your wiring, verify the connections before applying power:
+- Use a single‑point (star) ground between ESP32, level shifter, and driver
+- Keep step/direction/enable leads short; avoid running them parallel to motor power
+- Twist each motor phase pair (A+/A‑ and B+/B‑) to reduce EMI
+- Provide strain relief for all connectors to prevent intermittent faults
+- If runs are long, consider shielded cable for control signals and connect shield to chassis/earth at one end only
+
+## Verifying your wiring
+
+Perform these checks before applying power to the motor driver.
 
 <Steps>
-  <Step title="Check continuity">
-    Use a multimeter to verify that each signal wire connects the correct ESP32 pin to the corresponding motor driver input.
-    
+  <Step title="Continuity and pin mapping">
+    Use a multimeter to confirm each signal runs from the correct ESP32 pin to the driver input.
+
     <Check>
-    Step, direction, and enable signals each show continuity from ESP32 to driver.
+    Step, direction, and enable each show continuity from ESP32 → level shifter → driver.
     </Check>
   </Step>
-  <Step title="Verify isolation">
-    Confirm there are no shorts between signal lines or between signals and power rails.
-    
+  <Step title="Isolation between signals and power">
+    Ensure no shorts exist between adjacent signal lines or between any signal and power rails.
+
     <Check>
-    No continuity between adjacent pins or between signal and power lines.
+    No continuity between neighboring pins or between signals and DC+/DC‑.
     </Check>
   </Step>
-  <Step title="Check power connections">
-    Verify the motor driver power supply polarity and voltage before connecting.
-    
+  <Step title="Power polarity and voltage">
+    Verify supply polarity and voltage at the driver terminals before connecting the motor.
+
     <Warning>
-    Reverse polarity can instantly destroy your motor driver. Double-check DC+ and DC- orientation.
+    Reverse polarity can instantly damage the driver. Double‑check DC+ and DC‑ orientation.
     </Warning>
   </Step>
 </Steps>
+
+## First power‑on checklist
+
+- With the motor disconnected, power the driver and confirm status LEDs look normal
+- Connect the motor, then command a very low speed move
+- Verify direction changes when commanded
+- If using an encoder, confirm counts change smoothly in one direction and reverse when direction changes
+
+<Check>
+You can command low‑speed movement without missed steps, oscillation, or driver faults.
+</Check>
 
 ## Troubleshooting
 
 <AccordionGroup>
   <Accordion title="Motor misses steps at high speed">
-    This typically indicates a voltage level mismatch or signal integrity issue.
-    
-    **Check the following:**
-    - Level shifter is receiving both 3.3V and 5V power supplies
-    - All ground connections are common between ESP32, level shifter, and motor driver
-    - Signal wires are short and routed away from motor power cables
-    
-    **Solution:** If you're not using a level shifter, add one. If you are, verify the 5V supply to the high-voltage side of the shifter.
+    This usually indicates a logic‑level mismatch or poor signal integrity.
+
+    - The level shifter is powered on both sides (3.3V and 5V)
+    - Grounds are common between ESP32, level shifter, and driver
+    - Signal wires are short and routed away from motor power
+
+    <Tip>
+    If you are not using a level shifter, add one. If you are, verify the 5V supply on the high‑side pins.
+    </Tip>
   </Accordion>
-  <Accordion title="Motor doesn't respond to commands">
-    The motor driver may not be receiving valid control signals.
-    
-    **Check the following:**
-    - Enable pin state matches your driver's requirements (some are active-low)
-    - Step and direction pins match your firmware configuration
-    - Motor driver has adequate power supply (check indicator LEDs if present)
-    
-    **Solution:** Use an oscilloscope or logic analyzer to verify step pulses are present at the driver input.
+
+  <Accordion title="Motor does not respond to commands">
+    The driver may not be receiving valid control signals.
+
+    - Check the enable input polarity; many drivers use active‑low enable
+    - Confirm step/direction pins match your firmware configuration
+    - Ensure the driver has adequate power (verify status LEDs)
+
+    <Info>
+    Use a logic analyzer or oscilloscope to confirm step pulses at the driver input.
+    </Info>
   </Accordion>
-  <Accordion title="Erratic or jittery motor behavior">
-    Electrical noise or interference may be affecting the control signals.
-    
-    **Check the following:**
-    - Signal wires are not bundled with motor power cables
-    - Motor driver power supply is stable under load
-    - Adequate decoupling capacitors are present near the motor driver
-    
-    **Solution:** Add 0.1µF ceramic capacitors between signal pins and ground at the motor driver. Use shielded cable for longer signal runs.
+
+  <Accordion title="Erratic or jittery motion">
+    Electrical noise or supply instability may be affecting the control path.
+
+    - Keep signal wires separate from motor power cables
+    - Verify the driver supply remains within spec under load
+    - Add local decoupling near the driver inputs
+
+    <Tip>
+    Add 0.1 µF ceramic capacitors close to the driver’s control inputs (to ground). Use shielded cable for long signal runs.
+    </Tip>
   </Accordion>
-  <Accordion title="Motor runs in wrong direction">
-    The direction signal polarity may be inverted.
-    
-    **Solution:** Either swap the direction wire polarity at the level shifter, or invert the direction in firmware by changing the `INVERT_DIRECTION` setting.
+
+  <Accordion title="Motor runs in the wrong direction">
+    The direction signal is inverted relative to your wiring.
+
+    <Info>
+    Swap the direction polarity at the connector, or invert direction in firmware by changing the `INVERT_DIRECTION` setting.
+    </Info>
   </Accordion>
 </AccordionGroup>
+
+<Warning>
+Always power down and wait for capacitors to discharge before rewiring. Reversing polarity or shorting outputs can permanently damage your hardware.
+</Warning>

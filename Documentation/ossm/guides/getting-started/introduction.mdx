@@ -1,19 +1,19 @@
 ---
 title: "Introduction"
-description: "Learn about OSSM, an open-source servo-powered sex machine you can build at home"
+description: "Overview of OSSM — an open‑source, servo‑powered sex machine you can build, customize, and control at home"
 ---
 
 ## What is OSSM?
 
-**OSSM** (pronounced like "awesome") is a user-friendly, open-source sex machine designed for everyday use. Whether you're curious about sex machines or looking to build your own, OSSM provides a powerful, customizable solution you can assemble at home.
+**OSSM** (pronounced like "awesome") is an open-source, servo-powered sex machine built around a belt-driven linear rail. You can assemble it yourself from printed parts and readily available hardware, or start from a kit. OSSM emphasizes quiet operation, high torque, and software-defined control of stroke and depth.
 
 <Tip>
-OSSM uses a servo-powered belt-driven linear rail, enabling quiet operation, high torque, and software-defined stroke and depth control at speeds up to 1 meter per second.
+OSSM’s actuator enables precise, repeatable motion with adjustable depth, speed, and patterns. Typical builds reach up to 1 m/s stroke speed with strong thrust at any rail position.
 </Tip>
 
-## Video Introduction
+## Video introduction
 
-Watch this introduction from Latex Barbie as she walks through her custom OSSM build experience.
+Watch this short introduction as Latex Barbie walks through her custom OSSM build and setup.
 
 <iframe
   className="w-full aspect-video rounded-xl"
@@ -24,42 +24,29 @@ Watch this introduction from Latex Barbie as she walks through her custom OSSM b
   allowFullScreen
 ></iframe>
 
-<Accordion title="Video Transcript">
-I've tried other sex machines before, but they would stall or not be able to handle bigger toys.
-
-Not only can the OSSM do that, I also built it myself with custom colors. I really got to create my ultimate dream machine.
-
-Oh, and did I mention how good this thing fucks?
-
-*[Moaning]*
-
-Yeah, I'm thinking about hopping back on it, just watching that.
-
-Thank you, Research and Desire.
+<Accordion title="Video transcript (edited for clarity)">
+I’ve tried other sex machines that stalled with larger toys or at longer strokes. OSSM handled those scenarios reliably, and I was able to build it myself in colors I love. The build process was straightforward, and the performance is smooth and powerful. Thanks, Research and Desire.
 </Accordion>
 
-## Performance specifications
+## Performance overview
 
-The standard recommended build delivers impressive performance:
+A standard OSSM build delivers the following capabilities (actual performance depends on motor, power supply, rail length, and configuration):
 
-| Specification | Standard (20V DC) | High Power (36V DC) |
-|---------------|-------------------|---------------------|
-| Force output  | 32 lbs (14 kg)    | 50 lbs (22 kg)      |
-| Stroke length | 8" (20 cm)        | 8" (20 cm)          |
-| Rail size     | 350mm             | 350mm               |
+- Top speed: up to 1 m/s
+- Stroke length: ~8 in (20 cm) with a 350 mm rail; longer rails support longer strokes
+- Force output: 40+ lbf (≈18+ kgf) in typical configurations
+- Control: software-defined stroke, depth, speed, and patterns
 
 <Note>
-These specifications support a wide range of use cases, including large knotted toys for anal play.
+Values above reflect commonly used configurations and parts. Your exact results may vary based on chosen motor, voltage, and rail length.
 </Note>
 
 ## Why build an OSSM?
 
-Building an OSSM gives you:
-
-- **Full control** over stroke length, depth, and speed through software
-- **Quiet operation** suitable for shared living spaces
-- **Customization options** through community-developed mods
-- **Learning opportunities** in mechanics, electronics, and computing
+- **Fine-grained control:** Adjust depth, stroke length, and speed in software, and switch patterns on the fly.
+- **Quiet and compact:** Belt-driven actuator and efficient motor design support discreet operation.
+- **Mod-friendly:** Open designs, printable parts, and community mods make customization straightforward.
+- **Great for learning:** Build skills in 3D printing, mechanics, electronics, and embedded software.
 
 ## Design principles
 
@@ -68,16 +55,45 @@ Building an OSSM gives you:
     Designed for discreet storage and operation without disturbing others.
   </Card>
   <Card title="High performance" icon="bolt">
-    Servo-driven system delivers consistent power and precise control.
+    Servo-driven actuator provides consistent power, precision, and repeatability.
   </Card>
   <Card title="Affordable" icon="piggy-bank">
-    Moderate cost using easily-sourced components and 3D-printed parts.
+    Uses readily sourced components and 3D‑printed parts; build at your own pace.
   </Card>
   <Card title="Fully moddable" icon="wrench">
-    Open-source design encourages community modifications and improvements.
+    Open-source hardware and firmware encourage community innovation.
   </Card>
 </CardGroup>
 
-## Ready to build your own?
+## Safety first
 
-If you want to build your own OSSM, head over to the [Hardware](/ossm/Hardware/getting-started/introduction) tab for detailed documentation on printed parts, motors, electronics, and assembly guides.
+<Warning>
+Before use, verify secure mounting, clear pinch‑point zones, and smooth actuator motion. Start at low speeds, increase gradually, and stop immediately if anything feels unsafe or unusual. Keep fingers, hair, clothing, and cords away from moving parts.
+</Warning>
+
+<Info>
+OSSM performs a homing routine on startup. Ensure nothing obstructs travel before powering on.
+</Info>
+
+## Where to go next
+
+Use these guides to assemble, wire, and update your OSSM:
+
+<CardGroup cols={2}>
+  <Card title="Wiring your Gold Motor" icon="plug" href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">
+    Correctly wire the 57AIM series motor and connectors.
+  </Card>
+  <Card title="Flash firmware" icon="cpu" href="/open-source-sex-machine/flashing-your-ossm">
+    Update OSSM or RADR using the web flasher.
+  </Card>
+  <Card title="Wireless Remote quick start" icon="radio" href="/research-and-desire-remote/quick-start">
+    Pair and control OSSM with the Research and Desire Wireless Remote (RADR).
+  </Card>
+  <Card title="Device support" icon="devices" href="/research-and-desire-remote/device-support">
+    See supported devices and integrations.
+  </Card>
+</CardGroup>
+
+<Check>
+You’re ready to begin: gather parts, review the safety notes, and follow the wiring and flashing guides. Once homing completes without issues, proceed to tuning patterns and controls.
+</Check>

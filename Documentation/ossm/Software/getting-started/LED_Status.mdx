@@ -73,6 +73,22 @@ When BLE is connected and the LED is dimmed, you'll see brief brightness pulses 
 The communication pulse is subtle—a 100ms fade with minimal brightness increase. This provides feedback without being distracting during operation.
 </Info>
 
+## Status indication colors
+
+The firmware defines standard colors for different machine states. These are used by status indication functions and may appear in future firmware updates.
+
+| Status | Color | Description |
+|--------|-------|-------------|
+| Idle | Blue | Default state when waiting |
+| Running | Green | Active motion in progress |
+| Error | Red | Error condition detected |
+| Homing | Yellow | Homing sequence active |
+| Connecting | Purple | BLE connection in progress |
+
+<Note>
+Currently, only the homing status (deep purple breathing) is actively displayed during machine operations. Other status colors are defined for future use or custom firmware implementations.
+</Note>
+
 ## Technical reference
 
 <AccordionGroup>

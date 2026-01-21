@@ -3,28 +3,102 @@ title: "Roadmap"
 description: "Track upcoming features, improvements, and community-driven development priorities for the OSSM project"
 ---
 
-The OSSM roadmap reflects our collaborative development process. Research and Desire works alongside community members to set priorities and update the roadmap quarterly.
+The OSSM roadmap reflects our collaborative development process. Research and Desire works alongside community members to set priorities and update the roadmap on a quarterly cadence. Items are managed in GitHub issues and projects so you can follow progress in real time.
 
 ## View the roadmap
-
-You can track current development priorities and upcoming features on GitHub:
 
 <Card title="OSSM Project Roadmap" icon="map" href="https://github.com/KinkyMakers/OSSM-hardware/projects">
 View milestones, planned features, and development progress on GitHub Projects.
 </Card>
 
-## Contribute to the roadmap
+<Info>
+Roadmap scope includes hardware, firmware, and documentation work for OSSM. Timelines are targets and may shift based on testing feedback, safety reviews, and community input.
+</Info>
 
-Want to help shape the future of OSSM? You can influence the roadmap in several ways:
+## How we prioritize
 
-- **Suggest features** — Open a GitHub issue describing your idea and its benefits
-- **Vote on priorities** — React to existing issues to show community interest
-- **Join quarterly planning** — Reach out to core leadership to participate in roadmap discussions
+- Safety, reliability, and usability improvements come first
+- Community impact and number of affected users
+- Effort required versus value delivered
+- Dependency order (what must ship before something else)
 
 <Tip>
-Looking to start contributing? Issues labeled **good first issue** are specifically selected for new contributors. These provide a great entry point into the codebase.
+Want a say in priorities? Upvote and comment on GitHub issues you care about. Clear use cases and test data meaningfully influence ranking.
+</Tip>
+
+## Contribute to the roadmap
+
+There are several ways to help shape what we build next:
+
+- Suggest features — open a GitHub issue describing your idea and why it matters
+- Vote on priorities — react to existing issues to show community interest
+- Join quarterly planning — comment on relevant issues or reach out to the maintainers to participate in roadmap discussions
+
+<Steps>
+<Step title="Check existing issues and projects">
+Search the OSSM repositories and project boards to avoid duplicates. If a related issue exists, add your use case or a thumbs-up reaction.
+
+<Check>
+You should see your reaction counted or your comment posted on the existing issue.
+</Check>
+</Step>
+
+<Step title="Open a well-scoped feature request">
+Create a new GitHub issue with:
+
+- Problem statement and the outcome you want
+- Who it helps (e.g., builders, new users, advanced tinkerers)
+- Proposed approach (optional) and alternatives considered
+- Risks, safety considerations, and testing ideas
+</Step>
+
+<Step title="Tag and follow">
+Add helpful labels (e.g., feature, firmware, hardware, docs). Link any related discussions. Subscribe to the issue to receive updates as it moves through the project board.
+
+<Check>
+When triaged, your issue will appear in the appropriate project column with an assignee or status label.
+</Check>
+</Step>
+</Steps>
+
+<Warning>
+Do not include personal or sensitive information in issues or pull requests. Share reproducible steps, logs, and hardware details only.
+</Warning>
+
+## Stay informed
+
+- Watch the OSSM repositories and project boards on GitHub for updates
+- Join community discussions during quarterly planning
+- Follow release notes and firmware updates when new milestones ship
+
+<CardGroup cols={2}>
+<Card title="Flash OSSM firmware" icon="bolt" href="/open-source-sex-machine/flashing-your-ossm">
+Update to the latest firmware and verify fixes or new features.
+</Card>
+
+<Card title="Device support (RADR)" icon="devices" href="/research-and-desire-remote/device-support">
+See current and planned device compatibility evaluated across 2025–2026.
+</Card>
+</CardGroup>
+
+<AccordionGroup>
+<Accordion title="What does “quarterly” mean here?">
+We target roadmap reviews and updates at the start of each quarter. Dates may shift to accommodate testing cycles, supply chain changes, or significant community feedback.
+</Accordion>
+
+<Accordion title="How are breaking changes handled?">
+Changes with safety or compatibility impact are called out in release notes and documentation with migration guidance. We strive to provide deprecation periods whenever feasible.
+</Accordion>
+
+<Accordion title="Where do I start contributing?">
+Look for issues labeled "good first issue" and "help wanted". These are curated to be approachable and come with clearer acceptance criteria.
+</Accordion>
+</AccordionGroup>
+
+<Tip>
+Issues labeled <strong>good first issue</strong> are specifically selected for new contributors and provide a gentle introduction to the codebase and processes.
 </Tip>
 
 ## Get involved
 
-If you'd like to participate in roadmap planning or have ideas for the project's direction, reach out to the core leadership team through GitHub or the community Discord.
+If you’d like to participate in roadmap planning or have ideas for the project’s direction, reach out to the core leadership team through GitHub or the community Discord. Share your use cases, testing results, and safety considerations — they help us prioritize effectively.
