@@ -22,7 +22,6 @@
                 "pages": [
                   "ossm/guides/getting-started/introduction",
                   "ossm/guides/getting-started/quickstart",
-                  "ossm/guides/getting-started/video-intro",
                   "ossm/guides/getting-started/web-flasher",
                   {
                     "group": "Ready to Play",
@@ -126,9 +125,74 @@
                 "group": "Standard Printed Parts",
                 "pages": [
                   "ossm/Hardware/standard-printed-parts/contibution-guidelines",
-                  "ossm/Hardware/standard-printed-parts/actuator",
-                  "ossm/Hardware/standard-printed-parts/remote",
-                  "ossm/Hardware/standard-printed-parts/stand",
+                  {
+                    "group": "Actuator Assembly",
+                    "pages": [
+                      "ossm/Hardware/standard-printed-parts/actuator/introduction",
+                      {
+                        "group": "Part by Part",
+                        "pages": [
+                          "ossm/Hardware/standard-printed-parts/actuator/part-by-part/24mm-clamping-thread-belt-clamp",
+                          "ossm/Hardware/standard-printed-parts/actuator/part-by-part/24mm-clamping-thread-end-effector",
+                          "ossm/Hardware/standard-printed-parts/actuator/part-by-part/24mm-nut-5-sided",
+                          "ossm/Hardware/standard-printed-parts/actuator/part-by-part/actuator-body-bottom",
+                          "ossm/Hardware/standard-printed-parts/actuator/part-by-part/actuator-body-cover",
+                          "ossm/Hardware/standard-printed-parts/actuator/part-by-part/actuator-body-middle",
+                          "ossm/Hardware/standard-printed-parts/actuator/part-by-part/belt-tensioner",
+                          {
+                            "group": "Non-Standard",
+                            "pages": [
+                              "ossm/Hardware/standard-printed-parts/actuator/part-by-part/non-standard/24mm-nut-hex-flower",
+                              "ossm/Hardware/standard-printed-parts/actuator/part-by-part/non-standard/24mm-nut-hex-flower-wrench",
+                              "ossm/Hardware/standard-printed-parts/actuator/part-by-part/non-standard/24mm-thread",
+                              "ossm/Hardware/standard-printed-parts/actuator/part-by-part/non-standard/actuator-body-middle-pivot",
+                              "ossm/Hardware/standard-printed-parts/actuator/part-by-part/non-standard/belt-clamp-bottom",
+                              "ossm/Hardware/standard-printed-parts/actuator/part-by-part/non-standard/belt-clamp-top"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "Wired Remote Control",
+                    "pages": [
+                      "ossm/Hardware/standard-printed-parts/remote/introduction",
+                      {
+                        "group": "Part by Part",
+                        "pages": [
+                          "ossm/Hardware/standard-printed-parts/remote/part-by-part/remote-body",
+                          "ossm/Hardware/standard-printed-parts/remote/part-by-part/remote-knob-rounded",
+                          "ossm/Hardware/standard-printed-parts/remote/part-by-part/remote-top-cover",
+                          {
+                            "group": "Non-Standard",
+                            "pages": [
+                              "ossm/Hardware/standard-printed-parts/remote/part-by-part/non-standard/remote-knob-knurled",
+                              "ossm/Hardware/standard-printed-parts/remote/part-by-part/non-standard/remote-knob-knurled-with-position-indicator",
+                              "ossm/Hardware/standard-printed-parts/remote/part-by-part/non-standard/remote-knob-simple",
+                              "ossm/Hardware/standard-printed-parts/remote/part-by-part/non-standard/remote-knob-simple-with-position-indicator"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "Stand (3030 Extrusion)",
+                    "pages": [
+                      "ossm/Hardware/standard-printed-parts/stand/introduction",
+                      {
+                        "group": "Part by Part",
+                        "pages": [
+                          "ossm/Hardware/standard-printed-parts/stand/part-by-part/extrusion-cap",
+                          "ossm/Hardware/standard-printed-parts/stand/part-by-part/extrusion-foot",
+                          "ossm/Hardware/standard-printed-parts/stand/part-by-part/handle-spacer",
+                          "ossm/Hardware/standard-printed-parts/stand/part-by-part/pivot-plate-left",
+                          "ossm/Hardware/standard-printed-parts/stand/part-by-part/pivot-plate-right"
+                        ]
+                      }
+                    ]
+                  },
                   {
                     "group": "PitClamp",
                     "pages": [
@@ -136,13 +200,49 @@
                       "ossm/Hardware/standard-printed-parts/pitclamp/BOM",
                       "ossm/Hardware/standard-printed-parts/pitclamp/README-2",
                       "ossm/Hardware/standard-printed-parts/pitclamp/README",
-                      "ossm/Hardware/standard-printed-parts/pitclamp/UPDATES"
+                      "ossm/Hardware/standard-printed-parts/pitclamp/UPDATES",
+                      {
+                        "group": "Part by Part",
+                        "pages": [
+                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/mounting-ring-pitclamp-mini-57aim",
+                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pcb-lid",
+                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pitclamp-mini-dogbone-bolts",
+                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pitclamp-mini-dogbone-nuts",
+                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pitclamp-mini-lower",
+                          {
+                            "group": "Non-Standard",
+                            "pages": [
+                              "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/non-standard/pitclamp-mini-upper-handle-print-in-place"
+                            ]
+                          }
+                        ]
+                      }
                     ]
                   },
                   {
-                    "group": "Part by Part",
+                    "group": "Toy Mounting",
                     "pages": [
-                      "ossm/Hardware/standard-printed-parts/part-by-part/introduction"
+                      "ossm/Hardware/standard-printed-parts/toy-mounting/introduction",
+                      {
+                        "group": "Part by Part",
+                        "pages": [
+                          "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/double-double-24mm-threaded",
+                          "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/double-double-rail-mounted",
+                          "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/flange-base-24mm-threaded",
+                          "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/flange-base-dildo-ring-50mm",
+                          "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/flange-base-dildo-ring-63mm",
+                          {
+                            "group": "Non-Standard",
+                            "pages": [
+                              "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/non-standard/sucson-mount-base-plate-24mm-threaded",
+                              "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/non-standard/sucson-mount-ring-insert-55mm",
+                              "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/non-standard/sucson-mount-threaded-ring",
+                              "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/non-standard/tie-down-suction-plate-110mm",
+                              "ossm/Hardware/standard-printed-parts/toy-mounting/part-by-part/non-standard/tie-down-suction-plate-135mm"
+                            ]
+                          }
+                        ]
+                      }
                     ]
                   }
                 ]
