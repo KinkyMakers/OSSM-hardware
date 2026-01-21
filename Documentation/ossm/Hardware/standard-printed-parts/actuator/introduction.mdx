@@ -3,6 +3,18 @@ title: "Overview"
 description: "Print settings, bill of materials, and assembly instructions for the OSSM actuator"
 ---
 
+import { 
+  actuatorPrintedParts,
+  actuatorM3Hardware,
+  actuatorM4Hardware,
+  actuatorM5Hardware,
+  actuatorM6Hardware,
+  actuatorBearings,
+  actuatorLinearMotion,
+  actuatorMotor
+} from '/snippets/ossm/bom/actuator-bom.mdx';
+import { BOMTable } from '/snippets/ossm/bom/bom-table.jsx';
+
 <Frame>
   <img src="../_images/Overview - Actuator Default.webp" alt="OSSM Actuator overview showing the assembled linear actuator" />
 </Frame>
@@ -40,15 +52,7 @@ If you have issues printing the 24mm Clamping Thread, use the Non-standard 24mm 
 
 ### Printed Parts List
 
-| Quantity | Part Name |
-| -------- | --------- |
-| 1 | Body - Bottom |
-| 1 | Body - Middle |
-| 1 | Body - Cover |
-| 1 | Belt Tensioner |
-| 1 | 24mm Clamping Thread - End Effector |
-| 1 | 24mm Clamping Thread - Belt Clamp |
-| 2 | 24mm Nut - 5 Sided |
+<BOMTable items={actuatorPrintedParts} />
 
 <Note>
 For additional documentation, see the [3030 Extrusion Stand guide](/ossm/Hardware/standard-printed-parts/stand).
@@ -56,53 +60,46 @@ For additional documentation, see the [3030 Extrusion Stand guide](/ossm/Hardwar
 
 ## Bill of Materials
 
-### GT2 Pulley
+### Motor
 
-| Specification | Value |
-| ------------- | ----- |
-| Bore | 8mm |
-| Teeth | 20 |
-| Width | 10mm |
+<BOMTable items={actuatorMotor} />
 
-### GT2 Timing Belt
+### Linear Motion
 
-| Specification | Value |
-| ------------- | ----- |
-| Width | 10mm |
-| Length | 500mm |
-
-### MGN12H Linear Rail + Bearing Block
-
-| Specification | Value |
-| ------------- | ----- |
-| Minimum Length | 250mm |
-| Suggested Length | 350mm |
-| Maximum Length | 550mm |
+<BOMTable items={actuatorLinearMotion} />
 
 <Info>
 Calculate your rail length using this formula: **desired maximum stroke + 180mm**
 
-You must use an MGN**12H** rail. The "H" designates a longer bearing block than "C" for greater stability. The "12" indicates a 12mm rail width.
+You must use an MGN**12H** rail. The "H" designates a longer bearing block than "C" for greater stability. The "12" indicates a 12mm rail width. A 350mm rail is suggested for most builds.
 </Info>
 
-### Ball Bearings
+### Belt and Pulley
 
-| Quantity | Specification |
-| -------- | ------------- |
-| 6 | MR115-2RS 5x11x4mm |
+| Quantity | Part |
+|----------|------|
+| 1 | GT2 20T Pulley (8mm bore, 10mm width) |
+| 500mm | GT2 Timing Belt (10mm width) |
 
-### Fasteners
+### Bearings
 
-| Quantity | Specification |
-| -------- | ------------- |
-| 8 | M3x8 Socket Cap Head Bolt |
-| 2 | M3x16 Socket Cap Head Bolt |
-| 1 | M3x20 Socket Cap Head Bolt |
-| 7 | M3 Hex Nut |
-| 3 | M5x20 Socket Cap Head Bolt |
-| 1 | M5 Hex Nut |
-| 4 | M5x35 Socket Cap Head Bolt |
-| 4 | M5 20mm Hex Coupling Nut (or M5 Hex Nut) |
+<BOMTable items={actuatorBearings} />
+
+### M3 Hardware
+
+<BOMTable items={actuatorM3Hardware} />
+
+### M4 Hardware
+
+<BOMTable items={actuatorM4Hardware} />
+
+### M5 Hardware
+
+<BOMTable items={actuatorM5Hardware} />
+
+### M6 Hardware
+
+<BOMTable items={actuatorM6Hardware} />
 
 ## Assembly
 

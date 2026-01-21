@@ -3,10 +3,20 @@ title: "Overview"
 description: "Build the default OSSM mounting stand using 3030 aluminum extrusion with a single pivot arm design"
 ---
 
+import { 
+  standPrintedParts, 
+  standExtrusions, 
+  standHardwareBag1, 
+  standHardwareBag2, 
+  standHardwareBag3,
+  standAccessories 
+} from '/snippets/ossm/bom/stand-bom.mdx';
+import { BOMTable, ExtrusionTable } from '/snippets/ossm/bom/bom-table.jsx';
+
 The 3030 Extrusion Stand is the default mounting solution for your OSSM. This design uses aluminum extrusion for a sturdy, adjustable base with a single pivot arm that allows angle adjustment during use.
 
 <CardGroup cols={2}>
-  <Card title="Bill of Materials" icon="list-check" href="/ossm/Hardware/standard-printed-parts/pitclamp/BOM">
+  <Card title="Bill of Materials" icon="list-check" href="/ossm/Hardware/getting-started/bom">
     Complete parts list for ordering components
   </Card>
   <Card title="Assembly Guide Videos" icon="video" href="https://www.youtube.com/playlist?list=PLzSK7OAu3KNS-aOQfpv3f_BJH9GNdLJ7Q">
@@ -35,36 +45,29 @@ All parts are oriented correctly in the provided STL files. Print them in their 
 
 ### Required printed parts
 
-| Part | Quantity |
-|------|----------|
-| Pivot Plate Left | 1 |
-| Pivot Plate Right | 1 |
-| Handle Spacer | 8 |
-| Extrusion Foot | 4 |
-| Extrusion Cap | 6 |
+<BOMTable items={standPrintedParts} />
 
 ## Bill of materials
 
-### Hardware
-
-| Part | Quantity |
-|------|----------|
-| M6x12 Socket Cap Head Bolt | 12 |
-| M6x25 Socket Cap Head Bolt | 6 |
-| M6 Handle 25mm | 2 |
-| M6 Washer | 6 |
-| M6 T-Nut (3030 profile) | 20 |
-| 90 Degree 3030 Corner Bracket | 4 |
-| 1.5" (38mm) Reinforced Rubber Washer | 2 |
-| 1.5" (38mm) Square Non-Slip Furniture Pad | 4 |
-
 ### Aluminum extrusion
 
-| Length | Quantity |
-|--------|----------|
-| 20" (508mm) 3030 Extrusion | 1 |
-| 18" (467mm) 3030 Extrusion | 1 |
-| 14" (355mm) 3030 Extrusion | 2 |
+<ExtrusionTable items={standExtrusions} />
+
+### Hardware - Bag 1
+
+<BOMTable items={standHardwareBag1} />
+
+### Hardware - Bag 2
+
+<BOMTable items={standHardwareBag2} />
+
+### Hardware - Bag 3
+
+<BOMTable items={standHardwareBag3} />
+
+### Accessories
+
+<BOMTable items={standAccessories} />
 
 <Note>
 A sandbag is recommended to add weight and stability to the stand during operation.
@@ -77,7 +80,7 @@ A sandbag is recommended to add weight and stability to the stand during operati
 </Card>
 
 <Info>
-This BOM covers the stand assembly only. For actuator and PCB mounting hardware, see the [Mounting documentation](/ossm/Hardware/standard-printed-parts/pitclamp/README).
+This BOM covers the stand assembly only. For actuator and PCB mounting hardware, see the [Actuator documentation](/ossm/Hardware/standard-printed-parts/actuator/introduction).
 </Info>
 
 <Warning>

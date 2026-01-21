@@ -118,7 +118,8 @@
               {
                 "group": "Getting Started",
                 "pages": [
-                  "ossm/Hardware/getting-started/introduction"
+                  "ossm/Hardware/getting-started/introduction",
+                  "ossm/Hardware/getting-started/bom"
                 ]
               },
               {
