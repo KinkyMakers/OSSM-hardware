@@ -72,6 +72,50 @@ A properly tensioned belt should deflect slightly when pressed but return to pos
 </Accordion>
 </AccordionGroup>
 
+## Wired remote does not power on
+
+If the wired remote display stays dark when connected, the issue is usually connection timing or a loose cable.
+
+<AccordionGroup>
+<Accordion title="Connect the remote after powering on">
+The wired remote draws power from the control board. If you connect the remote before the board is powered, it may not initialize correctly.
+
+**Solution:**
+1. Disconnect the RJ45 cable from the control board
+2. Power on the OSSM using the 24V supply
+3. Wait for the control board to fully boot (LED indicators stabilize)
+4. Connect the wired remote's RJ45 cable firmly until it clicks
+
+<Tip>
+If the remote still doesn't light up, disconnect the 24V power, wait a few seconds, then reconnect and repeat the steps above.
+</Tip>
+</Accordion>
+
+<Accordion title="Check the RJ45 cable connection">
+A loose or partially seated cable can prevent power from reaching the remote.
+
+**Solution:**
+1. Disconnect the RJ45 cable from both ends
+2. Inspect the connectors for bent pins, debris, or damage
+3. Reconnect firmly at both the control board and the remote until you hear/feel a click
+4. Try a different RJ45 cable if available
+</Accordion>
+
+<Accordion title="Power cycle the system">
+If the remote worked previously but stopped, a simple power cycle often resolves the issue.
+
+**Solution:**
+1. Disconnect the 24V power supply from the control board
+2. Wait 5–10 seconds
+3. Reconnect the 24V power supply
+4. Allow the board to boot, then check if the remote display activates
+
+If the remote powers on after cycling, no further action is needed. Intermittent issues may indicate a marginal cable connection—try reseating or replacing the RJ45 cable.
+</Accordion>
+</AccordionGroup>
+
+---
+
 ## Wired remote lights up but speed control does not respond
 
 If the wired remote display illuminates but the left knob (speed potentiometer) has no effect, the potentiometer component may be faulty.
@@ -104,8 +148,162 @@ If the right knob still works but the left knob doesn't respond, the issue is th
 <Accordion title="Resolution">
 A non-responsive potentiometer indicates a hardware fault that cannot be fixed through software or settings. Contact support to request a replacement wired remote under warranty.
 
+**Self-repair option:** If your remote is out of warranty or you prefer to repair it yourself, the potentiometer part number is:
+
+- **Potentiometer:** ALPSALPINE RK09D1130C3C
+
+This component is available from electronics suppliers such as Digikey, Mouser, or AliExpress.
+
 <Tip>
 If you have a RADR wireless remote, you can continue using your OSSM while waiting for the replacement. The RADR provides full speed and stroke control.
+</Tip>
+</Accordion>
+</AccordionGroup>
+
+## Right encoder skips clicks or rotations
+
+If the right encoder on the wired remote only registers every second or third click when navigating menus or adjusting parameters, the encoder component may be faulty.
+
+<AccordionGroup>
+<Accordion title="Verify the issue">
+**Symptoms:**
+- Remote display turns on and shows the menu
+- Left knob (speed control) works normally
+- Right encoder responds inconsistently—only some clicks or rotations are registered
+- Turning the encoder requires multiple clicks to move through menu items
+- Solder joints on the remote board appear intact
+
+**Diagnosis:**
+1. Power on OSSM and navigate to any menu
+2. Slowly turn the right encoder one click at a time
+3. Count how many physical clicks it takes to move one menu position
+4. If it consistently takes 2–3 clicks to register a single movement, the encoder is defective
+</Accordion>
+
+<Accordion title="Confirm it's not a connection issue">
+Before concluding the encoder is faulty:
+
+1. Power off and reseat the RJ45 cable at both ends until it clicks
+2. Try a different RJ45 cable if available
+3. Inspect the cable connectors for bent pins or debris
+4. Power on and test again
+
+If the issue persists after checking the cable, the encoder itself is defective.
+</Accordion>
+
+<Accordion title="Resolution">
+A partially responsive encoder indicates a hardware fault that cannot be fixed through software or settings. Some batches of encoder components have been found to have this defect. Contact support to request a replacement wired remote under warranty.
+
+**Self-repair option:** If your remote is out of warranty or you prefer to repair it yourself, the encoder part number is:
+
+- **Encoder:** ALPSALPINE EC11E18244AU
+
+This component is available from electronics suppliers such as Digikey, Mouser, or AliExpress.
+
+<Tip>
+If you have a RADR wireless remote, you can continue using your OSSM while waiting for the replacement. The RADR provides full control without relying on physical encoders.
+</Tip>
+</Accordion>
+</AccordionGroup>
+
+## Boot loops or display artifacts
+
+If your OSSM repeatedly restarts (boot loops) or shows corrupted characters, flickering, or visual glitches on the wired remote display, the wired remote board may be faulty.
+
+<AccordionGroup>
+<Accordion title="Identify the symptoms">
+**Symptoms:**
+- Device restarts repeatedly without completing the homing sequence
+- Display shows garbled text, flickering, or visual artifacts
+- Crashes or reboots occur when using the right knob (encoder)
+- Problems persist after trying different firmware versions
+
+**What to rule out first:**
+Before suspecting the wired remote board, try:
+
+1. **Different RJ45 cable** — A damaged cable can cause intermittent faults
+2. **Different power supply** — Voltage fluctuations can cause instability
+3. **Reflash firmware** — Corrupted firmware can cause unexpected behavior
+</Accordion>
+
+<Accordion title="Test without the wired remote">
+If you have a RADR wireless remote, you can isolate whether the wired remote is causing the issue:
+
+1. Power off the OSSM completely
+2. Disconnect the wired remote's RJ45 cable from the control board
+3. Power on the OSSM
+4. Connect via the RADR and test normal operation
+
+If the OSSM operates normally without the wired remote connected, the wired remote board is likely faulty.
+</Accordion>
+
+<Accordion title="Resolution">
+A wired remote board causing boot loops or display corruption indicates a hardware fault. Contact support to request a replacement wired remote board under warranty.
+
+<Tip>
+While waiting for a replacement, you can continue using your OSSM with a RADR wireless remote if you have one available.
+</Tip>
+</Accordion>
+</AccordionGroup>
+
+## Reset button and flashing firmware
+
+The OSSM control board has a small reset button near the blue LED. Understanding what this button does—and what it does not do—can help avoid confusion when troubleshooting or updating firmware.
+
+<AccordionGroup>
+<Accordion title="What does the reset button do?">
+The reset button on the OSSM control board performs a **power cycle reset**. Pressing it restarts the ESP32 microcontroller, similar to unplugging and reconnecting power.
+
+**What it does:**
+- Restarts the ESP32 and reinitializes the firmware
+- Clears any temporary runtime state
+- Can help recover from a frozen or unresponsive state
+
+**What it does not do:**
+- It does not erase stored settings or calibration data
+- It does not wipe the flash memory
+- It does not perform a factory reset or clear WiFi credentials
+- It does not trigger a new homing sequence automatically (homing occurs on boot as part of normal startup)
+
+<Tip>
+If your OSSM becomes unresponsive, try pressing the reset button once. You do not need to hold it down—a single press is sufficient.
+</Tip>
+</Accordion>
+
+<Accordion title="How do I perform a full factory reset?">
+The standard OSSM firmware does not include a built-in factory reset function. To completely clear settings and return to defaults:
+
+1. **Reflash the firmware** using the [Web Flasher](/ossm/tools/web-flasher). This overwrites the existing firmware but may not clear all stored data in flash memory.
+
+2. **For a complete flash wipe**, you need to use development tools like PlatformIO or esptool to erase the flash before reflashing. See [PlatformIO setup](/ossm/Software/getting-started/PlatformIO) for details.
+
+<Note>
+Most users do not need to perform a full flash wipe. Standard reflashing via the Web Flasher is sufficient for firmware updates and resolving most issues.
+</Note>
+</Accordion>
+
+<Accordion title="Installing community or third-party firmware">
+Some community members develop alternative firmware for specialized use cases. If you want to install community firmware:
+
+<Warning>
+Community firmware is not officially supported by Research and Desire. Use at your own risk. Some community projects may be experimental or deprecated.
+</Warning>
+
+**Before installing community firmware:**
+- Back up any settings you want to preserve
+- Note your current firmware version in case you need to revert
+- Read the community project's documentation carefully
+
+**If the community firmware requires a clean flash:**
+The reset button does not wipe flash memory. To fully erase flash before installing community firmware, you typically need to:
+
+1. Use [PlatformIO](/ossm/Software/getting-started/PlatformIO) with the `Erase Flash` command
+2. Or use `esptool.py erase_flash` from the command line
+
+Contact the community firmware developer (often via Discord) for specific installation instructions, as requirements vary between projects.
+
+<Tip>
+To return to official firmware after experimenting with community builds, use the [Web Flasher](/ossm/tools/web-flasher) to reinstall the latest stable release.
 </Tip>
 </Accordion>
 </AccordionGroup>

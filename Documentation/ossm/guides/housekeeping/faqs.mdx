@@ -34,6 +34,25 @@ Check the [Bill of Materials](/ossm/guides/getting-started/build-guide/step-1.0_
 Many users successfully use large knotted toys anally without issue.
 </Accordion>
 
+<Accordion title="Why is there a 2.5 lb (1.1 kg) max toy weight?">
+The 2.5 lb (1.1 kg) maximum toy weight is a **conservative recommendation for reliable long-term performance**, not a hard failure threshold. Several factors contribute to this limit:
+
+- **Inertia during direction changes:** Heavier toys create more stress on the belt, printed parts, and mounting hardware during rapid acceleration and deceleration at stroke endpoints
+- **Belt wear and slippage:** Additional weight increases the load on the timing belt, especially at higher speeds
+- **Printed part durability:** Standard PLA or PETG parts may experience faster wear or creep under sustained heavy loads
+- **Cantilever stress:** The toy extends from the end-effector, creating a lever arm that amplifies forces on the rail carriage and bearings
+
+**If you want to exceed the recommendation:**
+
+- Print load-bearing parts in stronger materials (PETG, ABS, polycarbonate, or nylon)
+- Use the pitclamp system for improved rigidity
+- Request a wider 15mm belt for better power transfer
+- Reduce maximum speed to lower inertial forces during direction changes
+- Ensure proper belt tension and rail alignment
+
+The motor itself can handle significantly more—the spec reflects safe operating margins for the full mechanical system under typical use. Community members have experimented with heavier setups; join the [Kinky Makers Discord](https://discord.gg/MmpT9xE) to discuss modifications and real-world results.
+</Accordion>
+
 <Accordion title="Is the OSSM quiet?">
 Yes. OSSM uses a nearly silent belt drive system. When paired with a servo motor (recommended), the machine operates very quietly.
 </Accordion>
@@ -62,6 +81,10 @@ The main differences between the DIY Kit and Ready-to-Play are the mounting syst
 The PitClamp Mini mounting system on Ready-to-Play units provides easier repositioning and angle adjustment during use. The DIY Kit's middle pivot body offers the same core functionality but requires more effort to reposition.
 
 Both configurations support the same stroke patterns, speeds, and accessories. For most users, the choice comes down to whether you want a hands-on build experience or a ready-to-use solution.
+
+<Tip>
+**Want the PitClamp Mini with your DIY Kit?** You can purchase the [PitClamp Mini kit](https://www.researchanddesire.com/products/pitclamp-mini) separately alongside the DIY Kit. The PitClamp kit includes its own non-pivot actuator middle body, which replaces the middle pivot body from the DIY Kit. You'll end up with a few extra parts, but everything is fully compatible.
+</Tip>
 </Accordion>
 </AccordionGroup>
 
@@ -112,6 +135,22 @@ The muscles in the anal region are powerful. Users commonly bear down or clench 
 ## 3D Printing
 
 <AccordionGroup>
+<Accordion title="Where can I download STL files?">
+All OSSM STL files are available on the [Kinky Makers GitHub repository](https://github.com/KinkyMakers/OSSM-hardware/tree/main/Printed%20Parts). This includes:
+
+- Core actuator components
+- Toy mounting options (Vac-U-Lock adapter, flange base, double-double)
+- Stand parts
+- Remote enclosure
+- PitClamp Mini (if you want to upgrade from the standard middle pivot body)
+
+Each part in the [Hardware documentation](/ossm/Hardware/getting-started/introduction) also includes direct download links to the STL and STEP files.
+
+<Tip>
+If your DIY Kit came with a middle pivot body and you want the PitClamp Mini mounting system instead, you can print the PitClamp parts yourself using the files from GitHub. You'll also need the fasteners listed in the [PitClamp Mini Bill of Materials](/ossm/Hardware/standard-printed-parts/pitclamp/BOM)—these are not included in the DIY Kit. Contact [support@researchanddesire.com](mailto:support@researchanddesire.com) to purchase a hardware-only kit, or source the components yourself.
+</Tip>
+</Accordion>
+
 <Accordion title="What printer bed size do I need?">
 **Minimum requirements:**
 - Bed size: 105mm × 105mm
@@ -203,6 +242,10 @@ The RADR connects via Bluetooth only—there is no option to connect it via an E
 </Note>
 
 Both remotes support the same motion patterns: Simple Stroke, Teasing or Pounding, Robo Stroke, Half'n'Half, Deeper, Stop'n'Go, and Insist. Pattern switching is slightly more convenient on the RADR due to its dedicated button, but the wired remote provides identical functionality.
+
+<Warning>
+Only one remote can be connected at a time. You cannot use both the wired remote and RADR simultaneously. If you want a backup remote, you can purchase both separately, but you'll need to disconnect one before connecting the other.
+</Warning>
 </Accordion>
 
 <Accordion title="Can I control OSSM over the internet?">
@@ -239,6 +282,25 @@ Several technical challenges make this integration complex:
 No, the reference board is optional. However, it significantly simplifies the build process by eliminating the need for soldering.
 </Accordion>
 
+<Accordion title="What's included in the Extrusion Kit?">
+The **Extrusion Kit** (also called "Mount Full Extrusion Kit") includes:
+
+- Pre-cut 3030 aluminum extrusion pieces
+- Fasteners (bolts, T-nuts, etc.)
+- Hardware bags for stand assembly
+
+**The Extrusion Kit does not include 3D printed parts.** You still need to print the pivot plates, extrusion caps, extrusion feet, and other printed components listed in the [Stand BOM](/ossm/Hardware/standard-printed-parts/stand/introduction).
+
+If you don't have access to a 3D printer, you can:
+- Purchase the [3D Printed Parts Kit](https://www.researchanddesire.com/products/ossm-3d-printed-part-kit) separately
+- Use a local printing service or maker space
+- Order prints from online services like Craftcloud or JLC3DP
+
+<Tip>
+To build a complete stand, you need **both** the Extrusion Kit (metal parts + hardware) **and** the printed parts (either self-printed or purchased separately).
+</Tip>
+</Accordion>
+
 <Accordion title="What power supply do I need?">
 Power supply requirements depend on your motor wattage and connection type:
 
@@ -267,6 +329,16 @@ USB-C PD adapters deliver slightly less force than a dedicated 24V supply (35 lb
 <Warning>
 For safety, use a desktop power supply that is ideally double-insulated. Supplies from reputable distributors (Mouser, Digikey, Conrad, RS) cost more than unbranded units from AliExpress/eBay/Amazon, but unbranded supplies have shown inconsistent quality and long-term stability issues.
 </Warning>
+
+**36V power supply (advanced users):**
+
+Some users opt for a third-party 36V power supply to increase force output by approximately 20%. While the motor and electronics can handle 36V, there is an important safety consideration:
+
+<Warning>
+**Always unplug a 36V power supply from the wall socket, not from the barrel jack on the board.** Disconnecting 36V from the barrel jack while the supply is still energized can cause voltage spikes that damage the control board. This risk is lower with 24V supplies but still good practice to follow.
+</Warning>
+
+Research & Desire does not sell 36V power supplies. If you choose to source one yourself, ensure it is from a reputable manufacturer and rated for at least 4A continuous output.
 </Accordion>
 
 <Accordion title="How long should my H-rail be?">
@@ -292,5 +364,56 @@ The end effector uses **M24×3** threading.
 <Tip>
 Print a test piece when creating a new end effector—you may need to upsize by 3-5% depending on your printer's tolerances.
 </Tip>
+</Accordion>
+</AccordionGroup>
+
+## Maintenance and Replacement Parts
+
+<AccordionGroup>
+<Accordion title="What parts wear out over time?">
+With regular use, certain components may wear out and need replacement. The most common wear items are:
+
+- **Tensioner set** (front and rear tensioners): The printed tensioner components experience stress during belt tensioning and direction changes. Cracks or deformation can develop over extended use.
+- **Threaded end-effector**: The M24×3 threads can wear or strip over time, especially with frequent toy changes or heavy toys.
+- **Timing belt**: The belt may stretch, fray, or develop cracks after extended high-speed operation.
+- **Belt clamps**: These grip the belt and can wear or crack under repeated stress.
+
+How quickly parts wear depends on usage intensity, print material, and print quality. Parts printed in stronger materials (PETG, ABS, polycarbonate) generally last longer than PLA.
+</Accordion>
+
+<Accordion title="How do I order replacement parts?">
+If you need replacement parts for your OSSM:
+
+1. **Contact support** at [support@researchanddesire.com](mailto:support@researchanddesire.com)
+2. Include your **original order number** and describe which parts you need
+3. Support will send you an invoice for the replacement parts
+
+<Tip>
+If you have access to a 3D printer, you can also print replacement parts yourself using the STL files from the [Kinky Makers GitHub repository](https://github.com/KinkyMakers/OSSM-hardware/tree/main/Printed%20Parts).
+</Tip>
+</Accordion>
+
+<Accordion title="How often should I inspect my OSSM?">
+Perform a visual inspection periodically, especially if you notice changes in performance:
+
+**Before each use:**
+- Check that the belt is properly tensioned (no slipping or ratcheting sounds)
+- Ensure the toy mount is secure
+
+**Monthly (or every 10–20 hours of use):**
+- Inspect printed parts for cracks, especially tensioners and belt clamps
+- Check the threaded end-effector for wear or stripping
+- Examine the belt for fraying, cracks, or excessive stretch
+- Verify all fasteners are tight
+
+**Signs a part needs replacement:**
+- Visible cracks or deformation in printed parts
+- Belt slipping despite proper tension adjustment
+- Threads no longer grip securely
+- Unusual noises during operation
+
+<Note>
+Continuing to use worn parts can cause further damage or unexpected failures. Replace worn components promptly.
+</Note>
 </Accordion>
 </AccordionGroup>
