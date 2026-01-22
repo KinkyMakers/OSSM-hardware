@@ -47,6 +47,22 @@ Yes—OSSM is certified open-source hardware under the **CERN Open Hardware Lice
 
 All contributions to the GitHub repository are assumed to use the same license.
 </Accordion>
+
+<Accordion title="What's the difference between DIY Kit and Ready-to-Play?">
+The main differences between the DIY Kit and Ready-to-Play are the mounting system and assembly state:
+
+| Feature | DIY Kit | Ready-to-Play |
+|---------|---------|---------------|
+| **Assembly** | Requires assembly using the build guide | Fully assembled, ready to use |
+| **Mounting system** | Middle pivot body (angle adjustment at the actuator) | PitClamp Mini (quick-release with integrated pivot for easier mobility) |
+| **Stand** | Not included—source your own or build a custom mount | Includes collapsible stand with sandbag counterweight |
+| **Remote** | Wired remote included | Wired or wireless remote (depending on configuration) |
+| **Power supply** | USB-C PD adapter included | 24V barrel jack supply included |
+
+The PitClamp Mini mounting system on Ready-to-Play units provides easier repositioning and angle adjustment during use. The DIY Kit's middle pivot body offers the same core functionality but requires more effort to reposition.
+
+Both configurations support the same stroke patterns, speeds, and accessories. For most users, the choice comes down to whether you want a hands-on build experience or a ready-to-use solution.
+</Accordion>
 </AccordionGroup>
 
 ## Motors
@@ -166,9 +182,27 @@ Your mounting solution is limited only by your imagination and use case.
 <Accordion title="How do I control my OSSM?">
 Control options depend on your use case:
 
-- **Wired remote**: Basic control included with standard builds
-- **M5 Remote**: Advanced wireless remote available from community members
+- **Wired remote**: Included with DIY kits and some Ready-to-Play configurations
+- **RADR (Research and Desire Remote)**: Official wireless remote with Bluetooth connectivity
 - **Custom solutions**: Build your own controller—that's the advantage of open-source hardware
+</Accordion>
+
+<Accordion title="What's the difference between wired and wireless remotes?">
+Both remotes provide full control over your OSSM, including access to all stroke patterns. The main differences are in connectivity and ease of pattern switching:
+
+| Feature | Wired Remote | RADR (Wireless) |
+|---------|--------------|-----------------|
+| **Connection** | Ethernet cable to OSSM board | Bluetooth (wireless) |
+| **Stroke patterns** | All 7 patterns available via Stroke Engine | All 7 patterns available via Pattern Mode |
+| **Pattern switching** | Double-press the right encoder to open pattern menu | Single press of the dedicated Pattern button |
+| **Multi-device support** | OSSM only | OSSM + other Bluetooth devices (Lovense, etc.) |
+| **Power** | Powered via cable | Built-in rechargeable battery (USB-C charging) |
+
+<Note>
+The RADR connects via Bluetooth only—there is no option to connect it via an Ethernet or USB cable. If you need a wired connection, use the standard wired remote.
+</Note>
+
+Both remotes support the same motion patterns: Simple Stroke, Teasing or Pounding, Robo Stroke, Half'n'Half, Deeper, Stop'n'Go, and Insist. Pattern switching is slightly more convenient on the RADR due to its dedicated button, but the wired remote provides identical functionality.
 </Accordion>
 
 <Accordion title="Can I control OSSM over the internet?">
@@ -206,12 +240,29 @@ No, the reference board is optional. However, it significantly simplifies the bu
 </Accordion>
 
 <Accordion title="What power supply do I need?">
-Power supply requirements depend on your motor wattage:
+Power supply requirements depend on your motor wattage and connection type:
+
+**24V barrel jack (recommended for maximum performance):**
 
 | Motor | Recommended Power Supply |
 |-------|-------------------------|
 | 100W JMC | 24V, 4A |
 | 140W / 180W JMC | 24V, 6A |
+| Gold Motor (57AIM30) | 24V, 4A minimum |
+
+**USB-C Power Delivery (included with DIY kits):**
+
+If your kit includes a USB-C power adapter, use a USB-C Power Delivery charger with the following specifications:
+
+| Specification | Requirement |
+|---------------|-------------|
+| Minimum wattage | 65W |
+| Recommended voltage | 19V or higher |
+| Protocol | USB Power Delivery (PD) |
+
+<Note>
+USB-C PD adapters deliver slightly less force than a dedicated 24V supply (35 lbs vs 45 lbs). For most users, this difference is imperceptible. If you need maximum force, use a 24V barrel jack power supply.
+</Note>
 
 <Warning>
 For safety, use a desktop power supply that is ideally double-insulated. Supplies from reputable distributors (Mouser, Digikey, Conrad, RS) cost more than unbranded units from AliExpress/eBay/Amazon, but unbranded supplies have shown inconsistent quality and long-term stability issues.
@@ -220,6 +271,19 @@ For safety, use a desktop power supply that is ideally double-insulated. Supplie
 
 <Accordion title="How long should my H-rail be?">
 Rail length determines maximum stroke depth. A **350mm rail** provides approximately **195mm of usable depth**.
+
+Calculate your maximum stroke using this formula: **rail length − 180mm = maximum stroke**.
+
+| Rail Length | Maximum Stroke |
+|-------------|----------------|
+| 350mm (14 in) | 170mm (7 in) |
+| 400mm (16 in) | 220mm (9 in) |
+| 450mm (18 in) | 270mm (11 in) |
+| 500mm (20 in) | 320mm (13 in) |
+
+<Warning>
+We do not recommend using a rail longer than **500mm (20 in)**. Longer rails increase bending and friction under load, which can cause binding, inconsistent motion, and accelerated wear. If you need more stroke, ensure the rail is properly supported along its length.
+</Warning>
 </Accordion>
 
 <Accordion title="What thread size is used on the end effector?">
