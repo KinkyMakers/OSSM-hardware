@@ -118,13 +118,14 @@
               {
                 "group": "Getting Started",
                 "pages": [
-                  "ossm/Hardware/getting-started/introduction"
+                  "ossm/Hardware/getting-started/introduction",
+                  "ossm/Hardware/getting-started/bom"
                 ]
               },
               {
                 "group": "Standard Printed Parts",
                 "pages": [
-                  "ossm/Hardware/standard-printed-parts/contibution-guidelines",
+                  "ossm/Hardware/standard-printed-parts/contribution-guidelines",
                   {
                     "group": "Actuator Assembly",
                     "pages": [
@@ -306,6 +307,10 @@
                 "group": "Getting Started",
                 "pages": [
                   "ossm/Software/getting-started/introduction",
+                  "ossm/Software/getting-started/operating-modes",
+                  "ossm/Software/getting-started/safety-features",
+                  "ossm/Software/getting-started/configuration",
+                  "ossm/Software/getting-started/wifi-and-updates",
                   "ossm/Software/getting-started/PlatformIO",
                   "ossm/Software/getting-started/LED_Status",
                   "ossm/Software/getting-started/display"
@@ -314,7 +319,8 @@
               {
                 "group": "Communication",
                 "pages": [
-                  "ossm/Software/communication/ble"
+                  "ossm/Software/communication/ble",
+                  "ossm/Software/communication/gpio"
                 ]
               },
               {
@@ -322,6 +328,18 @@
                 "pages": [
                   "ossm/Software/motion/stroke-engine/introduction",
                   "ossm/Software/motion/stroke-engine/Pattern"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Tools",
+            "groups": [
+              {
+                "group": "Flashers",
+                "pages": [
+                  "ossm/tools/web-flasher",
+                  "ossm/tools/gold-motor-programming"
                 ]
               }
             ]

@@ -1,0 +1,209 @@
+---
+title: "Configuration Reference"
+description: "Understand and customize OSSM firmware configuration parameters for your specific build"
+---
+
+The OSSM firmware uses a set of configuration constants that define motion limits, hardware properties, and user preferences. This reference documents all configurable parameters and how to modify them for custom builds.
+
+<Warning>
+Modifying configuration values incorrectly can damage your hardware or cause unsafe operation. Only change values if you understand their effects and have verified your hardware specifications.
+</Warning>
+
+## Motion system configuration
+
+These parameters define how the OSSM moves and are found in `src/constants/Config.h` under the `Config::Driver` namespace.
+
+### Speed and acceleration
+
+| Parameter | Default | Unit | Description |
+|-----------|---------|------|-------------|
+| `maxSpeedMmPerSecond` | 900.0 | mm/s | Maximum linear speed of the actuator |
+| `maxAcceleration` | 10000.0 | mm/s² | Maximum acceleration/deceleration rate |
+
+<Info>
+These limits apply to all operating modes. The actual speed achieved depends on your motor, power supply, and mechanical setup.
+</Info>
+
+### Motor configuration
+
+| Parameter | Default | Unit | Description |
+|-----------|---------|------|-------------|
+| `motorStepPerRevolution` | 800.0 | steps/rev | Motor steps per full revolution |
+| `pulleyToothCount` | 20.0 | teeth | Number of teeth on the drive pulley |
+| `beltPitchMm` | 2.0 | mm | Distance between belt teeth (GT2 standard) |
+
+These values combine to calculate `stepsPerMM`:
+
+```cpp
+stepsPerMM = motorStepPerRevolution / (pulleyToothCount * beltPitchMm)
+// Default: 800 / (20 * 2) = 20 steps/mm
+```
+
+<Tip>
+If you're using different hardware (e.g., a 16-tooth pulley or GT3 belt), update these values to match. Incorrect values cause the firmware to miscalculate positions.
+</Tip>
+
+### Stroke limits
+
+| Parameter | Default | Unit | Description |
+|-----------|---------|------|-------------|
+| `maxStrokeSteps` | 500.0 | mm | Maximum usable stroke length |
+| `minStrokeLengthMm` | 50.0 | mm | Minimum stroke to pass homing validation |
+
+<Note>
+`maxStrokeSteps` defines the absolute maximum travel. Set this to your rail length minus the linear block holder (75mm on standard OSSM) minus a 20mm safety margin.
+</Note>
+
+### Homing configuration
+
+| Parameter | Default | Unit | Description |
+|-----------|---------|------|-------------|
+| `sensorlessCurrentLimit` | 1.5 | % | Current threshold that indicates end-of-travel |
+
+The OSSM uses sensorless homing—it detects when the actuator hits the end of travel by monitoring motor current. When current exceeds this threshold, the firmware knows the actuator has reached a physical stop.
+
+## Advanced configuration
+
+These parameters fine-tune firmware behavior and are found in `Config::Advanced`.
+
+| Parameter | Default | Unit | Description |
+|-----------|---------|------|-------------|
+| `strokeZeroOffsetMm` | 6.0 | mm | Buffer distance from physical home position |
+| `commandDeadZonePercentage` | 1.0 | % | Potentiometer dead zone to prevent noise |
+| `accelerationScaling` | 100.0 | - | Affects motion aggressiveness in Simple Penetration |
+
+<AccordionGroup>
+<Accordion title="strokeZeroOffsetMm">
+After homing, the actuator backs off from the physical endstop by this distance. This prevents the actuator from repeatedly hitting the endstop during normal operation.
+</Accordion>
+
+<Accordion title="commandDeadZonePercentage">
+Analog potentiometers can produce noisy readings near zero. This dead zone ensures the speed knob registers as "zero" when turned fully counterclockwise, even if the electrical reading is slightly above 0%.
+</Accordion>
+
+<Accordion title="accelerationScaling">
+In Simple Penetration mode, acceleration is calculated as:
+```cpp
+acceleration = maxSpeedMmPerSecond * speed * speed / accelerationScaling
+```
+Higher values produce gentler acceleration curves.
+</Accordion>
+</AccordionGroup>
+
+## User configuration
+
+User preferences are defined in `src/constants/UserConfig.h`.
+
+### Language
+
+```cpp
+static LanguageStruct language = enUs;  // or 'fr' for French
+```
+
+Available languages:
+- `enUs` — English (US)
+- `fr` — French
+
+<Note>
+Language selection currently requires recompiling the firmware. A runtime language selector is planned for future releases.
+</Note>
+
+### Display units
+
+```cpp
+static bool displayMetric = true;
+```
+
+When `true`, distances display in meters. When `false`, distances display in feet.
+
+## Pin definitions
+
+Hardware pins are defined in `src/constants/Pins.h`. Modify these if you're building custom hardware.
+
+### Display pins
+
+| Pin | Default GPIO | Description |
+|-----|--------------|-------------|
+| `oledReset` | -1 | OLED reset pin (-1 if shared with board reset) |
+| `ledPin` | 25 | RGB LED data pin (WS2812B) |
+
+### Driver pins
+
+| Pin | Default GPIO | Description |
+|-----|--------------|-------------|
+| `motorStepPin` | 14 | Stepper/servo STEP signal |
+| `motorDirectionPin` | 27 | Stepper/servo DIR signal |
+| `motorEnablePin` | 26 | Stepper/servo ENA signal |
+| `currentSensorPin` | 36 | Analog current sensing input |
+| `stopPin` | 19 | Emergency stop switch (optional) |
+| `limitSwitchPin` | 12 | Limit switch input (optional) |
+
+### Remote pins
+
+| Pin | Default GPIO | Description |
+|-----|--------------|-------------|
+| `speedPotPin` | 34 | Speed potentiometer analog input |
+| `encoderSwitch` | 35 | Encoder button input |
+| `encoderA` | 18 | Encoder channel A |
+| `encoderB` | 5 | Encoder channel B |
+| `displayData` | 21 | I2C SDA for OLED |
+| `displayClock` | 19 | I2C SCL for OLED |
+
+### GPIO expansion pins
+
+These pins are available for accessories via [BLE GPIO control](/ossm/Software/communication/gpio):
+
+| Logical Pin | GPIO | Description |
+|-------------|------|-------------|
+| Pin 1 | GPIO 2 | General purpose output |
+| Pin 2 | GPIO 15 | General purpose output |
+| Pin 3 | GPIO 22 | General purpose output |
+| Pin 4 | GPIO 33 | General purpose output |
+
+## Modifying configuration
+
+<Steps>
+<Step title="Clone the repository">
+If you haven't already, clone the OSSM firmware repository:
+
+```bash
+git clone https://github.com/KinkyMakers/OSSM-hardware.git
+cd OSSM-hardware/Software
+```
+</Step>
+
+<Step title="Edit configuration files">
+Open the relevant configuration file in your editor:
+
+- `src/constants/Config.h` — Motion and advanced parameters
+- `src/constants/UserConfig.h` — User preferences
+- `src/constants/Pins.h` — Hardware pin assignments
+</Step>
+
+<Step title="Rebuild and upload">
+Use PlatformIO to compile and upload the modified firmware:
+
+1. Click the **Build** button to verify your changes compile
+2. Click **Upload** to flash the new firmware
+
+<Check>
+After uploading, the OSSM will restart and use your new configuration.
+</Check>
+</Step>
+</Steps>
+
+<Warning>
+Always test configuration changes carefully. Start with low speeds and verify homing completes successfully before normal operation.
+</Warning>
+
+## Related pages
+
+<CardGroup cols={2}>
+<Card title="PlatformIO Setup" icon="wrench" href="/ossm/Software/getting-started/PlatformIO">
+  Set up your development environment to modify and upload firmware.
+</Card>
+
+<Card title="Safety Features" icon="shield" href="/ossm/Software/getting-started/safety-features">
+  Understand how configuration values affect safety systems.
+</Card>
+</CardGroup>

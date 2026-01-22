@@ -3,47 +3,50 @@ title: "Programming Your Motor"
 description: "Configure your Gold Motor settings using the web-based programming tool"
 ---
 
-import { GoldMotorControl } from "/snippets/ossm/gold-motor-control.jsx"
 
-<GoldMotorControl />
-
-Before using your motor with OSSM, you must program it to set the correct steps per revolution and communication parameters.
+Program your Gold Motor (AIM series) for OSSM before first use. You will set steps per revolution and the communication parameters used by the OSSM Reference Board.
 
 <Note>
-Motors purchased from Research and Desire come pre-programmed. You only need to follow this guide if you sourced your motor elsewhere.
+Motors purchased from Research and Desire come pre-programmed. Only follow this guide if you sourced your motor elsewhere or need to restore defaults.
 </Note>
 
-## Web-Based Programming Tool
+## Web-based programming tool
 
-The easiest way to program your Gold Motor is the browser-based tool:
+Use the browser tool to read and write motor settings. <a href="/ossm/tools/gold-motor-programming">Open Gold Motor Programming Tool</a>
 
-<Card title="Gold Motor Programming Tool" icon="microchip" href="https://armpitmfg.com/ossm/gmp/">
-Program your motor directly from Chrome, Edge, or other Chromium-based browsers using the Web Serial API.
-</Card>
+<Tip>
+- The Web Serial API is supported in Chromium-based browsers on Windows, macOS, and Linux. It is not available in Safari or Firefox.
+- Some USB–RS485 adapters require drivers (e.g., FTDI/CP210x/CH340). Install the vendor driver if your adapter is not detected by the OS.
+</Tip>
 
 ## Prerequisites
 
-Before you begin, gather the following:
+Gather the following before you start:
 
-- **RS485 to USB adapter** with 5V+, GND, A, and B pins ([example adapter](https://www.amazon.com/CERRXIAN-Terminal-Converter-Serial-Windows/dp/B09JMT9D59))
-- **20-36V DC power supply** for the motor
-- **Chromium-based browser** (Chrome, Edge, Brave, etc.)
+- RS485 to USB adapter with 5V+, GND, A, and B pins (for example, a terminal-block style adapter)
+- 20–36 V DC power supply for the motor
+- Chromium-based desktop browser (Chrome, Edge, Brave, etc.)
+- Access to the OSSM Reference Board (for power and the signal cable you will temporarily disconnect)
 
-## Programming Instructions
+<Warning>
+Never power the motor from USB alone. The motor must have its normal 20–36 V DC input during programming.
+</Warning>
+
+## Programming instructions
 
 <Steps>
 <Step title="Disconnect the signal cable">
-Remove the OSSM Reference Board 4-pin signal plug from the motor.
+Remove the OSSM Reference Board 4‑pin signal plug from the motor.
 
 <Warning>
-The signal cable must be disconnected during programming. Leaving it connected can cause communication conflicts and programming failures.
+Leave the signal cable disconnected during programming. Having both the RS485 adapter and the OSSM board connected can cause bus conflicts and failed writes.
 </Warning>
 </Step>
 
 <Step title="Connect the RS485 adapter">
 Wire the RS485 USB adapter to the motor programming port:
 
-| Adapter Pin | Motor Pin |
+| Adapter pin | Motor pin |
 |-------------|-----------|
 | A | A |
 | B | B |
@@ -51,103 +54,146 @@ Wire the RS485 USB adapter to the motor programming port:
 | GND | GND |
 
 <Tip>
-If you don't have the matching plug for the AIM series motor programming port, you can use individual jumper wires to make the connections.
+Adapter labeling is not always consistent. If the tool cannot detect the motor, swap A and B on the adapter and try again.
 </Tip>
 </Step>
 
 <Step title="Power the motor">
-Supply 20-36V DC power to the motor through either:
-- The OSSM Reference Board
-- An external power supply
+Provide 20–36 V DC to the motor using either:
+
+- The OSSM Reference Board (recommended for convenience), or
+- An external bench supply
 
 <Check>
-Verify the green LED on the rear of the servo illuminates, confirming power is connected.
+Confirm the green LED on the rear of the servo is lit to verify power.
 </Check>
 </Step>
 
-<Step title="Connect to the programming tool">
-1. Open the [Gold Motor Programming Tool](https://armpitmfg.com/ossm/gmp/) in your browser
-2. Click **Connect to Motor**
-3. Select your USB serial port from the browser dialog
+<Step title="Open and connect the programming tool">
+1. Open the Gold Motor Programming Tool in your browser.
+2. Select **Connect to Motor**.
+3. Choose your USB serial device from the dialog and grant access.
 
-The tool reads and displays the current motor settings.
+The tool will read and display the current motor settings.
 </Step>
 
-<Step title="Configure motor settings">
-Review and adjust the settings as needed:
+<Step title="Review and configure settings">
+Adjust only what you need for OSSM:
 
-- **Basic settings** are displayed by default and are sufficient for most OSSM builds
-- **Advanced settings** can be revealed but require caution
+- Basic settings are surfaced by default and cover the typical OSSM configuration.
+- Advanced settings are available but should be changed only if you understand their impact.
 
 <Warning>
-Incorrect advanced settings can make the motor unusable. Only modify advanced settings if you understand their function.
+Incorrect advanced values can disable motion or make the motor appear unresponsive. Document original values before changing them.
 </Warning>
 </Step>
 
-<Step title="Write settings to motor">
-1. Click **Write Settings** to program the motor
-2. The tool writes settings multiple times to ensure reliability
-3. Verify the updated values display correctly
+<Step title="Write settings and verify">
+1. Select **Write Settings**.
+2. Wait for the write sequence to complete. The tool writes critical values multiple times for reliability.
+3. Power‑cycle the motor, reconnect, and select **Read Settings** to confirm persistence.
 
 <Check>
-Confirm all settings match your expected configuration before proceeding.
+All values should match your expected configuration after the power cycle.
 </Check>
 </Step>
 
 <Step title="Disconnect and reassemble">
-1. Remove power from the motor
-2. Disconnect the RS485 programming adapter
-3. Reconnect the OSSM signal cable
+1. Remove power from the motor.
+2. Unplug the RS485 programming adapter.
+3. Reconnect the OSSM 4‑pin signal cable.
+4. Restore normal power and proceed with OSSM setup.
 </Step>
 </Steps>
 
-## Running the Tool Locally
+## Default settings applied by the tool
 
-You can run the programming tool offline:
+The programming tools set the required OSSM defaults:
 
-1. Download the `GMP` folder from the [OSSM hardware repository](https://github.com/KinkyMakers/OSSM-hardware/tree/master/ossm/Hardware/Servo%20Tools/Gold%20Motor)
-2. Open `index.html` in a Chromium-based browser
-3. Follow the same connection and programming steps
+| Setting | Value | Purpose |
+|---------|-------|---------|
+| Steps per revolution | 800 | Ensures correct motion scaling in OSSM |
+| Communication protocol | RS485 | Matches the OSSM PCB interface |
+| Over‑torque behavior | Reduce torque | Prevents abrupt motor disable under load |
+
+<Info>
+Depending on your motor and adapter, the tool may also configure bus parameters (baud rate and device address) to OSSM defaults. Use the **Read Settings** function to confirm.
+</Info>
+
+## Run the tool locally (offline)
+
+You can use the tool offline if your environment blocks external sites.
+
+<Steps>
+<Step title="Get the tool files">
+Download the `GMP` folder from the OSSM hardware repository and keep the folder structure intact on your computer.
+</Step>
+
+<Step title="Open the tool">
+Open `index.html` from the `GMP` folder in a Chromium-based browser.
+</Step>
+
+<Step title="Program as usual">
+Follow the same connection and programming steps described above.
+</Step>
+</Steps>
+
+<Note>
+Some browsers restrict file:// access to serial ports via Web Serial on managed devices. If you encounter an error, serve the folder over `http://` using a simple local server (for example, `python -m http.server`) and open the page from `http://localhost`.
+</Note>
 
 ## Troubleshooting
 
 <AccordionGroup>
 <Accordion title="Motor not detected">
-- Verify the RS485 adapter is properly connected
-- Check that A connects to A and B connects to B (not crossed)
-- Ensure the motor has power (green LED visible)
-- Try a different USB port
-- Confirm your browser supports Web Serial API
+- Confirm the RS485 adapter has power (some adapters require 5V from the motor’s programming header).
+- Verify A connects to A and B connects to B. If labels are unclear, try swapping A/B at the adapter.
+- Ensure the motor is powered and the green LED is on.
+- Try a different USB port or cable.
+- Install or update the USB–serial driver for your adapter chipset.
+- Use a supported Chromium-based browser and grant serial permission when prompted.
 </Accordion>
 
 <Accordion title="Programming fails or times out">
-- Disconnect and reconnect the RS485 adapter
-- Power cycle the motor
-- Ensure the OSSM signal cable is disconnected
-- Try reducing the distance between adapter and motor
+- Disconnect and reconnect the RS485 adapter, then retry.
+- Power-cycle the motor and reconnect in the tool.
+- Ensure the OSSM signal cable is disconnected during programming.
+- Shorten the RS485 wiring run and avoid loose jumper connections.
+- Remove other RS485 devices from the bus so only the motor and adapter are connected.
 </Accordion>
 
 <Accordion title="Settings don't persist after power cycle">
-- Re-run the write operation
-- Verify the tool shows success after writing
-- Check for firmware compatibility issues
+- Run **Write Settings** again and wait for confirmation.
+- Power-cycle the motor, then use **Read Settings** to verify.
+- If values still revert, check for firmware compatibility constraints and reapply defaults using the tool’s basic settings.
+</Accordion>
+
+<Accordion title="Adapter connects but reads garbage data">
+- Install the correct driver for your adapter and reboot.
+- Try another USB port (avoid unpowered hubs).
+- Reduce electrical noise: route RS485 lines away from motor power leads.
 </Accordion>
 </AccordionGroup>
 
-## Legacy Python Script
+## Legacy Python script
 
 <Info>
-A Python-based programming script is available for advanced users who prefer command-line tools. This script is less maintained than the web tool.
+A command‑line Python script exists for advanced users. It is less maintained than the web tool and is intended for recovery or automation scenarios.
 </Info>
 
-The Python script writes default settings to the Gold Motor and displays current configuration. Find it in the [OSSM hardware repository](https://github.com/KinkyMakers/OSSM-hardware/tree/master/ossm/Hardware/Servo%20Tools/Gold%20Motor).
+The script writes OSSM default settings and prints the current configuration. You can find it in the OSSM hardware repository under the Gold Motor tools.
 
-### Default Settings Changed
+<Tip>
+Test with the web tool first. Use the Python script only if you need headless or automated configuration.
+</Tip>
 
-The programming tools configure these essential settings:
+## Safety and best practices
 
-| Setting | Value | Purpose |
-|---------|-------|---------|
-| Steps per revolution | 800 | Required for OSSM motion control |
-| Communication protocol | RS485 | Matches OSSM PCB interface |
-| Over-torque behavior | Reduce torque | Prevents sudden motor disable |
+- Work with power removed whenever changing wiring.
+- Do not short 5V+ to GND on the programming header.
+- Keep RS485 leads short and firmly terminated. For long runs, a 120 Ω terminator may improve signal integrity.
+- Record original values before making changes, and save a screenshot of the final configuration for future reference.
+
+<Check>
+After successful programming and reconnection to OSSM, jog the motor in your control software to verify direction, scaling, and smooth motion.
+</Check>

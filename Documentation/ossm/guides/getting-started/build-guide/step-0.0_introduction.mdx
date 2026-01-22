@@ -1,82 +1,169 @@
 ---
 title: "Introduction"
-description: "Welcome to the OSSM build guide - learn about the components and assembly process"
+description: "Welcome to the OSSM build guide – learn the core components and the end‑to‑end assembly flow before you start."
 ---
 
-Hey! This is AJ from Research And Desire. Welcome to the community build guide of the OSSM. I'm going to show you step by step how to go from the DIY kit to a fully assembled functioning OSSM.
+Welcome to the community build guide for the Open Source Sex Machine (OSSM). In this section, you’ll learn the major components and the build sequence you’ll follow to assemble a fully working OSSM from a DIY kit.
 
-Before we begin, I'd like to introduce you to the parts of the OSSM so that you know what we're talking about.
+<iframe
+  className="w-full aspect-video rounded-xl"
+  src="https://www.youtube.com/embed/9lVobSEw_Uw"
+  title="OSSM overview video"
+  frameBorder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen
+></iframe>
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/9lVobSEw_Uw" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+## OSSM overview
 
-## OSSM Overview
-
-The OSSM is composed of two major groups: the actuator and the frame.
+The OSSM has two main groups: the actuator and the frame.
 
 ### Actuator
 
-The actuator is the functional core of the device and includes everything from the pit clamp, the motor, the linear rail, the tensioner, and the end effector.
+The actuator is the functional core of the OSSM. It contains:
+
+- PitClamp or mount interface
+- Motor and pulley
+- Linear rail and carriage
+- Belt and rear/front tensioners
+- End effector (toy mounting hardware)
 
 <Info>
-  Most of your build time today will be focused on assembling the actuator.
+Most of your build time will be spent assembling the actuator and setting belt tension.
 </Info>
 
 ### Frame
 
-The frame is the structural part, specifically the aluminum body that holds and supports the actuator.
+The frame is the structural stand that holds and positions the actuator. You can build on the basic mount or an extrusion stand depending on your setup. See <a href="/ossm/guides/getting-started/quickstart">OSSM: Basic Mount V2</a> for mounting options.
 
-## Building the Actuator
+<Warning>
+There are pinch points around the rail and carriage. Keep hands, cables, and anything sensitive away from the moving rail during assembly and testing. The OSSM can generate significant force—always be able to stop or move away quickly.
+</Warning>
 
-The actuator is the functional core of the OSSM, and it's the first thing that we should build.
+## Build sequence at a glance
 
-Here are the steps that we're going to follow today:
+You’ll assemble the actuator first, then install electronics, wire everything, and run an initial test.
 
 <Steps>
-  <Step title="Rear Tensioner">
-    Installed, including initial belt threading
+  <Step title="Install the rear tensioner">
+    Mount the rear tensioner and thread the belt through the rear path.
+
+    <Check>
+    The rear tensioner sits square to the rail and the belt moves freely with light finger tension.
+    </Check>
   </Step>
-  <Step title="End Effector">
-    The threaded end piece is installed
+
+  <Step title="Attach the end effector">
+    Install the threaded end piece or preferred toy mount onto the carriage.
+
+    <Check>
+    The end effector fasteners are snug and the mount aligns with the rail centerline.
+    </Check>
   </Step>
-  <Step title="Front Tensioner">
-    Installed loosely to set the stroke hard limit
+
+  <Step title="Fit the front tensioner (loosely)">
+    Install the front tensioner but leave it slightly loose. You’ll set the final stroke limit and belt tension later.
+
+    <Check>
+    The carriage can travel the full intended range without binding.
+    </Check>
   </Step>
-  <Step title="Bearings and OSSM Motorhead Bottom">
-    Assembly and attachment to the Linear Rail
+
+  <Step title="Bearings + Motorhead bottom">
+    Assemble bearings and the OSSM motorhead bottom, then secure to the linear rail.
+
+    <Check>
+    With gentle hand pressure, the carriage glides smoothly end to end.
+    </Check>
   </Step>
-  <Step title="Pulley on Motor">
-    The pulley is placed and secured onto the Motor shaft
+
+  <Step title="Install the pulley on the motor">
+    Place the pulley onto the motor shaft and secure it per the hardware kit.
+
+    <Warning>
+    Confirm pulley alignment with the belt path. Misalignment increases wear and can cause belt walk.
+    </Warning>
+
+    <Check>
+    The pulley set screw(s) are tight and the pulley does not rock on the shaft.
+    </Check>
   </Step>
-  <Step title="OSSM Motorhead Middle">
-    The middle section is attached
+
+  <Step title="Attach the motorhead middle">
+    Fit and secure the middle section of the motorhead.
+
+    <Check>
+    No cables are pinched; the belt tracks cleanly through the assembly.
+    </Check>
   </Step>
-  <Step title="Cover (Motor Head)">
-    The final cover for the motor head assembly is attached
+
+  <Step title="Add the motorhead cover">
+    Install the final cover for the motorhead assembly.
+
+    <Check>
+    All fasteners are snug; no rubbing or scraping noises when you move the carriage by hand.
+    </Check>
   </Step>
-  <Step title="Tension Adjustment">
-    The final tightening of the tension bolt to set the belt tension
+
+  <Step title="Set belt tension">
+    Use the tension bolt to set final belt tension. The belt should be taut without causing bearing grind.
+
+    <Tip>
+    A good starting point is firm finger deflection of ~2–3 mm at mid‑span. Adjust during testing if you hear belt chatter or see missed steps.
+    </Tip>
+
+    <Check>
+    Manual carriage motion feels smooth and returns to the same positions consistently.
+    </Check>
   </Step>
-  <Step title="Electronics Assembly">
-    The OSSM Control Board is mounted and covered
+
+  <Step title="Mount the electronics">
+    Install the OSSM control board in its enclosure and mount it to your frame.
+
+    <Check>
+    The board is secure, connectors face a convenient direction, and ventilation isn’t obstructed.
+    </Check>
   </Step>
-  <Step title="Wiring">
-    Connecting the voltage and four-pin data cables
+
+  <Step title="Wire power and data">
+    Connect the motor power and PH04 data cables to the board. Follow the wiring order in <a href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">Wiring Your Gold Motor</a>.
+
+    <Check>
+    Red/black power leads are in +/– terminals; PH04 is fully seated; no stray wire strands are exposed.
+    </Check>
   </Step>
-  <Step title="Initial Test">
-    Connecting the remote and power source to perform homing and a test
+
+  <Step title="Initial firmware + motion test">
+    Power the OSSM, allow it to home, then run a short test at low speed. If needed, update firmware using <a href="/open-source-sex-machine/flashing-your-ossm">Flashing your OSSM</a>.
+
+    <Check>
+    Homing completes without grinding or stalls, and motion is smooth at low speeds.
+    </Check>
   </Step>
 </Steps>
 
-## Next Steps
+## Threadlocker and fastener retention
 
-Once you're familiar with the OSSM components and the build process overview, proceed to the next section to gather your required tools and parts before beginning assembly.
+<Tip>
+Use a medium‑strength threadlocker (e.g., blue) on metal‑to‑metal fasteners to keep them from loosening under vibration—especially bearing nuts, pulley set screws, and frame hardware. Avoid getting threadlocker on plastic parts or inside bearings.
+</Tip>
 
--- TODO 2: integrate this:
+<Info>
+No threadlocker on hand? A tiny dab of plain white PVA glue on the thread tips can add light resistance in a pinch. Let it dry before use.
+</Info>
 
-#### Threadlocker
+<Warning>
+Applying threadlocker to the motor shaft/pulley can help prevent slip, but it makes removal difficult. Confirm pulley position and belt alignment first, apply sparingly, and allow full cure time before testing.
+</Warning>
 
-Recommend you use some form of threadlocker/Loctite on the fasteners going into metal (nuts of bearing) to prevent them from loosening as the ossm gets shaken around quite a bit.
+## Where to go next
 
-If you do not have Loctite, some plain white glue does a decent job, just a small amount on the ends of the threads is all you need.
+- Gather tools and parts for your build workspace.
+- Review wiring and firmware pages so you’re ready when you reach those steps:
+  - <a href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">Wiring Your Gold Motor</a>
+  - <a href="/open-source-sex-machine/flashing-your-ossm">Flashing your OSSM</a>
+- If you haven’t chosen a stand yet, see <a href="/ossm/guides/getting-started/quickstart">OSSM: Basic Mount V2</a>.
 
-You can also put threadlocker on the motor shaft to help keep the pulley tightly in place – just be sure you are happy with it’s position, this can be very hard to remove!
+<Tip>
+For stability during testing and play, use a weighted base or the included sandbag with your stand. A heavier base reduces vibration, keeps belt tension consistent, and improves motion quality.
+</Tip>

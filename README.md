@@ -2,6 +2,8 @@
 
 **Maintained by [Research and Desire](https://researchanddesire.com), supported by the community.**
 
+[Read the documentation here.](https://docs.researchanddesire.com/ossm)
+
 ![OSSM Overview Image](Documentation/ossm/images/_images/OSSM%20Banner%20Image.webp)
 
 ## What is OSSM?

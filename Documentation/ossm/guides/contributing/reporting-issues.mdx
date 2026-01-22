@@ -1,48 +1,166 @@
 ---
 title: "Reporting Issues"
-description: "Learn how to report bugs, design problems, and technical issues with OSSM hardware or software"
+description: "How to report bugs, design problems, and technical issues with OSSM hardware or software"
 ---
 
-Found a bug or design problem? Reporting issues helps improve OSSM for everyone. This guide explains where and how to submit technical issues effectively.
+Found a bug or design problem? Reporting issues helps improve OSSM for everyone. This guide explains where to submit issues and how to write reports that maintainers can act on quickly.
 
-## What to report on GitHub
+## Where to report
 
-Submit issues to the [OSSM GitHub repository](https://github.com/KinkyMakers/OSSM-hardware/issues) for:
-
-- **Software bugs** — Firmware crashes, unexpected behavior, or code errors
-- **Hardware design issues** — Problems with CAD models, printed part fit, or mechanical design
-- **Documentation errors** — Incorrect instructions, missing information, or broken links
-- **Feature requests** — Ideas for improvements to the design or software
+- GitHub (open source design and code)
+  - Use the OSSM GitHub repository issues for:
+    - Software bugs — firmware crashes, unexpected behavior, or code errors
+    - Hardware design issues — CAD model problems, printed part fit, mechanical interference
+    - Documentation errors — incorrect instructions, missing information, broken links
+    - Feature requests — ideas for improvements to hardware, firmware, or UX
+  - Repository issues: https://github.com/KinkyMakers/OSSM-hardware/issues
 
 <Warning>
-If you purchased parts or a pre-built assembly from Research and Desire, contact their support team directly for order issues, shipping problems, or product defects. GitHub issues are for open source design and code problems only.
+If you purchased parts or a pre-built assembly from Research and Desire, use support for order issues, shipping questions, missing items, or product defects. These are not GitHub issues.
+<br />
+<a href="mailto:support@researchanddesire.com">Contact support</a> (typical reply within 1 business day).
 </Warning>
 
-## How to submit a good issue
+<Warning>
+Security or safety vulnerabilities: do not post publicly. <a href="mailto:support@researchanddesire.com">Contact support</a> and include “Security report” in the subject. Provide a minimal, reproducible description and affected versions.
+</Warning>
+
+<Note>
+If your problem is with the Wireless Remote (RADR) pairing or behavior, review the <a href="/research-and-desire-remote/quick-start">RADR Quick Start</a> first.
+</Note>
+
+## Submit a high‑quality issue
 
 <Steps>
 <Step title="Search existing issues">
-Check if someone has already reported the problem. If so, add your details as a comment rather than opening a duplicate issue.
+Check whether the problem is already reported. If you find a match, add your details (device/firmware versions, logs, photos) as a comment instead of opening a duplicate.
 </Step>
 
-<Step title="Gather information">
-Collect relevant details before submitting:
+<Step title="Gather the right information">
+Collect these details before you file:
 
-- **For software issues** — Firmware version, error messages, and steps to reproduce
-- **For hardware issues** — Photos, measurements, and print settings used
-- **For all issues** — Clear description of expected vs. actual behavior
+- For software/firmware
+  - Exact firmware version and board revision
+  - Steps to reproduce (numbered, minimal)
+  - What you expected vs. what actually happened
+  - Any on-screen or serial error messages
+  - Whether you control OSSM via wired remote or wireless remote
+  - If you recently updated, note how you flashed it: see <a href="/open-source-sex-machine/flashing-your-ossm">Flashing your OSSM</a>
+
+- For hardware/mechanical
+  - Clear photos or short video showing the issue
+  - Specific part names and version (e.g., printed part STL name, rev)
+  - Measurements (calipers), materials, printer settings (nozzle, layer height, infill, filament)
+  - Assembly or wiring references if relevant (e.g., <a href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">Motor Wiring</a>)
+
+- For all issues
+  - Environment details: OSSM hardware version, power supply, peripherals
+  - Links to any related discussions or prior issues
 </Step>
 
-<Step title="Open a new issue">
-Go to the [GitHub Issues page](https://github.com/KinkyMakers/OSSM-hardware/issues/new) and provide:
+<Step title="Create a minimal reproduction (if applicable)">
+Reduce the problem to the smallest set of steps or configuration that triggers it. Attach sample configs, short pattern files, or gcode-like snippets as needed. This helps maintainers reproduce and fix the issue faster.
+</Step>
+
+<Step title="Open a new issue on GitHub">
+Go to https://github.com/KinkyMakers/OSSM-hardware/issues/new and include:
 
 - A clear, descriptive title
-- Detailed steps to reproduce the problem
-- Your environment details (hardware version, firmware version, etc.)
-- Screenshots or photos if applicable
+- Numbered steps to reproduce
+- Expected vs. actual behavior
+- Environment and version details
+- Screenshots, photos, logs, or short videos
+
+<Tip>
+Paste error messages verbatim and attach files rather than pasting large blobs inline. Redact personal data.
+</Tip>
+</Step>
+
+<Step title="Follow up and verify the fix">
+Subscribe to your issue and respond to maintainer questions. When a fix or workaround is provided, test it and confirm the outcome. Close the issue when resolved.
+
+<Check>
+You should have an issue number and notifications enabled. If you <a href="mailto:support@researchanddesire.com">contacted support</a>, check for a confirmation email within 1 business day.
+</Check>
 </Step>
 </Steps>
 
+## Copy‑paste issue templates
+
+<CodeGroup>
+```markdown Bug report (software/firmware)
+### Summary
+Brief description of the problem in one or two sentences.
+
+### Environment
+- OSSM board revision: 
+- Firmware version: 
+- Control method: (wired remote | wireless remote)
+- Power: (24V PSU | USB‑C PD + adapter)
+
+### Steps to reproduce
+1. 
+2. 
+3. 
+
+### Expected result
+
+### Actual result
+
+### Logs / screenshots
+```
+
+```markdown Bug report (hardware/mechanical)
+### Summary
+Brief description of the mechanical or fitment issue.
+
+### Parts & settings
+- Part name / STL filename and revision: 
+- Material and print settings (layer height, infill, temp): 
+- Hardware used (screws, nuts, extrusion sizes): 
+
+### Observed behavior
+
+### Expected behavior
+
+### Photos / measurements
+(Attach annotated photos with caliper measurements if applicable.)
+```
+
+```markdown Feature request
+### Problem
+What problem are you trying to solve? Who benefits?
+
+### Proposal
+Describe the change or addition, including UI or mechanical impact.
+
+### Alternatives considered
+
+### Additional context
+Links, sketches, or references.
+```
+</CodeGroup>
+
+## Try these first (common fixes)
+
+<AccordionGroup>
+<Accordion title="Firmware not behaving as expected after an update">
+Re‑flash the device using the <a href="/ossm/tools/web-flasher">web flasher</a> and verify the version shown during flashing. Guide: <a href="/ossm/guides/getting-started/web-flasher">Flashing your OSSM</a>
+</Accordion>
+
+<Accordion title="Motor not moving or moving erratically">
+Check wiring order and terminations for the Gold Motor. Guide: <a href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">Motor Wiring</a>
+</Accordion>
+
+<Accordion title="Wireless Remote (RADR) won’t pair or drops connection">
+Walk through the quick start and reconnection steps: <a href="/research-and-desire-remote/quick-start">RADR Quick Start</a>
+</Accordion>
+</AccordionGroup>
+
 <Tip>
-The more detail you provide, the faster the community can help resolve the issue. Include error messages verbatim and attach relevant files when possible.
+Include version numbers everywhere: printed part revision, board revision, and firmware version. This is the single most common blocker for quick triage.
 </Tip>
+
+<Info>
+Need help deciding whether something belongs in GitHub or support? If money changed hands (orders, shipments, defects, warranty), <a href="mailto:support@researchanddesire.com">contact support</a>. If it’s about the open source design, CAD, firmware, or docs, open a GitHub issue.
+</Info>

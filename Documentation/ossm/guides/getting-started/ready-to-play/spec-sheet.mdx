@@ -3,39 +3,49 @@ title: "OSSM Ready to Play Specifications"
 description: "Complete technical specifications for the OSSM Ready to Play, including power requirements, performance metrics, and modification options."
 ---
 
+## Overview
+These specifications help you plan power, performance, and mechanical modifications for OSSM Ready to Play. Values represent typical performance of a stock unit under normal operating conditions.
+
+<Info>
+Unless otherwise noted, measurements reflect operation with a dedicated 24 V DC, 4 A power supply. Actual performance can vary with payload, friction, alignment, and firmware settings.
+</Info>
+
 ## Electrical
 
 | Specification | Value |
 |---------------|-------|
-| Operating voltage | 24V DC |
-| Current draw | 4A max |
-| Idle power | 1–5W |
-| Average power | 30W |
-| Peak power | 95W |
+| Operating voltage | 24 V DC |
+| Current draw | 4 A max |
+| Idle power | 1–5 W |
+| Average power | 30 W |
+| Peak power | 95 W |
+
+<Warning>
+Use a quality 24 V DC power supply rated for at least 4 A to achieve peak performance. Undersized or unstable supplies can cause stalls, reduced force, or controller resets.
+</Warning>
 
 ## Performance
 
 | Specification | Value |
 |---------------|-------|
 | Maximum linear speed | 1 m/s (3.3 ft/s) |
-| Maximum pushing force (24V supply) | 45 lbs (20 kg) |
-| Maximum pushing force (USB-C adapter) | 35 lbs (16 kg) |
+| Maximum pushing force (24 V supply) | 45 lbs (20 kg) |
+| Maximum pushing force (USB‑C adapter) | 35 lbs (16 kg) |
 | Maximum toy weight | 2.5 lbs (1.1 kg) |
 
 <Note>
-The USB-C power adapter provides reduced pushing force compared to a dedicated 24V power supply. For applications requiring maximum force, use the full 24V @ 4A power supply.
+A USB‑C power adapter delivers reduced pushing force compared to a dedicated 24 V supply. For applications requiring maximum force, use the full 24 V @ 4 A power supply.
 </Note>
 
 ## Dimensions
 
-| Specification | Default Value |
+| Specification | Default value |
 |---------------|---------------|
 | Stroke length | 7 in (180 mm) |
 | Rail length | 14 in (350 mm) |
 
 ## Modifications
-
-You can extend the rail length beyond the default configuration for increased stroke length.
+You can extend the rail length beyond the default configuration to increase stroke length.
 
 | Modification | Limit |
 |--------------|-------|
@@ -43,5 +53,13 @@ You can extend the rail length beyond the default configuration for increased st
 | Maximum stroke length | Rail length − 7 in (180 mm) |
 
 <Tip>
-To calculate your maximum stroke length, subtract 180 mm (7 in) from your total rail length. For example, an 18-inch rail supports a maximum stroke of 11 inches.
+Calculate your maximum stroke by subtracting 7 in (180 mm) from your total rail length. For example, an 18 in rail supports a maximum stroke of 11 in.
 </Tip>
+
+<Note>
+Extending rail length increases the potential stroke but may also increase bending and friction if not properly supported. Ensure rails are aligned and supported to maintain smooth motion and reduce wear.
+</Note>
+
+<Check>
+You’ve confirmed: your power supply is 24 V ≥ 4 A, your expected load is ≤ 2.5 lbs (1.1 kg), and your planned rail length and stroke respect the limits above.
+</Check>

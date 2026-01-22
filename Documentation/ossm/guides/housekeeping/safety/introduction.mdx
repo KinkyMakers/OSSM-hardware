@@ -1,61 +1,119 @@
 ---
 title: "Introduction"
-description: "Understand the safety considerations and risk hierarchy when building and using your OSSM"
+description: "Learn the safety principles, risk hierarchy, and pre‑use checks for building and operating your OSSM."
 ---
 
 <Warning>
-The OSSM is an open-source framework for building your own device. Your specific combination of parts may have risks not inherent to other builds. Some risks may be undocumented or undiscovered.
+OSSM is an open‑source framework for building your own device. Your specific combination of parts, firmware, and mounts may present risks that differ from other builds. Some risks may be undocumented or undiscovered.
 </Warning>
 
-## Understanding Your Responsibility
+## Understanding your responsibility
 
-The safety of the OSSM continues to be characterized as an evolving project. As a DIY build, only you can be responsible for your safety. If you are unsure about something, find a resource, ask the Discord community, or pause before proceeding.
+OSSM is a DIY project that continues to evolve. You are responsible for your own safety. If you’re unsure about any step, pause and seek help from the documentation or the community before proceeding.
 
-## Safety Hierarchy
+<Tip>
+When in doubt, ask the Discord community or consult the docs. A short delay to verify a detail is always safer than guessing.
+</Tip>
 
-When using your OSSM, follow this hierarchy of safety controls:
+## Safety hierarchy
 
-1. **Maintain ability to move away** — You should always be able to physically distance yourself from the device
-2. **Maintain ability to remove power** — Keep the power switch or plug accessible at all times
-3. **Assign safety responsibility** — If using restraints, the Top or supervising partner assumes responsibility for all consenting adults involved
+Use this practical hierarchy of controls whenever you build, set up, or play:
+
+1. Maintain the ability to move away — Always keep a clear, unobstructed path to physically distance yourself from the device.
+2. Maintain the ability to remove power — Keep the power switch or plug accessible at all times; practice reaching it quickly.
+3. Assign safety responsibility — When using restraints, designate a supervising partner (Top) who accepts responsibility for all consenting adults involved.
+
+<Info>
+Start with the lowest‑risk settings (short stroke, low speed) and only increase once you’ve verified stability and comfort.
+</Info>
 
 <CardGroup cols={2}>
-  <Card title="Hazard Reference" icon="triangle-exclamation" href="/ossm/guides/housekeeping/safety/hazards">
-    View the complete hazard analysis including vulnerabilities, consequences, and mitigation strategies for designers, builders, and users.
+  <Card title="OSSM Info & Setup" icon="circle-info" href="/open-source-sex-machine/ossm-ready-to-play/ossm-info-sheet-ready-to-play">
+    Quick orientation, stability tips (sandbag use), and general safety notes for new builds and Ready‑to‑Play units.
   </Card>
-  <Card title="Design Guidelines" icon="compass-drafting" href="/ossm/guides/housekeeping/safety/guidance">
-    Learn the safety principles for designing, building, and operating your OSSM safely.
+  <Card title="Electrical Reference" icon="bolt" href="/open-source-sex-machine/ossm-electronics/ossm-pcb-spec-sheet">
+    Power specs and board protections to help you choose and wire a safe, UL‑listed 24V supply.
   </Card>
 </CardGroup>
 
-## General Safety
+## General safety
 
-You should understand how your setup works before operating it. Every build differs slightly, so ensure you are comfortable with your configuration.
+- Know how your specific setup works before use; every build is slightly different.
+- Keep the area around the rail and end effector clear of skin, hair, clothing, cables, and loose items.
+- Never operate unattended. Do not use while impaired. Keep devices and power supplies away from children and pets.
+- Secure your mount and base. Use the included counterweight/sandbag where applicable to prevent tipping.
 
-<Tip>
-When in doubt, ask the Discord community or consult the documentation before proceeding.
-</Tip>
-
-## Electrical Safety
+## Electrical safety
 
 <Note>
-24V is generally considered a safe, low voltage. However, you should always verify wiring polarity and ensure nothing conductive is near the board or power supply that could cause a short circuit.
+24V is generally considered a low voltage, but it can still cause damage or injury if misused. Verify wiring polarity and keep conductive objects away from the board and power supply to prevent shorts.
 </Note>
 
-## Mechanical Safety
+- Use a high‑quality, UL‑certified 24V supply per the OSSM PCB specifications.
+- Inspect all connectors for proper seating and strain relief before each session.
+- Avoid plugging or unplugging motor or power connectors while the device is energized.
+- Route wires to avoid pinch points and moving parts. Add protective sleeving where wires cross edges.
+
+## Mechanical safety
 
 <Warning>
-Pinch points exist near the rail. Keep body parts away from these areas during operation.
+Pinch points exist near the rail and moving joints. Keep body parts and loose materials away during operation.
 </Warning>
 
-Depending on your motor selection, the OSSM can generate significant force. This force can cause injury if not applied correctly, especially in delicate areas. Always:
+- Depending on motor selection, OSSM can generate significant force. Start slow, with reduced stroke length and speed, and increase only after verifying comfort.
+- Confirm all fasteners, mounts, and toy attachments are tight before use. Re‑check after the first few minutes of motion.
+- Maintain the ability to step away or stop the device immediately. If playing with a partner, establish a clear stop signal and confirm who can cut restraints if necessary.
 
-- Maintain the ability to move away from the machine
-- Designate someone responsible for your safety when using with a partner
-- Understand your risk tolerance and have a plan for potential issues
+<Tip>
+If you use the Wireless Remote (RADR), the OSSM will automatically slow and pause if the connection is not re‑established quickly. You also have a dedicated pause/stop control on the remote. See <a href="/research-and-desire-remote/quick-start">RADR Quick Start</a> for details.
+</Tip>
+
+## Pre‑use safety checklist
+
+<Steps>
+<Step title="Secure the setup">
+  Stabilize the base or stand and apply counterweight (sandbag) as recommended. Confirm the work area is clear and well‑lit.
+
+  <Check>
+  Base does not wobble, the rail path is unobstructed, and the end effector/toy is firmly attached.
+  </Check>
+</Step>
+
+<Step title="Verify power and wiring">
+  Confirm correct 24V polarity, intact insulation, and firmly seated connectors. Compare your supply choice and current limits with the PCB spec sheet when in doubt.
+
+  <Check>
+  No exposed conductors; wires are strain‑relieved and routed away from motion paths.
+  </Check>
+</Step>
+
+<Step title="Test motion at low speed">
+  Power on, allow homing to complete, then run a short, slow pattern. Listen for unusual sounds and watch for rubbing, binding, or vibration.
+
+  <Check>
+  Motion is smooth, stroke limits are reasonable, and the toy remains secure.
+  </Check>
+</Step>
+
+<Step title="Confirm stop/kill plan">
+  Identify the fastest way to stop: remote pause/stop, panel switch, or pulling the plug. Practice reaching it without crossing pinch points.
+
+  <Check>
+  You can stop the device quickly using at least two methods (e.g., remote button and power switch).
+  </Check>
+</Step>
+
+<Step title="Agree on communication and oversight (if partnered)">
+  Assign the Top/supervisor, review safewords or non‑verbal signals, and keep safety tools (e.g., safety shears) within reach if restraints are used.
+
+  <Check>
+  Everyone understands signals, responsibilities, and exit plans.
+  </Check>
+</Step>
+</Steps>
 
 ---
 
 <Info>
-This is an open-source, community-based project. Many contributors help develop it, which accelerates progress. This also means no single entity is responsible for the complete safety of the design. Play risk-aware and consensually.
+This is an open‑source, community‑driven project. Many contributors help develop it, which accelerates progress—but no single entity is responsible for the complete safety of your build. Play risk‑aware and consensually.
 </Info>

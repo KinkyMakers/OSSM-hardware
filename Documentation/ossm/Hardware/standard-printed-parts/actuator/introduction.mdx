@@ -3,15 +3,35 @@ title: "Overview"
 description: "Print settings, bill of materials, and assembly instructions for the OSSM actuator"
 ---
 
+import { 
+  actuatorPrintedParts,
+  actuatorM3Hardware,
+  actuatorM4Hardware,
+  actuatorM5Hardware,
+  actuatorM6Hardware,
+  actuatorBearings,
+  actuatorLinearMotion,
+  actuatorMotor
+} from '/snippets/ossm/bom/actuator-bom.mdx';
+import { BOMTable } from '/snippets/ossm/bom/bom-table.jsx';
+
 <Frame>
   <img src="../_images/Overview - Actuator Default.webp" alt="OSSM Actuator overview showing the assembled linear actuator" />
 </Frame>
+
+## What you’ll build
+
+This page guides you through preparing printed parts, gathering hardware, and assembling the OSSM linear actuator. By the end, you’ll have a complete actuator ready for belt routing and integration with your mount and electronics.
+
+<Info>
+If you’re assembling a full OSSM, you’ll connect this actuator to your stand and electronics later. For firmware flashing and remote pairing, see <a href="/open-source-sex-machine/flashing-your-ossm">Flashing your OSSM/RADR</a>. For motor wiring, see <a href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">Wiring your Gold Motor</a>.
+</Info>
 
 ## Printing
 
 Follow these print settings for optimal strength and durability.
 
-### Print Settings
+### Print settings
 
 | Setting | Value |
 | ------- | ----- |
@@ -27,82 +47,69 @@ Print all parts in the default file orientation. Printing threaded components in
 </Warning>
 
 <Tip>
-For the 24mm Clamping Thread, use 2 raft layers to promote better bed adhesion.
+For the 24mm Clamping Thread, use 2 raft layers to improve bed adhesion.
 </Tip>
 
-<Accordion title="Troubleshooting: 24mm Clamping Thread issues">
+<AccordionGroup>
+<Accordion title="Troubleshooting: 24mm Clamping Thread">
 If you have issues printing the 24mm Clamping Thread, use the Non-standard 24mm Thread and Belt Clamp files instead (available in the source repository). These require additional hardware:
 
 - (Qty 2) M3x8
 - (Qty 1) M3x16
 - (Qty 3) M3 Hex Nut
 </Accordion>
+</AccordionGroup>
 
-### Printed Parts List
+### Printed parts list
 
-| Quantity | Part Name |
-| -------- | --------- |
-| 1 | Body - Bottom |
-| 1 | Body - Middle |
-| 1 | Body - Cover |
-| 1 | Belt Tensioner |
-| 1 | 24mm Clamping Thread - End Effector |
-| 1 | 24mm Clamping Thread - Belt Clamp |
-| 2 | 24mm Nut - 5 Sided |
+<BOMTable items={actuatorPrintedParts} />
 
 <Note>
-For additional documentation, see the [3030 Extrusion Stand guide](/ossm/Hardware/standard-printed-parts/stand).
+For mounting options and a stable base, see the <a href="/ossm/Hardware/standard-printed-parts/stand">3030 Extrusion Stand guide</a>.
 </Note>
 
-## Bill of Materials
+## Bill of materials
 
-### GT2 Pulley
+### Motor
 
-| Specification | Value |
-| ------------- | ----- |
-| Bore | 8mm |
-| Teeth | 20 |
-| Width | 10mm |
+<BOMTable items={actuatorMotor} />
 
-### GT2 Timing Belt
+### Linear Motion
 
-| Specification | Value |
-| ------------- | ----- |
-| Width | 10mm |
-| Length | 500mm |
-
-### MGN12H Linear Rail + Bearing Block
-
-| Specification | Value |
-| ------------- | ----- |
-| Minimum Length | 250mm |
-| Suggested Length | 350mm |
-| Maximum Length | 550mm |
+<BOMTable items={actuatorLinearMotion} />
 
 <Info>
-Calculate your rail length using this formula: **desired maximum stroke + 180mm**
+Calculate your rail length using this formula: <b>desired maximum stroke + 180mm</b>.
 
-You must use an MGN**12H** rail. The "H" designates a longer bearing block than "C" for greater stability. The "12" indicates a 12mm rail width.
+You must use an MGN<strong>12H</strong> rail. The “H” designates a longer bearing block than “C” for greater stability. The “12” indicates a 12mm rail width.
 </Info>
 
-### Ball Bearings
+### Ball bearings
 
-| Quantity | Specification |
-| -------- | ------------- |
-| 6 | MR115-2RS 5x11x4mm |
+| Quantity | Part |
+|----------|------|
+| 1 | GT2 20T Pulley (8mm bore, 10mm width) |
+| 500mm | GT2 Timing Belt (10mm width) |
 
-### Fasteners
+### Bearings
 
-| Quantity | Specification |
-| -------- | ------------- |
-| 8 | M3x8 Socket Cap Head Bolt |
-| 2 | M3x16 Socket Cap Head Bolt |
-| 1 | M3x20 Socket Cap Head Bolt |
-| 7 | M3 Hex Nut |
-| 3 | M5x20 Socket Cap Head Bolt |
-| 1 | M5 Hex Nut |
-| 4 | M5x35 Socket Cap Head Bolt |
-| 4 | M5 20mm Hex Coupling Nut (or M5 Hex Nut) |
+<BOMTable items={actuatorBearings} />
+
+### M3 Hardware
+
+<BOMTable items={actuatorM3Hardware} />
+
+### M4 Hardware
+
+<BOMTable items={actuatorM4Hardware} />
+
+### M5 Hardware
+
+<BOMTable items={actuatorM5Hardware} />
+
+### M6 Hardware
+
+<BOMTable items={actuatorM6Hardware} />
 
 ## Assembly
 
@@ -123,7 +130,77 @@ You must use an MGN**12H** rail. The "H" designates a longer bearing block than 
   </Card>
 </CardGroup>
 
-### Belt Routing
+### Before you begin
+
+- Ensure all printed threads are clean and free of stringing. Test-fit the 24mm threaded parts by hand only.
+- Lightly deburr belt paths and bearing seats on printed parts as needed.
+- Gather metric hex keys and a small flathead screwdriver for set screws and terminal blocks.
+
+<Warning>
+Do not power the actuator until you complete belt routing and verify smooth motion. Avoid forcing the rail carriage—binding indicates misalignment.
+</Warning>
+
+### Build steps
+
+<Steps>
+<Step title="Prepare the linear rail">
+  Verify your rail matches the required spec (MGN12H). Slide the carriage through its full travel; it should feel smooth with no catches.
+
+  <Check>
+  Carriage moves freely across the entire rail without binding.
+  </Check>
+</Step>
+
+<Step title="Assemble the body stack">
+  Position Body - Bottom and Body - Middle. Align mounting holes and loosely fasten the parts so you can make minor adjustments during alignment. Add Body - Cover later after belt routing.
+
+  <Tip>
+  Start all screws before tightening to maintain alignment.
+  </Tip>
+</Step>
+
+<Step title="Install bearings and tensioner">
+  Press-fit the MR115-2RS bearings into the Belt Tensioner and any designated idler pockets in the body. The bearings should seat flush and spin freely.
+
+  <Check>
+  All bearings are fully seated and rotate without rubbing printed walls.
+  </Check>
+</Step>
+
+<Step title="Mount the pulley">
+  Fit the 20T GT2 pulley (8mm bore, 10mm width) on the drive shaft and align it with the belt path. Secure set screws against a flat on the shaft if available.
+
+  <Warning>
+  Keep the pulley aligned with the belt centerline to prevent tracking issues.
+  </Warning>
+</Step>
+
+<Step title="Route the belt (reference images below)">
+  Feed the 10mm GT2 belt through the body following the Tensioner → Body → Belt Clamp path. Leave equal tail length at the clamp for final tensioning.
+
+  <Check>
+  Belt teeth fully engage pulley teeth; belt is not twisted.
+  </Check>
+</Step>
+
+<Step title="Install the 24mm clamping interface">
+  Assemble the 24mm Clamping Thread - End Effector and Belt Clamp with the two 24mm 5-sided nuts. Hand-tighten only during initial fit.
+
+  <Tip>
+  If your print has poor first-layer adhesion on these parts, use a raft (2 layers recommended) and reprint.
+  </Tip>
+</Step>
+
+<Step title="Set belt tension and close the body">
+  Use the Belt Tensioner to remove slack until the belt is taut and tracks true during manual motion. Once satisfied, install the Body - Cover and tighten all hardware progressively.
+
+  <Check>
+  With light hand motion, the carriage moves smoothly and returns without skipping teeth.
+  </Check>
+</Step>
+</Steps>
+
+### Belt routing
 
 Route the GT2 timing belt through the actuator body following these reference images:
 
@@ -142,5 +219,19 @@ Route the GT2 timing belt through the actuator body following these reference im
     <Frame>
       <img src="../_images/Cut View - Belt Routing Front.webp" alt="Cross-section showing belt routing through the front belt clamp" />
     </Frame>
+  </Card>
+</CardGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Flash firmware" icon="cpu" href="/ossm/tools/web-flasher">
+    Use the web flasher to install the latest firmware on your OSSM or RADR.
+  </Card>
+  <Card title="Wire your motor" icon="bolt" href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">
+    Connect the Gold Motor (57AIM30) correctly before first power-on.
+  </Card>
+  <Card title="Program your motor" icon="microchip" href="/ossm/Hardware/motor/programming">
+    Configure third-party motors before first use.
   </Card>
 </CardGroup>

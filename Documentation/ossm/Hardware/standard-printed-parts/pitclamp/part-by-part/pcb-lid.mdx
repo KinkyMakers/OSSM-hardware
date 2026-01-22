@@ -9,14 +9,24 @@ import { STLViewer } from '/snippets/ossm/stl-render.jsx';
 
 ## Function
 
-The PCB Lid completes the electronics enclosure. This component:
+The PCB Lid completes the OSSM electronics enclosure and protects the control board during use and transport. It:
 
-- Provides protective covering for the OSSM control electronics
-- Snaps or fastens to the PCB Box base
-- Shields electronics from dust and accidental contact
-- Creates a finished appearance for the control unit
+- Covers exposed electronics to prevent dust ingress and accidental contact
+- Snaps or fastens onto the matching PCB Box base
+- Provides a clean, finished appearance for the control unit
 
-## Print Settings
+<Info>
+Related guides:
+- PCB specifications: <a href="/open-source-sex-machine/ossm-electronics/ossm-pcb-spec-sheet">PCB Spec Sheet</a>
+- Wiring the Gold Motor: <a href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">Motor Wiring</a>
+- Firmware flashing: <a href="/open-source-sex-machine/flashing-your-ossm">Flashing your OSSM</a>
+</Info>
+
+<Warning>
+Always power off and unplug the OSSM before installing or removing the lid. The PCB operates at 24V and can drive several amps—avoid contact with live terminals.
+</Warning>
+
+## Print settings
 
 | Setting | Value |
 |---------|-------|
@@ -25,7 +35,69 @@ The PCB Lid completes the electronics enclosure. This component:
 | Infill Percentage | 10% |
 | Supports | None |
 
-## Download Files
+<Tip>
+Material: Print in PETG or PLA+. PETG provides better heat resistance around electronics; PLA+ is acceptable in cool environments. ABS/ASA is optional for higher ambient temperatures.
+
+Orientation: Place the lid flat on its largest face for best dimensional accuracy and finish. No supports are required.
+</Tip>
+
+## Print and prepare
+
+<Steps>
+<Step title="Slice the model">
+  Import the STL and verify scale is 100%. Lay the part flat on its large face and apply the print settings above.
+
+<Check>
+  The slicer preview shows no supports and the snap features or edges are clearly formed.
+</Check>
+</Step>
+
+<Step title="Print and clean up">
+  Print the part. After cooling, remove any brim (if used) and lightly deburr edges so snaps/edges seat smoothly.
+
+<Check>
+  The lid sits flat on a table without rocking and the perimeter is free of elephant’s foot.
+</Check>
+</Step>
+</Steps>
+
+## Install the lid
+
+<Steps>
+<Step title="Power down and inspect wiring">
+  Disconnect 24V power. Confirm the PCB is mounted in the Box base and wiring is routed below the rim to avoid pinching. For connector orientation and clearance notes, see the wiring guide linked above.
+</Step>
+
+<Step title="Align and attach">
+  Position the lid over the Box base. Press evenly at the edges until the snap features engage. If your variant uses heat‑set inserts or screw bosses, install the fasteners until just snug—do not overtighten.
+
+<Check>
+  No cables are pinched, the lid is flush on all sides, and buttons/ports remain accessible as intended.
+</Check>
+</Step>
+</Steps>
+
+## Troubleshooting fit
+
+<AccordionGroup>
+<Accordion title="Lid won’t seat or is too tight">
+- Reduce first-layer squish or enable elephant’s foot compensation in your slicer.
+- Lightly chamfer or scrape the inner rim to remove a small burr.
+- Verify the Box base is not warped; reprint with a brim if needed.
+</Accordion>
+
+<Accordion title="Fit is loose or snaps don’t hold">
+- Increase wall count or flow by 1–2% and reprint for crisper snap geometry.
+- Consider PETG for slightly more flexible, resilient snaps.
+</Accordion>
+
+<Accordion title="Interference with connectors or cables">
+- Re-route cables to lie below the enclosure rim and bundle with a small tie or sleeve.
+- Ensure terminal blocks are fully seated and not protruding above component height.
+</Accordion>
+</AccordionGroup>
+
+## Download files
 
 <CardGroup cols={3}>
   <Card title="STL File" icon="cube" href="https://github.com/KinkyMakers/OSSM-hardware/blob/main/Printed%20Parts/Mounting/OSSM%20-%20PCB%20-%20Lid.stl">

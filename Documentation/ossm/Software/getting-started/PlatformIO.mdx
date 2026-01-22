@@ -1,46 +1,48 @@
 ---
 title: "PlatformIO Setup"
-description: "Learn how to set up PlatformIO in VS Code to compile and upload OSSM firmware"
+description: "Set up PlatformIO in VS Code to compile and upload OSSM firmware reliably"
 ---
 
-OSSM is developed using PlatformIO. If you're familiar with the Arduino IDE, transitioning to PlatformIO may seem daunting at first. Trust us—it's simpler than it looks and works far better than the Arduino IDE as the project grows.
+OSSM is built with PlatformIO on top of VS Code. If you're coming from the Arduino IDE, the transition can look unfamiliar at first—but you'll get faster builds, better dependency management, and a consistent setup across contributors.
 
 <Tip>
-PlatformIO excels at managing libraries and dependencies, which becomes critical as projects scale. Earlier OSSM builds could be adapted for the Arduino IDE, but the project has grown beyond that point. Learning PlatformIO is now easier than repackaging OSSM for Arduino with each release.
+PlatformIO manages libraries, toolchains, and build environments for you. Earlier OSSM releases could be adapted to Arduino, but the project has outgrown that approach. Learning PlatformIO takes less time than repackaging OSSM for Arduino every release.
 </Tip>
 
 ## Why PlatformIO?
 
-- **More time for features** — Less time wrestling with dependency management
-- **Easier collaboration** — Consistent development environment across contributors
-- **Automatic downloads** — Libraries and dependencies pulled from GitHub automatically
-- **Code intelligence** — Autocomplete, linting, and error detection built-in
+- More time for features — less time wrestling with dependencies
+- Easier collaboration — consistent development environment for every contributor
+- Automatic dependency resolution — libraries fetched and pinned for reproducible builds
+- Code intelligence — autocomplete, linting, and inline error detection
+
+## Prerequisites
+
+- VS Code installed
+- USB data cable for your board (charge-only cables will fail to upload)
+- Board drivers installed if required by your OS (e.g., CP210x or CH340)
+
+<Note>
+The reference OSSM board uses an embedded <strong>Espressif ESP32 Dev Module</strong>.
+</Note>
 
 ## Installation
 
 <Steps>
 <Step title="Install VS Code and PlatformIO">
-Install VS Code and the PlatformIO extension. You can find guides for this on the web.
+Install VS Code, then add the "PlatformIO IDE" extension from the VS Code Marketplace. After installation, restart VS Code to activate PlatformIO.
+
+<Check>
+You should see the alien-head PlatformIO icon in the Activity Bar on the left.
+</Check>
 </Step>
 
-<Step title="Open PlatformIO">
-Restart VS Code and wait until PlatformIO has started. Look for this button on the sidebar:
+<Step title="Open PlatformIO Home">
+Click the PlatformIO icon to open PlatformIO Home.
 
 <Frame>
 <img src="./_images/156351539-54a612fd-0b9b-46cb-9e86-2bab2eb65418.webp" alt="PlatformIO sidebar button in VS Code" />
 </Frame>
-</Step>
-
-<Step title="Click Open">
-Click the "Open" button in the PlatformIO welcome screen.
-
-<Frame>
-<img src="./_images/156351747-962b3f88-e07f-4b68-8da9-99085e6ee636.webp" alt="PlatformIO Open button" />
-</Frame>
-</Step>
-
-<Step title="Open the PlatformIO Home">
-The PlatformIO Home interface will appear:
 
 <Frame>
 <img src="./_images/156351872-008e57a4-5e65-40f8-b65c-b663318317d8.webp" alt="PlatformIO Home interface" />
@@ -48,70 +50,111 @@ The PlatformIO Home interface will appear:
 </Step>
 
 <Step title="Open the OSSM project">
-Click "Open Project" and navigate to the OSSM directory containing `platformIO.ini`.
+From PlatformIO Home, select "Open Project" and choose the OSSM folder that contains `platformio.ini` (lowercase).
 
 <Frame>
-<img src="./_images/156352091-867148c0-e9bd-47fa-a4e9-7c99c8fce5b1.webp" alt="Open Project dialog" />
+<img src="./_images/156352091-867148c0-e9bd-47fa-a4e9-7c99c8fce5b1.webp" alt="Open Project dialog in PlatformIO" />
 </Frame>
 
 <Frame>
 <img src="./_images/156352222-e3c6c412-248e-40d5-9e7c-d3a895dd0db7.webp" alt="Selecting the OSSM project folder" />
 </Frame>
+
+<Check>
+The Explorer should show `platformio.ini`, a `src/` folder, and a `lib/` folder.
+</Check>
 </Step>
 
-<Step title="Open main.cpp">
-In the `src` directory, locate and click on `main.cpp`:
+<Step title="Select the correct environment (if applicable)">
+If the project defines multiple environments in `platformio.ini` (e.g., different boards or build options), use the environment selector in the VS Code Status Bar (usually labeled with the active environment) to pick the one that matches your board.
+
+<Note>
+If there is only one environment, PlatformIO selects it automatically.
+</Note>
+</Step>
+
+<Step title="Open the firmware entry point">
+Open `src/main.cpp` to review the firmware source.
 
 <Frame>
 <img src="./_images/4a687ec9-8110-4500-8ee7-f51c692e2403.webp" alt="main.cpp file in the src directory" />
 </Frame>
 </Step>
 
-<Step title="Compile and upload">
-Near the bottom of the window, locate the tick icon (compile) and arrow icon (upload):
+<Step title="Build and upload the firmware">
+Use the ✓ (Build) icon to compile and the → (Upload) icon to flash the board. These controls are in the Status Bar at the bottom of VS Code.
 
 <Frame>
 <img src="./_images/156352700-12fad91c-a8d2-48fa-97cc-ee088d0ff219.webp" alt="Compile and upload buttons in the status bar" />
 </Frame>
 
-You can compile first to check for errors, or skip directly to upload.
+- Build first to catch errors locally, or upload directly to compile and flash in one step.
+- Ensure your board is connected and the correct serial port is selected.
+
+<Check>
+A successful build ends with `SUCCESS` in the terminal. A successful upload shows `Hash of data verified` or a similar confirmation from the ESP32 uploader.
+</Check>
 </Step>
 </Steps>
+
+## Common tasks
+
+- Select serial port: PlatformIO → Quick Access → "Select Serial Port".
+- Monitor serial output: Click the plug icon (Monitor) in the Status Bar, or run `PlatformIO: Monitor` from the Command Palette.
+- Clean build: Run `PlatformIO: Clean` to remove compiled artifacts before rebuilding.
 
 ## Troubleshooting
 
 <AccordionGroup>
 <Accordion title="Upload fails or board not detected">
-The most common issues are incorrect COM port selection or wrong board configuration.
+The most common causes are an incorrect serial port or board configuration.
 
-### Check your COM port
+### Check your serial port
 
-The COM port (or `/dev/tty` on macOS/Linux) varies between machines. Set it in PlatformIO here:
+On Windows, the board appears as `COMx`. On macOS/Linux, it appears under `/dev/tty.*` or `/dev/cu.*`.
+
+Set the port in PlatformIO:
 
 <Frame>
 <img src="./_images/156354154-c71755e4-d19f-4387-bceb-743403777711.webp" alt="COM port selection in PlatformIO" />
 </Frame>
 
+<Tip>
+If you don't see a port, try a different USB cable, a different USB port, or install the appropriate USB-to-UART driver for your board.
+</Tip>
+
 <Note>
-The reference OSSM board uses an embedded **Espressif ESP32 Dev Module**.
+The reference OSSM board target is **Espressif ESP32 Dev Module**. Ensure your `platformio.ini` environment uses the correct `board` setting for ESP32.
 </Note>
 </Accordion>
 
-<Accordion title="Build fails due to library updates">
-If the project fails to build, an external library update may have introduced compatibility issues.
+<Accordion title="Build fails due to library or platform updates">
+An update to a platform or library may introduce breaking changes. Pin versions in `platformio.ini` to restore a known-good configuration.
 
-Try pinning the platform version by changing this line in `platformIO.ini`:
-
-```ini platformIO.ini
-# Change this:
-platform = espressif32
-
-# To this:
+```ini platformio.ini
+; Example: pin the Espressif32 platform
 platform = espressif32@3.5.0
 ```
 
 <Warning>
-Always check the project's release notes for the recommended platform version.
+Always check the project's release notes for the recommended platform and library versions.
 </Warning>
 </Accordion>
+
+<Accordion title="Serial monitor shows gibberish">
+This usually indicates a baud rate mismatch.
+
+- Check `monitor_speed` in `platformio.ini` (e.g., `115200`)
+- Make sure the firmware and Serial Monitor use the same baud rate
+</Accordion>
+
+<Accordion title="Stuck in connecting… during upload">
+- Hold or tap the board's BOOT/EN buttons as required by your ESP32 module
+- Press reset after upload completes if the board does not auto-restart
+- Disconnect other apps that might be using the same serial port
+</Accordion>
 </AccordionGroup>
+
+<Info>
+If you run into issues not covered here, capture the full PlatformIO build/upload log from the VS Code Terminal and include it when asking for help. The log contains the selected environment, platform versions, and exact error messages.
+</Info>

@@ -1,316 +1,377 @@
 ---
 title: "Display Service"
-description: "Learn how to use the thread-safe display service for drawing to the SSD1306 OLED screen"
+description: "Use the thread‑safe display service to draw to the 128×64 SSD1306 OLED with U8G2"
 ---
 
-The display service provides a thread-safe interface for drawing to the 128x64 pixel SSD1306 OLED display. You can access this global singleton from anywhere in the codebase using the U8G2 library.
+## Overview
 
-## Hardware Configuration
+The display service is a global, thread‑safe wrapper around the U8G2 driver for a 128×64 SSD1306 OLED. You use it to render text and graphics from any task without flicker or tearing. A FreeRTOS mutex guarantees exclusive access while you draw; helper functions handle region clearing, partial refresh, clipping, and text caching.
+
+<Info>
+This page documents the firmware‑level developer API used across our devices. For user‑facing display behavior (for example, hiding remaining time or device state screens), see the related pages at the end.
+</Info>
+
+## Prerequisites
+
+- ESP32 with hardware I2C available
+- U8G2 library integrated in your firmware build
+- FreeRTOS (for the display mutex)
+- Pins configured for SDA/SCL in your board’s `Pins.h`
+
+## Hardware configuration
 
 | Property | Value |
-|----------|-------|
-| Display Type | SSD1306 OLED |
-| Resolution | 128x64 pixels |
-| Interface | I2C (Hardware) |
-| Rotation | U8G2_R0 (0 degrees) |
-| I2C Address | 0x3C (shifted left by 1 for U8G2) |
-| Contrast | 255 (maximum) |
+|---|---|
+| Display | SSD1306 OLED |
+| Resolution | 128×64 pixels |
+| Interface | I2C (hardware) |
+| Rotation | U8G2_R0 (0°) |
+| I2C address | 0x3C |
+| Contrast | 255 (max) |
 
-## Display Layout
+<Note>
+Some U8G2 constructors expect the 8‑bit I2C address. If so, pass `0x3C << 1`. Verify this matches your constructor signature.
+</Note>
 
-The display uses a grid system where U8G2 breaks the 128x64 pixel screen into 8x8 pixel cells:
+## Layout model
 
-- **Grid Size**: 8 cells tall × 16 cells wide
-- **Cell Origin**: (0,0) at top-left corner
-- **Cell Dimensions**: 8×8 pixels each
+The screen is treated as a grid of 8×8‑pixel cells:
 
-<Frame caption="Display layout showing header, page area, and footer regions">
-```
-┌─────────────────────────────────────────────────────────┐
-│ Header (12 cells)                     │ Icons (4 cells) │  Row 0
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│                                                         │
-│                                                         │
-│                    Page Area                            │
-│                   (6 rows)                              │
-│                                                         │
-│                                                         │
-├─────────────────────────────────────────────────────────┤
-│ Footer (16 cells)                                       │  Row 7
-└─────────────────────────────────────────────────────────┘
-```
-</Frame>
+- Grid: 8 rows × 16 columns
+- Origin: (0,0) at the top‑left
+- Cell size: 8×8 pixels
 
-### Layout Regions
+### Regions
 
 <AccordionGroup>
-<Accordion title="Header Row (Row 0)">
-- **Cells 0-12**: Header text (13 cells = 104 pixels)
-- **Cells 13-15**: State icons (3 cells = 24 pixels)
-  - WiFi status
-  - Bluetooth status
-  - Other system indicators
+<Accordion title="Header (row 0)">
+- Cells 0–12: Header text (13 cells = 104 px)
+- Cells 13–15: State icons (3 cells = 24 px)
 </Accordion>
 
-<Accordion title="Page Area (Rows 1-6)">
-- **6 rows** of main content
-- **16 cells wide** (128 pixels)
-- **48 pixels tall** (6 × 8 pixels)
-- Content clips to this area when you use `clearPage()`
+<Accordion title="Page area (rows 1–6)">
+- 6 rows tall (48 px)
+- 16 cells wide (128 px)
+- All main content should render here
 </Accordion>
 
-<Accordion title="Footer Row (Row 7)">
-- **Cells 0-14**: Footer text (15 cells = 120 pixels)
-- **Cell 15**: Timeout indicator (1 cell = 8 pixels)
+<Accordion title="Footer (row 7)">
+- Cells 0–14: Footer text (15 cells = 120 px)
+- Cell 15: Timeout indicator (1 cell = 8 px)
 </Accordion>
 </AccordionGroup>
 
-## Thread Safety
+<Tip>
+U8G2 text APIs use the baseline for `y`. For 8‑pixel‑tall fonts, start the first text line at `y = 8`, then add the font’s ascent/line height for subsequent lines.
+</Tip>
 
-The display uses a FreeRTOS mutex to ensure thread-safe access from multiple tasks.
+## Thread safety
+
+The display service exposes a FreeRTOS mutex. Always lock before drawing and unlock when done.
 
 ```cpp display_mutex.h
+#pragma once
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
+
 extern SemaphoreHandle_t displayMutex;
 ```
 
 <Warning>
-Always acquire the mutex before drawing and release it when finished. Failing to release the mutex will block all other display operations.
+If you fail to release the mutex, all other tasks that need the display will block. Always pair a successful `xSemaphoreTake` with `xSemaphoreGive` in a `finally`‑style path.
 </Warning>
 
-### Basic Usage Pattern
+### Basic usage pattern
 
 ```cpp example_usage.cpp
-// Always acquire mutex before drawing
+// Acquire, draw, refresh affected region(s), release
 if (xSemaphoreTake(displayMutex, portMAX_DELAY) == pdTRUE) {
-    // Perform drawing operations
-    display.drawStr(x, y, "Hello World");
+  // ... drawing commands, e.g.:
+  display.drawStr(x, y, "HELLO WORLD");
 
-    // Always release mutex when done
-    xSemaphoreGive(displayMutex);
+  // Call an appropriate refresh helper (see below)
+  refreshPage();
+
+  xSemaphoreGive(displayMutex);
 }
 ```
 
 ## Initialization
 
-Call `initDisplay()` at startup to initialize the display service:
+Call `initDisplay()` once at startup.
 
-```cpp
+```cpp display_init.h
+#pragma once
 void initDisplay();
 ```
 
-This function:
-1. Creates the display mutex
-2. Initializes the U8G2 display object
-3. Sets the I2C address and display parameters
-4. Clears the display buffer
+<Steps>
+<Step title="Create resources and configure the panel">
+`initDisplay()` creates the display mutex, initializes the U8G2 display instance, sets addressing/rotation/contrast, and clears the buffer.
 
-## Clearing Functions
+<Check>
+After initialization, the screen should be blank and backlit, and `displayMutex` must be non‑null.
+</Check>
+</Step>
 
-Use clearing functions to efficiently update specific display regions. All clearing functions use `updateDisplayArea()` for partial updates.
+<Step title="Verify drawing">
+Render a single line of text in the page area.
 
-| Function | Description | Area Cleared |
-|----------|-------------|--------------|
-| `clearHeader()` | Clears header text area | Cells 0-12, row 0 (preserves icons) |
-| `clearIcons()` | Clears icon area | Cells 13-15, row 0 (preserves header) |
-| `clearFooter()` | Clears footer text area | Cells 0-14, row 7 (preserves timeout) |
-| `clearTimeout()` | Clears timeout indicator | Cell 15, row 7 |
-| `clearPage()` | Clears main content area | Rows 1-6 |
+```cpp sanity_check.cpp
+if (xSemaphoreTake(displayMutex, portMAX_DELAY) == pdTRUE) {
+  clearPage();
+  display.setFont(u8g2_font_spleen5x8_mu);
+  display.drawStr(0, 16, "SANITY PASS");
+  refreshPage();
+  xSemaphoreGive(displayMutex);
+}
+```
+</Step>
+</Steps>
 
-### clearPage() Parameters
+## Clearing helpers
 
-```cpp
+Efficiently clear only what you plan to redraw. All helpers use an internal `updateDisplayArea()` to perform a partial refresh of the affected region.
+
+| Function | Description | Region cleared |
+|---|---|---|
+| `clearHeader()` | Clears header text only | Row 0, cells 0–12 |
+| `clearIcons()` | Clears icon area only | Row 0, cells 13–15 |
+| `clearFooter()` | Clears footer text only | Row 7, cells 0–14 |
+| `clearTimeout()` | Clears timeout indicator | Row 7, cell 15 |
+| `clearPage(includeFooter=false, includeHeader=false)` | Clears page area; optional header/footer | Rows 1–6 (plus header/footer when requested) |
+
+```cpp clear_helpers.h
+void clearHeader();
+void clearIcons();
+void clearFooter();
+void clearTimeout();
 void clearPage(bool includeFooter = false, bool includeHeader = false);
 ```
 
 <Note>
-`clearPage()` sets a clipping window to prevent content from overflowing into the header or footer areas.
+`clearPage()` sets a clipping window to keep content from spilling into the header or footer.
 </Note>
 
-## Refresh Functions
+## Refresh helpers
 
-Refresh functions update specific display regions after you modify them:
+Call a refresh helper after you modify a region. These perform minimal updates to the display.
 
-| Function | Description | Area Updated |
-|----------|-------------|--------------|
-| `refreshHeader()` | Updates header text | Cells 3-15, row 0 |
-| `refreshIcons()` | Updates icon area | Cells 0-2, row 0 |
-| `refreshFooter()` | Updates footer area | Cells 1-15, row 0 |
-| `refreshPage()` | Updates main content | Rows 1-6 |
-| `refreshTimeout()` | Updates timeout indicator | Timeout cell |
+| Function | Description | Region updated |
+|---|---|---|
+| `refreshHeader()` | Pushes header text | Row 0, cells 0–12 |
+| `refreshIcons()` | Pushes icon area | Row 0, cells 13–15 |
+| `refreshFooter()` | Pushes footer text | Row 7, cells 0–14 |
+| `refreshTimeout()` | Pushes timeout indicator | Row 7, cell 15 |
+| `refreshPage(includeFooter=false, includeHeader=false)` | Pushes main content; optional header/footer | Rows 1–6 (plus header/footer when requested) |
 
-### refreshPage() Parameters
-
-```cpp
+```cpp refresh_helpers.h
+void refreshHeader();
+void refreshIcons();
+void refreshFooter();
+void refreshTimeout();
 void refreshPage(bool includeFooter = false, bool includeHeader = false);
 ```
 
-## Content Functions
+## Content helpers
 
-### setHeader()
+### `setHeader()`
 
-Sets the header text, automatically converting to uppercase:
+Sets the header text. The service uppercases and caches the last value to avoid redundant redraws.
 
-```cpp
+```cpp header.h
 void setHeader(String &text);
 ```
 
 <Tip>
-The display caches header text to avoid unnecessary redraws. Calling `setHeader()` with the same text won't trigger a redraw.
+If you call `setHeader()` with the same value, the service skips both drawing and refresh.
 </Tip>
 
-### setFooter()
+### `setFooter()`
 
-Sets left and right footer text with automatic alignment:
+Sets left‑ and right‑aligned footer text. Both are uppercased and cached.
 
-```cpp
+```cpp footer.h
 void setFooter(String &left, String &right);
 ```
 
-- Left text aligns to the left edge
-- Right text aligns to the right edge
-- Both texts convert to uppercase automatically
-- Text caching prevents unnecessary redraws
+- Left string aligns to the left edge of the footer region
+- Right string aligns to the right edge of the footer region
 
-### drawWrappedText()
+### `drawWrappedText()`
 
-Draws text with automatic word wrapping:
+Draw text with automatic word wrapping and optional center alignment.
 
-```cpp
+```cpp wrapped_text.h
 int drawWrappedText(int x, int y, const String &text, bool center = false);
 ```
 
-**Parameters:**
-- `x`, `y`: Starting position
-- `text`: Text to draw (supports literal `\n` for line breaks)
-- `center`: Enable center alignment
+<ParamField path="x" type="int" required>
+Starting x‑coordinate in pixels.
+</ParamField>
+<ParamField path="y" type="int" required>
+Starting baseline y‑coordinate in pixels.
+</ParamField>
+<ParamField path="text" type="String" required>
+Text to render. Supports literal `\n` for line breaks.
+</ParamField>
+<ParamField path="center" type="bool" default="false">
+Center each wrapped line within the page area when `true`.
+</ParamField>
 
-**Returns:** Number of lines drawn
+<ResponseField name="return" type="int" required>
+Number of lines drawn.
+</ResponseField>
 
-## Drawing Guidelines
+## Common patterns
+
+### Draw a complete screen
+
+```cpp draw_screen.cpp
+if (xSemaphoreTake(displayMutex, portMAX_DELAY) == pdTRUE) {
+  clearPage();
+  display.setFont(u8g2_font_spleen5x8_mu);
+  display.drawStr(0, 16, "MAIN CONTENT");
+  refreshPage();
+  xSemaphoreGive(displayMutex);
+}
+```
+
+<Check>
+This pattern clears only the page area, draws new content, and performs a partial refresh for speed.
+</Check>
+
+### Update the header only
+
+```cpp update_header.cpp
+if (xSemaphoreTake(displayMutex, portMAX_DELAY) == pdTRUE) {
+  String headerText = "NEW HEADER"; // case‑insensitive; will be uppercased
+  setHeader(headerText);
+  // setHeader internally decides whether a refresh is required
+  xSemaphoreGive(displayMutex);
+}
+```
+
+### Draw wrapped, centered text
+
+```cpp wrapped_text.cpp
+if (xSemaphoreTake(displayMutex, portMAX_DELAY) == pdTRUE) {
+  clearPage();
+  int lines = drawWrappedText(0, 16, "Long text that will wrap", /*center=*/true);
+  (void)lines; // optionally use the line count
+  refreshPage();
+  xSemaphoreGive(displayMutex);
+}
+```
+
+## Drawing guidelines
 
 <Steps>
-<Step title="Always use mutex protection">
-Wrap all drawing operations in a mutex lock:
+<Step title="Lock the mutex for every drawing sequence">
+Wrap drawing and refresh in a critical section guarded by `displayMutex`.
 
-```cpp
+```cpp lock_and_draw.cpp
 if (xSemaphoreTake(displayMutex, portMAX_DELAY) == pdTRUE) {
-    // Drawing operations here
-    xSemaphoreGive(displayMutex);
+  // Drawing
+  xSemaphoreGive(displayMutex);
 }
 ```
 </Step>
 
-<Step title="Use provided clearing functions">
-Prefer the clearing functions over manual buffer clearing:
+<Step title="Prefer region helpers over full clears">
+Minimize bus traffic and flicker by using `clear*()` and `refresh*()` helpers.
 
 <CodeGroup>
 ```cpp Recommended
 clearPage();
 display.drawStr(0, 16, "Content");
+refreshPage();
 ```
 
 ```cpp Avoid
-display.clearBuffer();
-display.drawStr(0, 16, "Content");
+// Full‑buffer clears cost time and cause visible flicker
+// display.clearBuffer();
 ```
 </CodeGroup>
 </Step>
 
-<Step title="Respect layout boundaries">
-Keep content within designated areas:
+<Step title="Respect boundaries">
+Keep content within:
 
-- Header content: cells 0-12
-- Footer content: cells 0-14
-- Icons: cells 13-15
-- Use `clearPage()` to prevent content overflow
+- Header: row 0, cells 0–12
+- Icons: row 0, cells 13–15
+- Page: rows 1–6
+- Footer: row 7, cells 0–14; timeout at cell 15
+
+Use `clearPage()` to clip page content away from header/footer.
 </Step>
 
-<Step title="Select appropriate fonts">
-| Area | Recommended Font |
-|------|-----------------|
+<Step title="Choose readable fonts">
+| Area | Recommended font |
+|---|---|
 | Header/Footer | `u8g2_font_spleen5x8_mu` |
-| Page content | Choose based on readability needs |
+| Page content | Pick for readability; adjust line spacing by font metrics |
 
 <Note>
-Consider font height when calculating vertical spacing between lines.
+Consider the font’s ascent and total line height when computing `y` offsets between lines.
 </Note>
 </Step>
 </Steps>
 
-## Common Patterns
+## Performance considerations
 
-### Drawing a Complete Screen
+- Partial updates only redraw the regions you changed
+- Text caching avoids unnecessary draw/refresh cycles
+- Clipping keeps drawing inside the intended region and reduces overdraw
+- Mutex‑guarded sequences prevent mid‑frame tearing across tasks
 
-```cpp draw_screen.cpp
-if (xSemaphoreTake(displayMutex, portMAX_DELAY) == pdTRUE) {
-    clearPage();
-    display.setFont(u8g2_font_spleen5x8_mu);
-    display.drawStr(0, 16, "Main Content");
-    refreshPage();
-    xSemaphoreGive(displayMutex);
-}
-```
+## Troubleshooting
 
-<Check>
-This pattern clears the page area, draws new content, and refreshes only the affected region.
-</Check>
+<AccordionGroup>
+<Accordion title="Nothing appears after init">
+- Confirm `initDisplay()` is called once
+- Verify the I2C address (try `0x3C` and `0x3C << 1` depending on constructor)
+- Ensure SDA/SCL match your board’s `Pins.h`
+</Accordion>
 
-### Updating Header Only
+<Accordion title="Display updates are slow or flicker">
+- Use region clears/refreshes instead of full‑buffer clears
+- Batch your drawing into one mutex‑protected block
+- Avoid unnecessary font changes between draw calls
+</Accordion>
 
-```cpp update_header.cpp
-if (xSemaphoreTake(displayMutex, portMAX_DELAY) == pdTRUE) {
-    String headerText = "NEW HEADER";
-    setHeader(headerText);
-    xSemaphoreGive(displayMutex);
-}
-```
+<Accordion title="Text appears misaligned vertically">
+- Remember U8G2 uses a baseline for `y`
+- Start the first 8‑px font line at `y = 8` or compute from font ascent
+</Accordion>
 
-### Drawing Wrapped Text
-
-```cpp wrapped_text.cpp
-if (xSemaphoreTake(displayMutex, portMAX_DELAY) == pdTRUE) {
-    clearPage();
-    int lines = drawWrappedText(0, 16, "Long text that will wrap", true);
-    refreshPage();
-    xSemaphoreGive(displayMutex);
-}
-```
-
-## Performance Considerations
-
-- **Partial updates**: `updateDisplayArea()` only refreshes specific regions
-- **Text caching**: Reduces redundant drawing operations
-- **Clipping windows**: Prevents unnecessary buffer operations
-- **Atomic operations**: Mutex ensures drawing operations complete without interruption
-
-## Memory Management
-
-- U8G2 library manages the display buffer
-- Text caching prevents unnecessary redraws
-- PROGMEM stores constant strings (following project guidelines)
+<Accordion title="Deadlock or blocked tasks">
+- Always release the mutex in error paths
+- Prefer RAII‑style wrappers or `goto cleanup` patterns
+</Accordion>
+</AccordionGroup>
 
 ## Dependencies
 
 | Dependency | Purpose |
-|------------|---------|
-| U8G2 Library | Core display functionality |
+|---|---|
+| U8G2 | SSD1306 rendering and font handling |
 | FreeRTOS | Mutex for thread safety |
-| ESP32 | Hardware I2C interface |
-| Pins.h | Hardware pin definitions |
+| ESP32 HAL | Hardware I2C interface |
+| `Pins.h` | Board pin definitions for SDA/SCL |
 
-## References
+## Related pages
 
 <CardGroup cols={3}>
-<Card title="U8G2 Reference" icon="book" href="https://github.com/olikraus/u8g2/wiki/u8g2reference">
-  Complete U8G2 library documentation
+<Card title="Hide display time (user feature)" icon="eye-off" href="/chastity-lockbox/using-your-lockbox/hiding-the-remaining-time">
+How the UI hides remaining time across device, dashboard, and notifications.
 </Card>
 
-<Card title="U8G2 Fonts" icon="font" href="https://github.com/olikraus/u8g2/wiki/fntlistallplain">
-  Available font list for display rendering
+<Card title="Emergency unlock display flow" icon="alert-triangle" href="/chastity-lockbox/technical-documentation/device-states/emergency-unlock">
+Screen flow and consequences of triggering Emergency Unlock on device.
 </Card>
 
-<Card title="FreeRTOS Mutex" icon="lock" href="https://www.freertos.org/Real-time-embedded-RTOS-mutexes.html">
-  Mutex documentation for thread safety
+<Card title="Device support matrix" icon="list" href="/research-and-desire-remote/device-support">
+Supported and planned devices across 2025–2026.
 </Card>
 </CardGroup>

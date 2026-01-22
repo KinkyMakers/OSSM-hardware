@@ -1,33 +1,134 @@
 ---
 title: "PitClamp Mini - Dogbone Nuts"
-description: "The nut-side component of the PitClamp Mini quick-release latch mechanism"
+description: "Nut-side component of the PitClamp Mini quick‑release dogbone latch"
 ---
 
 import { STLViewer } from '/snippets/ossm/stl-render.jsx';
 
+<Frame caption="Preview the Dogbone Nuts geometry">
 <STLViewer url="https://raw.githubusercontent.com/KinkyMakers/OSSM-hardware/main/Printed%20Parts/Mounting/OSSM%20-%20Base%20-%20PitClamp%20Mini%20-%20Dogbone%20Nuts.stl" />
+</Frame>
 
-## Function
+## Overview
 
-The Dogbone Nuts are part of the quick-release latch mechanism. This component:
+The Dogbone Nuts are the nut-side of the PitClamp Mini quick‑release latch. Together with the Dogbone Bolts, they let you:
 
-- Forms the nut-side of the dogbone latch pair
-- Receives the Dogbone Bolts to secure the clamp
-- Enables tool-free motor release and attachment
-- Provides the locking detent for the 4-degree rotation adjustment
+- Attach or remove the OSSM motor from a PitClamp Mini base without tools
+- Secure the clamp under load while maintaining consistent alignment
+- Index rotation in 4° steps via a built‑in detent profile
 
-The dogbone latch system allows you to remove the motor from the mount for storage or transfer it to another base without tools.
+<Info>
+This part is designed specifically for the PitClamp Mini system. Use it only with the matching Dogbone Bolts and PitClamp Mini base components.
+</Info>
 
-## Print Settings
+## What you need
 
-| Setting | Value |
-|---------|-------|
-| Walls | 6 |
-| Infill Type | Cross Hatch or Gyroid |
-| Infill Percentage | 10% |
-| Supports | Tree Supports, 5° threshold angle |
+- 3D printer capable of printing PETG, ASA, ABS, or Nylon
+- Slicer profile that supports tree supports or equivalent
+- Matching PitClamp Mini components (Dogbone Bolts and base)
 
-## Download Files
+<Tip>
+Print at least one spare set so you can swap quickly if a part wears during heavy use.
+</Tip>
+
+## Print guidelines
+
+- Quantity: 2 pieces (one left, one right) unless your assembly requires additional latch points
+- Orientation: Flat face down; detent features facing up for cleaner indexing
+- Nozzle: 0.4 mm (0.6 mm acceptable for stronger parts)
+- Layer height: 0.20 mm (0.24–0.28 mm for faster prints)
+- Perimeters (walls): 6
+- Top/bottom layers: 6 / 6
+- Infill: 10% Gyroid or Crosshatch
+- Supports: Tree supports with 5° threshold angle (support interface recommended)
+- Material: PETG or ASA recommended; ABS or Nylon for maximum heat and wear resistance
+
+<Warning>
+Avoid PLA for load‑bearing latch parts. PLA can creep and crack under clamp loads and elevated temperatures.
+</Warning>
+
+<Tabs>
+<Tab title="PrusaSlicer / SuperSlicer">
+- Infill: Gyroid 10%
+- Support style: Organic/Tree; Overhang threshold 5°; Enable support interface
+- XY compensation: start at 0.00 mm; adjust ±0.05–0.10 mm if fit is too tight/loose
+</Tab>
+
+<Tab title="Cura">
+- Infill: Gyroid 10%
+- Tree Supports: On; Support Overhang Angle 5°; Enable Support Interface
+- Horizontal Expansion: 0.00 mm baseline; tune ±0.05–0.10 mm to fit
+</Tab>
+
+<Tab title="Bambu Studio">
+- Infill: Gyroid 10%
+- Support Type: Tree; Angle 5°; Support Interface: On
+- Hole/Contour compensation: 0.00 mm baseline; adjust ±0.05–0.10 mm as needed
+</Tab>
+</Tabs>
+
+<Note>
+For the best‑feeling detents, prioritize clean top surfaces: reduce print speed for the top layers and enable ironing only on top surfaces if your slicer supports it.
+</Note>
+
+## Post‑processing
+
+- Remove supports carefully from the detent pockets.
+- Deburr with a light pass of a deburring tool or fine file. Do not round over the detent edges—crisp edges improve the 4° indexing feel.
+- Optional: Dry‑fit and, if engagement is too tight, adjust slicer horizontal expansion by −0.05 mm and reprint.
+
+## Installation and fit‑check
+
+<Steps>
+<Step title="Prepare the base and bolts">
+Ensure the PitClamp Mini base is installed and the matching Dogbone Bolts are printed and free of defects.
+</Step>
+
+<Step title="Seat the Dogbone Nuts">
+Place each Dogbone Nut into its pocket on the base with the detent features oriented to face the bolt’s mating profile.
+</Step>
+
+<Step title="Engage the latch">
+Insert the Dogbone Bolt through the clamp and rotate into the Dogbone Nut until you feel the detent click. Hand‑tighten to the normal clamping force.
+
+<Check>
+You should feel distinct 4° “clicks” as you rotate, and the clamp should not back‑off under light manual load.
+</Check>
+</Step>
+
+<Step title="Verify clearance and alignment">
+Cycle the latch several times. Confirm no rubbing on adjacent printed parts and that the motor releases and re‑attaches smoothly.
+</Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="Latch feels gritty or inconsistent">
+- Clean support residue from detent features
+- Increase top layers to 8 and reprint for smoother detents
+- Reduce print speed for top layers by 20%
+</Accordion>
+
+<Accordion title="Fit is too tight / won’t rotate">
+- Reduce horizontal expansion (XY compensation) by 0.05–0.10 mm and reprint
+- Verify support interface didn’t scar the mating surface; lightly deburr
+</Accordion>
+
+<Accordion title="Fit is too loose / won’t hold clamp force">
+- Increase horizontal expansion by 0.05–0.10 mm and reprint
+- Increase perimeters to 7–8 for stiffer walls
+- Consider stiffer material (ASA/ABS/Nylon)
+</Accordion>
+
+<Accordion title="Premature wear of detents">
+- Print with higher‑temperature material (ASA/ABS/Nylon)
+- Increase infill to 20% and perimeters to 8
+- Ensure detents are printed facing up for best surface quality
+</Accordion>
+</AccordionGroup>
+
+## Download files
 
 <CardGroup cols={3}>
   <Card title="STL File" icon="cube" href="https://github.com/KinkyMakers/OSSM-hardware/blob/main/Printed%20Parts/Mounting/OSSM%20-%20Base%20-%20PitClamp%20Mini%20-%20Dogbone%20Nuts.stl">
@@ -37,6 +138,10 @@ The dogbone latch system allows you to remove the motor from the mount for stora
     For CAD modification
   </Card>
   <Card title="3MF (Full Assembly)" icon="layer-group" href="https://github.com/KinkyMakers/OSSM-hardware/tree/main/Printed%20Parts/Mounting/Preconfigured%203mf">
-    Pre-configured print files
+    Pre‑configured print files
   </Card>
 </CardGroup>
+
+<Warning>
+Inspect printed latch parts regularly. Replace immediately if you see cracking, layer separation, or rounded detents that reduce holding strength.
+</Warning>

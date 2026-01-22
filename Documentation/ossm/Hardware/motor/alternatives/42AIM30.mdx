@@ -1,20 +1,22 @@
 ---
 title: "42AIM30 Round Motor"
-description: "Alternative compact motor option with smaller form factor but limited mounting support"
+description: "Compact 42 mm round variant of the 57AIM30 'Gold Motor'; identical performance with a smaller diameter but limited mounting options."
 ---
 
-The 42AIM30 is a variant of the Gold Motor with identical internals and specifications in a more compact cylindrical form factor.
+The 42AIM30 ("Round Motor") is a compact, cylindrical alternative to the standard 57AIM30 Gold Motor used with OSSM. It removes the external heatsink housing while keeping equivalent internals and performance characteristics.
 
 <Warning>
-The 42AIM30 has limited mounting support and requires custom hardware. Only consider this motor if you have specific size constraints.
+The 42AIM30 has limited mounting support and typically requires custom hardware or an adapter. Choose this motor only if you have strict diameter constraints.
 </Warning>
 
 ## Overview
 
-The 42AIM30 (sometimes called the "Round Motor") shares the same internal components as the standard 57AIM30 Gold Motor but removes the heatsink housing, leaving only the cylindrical motor body with connectors at the base.
+- Form factor: 42 mm round body without an external heatsink
+- Intended use: Space-constrained builds where the 57 mm square housing will not fit
+- Electrical behavior: Works with the same OSSM wiring and control approach as the 57AIM30 Gold Motor. For wiring, follow /open-source-sex-machine/ossm-electronics/wiring-your-gold-motor
 
 <Note>
-When ordering, ensure you select the correct model variant—the 42AIM30 with RS485 interface and 1500 RPM rating.
+If you are sourcing a 42AIM30 from a third-party vendor as a drop-in replacement for the Gold Motor, match the interface and base speed to your controller (commonly RS485 and ~1500 RPM). Confirm the exact variant and connector pinout with the vendor before ordering. You will need to <a href="/ossm/Hardware/motor/programming">program the motor</a> before first use.
 </Note>
 
 ## Comparison with 57AIM30 Gold Motor
@@ -22,44 +24,140 @@ When ordering, ensure you select the correct model variant—the 42AIM30 with RS
 ### Advantages
 
 | Feature | Benefit |
-|---------|---------|
-| Smaller diameter | 26% reduction compared to 57AIM30 |
-| Cylindrical shape | Easier to fit in tight spaces vs square housing |
-| Lighter weight | Estimated 25% reduction (exact data needed) |
+|---|---|
+| Smaller diameter (42 mm vs 57 mm) | ~26% reduction enables tighter clearances |
+| Cylindrical shape | Easier to package in round or narrow enclosures |
+| Lower mass (no external heatsink) | Potentially lighter overall; exact weight varies by vendor |
 
-### Disadvantages
+### Trade-offs
 
 | Limitation | Impact |
-|------------|--------|
-| No mounting ears | Requires precise face-mounted machine screws |
-| Incompatible housings | Standard housings do not fit; community mods available on Discord |
-| Heat management | No heatsink may cause thermal issues in enclosed housings |
-| No clear advantage | Same specs, length, and limitations as 57AIM30 |
+|---|---|
+| No mounting ears | Requires face-mounting into the motor front plate with precisely sized screws |
+| Fewer off-the-shelf housings | Printed/aftermarket OSSM housings may not fit without modification |
+| Reduced heat dissipation | Higher case temperatures at similar loads; plan active airflow or added mass |
+| Not necessarily shorter | Overall length is often similar to the 57AIM30; do not assume a shorter stack-up |
 
 <Warning>
-Using the 42AIM30 requires modifications to the standard Bill of Materials (BOM). Ensure you have access to compatible mounting hardware before purchasing.
+If you are following an OSSM Bill of Materials, you must adjust your mount, fastener lengths, and printed parts for the 42 mm body. Validate fitment before purchasing all components.
 </Warning>
 
-## Mounting Considerations
+## Mounting considerations
 
-Unlike the 57AIM30 with its bolt-through mounting ears, you must mount the 42AIM30 using machine screws threaded directly into the motor face:
+Face-mounting into the motor front plate is required. Because fasteners thread into the motor body, length and thread engagement are critical.
 
-- Measure the exact screw length required for your mounting solution
-- Use the correct thread pitch for the motor face holes
-- Check Discord community resources for tested mounting solutions
+<Steps>
+<Step title="Measure and plan clearances">
+- Measure the motor face depth, pilot diameter, and the depth of each threaded hole.
+- Confirm shaft diameter, flat location, and stick-out to ensure pulley/coupler alignment.
+
+<Check>
+You should have a drawing or notes with: pilot Ø, bolt circle, hole size/thread, hole depth, shaft Ø and length, and required standoff thickness.
+</Check>
+</Step>
+
+<Step title="Select hardware and adapter">
+- Choose the correct thread size and pitch for the face holes (verify on your unit; do not assume).
+- Use an adapter plate or printed cradle sized for a 42 mm body if your current mount expects 57 mm.
+- Start with temporary standoffs/spacers so you can fine-tune pulley alignment before final assembly.
 
 <Tip>
-Join the KinkyMakers Discord to find community-designed housings compatible with the 42AIM30.
+If you already have a 57 mm mount, a simple reducer ring or adapter plate can bridge 57 mm mounting to a 42 mm motor while preserving shaft center height.
 </Tip>
+</Step>
 
-## Thermal Performance
+<Step title="Install with correct fastener length">
+- Target 1–1.5× diameter of thread engagement, without bottoming out in the blind holes.
+- Apply medium-strength threadlocker and torque evenly in a cross pattern to avoid misalignment.
 
-The 42AIM30 lacks the integrated heatsink found on the 57AIM30. When enclosed in a 3D-printed housing:
+<Warning>
+Overlong screws can contact internal windings or the rotor and permanently damage the motor. Always verify hole depth and use a physical stop or washers during first fit.
+</Warning>
+</Step>
 
-- Monitor motor temperature during extended use
-- Consider adding ventilation holes to your housing design
-- Reduce duty cycle if you observe thermal throttling
+<Step title="Align and verify motion">
+- With power off, rotate the shaft by hand to confirm there is no rubbing.
+- Power on and run at low speed, observing for vibration, axial wobble, or noise.
+
+<Check>
+No rubbing, the shaft runs true, and the coupler/pulley is aligned with the driven axis.
+</Check>
+</Step>
+</Steps>
+
+## Thermal performance
+
+Without the external heatsink, the 42AIM30 has less surface area for cooling. When enclosed in a 3D-printed housing or run at high load:
+
+- Provide airflow (vents, fan, or open-frame mounting) around the motor can.
+- Add thermal mass (e.g., a clamp-on aluminum ring or metal adapter plate) to spread heat.
+- Avoid fully encapsulating the motor in plastic; leave clearance around the can.
+- Reduce duty cycle or speed if the case becomes uncomfortably hot to the touch.
 
 <Info>
-Community testing on thermal performance is ongoing. Share your temperature data on Discord to help improve recommendations.
+Thermal behavior depends on load, ambient temperature, enclosure geometry, and airflow. Capture your own case-temperature data during a 10–15 minute representative run and adjust cooling accordingly.
 </Info>
+
+## Electrical compatibility
+
+- Power and signal wiring follow the same process as the Gold Motor. Use /open-source-sex-machine/ossm-electronics/wiring-your-gold-motor
+- Ensure your power budget aligns with the OSSM PCB capabilities in /open-source-sex-machine/ossm-electronics/ossm-pcb-spec-sheet
+- If your 42AIM30 uses a different base connector or pinout, you will need a compatible harness or adapter; confirm before powering on.
+
+## Bill of Materials (BOM) impact
+
+Expect changes to:
+
+- Motor mount: adapter plate or 42 mm-specific bracket/cradle
+- Fasteners: different lengths and possibly thread sizes for face-mounting
+- Printed parts: resized shells or reducers to locate the 42 mm body
+- Cooling: small fan, vented panels, or an aluminum clamp ring for heat spreading
+
+<Tip>
+If you do not have tight space constraints, the 57AIM30 Gold Motor remains the easiest option due to ready-made mounts and better passive cooling.
+</Tip>
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="The motor runs hot in my enclosure">
+- Increase ventilation or add a small 24V fan aimed across the motor can
+- Add a metal adapter plate or clamp ring to increase heat capacity
+- Reduce speed/duty cycle or provide rest intervals during long sessions
+</Accordion>
+
+<Accordion title="I can't get the mounting screws to seat correctly">
+- Re-check thread size/pitch and hole depth on the motor
+- Test-fit with progressively longer screws to confirm engagement without bottoming out
+- Shim the adapter plate to maintain shaft center height and coupler alignment
+</Accordion>
+
+<Accordion title="The pulley/coupler is misaligned after the swap">
+- Use spacers or reposition the motor so the shaft centerline matches the original setup
+- Loosen, realign, and re-torque in a cross pattern; re-verify free rotation by hand
+</Accordion>
+</AccordionGroup>
+
+## Related docs
+
+<CardGroup cols={2}>
+<Card title="Wiring your Gold Motor" icon="plug" href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">
+Follow the same wiring process and connector order used by the 57AIM30 Gold Motor.
+</Card>
+
+<Card title="Program your motor" icon="microchip" href="/ossm/Hardware/motor/programming">
+Configure motor settings before first use.
+</Card>
+
+<Card title="OSSM Mounting" icon="screwdriver" href="/open-source-sex-machine/ossm-mounting">
+Browse mount options; plan an adapter for the 42 mm body.
+</Card>
+
+<Card title="OSSM PCB spec sheet" icon="cpu" href="/open-source-sex-machine/ossm-electronics/ossm-pcb-spec-sheet">
+Verify power limits and connector locations on the OSSM controller.
+</Card>
+
+<Card title="Home Assembly Purchase Guide" icon="cart" href="/open-source-sex-machine/purchase-guide-for-the-ossm-home-assembly-kit">
+See standard components used with the 57AIM30 Gold Motor.
+</Card>
+</CardGroup>
