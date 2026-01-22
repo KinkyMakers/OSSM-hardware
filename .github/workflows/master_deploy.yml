@@ -61,6 +61,7 @@ jobs:
           path: |
             Software/.pio/build/production/firmware.bin
             Software/.pio/build/production/partitions.bin
+            Software/.pio/build/production/bootloader.bin
           retention-days: 1
 
   upload_to_supabase:
@@ -102,12 +103,12 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"prefix\": \"${PREFIX}\", \"limit\": 1000}")
 
-          # Extract file names and delete any that aren't our 3 target files
+          # Extract file names and delete any that aren't our 4 target files
           echo "$RESPONSE" | jq -r '.[]?.name // empty' | while read -r file; do
             if [ -n "$file" ]; then
               # Remove the prefix to get just the filename
               filename="${file#$PREFIX}"
-              if [[ "$filename" != "firmware.bin" && "$filename" != "partitions.bin" && "$filename" != "manifest.json" ]]; then
+              if [[ "$filename" != "firmware.bin" && "$filename" != "partitions.bin" && "$filename" != "bootloader.bin" && "$filename" != "manifest.json" ]]; then
                 echo "Removing unexpected file: $file"
                 curl -s -X DELETE "https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/${BUCKET}/${file}" \
                   -H "apikey: ${SUPABASE_ACCESS_TOKEN}" \
@@ -121,9 +122,11 @@ jobs:
         run: |
           supabase storage rm "ss:///ossm-firmware/master/firmware.bin" --experimental --yes 
           supabase storage rm "ss:///ossm-firmware/master/partitions.bin" --experimental --yes 
+          supabase storage rm "ss:///ossm-firmware/master/bootloader.bin" --experimental --yes 
           supabase storage rm "ss:///ossm-firmware/master/manifest.json" --experimental --yes 
           supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/master/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
           supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/master/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          supabase storage cp ./firmware/bootloader.bin "ss:///ossm-firmware/master/bootloader.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
 
       - name: Create and upload manifest.json
         run: |

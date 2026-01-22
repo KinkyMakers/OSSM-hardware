@@ -61,6 +61,7 @@ jobs:
           path: |
             Software/.pio/build/production/firmware.bin
             Software/.pio/build/production/partitions.bin
+            Software/.pio/build/production/bootloader.bin
           retention-days: 1
 
   check:
@@ -258,6 +259,7 @@ jobs:
           BRANCH_PATH="${{ steps.encode_branch.outputs.encoded_branch }}"
           supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/firmware.bin" --experimental || true
           supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/partitions.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/partitions.bin" --experimental || true
+          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/bootloader.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/bootloader.bin" --experimental || true
           supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/manifest.json" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/manifest.json" --experimental || true
         continue-on-error: true
 
@@ -265,6 +267,7 @@ jobs:
         run: |
           supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
           supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          supabase storage cp ./firmware/bootloader.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/bootloader.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
 
       - name: Create and upload manifest.json
         run: |
@@ -304,7 +307,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const deploymentId = ${{ steps.create_deployment.outputs.result }}.id;
-            const flashUrl = 'https://dashboard.researchanddesire.com/app/tools/web-flasher?device=ossm&branch=${{ steps.encode_branch.outputs.encoded_branch }}';
+            const flashUrl = 'https://docs.researchanddesire.com/ossm/tools/web-flasher?branch=${{ steps.encode_branch.outputs.encoded_branch }}';
 
             await github.rest.repos.createDeploymentStatus({
               owner: context.repo.owner,
