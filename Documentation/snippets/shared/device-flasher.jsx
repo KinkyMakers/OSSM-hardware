@@ -1,27 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
 
-const DEVICE_CONFIGS = {
-  ossm: {
-    name: 'OSSM',
-    fullName: 'Open Source Sex Machine',
-    storageBucket: 'ossm-firmware',
-    productionManifestPath: '/espOSSM/manifest.json',
-    description: 'Flash your Open Source Sex Machine with the latest firmware. Connect via USB-C to get started.',
-    connectInstructions: 'Connect your OSSM to your computer via USB-C',
-  },
-  radr: {
-    name: 'RADR',
-    fullName: 'RAD Wireless Remote',
-    storageBucket: 'radr-firmware',
-    productionManifestPath: '/espRADR/manifest.json',
-    description: 'Flash your RADR wireless remote with the latest firmware. Connect via USB-C to get started.',
-    connectInstructions: 'Connect your RADR to your computer via USB-C',
-  },
-};
 
-const STORAGE_BASE_URL = 'https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public';
 
 export const DeviceFlasher = ({ device = 'ossm' }) => {
+  const DEVICE_CONFIGS = {
+    ossm: {
+      name: 'OSSM',
+      fullName: 'Open Source Sex Machine',
+      storageBucket: 'ossm-firmware',
+      productionManifestPath: '/espOSSM/manifest.json',
+      description: 'Flash your Open Source Sex Machine with the latest firmware. Connect via USB-C to get started.',
+      connectInstructions: 'Connect your OSSM to your computer via USB-C',
+    },
+    radr: {
+      name: 'RADR',
+      fullName: 'RAD Wireless Remote',
+      storageBucket: 'radr-firmware',
+      productionManifestPath: '/espRADR/manifest.json',
+      description: 'Flash your RADR wireless remote with the latest firmware. Connect via USB-C to get started.',
+      connectInstructions: 'Connect your RADR to your computer via USB-C',
+    },
+  };
+
+  const STORAGE_BASE_URL = 'https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public';
   const config = DEVICE_CONFIGS[device] || DEVICE_CONFIGS.ossm;
   const STORAGE_URL = `${STORAGE_BASE_URL}/${config.storageBucket}`;
 
@@ -294,7 +295,3 @@ export const DeviceFlasher = ({ device = 'ossm' }) => {
     </div>
   );
 };
-
-// Convenience exports for specific devices
-export const OssmFlasher = () => <DeviceFlasher device="ossm" />;
-export const RadrFlasher = () => <DeviceFlasher device="radr" />;
