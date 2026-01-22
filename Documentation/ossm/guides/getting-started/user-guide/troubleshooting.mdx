@@ -208,7 +208,7 @@ If you have a RADR wireless remote, you can continue using your OSSM while waiti
 
 ## Boot loops or display artifacts
 
-If your OSSM repeatedly restarts (boot loops) or shows corrupted characters, flickering, or visual glitches on the wired remote display, the wired remote board may be faulty.
+If your OSSM repeatedly restarts (boot loops) or shows corrupted characters, flickering, or visual glitches on the wired remote display, there may be a hardware fault with the wired remote board or the main control board.
 
 <AccordionGroup>
 <Accordion title="Identify the symptoms">
@@ -216,32 +216,53 @@ If your OSSM repeatedly restarts (boot loops) or shows corrupted characters, fli
 - Device restarts repeatedly without completing the homing sequence
 - Display shows garbled text, flickering, or visual artifacts
 - Crashes or reboots occur when using the right knob (encoder)
+- Random, uninstructed changes to speed, depth, or stroke parameters
+- Motor attempts to exceed position limits (violent movement, belt skipping)
 - Problems persist after trying different firmware versions
 
 **What to rule out first:**
-Before suspecting the wired remote board, try:
+Before suspecting a hardware fault, try:
 
 1. **Different RJ45 cable** — A damaged cable can cause intermittent faults
-2. **Different power supply** — Voltage fluctuations can cause instability
-3. **Reflash firmware** — Corrupted firmware can cause unexpected behavior
+2. **Different power supply** — Voltage fluctuations can cause instability (use a UL-listed 24V supply rated for at least 5A)
+3. **Reflash firmware** — Corrupted firmware can cause unexpected behavior. Use the [Web Flasher](/ossm/tools/web-flasher) to install the latest stable version.
+</Accordion>
+
+<Accordion title="Check power and board status">
+If basic troubleshooting doesn't help, verify the control board is receiving power correctly:
+
+1. **Check the 3.3V LED** — The control board has a small blue LED near the ESP32 chip. If this LED is on, the board is receiving power and the voltage regulator is working.
+2. **Check 24V at the input terminals** — Use a multimeter to verify 24V DC at the power input terminals on the control board. You should read between 23V and 25V.
+3. **Check voltage at motor terminals** — Measure voltage at the motor output terminals to confirm power is reaching the motor driver.
+
+If the 3.3V LED is off or dim, or if voltage readings are incorrect, the issue may be with your power supply or the control board itself.
 </Accordion>
 
 <Accordion title="Test without the wired remote">
-If you have a RADR wireless remote, you can isolate whether the wired remote is causing the issue:
+Isolate whether the wired remote is causing the issue:
 
 1. Power off the OSSM completely
 2. Disconnect the wired remote's RJ45 cable from the control board
 3. Power on the OSSM
-4. Connect via the RADR and test normal operation
+4. Observe the serial output via USB (optional) or listen for motor movement
 
-If the OSSM operates normally without the wired remote connected, the wired remote board is likely faulty.
+**Interpreting results:**
+- If the OSSM boots normally and homes without the remote connected, the **wired remote board** is likely faulty.
+- If the OSSM still fails to boot or crashes without the remote connected, the **main control board** may be faulty.
+
+<Tip>
+If you have a RADR wireless remote, connect via RADR after disconnecting the wired remote to test normal operation.
+</Tip>
 </Accordion>
 
 <Accordion title="Resolution">
-A wired remote board causing boot loops or display corruption indicates a hardware fault. Contact support to request a replacement wired remote board under warranty.
+Boot loops, display corruption, or erratic parameter changes that persist after troubleshooting indicate a hardware fault. Depending on test results:
+
+- **Wired remote at fault** — Contact support to request a replacement wired remote board under warranty.
+- **Control board at fault** — Contact support to request a replacement control board under warranty.
 
 <Tip>
-While waiting for a replacement, you can continue using your OSSM with a RADR wireless remote if you have one available.
+While waiting for a replacement, you can continue using your OSSM with a RADR wireless remote if you have one available (assuming the main control board is functional).
 </Tip>
 </Accordion>
 </AccordionGroup>

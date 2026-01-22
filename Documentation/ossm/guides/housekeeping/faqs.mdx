@@ -97,6 +97,10 @@ While you can theoretically use any NEMA23 mount motor, some work better than ot
 - Easier to program
 - More responsive across the full speed range
 
+<Warning>
+**Do not purchase the 60AIM motor.** Despite the similar naming, the 60AIM uses a larger NEMA24 (60 mm) frame that does not fit the standard OSSM printed parts. Stick with NEMA23 (57 mm) frame motors like the 57AIM30 Gold Motor.
+</Warning>
+
 <Tip>
 Stepper motors are cheaper but significantly noisier. For the best experience, invest in a servo motor.
 </Tip>
@@ -202,6 +206,20 @@ After choosing your motor, selecting a toy mount is your next decision. Options 
 - **OSSM Platten**: Plate mount for suction cup toys with tie-down points
 </Accordion>
 
+<Accordion title="Does OSSM support KlicLok adapters?">
+Research & Desire does not currently sell a KlicLok adapter. OSSM uses a Vac-U-Lock compatible mounting system as its standard toy interface.
+
+If you have toys with KlicLok fittings, you have a few options:
+
+- **Community designs**: Some community members have designed KlicLok adapters—check the [Kinky Makers Discord](https://discord.gg/MmpT9xE) for community-contributed designs and discussions
+- **Third-party adapters**: KlicLok-to-Vac-U-Lock adapters are available from various retailers, allowing you to use KlicLok toys with the standard OSSM mount
+- **Alternative mounting**: Use the harness-style clamp or tie-on mounting methods, which can secure toys regardless of their base type
+
+<Tip>
+The M24×3 threaded end effector is an open standard—if you have 3D printing capabilities, you can design custom adapters for any mounting system.
+</Tip>
+</Accordion>
+
 <Accordion title="What can I mount the machine on?">
 Several mounting options are available:
 
@@ -210,6 +228,35 @@ Several mounting options are available:
 - Manfrotto boom compatible adapters
 
 Your mounting solution is limited only by your imagination and use case.
+</Accordion>
+
+<Accordion title="Can I use 4040 extrusion instead of 3030?">
+Yes, the OSSM actuator and PitClamp Mini mounting base are compatible with any slotted aluminum extrusion, including both 3030 and 4040. The T-nuts included with R+D kits fit both 3030 and 4040 extrusion slots.
+
+**Key considerations for 4040:**
+
+| Component | 3030 | 4040 |
+|-----------|------|------|
+| **Actuator / PitClamp Mini base** | Full compatibility | Full compatibility |
+| **T-nuts** | Standard fit | Standard fit (same T-nuts work) |
+| **Pivot plates** | Designed for 3030 | Usable, but tolerances are closer |
+| **Printed feet and caps** | Press-fit designed for 3030 | May not fit—print custom or leave open |
+
+**Pivot plate notes:**
+
+The standard pivot plates are designed for 3030 extrusion but will work on 4040. However, some intentionally toleranced connections—where bolts seat fully against the internal extrusion structure when tightened—will not engage the same way on 4040. The T-nuts will still provide good rigidity, but expect slightly closer tolerances.
+
+<Note>
+Each additional pivot point you add to a stand introduces some play. Building a rigid stand that can handle the OSSM's forces is often the harder part of the build.
+</Note>
+
+**Community alternatives:**
+
+The [KinkyMakers Discord](https://discord.gg/MmpT9xE) has several community-designed 4040 stand variations. A popular option is the "Shick's Mount," which is specifically designed for 4040 extrusion.
+
+<Tip>
+If you're sourcing your own extrusion and want maximum compatibility with the standard printed parts, 3030 is the easier choice. If you prefer 4040 for added rigidity, expect to adapt or reprint some stand components.
+</Tip>
 </Accordion>
 </AccordionGroup>
 
@@ -222,6 +269,16 @@ Control options depend on your use case:
 - **Wired remote**: Included with DIY kits and some Ready-to-Play configurations
 - **RADR (Research and Desire Remote)**: Official wireless remote with Bluetooth connectivity
 - **Custom solutions**: Build your own controller—that's the advantage of open-source hardware
+</Accordion>
+
+<Accordion title="Does the Wireless Remote option include the Wired Remote board?">
+No. Each electronics package option includes only one remote type. If you select the **Wireless - Fully Assembled** option, you receive the RADR wireless remote only—the wired remote board is not included.
+
+If you want both remotes, purchase the wired remote board separately. You can only use one remote at a time, but having both gives you a backup or lets you switch between wired and wireless control depending on your preference.
+
+<Card title="Wired Remote board" icon="plug" href="https://www.researchanddesire.com/products/wired-remote-board">
+  Purchase the wired remote board separately
+</Card>
 </Accordion>
 
 <Accordion title="What's the difference between wired and wireless remotes?">
@@ -324,9 +381,24 @@ If your kit includes a USB-C power adapter, use a USB-C Power Delivery charger w
 USB-C PD adapters deliver slightly less force than a dedicated 24V supply (35 lbs vs 45 lbs). For most users, this difference is imperceptible. If you need maximum force, use a 24V barrel jack power supply.
 </Note>
 
+<Tip>
+**DIY kit customers who want maximum force:** The USB-C adapter included with DIY kits provides 35 lbs of force, which is sufficient for most use cases. If you want the full 45 lbs of force, you can purchase a 24V barrel jack power supply separately from R+D or source one locally.
+</Tip>
+
 <Warning>
 For safety, use a desktop power supply that is ideally double-insulated. Supplies from reputable distributors (Mouser, Digikey, Conrad, RS) cost more than unbranded units from AliExpress/eBay/Amazon, but unbranded supplies have shown inconsistent quality and long-term stability issues.
 </Warning>
+
+**International customers (EU, UK, and other regions):**
+
+Power supplies sold by R+D use North American plugs (Type A/B, 120V compatible). If you're ordering from outside North America:
+
+- **Option 1:** Purchase R+D's 24V power supply and use a plug adapter for your region's wall sockets. The power supply accepts 100–240V AC input, so only the plug shape needs adapting—no voltage converter is required.
+- **Option 2:** Source a 24V, 4A (or higher) power supply locally with your region's plug type. Ensure it is safety-certified (CE for EU, UKCA for UK) and has a 5.5mm × 2.1mm barrel jack connector with center-positive polarity.
+
+<Note>
+If sourcing locally, verify the barrel jack size (5.5mm outer diameter × 2.1mm inner diameter) and polarity (center-positive) match the OSSM PCB requirements. Incorrect polarity can damage the board.
+</Note>
 
 **36V power supply (advanced users):**
 
