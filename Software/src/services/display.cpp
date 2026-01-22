@@ -29,6 +29,10 @@ void initDisplay() {
     display.sendBuffer();
 
     ESP_LOGI(TAG, "Display initialization complete.");
+
+#ifdef LOG_SCREEN_STATE
+    startScreenLogTask();
+#endif
 }
 
 #define ICON_TILES 4

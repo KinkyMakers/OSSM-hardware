@@ -1,15 +1,17 @@
 #include "Arduino.h"
 #include "OneButton.h"
 #include "components/HeaderBar.h"
+#include "esp_log.h"
 #include "ossm/Events.h"
 #include "ossm/OSSM.h"
 #include "ossm/OSSMI.h"
 #include "services/board.h"
+#include "services/communication/mqtt.h"
 #include "services/communication/nimble.h"
 #include "services/display.h"
 #include "services/encoder.h"
-#include "services/stepper.h"
 #include "services/led.h"
+#include "services/stepper.h"
 #include "services/wm.h"
 
 /*
@@ -32,12 +34,13 @@
 OneButton button(Pins::Remote::encoderSwitch, false);
 
 void setup() {
+    // Suppress verbose GPIO configuration logs
+    esp_log_level_set("gpio", ESP_LOG_WARN);
+
     /** Board setup */
     initBoard();
 
     ESP_LOGD("MAIN", "Starting OSSM");
-
-    initWM();
 
     // Display
     initDisplay();
@@ -48,7 +51,7 @@ void setup() {
     ossm = new OSSM(display, encoder, stepper);
     ossmInterface = ossm;
 
-    // Initialize LED for BLE and machine status indication
+    // ialize LED for BLE and machine status indication
     ESP_LOGI("MAIN", "LED initialized for BLE and machine status indication");
     updateLEDForMachineStatus();  // Set initial LED state
 
@@ -75,15 +78,17 @@ void setup() {
                 if ((ossm->sm->is("menu.idle"_s) ||
                      ossm->sm->is("error.idle"_s)) &&
                     !initialized) {
-                    ESP_LOGD("MAIN", "Initializing NimBLE");
+                    ESP_LOGD("MAIN", "Initializing communication services");
                     initNimble();
+                    initWM();
+                    initMQTT();
                     initialized = true;
                     vTaskDelete(nullptr);
                 }
                 vTaskDelay(pdMS_TO_TICKS(100));
             }
         },
-        "initNimbleTask", 6 * configMINIMAL_STACK_SIZE, nullptr,
+        "initNimbleTask", 32 * configMINIMAL_STACK_SIZE, nullptr,
         configMAX_PRIORITIES - 1, nullptr, 0);
 };
 
