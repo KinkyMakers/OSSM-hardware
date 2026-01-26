@@ -339,6 +339,7 @@
                 "group": "Flashers",
                 "pages": [
                   "ossm/tools/web-flasher",
+                  "ossm/tools/web-controller",
                   "ossm/tools/gold-motor-programming"
                 ]
               }
