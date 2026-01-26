@@ -1,0 +1,47 @@
+---
+title: Introduction
+description: Video analysis tools for measuring and analyzing OSSM motion
+---
+
+# OSSM Analysis Tools
+
+The Analysis toolkit provides tools for measuring and analyzing OSSM motion from video recordings using computer vision.
+
+## Overview
+
+These tools allow you to:
+
+- **Calibrate** pixel-to-millimeter conversion using a known reference length
+- **Track** a point on the OSSM through video frames
+- **Export** position-time data for further analysis
+
+## Use Cases
+
+### Performance Verification
+
+Verify that your OSSM is achieving the expected stroke length and speed by tracking the end effector position over time.
+
+### Pattern Analysis
+
+Analyze the actual motion patterns being executed and compare them to the commanded patterns.
+
+### Troubleshooting
+
+Identify mechanical issues like belt slip, vibration, or inconsistent motion by examining the position data.
+
+### Development
+
+When developing new patterns or motion profiles, use video analysis to verify the actual output matches your expectations.
+
+## Requirements
+
+- Python 3.10 or later
+- [uv](https://github.com/astral-sh/uv) package manager (recommended)
+- A video recording of your OSSM in motion
+- A reference measurement on the linear rail (for calibration)
+
+## Getting Started
+
+<Card title="Video Tracker" icon="video" href="/ossm/Analysis/video-tracker/overview">
+  Track motion from video recordings and export position data
+</Card>
