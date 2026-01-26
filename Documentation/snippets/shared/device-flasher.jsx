@@ -38,6 +38,7 @@ export const DeviceFlasher = ({ device = 'ossm' }) => {
   const [manifestError, setManifestError] = useState(null);
 
   const espToolsLoaded = useRef(false);
+  const branchSetFromUrl = useRef(false);
 
   // Load ESP Web Tools from CDN
   useEffect(() => {
@@ -55,7 +56,7 @@ export const DeviceFlasher = ({ device = 'ossm' }) => {
     };
   }, []);
 
-  // Fetch branches from registry
+  // Fetch branches from registry and check URL params
   useEffect(() => {
     const fetchBranches = async () => {
       setIsLoadingBranches(true);
@@ -73,6 +74,28 @@ export const DeviceFlasher = ({ device = 'ossm' }) => {
         branchList.sort((a, b) => a.path.localeCompare(b.path));
         setBranches(branchList);
 
+        // Check URL params for branch selection
+        const urlParams = new URLSearchParams(window.location.search);
+        const branchParam = urlParams.get('branch');
+
+        if (branchParam && branchList.length > 0) {
+          // Find matching branch (check both encoded and decoded paths)
+          const matchingBranch = branchList.find(
+            (b) =>
+              b.path === branchParam ||
+              decodeURIComponent(b.path) === branchParam ||
+              b.path === encodeURIComponent(branchParam)
+          );
+
+          if (matchingBranch) {
+            branchSetFromUrl.current = true;
+            setSelectedBranch(matchingBranch.path);
+            setMode('development');
+            return;
+          }
+        }
+
+        // Default to first branch if no URL param match
         if (branchList.length > 0) {
           setSelectedBranch(branchList[0].path);
         }
@@ -93,7 +116,8 @@ export const DeviceFlasher = ({ device = 'ossm' }) => {
     if (mode === 'production') {
       setSelectedBranch('');
       setSelectedCommit('head');
-    } else if (branches.length > 0 && !selectedBranch) {
+      branchSetFromUrl.current = false;
+    } else if (branches.length > 0 && !selectedBranch && !branchSetFromUrl.current) {
       setSelectedBranch(branches[0].path);
     }
   }, [mode, branches]);
