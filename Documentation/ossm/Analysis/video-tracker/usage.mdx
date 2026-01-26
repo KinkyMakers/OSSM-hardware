@@ -1,0 +1,146 @@
+---
+title: Usage Guide
+description: Step-by-step guide to tracking OSSM motion from video
+---
+
+# Using the Video Tracker
+
+This guide walks you through the complete process of analyzing an OSSM video.
+
+## Running the Tool
+
+From the Analysis directory, run:
+
+```bash
+uv run ossm_tracker.py path/to/your/video.mp4
+```
+
+Or run without arguments to be prompted for a file path:
+
+```bash
+uv run ossm_tracker.py
+```
+
+## Step 1: Calibration
+
+When the video loads, you'll see the first frame with instructions overlaid.
+
+### Drawing the Calibration Line
+
+1. **Click and drag** to draw a line along a known length on the linear rail
+2. The line should be parallel to the direction of motion
+3. Use the full visible length of the rail for best accuracy
+
+### Controls
+
+| Key | Action |
+|-----|--------|
+| **Click + Drag** | Draw calibration line |
+| **Enter** | Confirm line |
+| **R** | Reset and redraw |
+| **Q** | Quit |
+
+### Enter the Length
+
+After pressing Enter, you'll be prompted in the terminal:
+
+```
+Enter the real length of the line in mm: 
+```
+
+Type the actual length of your calibration line in millimeters (e.g., `200` for a 200mm rail section).
+
+## Step 2: Select Tracking Point
+
+After calibration, you'll select the point to track.
+
+### Placing the Circle
+
+1. **Click** anywhere on the frame to place the tracking circle
+2. Position it on a high-contrast feature (end effector, marker, etc.)
+3. **Scroll** the mouse wheel to adjust the circle radius
+
+### Controls
+
+| Key | Action |
+|-----|--------|
+| **Click** | Place tracking circle |
+| **Mouse Wheel** | Adjust radius |
+| **Enter** | Confirm selection |
+| **R** | Reset selection |
+| **Q** | Quit |
+
+<Note>
+  Choose a radius that fully encompasses your tracking feature but isn't too large. A well-fitted circle improves tracking accuracy.
+</Note>
+
+## Step 3: Tracking
+
+Once you confirm the tracking point, the tool begins processing the video.
+
+### During Tracking
+
+- The video plays with tracking visualization overlaid
+- Position in millimeters is displayed in real-time
+- Progress is shown as frame count
+
+### Controls
+
+| Key | Action |
+|-----|--------|
+| **Space** | Pause/resume |
+| **Q** | Stop early and save results |
+
+### Tracking Lost
+
+If the tracker loses the point (due to occlusion, blur, etc.), it will display "TRACKING LOST" and record `None` values for that frame. Tracking automatically resumes when the point is found again.
+
+## Step 4: Results
+
+When tracking completes (or you press Q), the tool saves results and displays a summary:
+
+```
+Tracking complete: 1800 frames processed
+
+Results saved to: video_tracking_data.csv
+
+Summary:
+  Valid frames: 1795/1800
+  Position range: 0.00 to 185.32 mm
+  Total travel: 185.32 mm
+```
+
+## Output File
+
+The CSV file is saved in the same directory as your video, named `<video_name>_tracking_data.csv`.
+
+### Example Output
+
+```csv
+frame,time_s,position_mm,raw_x,raw_y
+0,0.0,0.0,245,312
+1,0.016666666666666666,0.52,246,312
+2,0.03333333333333333,1.15,248,312
+...
+```
+
+## Command Line Options
+
+```bash
+uv run ossm_tracker.py [VIDEO_PATH] [-o OUTPUT_PATH]
+```
+
+| Option | Description |
+|--------|-------------|
+| `VIDEO_PATH` | Path to video file (optional, will prompt if not provided) |
+| `-o`, `--output` | Custom output CSV path (default: `<video>_tracking_data.csv`) |
+
+### Examples
+
+```bash
+# Analyze a specific video
+uv run ossm_tracker.py ~/Videos/ossm_test.mp4
+
+# Specify custom output location
+uv run ossm_tracker.py test.mp4 -o results/analysis.csv
+```

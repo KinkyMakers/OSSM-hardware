@@ -2,7 +2,8 @@
 """
 OSSM Video Analysis Tool
 
-Tracks a point on an OSSM from video footage and exports position-time data.
+Tracks one or more points on an OSSM from video footage and exports position-time data.
+Multiple points are averaged for improved accuracy.
 """
 
 import argparse
@@ -49,6 +50,28 @@ class TrackingCircle:
     """Stores the tracking circle parameters."""
     center: tuple[int, int]
     radius: int
+
+
+@dataclass
+class MultiTrackingCircles:
+    """Stores multiple tracking circles for averaging."""
+    circles: list[TrackingCircle]
+    
+    @property
+    def average_center(self) -> tuple[int, int]:
+        """Get the average center of all circles."""
+        if not self.circles:
+            raise ValueError("No circles to average")
+        avg_x = sum(c.center[0] for c in self.circles) / len(self.circles)
+        avg_y = sum(c.center[1] for c in self.circles) / len(self.circles)
+        return (int(avg_x), int(avg_y))
+    
+    @property
+    def average_radius(self) -> int:
+        """Get the average radius of all circles."""
+        if not self.circles:
+            raise ValueError("No circles to average")
+        return int(sum(c.radius for c in self.circles) / len(self.circles))
 
 
 class CalibrationUI:
@@ -143,45 +166,79 @@ class CalibrationUI:
 
 
 class TrackingPointUI:
-    """Handles the tracking point selection UI."""
+    """Handles the tracking point selection UI with support for multiple points."""
     
     def __init__(self, frame: np.ndarray, calibration: CalibrationData):
         self.frame = frame.copy()
         self.original_frame = frame.copy()
         self.calibration = calibration
-        self.center: Optional[tuple[int, int]] = None
+        self.circles: list[TrackingCircle] = []
+        self.current_center: Optional[tuple[int, int]] = None
         self.radius = 20
         
     def mouse_callback(self, event: int, x: int, y: int, flags: int, param) -> None:
-        """Handle mouse events for selecting the tracking point."""
+        """Handle mouse events for selecting tracking points."""
         if event == cv2.EVENT_LBUTTONDOWN:
-            self.center = (x, y)
+            self.current_center = (x, y)
             self._update_frame()
+            
+        elif event == cv2.EVENT_RBUTTONDOWN:
+            # Right-click adds current point to list and allows placing another
+            if self.current_center:
+                self.circles.append(TrackingCircle(self.current_center, self.radius))
+                self.current_center = None
+                self._update_frame()
             
         elif event == cv2.EVENT_MOUSEWHEEL:
             if flags > 0:
                 self.radius = min(100, self.radius + 2)
             else:
                 self.radius = max(5, self.radius - 2)
-            if self.center:
-                self._update_frame()
+            self._update_frame()
     
     def _update_frame(self) -> None:
-        """Update the frame with the current tracking circle."""
+        """Update the frame with all tracking circles."""
         self.frame = self.original_frame.copy()
         
         # Draw calibration line
         cv2.line(self.frame, self.calibration.point1, 
                 self.calibration.point2, (0, 255, 0), 2)
         
-        # Draw tracking circle
-        if self.center:
-            cv2.circle(self.frame, self.center, self.radius, (0, 0, 255), 2)
-            cv2.circle(self.frame, self.center, 3, (0, 0, 255), -1)
+        # Draw confirmed circles (in orange to distinguish)
+        for i, circle in enumerate(self.circles):
+            cv2.circle(self.frame, circle.center, circle.radius, (0, 165, 255), 2)
+            cv2.circle(self.frame, circle.center, 3, (0, 165, 255), -1)
+            # Label the circle
+            cv2.putText(self.frame, str(i + 1), 
+                       (circle.center[0] + circle.radius + 5, circle.center[1]),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 165, 255), 2)
+        
+        # Draw current (uncommitted) circle in red
+        if self.current_center:
+            cv2.circle(self.frame, self.current_center, self.radius, (0, 0, 255), 2)
+            cv2.circle(self.frame, self.current_center, 3, (0, 0, 255), -1)
+            # Label as next number
+            next_num = len(self.circles) + 1
+            cv2.putText(self.frame, str(next_num), 
+                       (self.current_center[0] + self.radius + 5, self.current_center[1]),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+        
+        # Draw average center if we have multiple points
+        all_centers = [c.center for c in self.circles]
+        if self.current_center:
+            all_centers.append(self.current_center)
+        
+        if len(all_centers) > 1:
+            avg_x = sum(c[0] for c in all_centers) / len(all_centers)
+            avg_y = sum(c[1] for c in all_centers) / len(all_centers)
+            avg_center = (int(avg_x), int(avg_y))
+            # Draw average point as a cross
+            cv2.drawMarker(self.frame, avg_center, (255, 255, 0), 
+                          cv2.MARKER_CROSS, 15, 2)
     
-    def run(self) -> Optional[TrackingCircle]:
+    def run(self) -> Optional[MultiTrackingCircles]:
         """Run the tracking point selection UI."""
-        window_name = "Select Tracking Point (Enter to confirm, R to reset, Q to quit)"
+        window_name = "Select Tracking Points (Enter to confirm, R to reset, Q to quit)"
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
         cv2.setMouseCallback(window_name, self.mouse_callback)
         
@@ -190,9 +247,10 @@ class TrackingPointUI:
                 self.calibration.point2, (0, 255, 0), 2)
         
         instructions = [
-            "TRACKING: Click to place tracking circle",
+            "TRACKING: Left-click to place/move point",
+            "Right-click to ADD point (for averaging)",
             "Mouse wheel to adjust radius",
-            "Press ENTER to confirm, R to reset, Q to quit"
+            "ENTER to confirm, R to reset, Q to quit"
         ]
         
         while True:
@@ -207,9 +265,12 @@ class TrackingPointUI:
                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 1)
                 y_offset += 25
             
-            # Show current radius
-            radius_text = f"Circle radius: {self.radius} pixels"
-            cv2.putText(display_frame, radius_text, (10, y_offset + 10),
+            # Show status
+            total_points = len(self.circles) + (1 if self.current_center else 0)
+            status_text = f"Points: {total_points} | Radius: {self.radius}px"
+            if total_points > 1:
+                status_text += " | Yellow X = averaged position"
+            cv2.putText(display_frame, status_text, (10, y_offset + 10),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
             
             cv2.imshow(window_name, display_frame)
@@ -217,15 +278,20 @@ class TrackingPointUI:
             key = cv2.waitKey(1) & 0xFF
             
             if key == 13:  # Enter
-                if self.center:
+                # Include current point if it exists
+                if self.current_center:
+                    self.circles.append(TrackingCircle(self.current_center, self.radius))
+                
+                if self.circles:
                     cv2.destroyWindow(window_name)
-                    return TrackingCircle(self.center, self.radius)
+                    return MultiTrackingCircles(self.circles)
                     
             elif key == ord('r') or key == ord('R'):
                 self.frame = self.original_frame.copy()
                 cv2.line(self.frame, self.calibration.point1, 
                         self.calibration.point2, (0, 255, 0), 2)
-                self.center = None
+                self.circles = []
+                self.current_center = None
                 
             elif key == ord('q') or key == ord('Q'):
                 cv2.destroyWindow(window_name)
@@ -282,7 +348,7 @@ class OSSMTracker:
             print("    - For best results, trim to just the slo-mo portion")
         
         self.calibration: Optional[CalibrationData] = None
-        self.tracking_circle: Optional[TrackingCircle] = None
+        self.tracking_circles: Optional[MultiTrackingCircles] = None
         
     def get_first_frame(self) -> np.ndarray:
         """Get the first frame of the video."""
@@ -346,14 +412,19 @@ class OSSMTracker:
         
         frame = self.get_first_frame()
         tracking_ui = TrackingPointUI(frame, self.calibration)
-        self.tracking_circle = tracking_ui.run()
+        self.tracking_circles = tracking_ui.run()
         
-        if self.tracking_circle is None:
+        if self.tracking_circles is None:
             print("Tracking point selection cancelled")
             return False
         
-        print(f"Tracking point selected at {self.tracking_circle.center}")
-        print(f"  Radius: {self.tracking_circle.radius} pixels")
+        num_circles = len(self.tracking_circles.circles)
+        print(f"\n{num_circles} tracking point(s) selected:")
+        for i, circle in enumerate(self.tracking_circles.circles, 1):
+            print(f"  Point {i}: {circle.center}, radius: {circle.radius} pixels")
+        
+        if num_circles > 1:
+            print(f"  Positions will be AVERAGED across all {num_circles} points")
         
         return True
     
@@ -416,20 +487,24 @@ class OSSMTracker:
     
     def run_tracking(self) -> list[dict]:
         """Run the tracking process on the entire video at maximum speed."""
-        if self.calibration is None or self.tracking_circle is None:
+        if self.calibration is None or self.tracking_circles is None:
             raise ValueError("Must calibrate and select tracking point first")
         
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
         
         results = []
-        current_center = self.tracking_circle.center
-        radius = self.tracking_circle.radius
+        
+        # Track each circle independently
+        current_centers = [c.center for c in self.tracking_circles.circles]
+        radii = [c.radius for c in self.tracking_circles.circles]
+        num_points = len(current_centers)
         
         frame_num = 0
         lost_frames = 0
         
         print("\nProcessing video at maximum speed...")
         print(f"  Total frames: {self.frame_count}")
+        print(f"  Tracking {num_points} point(s)" + (" (averaging)" if num_points > 1 else ""))
         
         import time
         start_time = time.time()
@@ -439,32 +514,42 @@ class OSSMTracker:
             if not ret:
                 break
             
-            # Track the point
-            new_center = self.track_frame(frame, current_center, radius)
+            # Track each point
+            new_centers = []
+            for i in range(num_points):
+                new_center = self.track_frame(frame, current_centers[i], radii[i])
+                if new_center is not None:
+                    current_centers[i] = new_center
+                    new_centers.append(new_center)
             
-            if new_center is not None:
-                current_center = new_center
+            if new_centers:
+                # Average the successfully tracked centers
+                avg_x = sum(c[0] for c in new_centers) / len(new_centers)
+                avg_y = sum(c[1] for c in new_centers) / len(new_centers)
+                averaged_center = (int(avg_x), int(avg_y))
                 
-                # Calculate position
-                position_mm = self.project_to_axis(current_center)
+                # Calculate position from averaged center
+                position_mm = self.project_to_axis(averaged_center)
                 time_s = frame_num / self.fps
                 
                 results.append({
                     'frame': frame_num,
                     'time_s': time_s,
                     'position_mm': position_mm,
-                    'raw_x': current_center[0],
-                    'raw_y': current_center[1]
+                    'raw_x': averaged_center[0],
+                    'raw_y': averaged_center[1],
+                    'points_tracked': len(new_centers)
                 })
             else:
-                # Tracking lost - record with None
+                # All tracking lost - record with None
                 lost_frames += 1
                 results.append({
                     'frame': frame_num,
                     'time_s': frame_num / self.fps,
                     'position_mm': None,
                     'raw_x': None,
-                    'raw_y': None
+                    'raw_y': None,
+                    'points_tracked': 0
                 })
             
             frame_num += 1
@@ -493,8 +578,13 @@ class OSSMTracker:
         
         output_path = Path(output_path)
         
+        # Determine fieldnames based on whether multi-point tracking was used
+        fieldnames = ['frame', 'time_s', 'position_mm', 'raw_x', 'raw_y']
+        if results and 'points_tracked' in results[0]:
+            fieldnames.append('points_tracked')
+        
         with open(output_path, 'w', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=['frame', 'time_s', 'position_mm', 'raw_x', 'raw_y'])
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(results)
         

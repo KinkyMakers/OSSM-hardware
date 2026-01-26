@@ -50,8 +50,8 @@ void StrokeEngine::setSpeed(float speed, bool applyNow = false) {
     // update request
     if (xSemaphoreTake(_patternMutex, portMAX_DELAY) == pdTRUE) {
         // Convert FPM into seconds to complete a full stroke
-        // Constrain stroke time between 10ms and 120 seconds
-        _timeOfStroke = constrain(60.0 / speed, 0.01, 120.0);
+        // Constrain stroke time between 1ms and 120 seconds
+        _timeOfStroke = constrain(60.0 / speed, 0.001, 120.0);
 
         pattern->setTimeOfStroke(_timeOfStroke);
 
@@ -191,8 +191,7 @@ void StrokeEngine::setSensation(float sensation, bool applyNow = false) {
 
 float StrokeEngine::getSensation() { return _sensation; }
 
-bool StrokeEngine::setPattern(Pattern *NextPattern,
-                              bool applyNow = false) {
+bool StrokeEngine::setPattern(Pattern *NextPattern, bool applyNow = false) {
     // Free up memory from previous pattern
 
     delete pattern;
@@ -201,7 +200,7 @@ bool StrokeEngine::setPattern(Pattern *NextPattern,
     // Inject current motion parameters into new pattern
     if (xSemaphoreTake(_patternMutex, portMAX_DELAY) == pdTRUE) {
         pattern->setSpeedLimit(_maxStepPerSecond, _maxStepAcceleration,
-                              _motor->stepsPerMillimeter);
+                               _motor->stepsPerMillimeter);
         pattern->setTimeOfStroke(_timeOfStroke);
         pattern->setStroke(_stroke);
         pattern->setDepth(_depth);
@@ -254,7 +253,7 @@ bool StrokeEngine::startPattern() {
         _index = -1;
         if (xSemaphoreTake(_patternMutex, portMAX_DELAY) == pdTRUE) {
             pattern->setSpeedLimit(_maxStepPerSecond, _maxStepAcceleration,
-                                  _motor->stepsPerMillimeter);
+                                   _motor->stepsPerMillimeter);
             pattern->setTimeOfStroke(_timeOfStroke);
             pattern->setStroke(_stroke);
             pattern->setDepth(_depth);
@@ -316,8 +315,7 @@ void StrokeEngine::stopMotion() {
 #endif
 
         // Wait for _servo stopped
-        while (_servo->isRunning())
-            ;
+        while (_servo->isRunning());
 
         // Send telemetry data
         if (_callbackTelemetry != NULL) {
@@ -538,9 +536,7 @@ void StrokeEngine::disable() {
 #endif
 }
 
-String StrokeEngine::getPatternName(int index) {
-    return String("Invalid");
-}
+String StrokeEngine::getPatternName(int index) { return String("Invalid"); }
 
 void StrokeEngine::setMaxSpeed(float maxSpeed) {
     // Update pattern with new speed limits
@@ -549,7 +545,7 @@ void StrokeEngine::setMaxSpeed(float maxSpeed) {
         _maxStepPerSecond =
             int(0.5 + _motor->maxSpeed * _motor->stepsPerMillimeter);
         pattern->setSpeedLimit(_maxStepPerSecond, _maxStepAcceleration,
-                              _motor->stepsPerMillimeter);
+                               _motor->stepsPerMillimeter);
         xSemaphoreGive(_patternMutex);
     }
 }
@@ -565,7 +561,7 @@ void StrokeEngine::setMaxAcceleration(float maxAcceleration) {
         _maxStepAcceleration =
             int(0.5 + _motor->maxAcceleration * _motor->stepsPerMillimeter);
         pattern->setSpeedLimit(_maxStepPerSecond, _maxStepAcceleration,
-                              _motor->stepsPerMillimeter);
+                               _motor->stepsPerMillimeter);
         xSemaphoreGive(_patternMutex);
     }
 }

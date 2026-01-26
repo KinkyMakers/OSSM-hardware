@@ -1,0 +1,121 @@
+---
+title: Installation
+description: Set up the Video Tracker tool on your system
+---
+
+# Installation
+
+The Video Tracker is a Python application that uses OpenCV for video processing. We recommend using [uv](https://github.com/astral-sh/uv) for fast, reliable dependency management.
+
+## Prerequisites
+
+- Python 3.10 or later
+- A terminal/command prompt
+
+## Quick Start
+
+<Steps>
+  <Step title="Install uv">
+    If you don't have uv installed, run:
+    
+    <Tabs>
+      <Tab title="macOS / Linux">
+        ```bash
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        ```
+      </Tab>
+      <Tab title="Windows">
+        ```powershell
+        powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+        ```
+      </Tab>
+    </Tabs>
+  </Step>
+  
+  <Step title="Clone or Download">
+    Get the Analysis tools from the OSSM repository:
+    
+    ```bash
+    git clone https://github.com/KinkyMakers/OSSM-hardware.git
+    cd OSSM-hardware/Analysis
+    ```
+    
+    Or if you already have the repository:
+    
+    ```bash
+    cd /path/to/OSSM-hardware/Analysis
+    ```
+  </Step>
+  
+  <Step title="Sync Dependencies">
+    Let uv create the virtual environment and install dependencies:
+    
+    ```bash
+    uv sync
+    ```
+    
+    This will:
+    - Create a `.venv` directory
+    - Install OpenCV and NumPy
+    - Set up the project for use
+  </Step>
+</Steps>
+
+## Verify Installation
+
+Test that everything is working:
+
+```bash
+uv run python -c "import cv2; print(f'OpenCV {cv2.__version__} installed successfully')"
+```
+
+You should see output like:
+
+```
+OpenCV 4.13.0 installed successfully
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="uv: command not found">
+    Make sure uv is in your PATH. You may need to restart your terminal or add `~/.local/bin` to your PATH:
+    
+    ```bash
+    export PATH="$HOME/.local/bin:$PATH"
+    ```
+    
+    Add this line to your `~/.bashrc` or `~/.zshrc` to make it permanent.
+  </Accordion>
+  
+  <Accordion title="Python version errors">
+    The tool requires Python 3.10+. Check your version:
+    
+    ```bash
+    python3 --version
+    ```
+    
+    If needed, install a newer Python version using your system's package manager or [pyenv](https://github.com/pyenv/pyenv).
+  </Accordion>
+  
+  <Accordion title="OpenCV import errors">
+    If OpenCV fails to import, try reinstalling:
+    
+    ```bash
+    uv sync --reinstall
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Project Structure
+
+After setup, your Analysis directory will contain:
+
+```
+Analysis/
+├── .venv/              # Virtual environment (created by uv)
+├── ossm_tracker.py     # Main tracking application
+├── pyproject.toml      # Project configuration
+├── README.md           # Quick reference
+└── .gitignore          # Ignores venv and output files
+```

@@ -28,15 +28,23 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
     };
 
     while (isInCorrectState(ossm)) {
-        if (isChangeSignificant(lastSetting.speed, OSSM::setting.speed) || ossm->wasLastSpeedCommandFromBLE(true)) {
-            //Speed is float, so give a little wiggle room here to assume 0
+        if (isChangeSignificant(lastSetting.speed, OSSM::setting.speed) ||
+            ossm->wasLastSpeedCommandFromBLE(true)) {
+            // Speed is float, so give a little wiggle room here to assume 0
             if (OSSM::setting.speed < 0.1f) {
                 Stroker.stopMotion();
             } else if (Stroker.getState() == READY) {
                 Stroker.startPattern();
             }
 
-            Stroker.setSpeed(OSSM::setting.speed * 9, true);
+            float percentOfMaxSpeedMmPerSecond =
+                OSSM::setting.speed / 100.0 *
+                Config::Driver::maxSpeedMmPerSecond;
+
+            float speedInStrokesPerMinute =
+                60.0f * percentOfMaxSpeedMmPerSecond / abs(measuredStrokeMm);
+
+            Stroker.setSpeed(speedInStrokesPerMinute, true);
             lastSetting.speed = OSSM::setting.speed;
         }
 
@@ -100,8 +108,9 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
             lastSetting.pattern = OSSM::setting.pattern;
         }
 
-        if(ossm->hasActiveBLEConnection) {
-            // When connected to BLE, update more frequently for improved responsiveness
+        if (ossm->hasActiveBLEConnection) {
+            // When connected to BLE, update more frequently for improved
+            // responsiveness
             vTaskDelay(100);
         } else {
             vTaskDelay(400);
