@@ -333,6 +333,26 @@
             ]
           },
           {
+            "tab": "Analysis",
+            "groups": [
+              {
+                "group": "Getting Started",
+                "pages": [
+                  "ossm/Analysis/getting-started/introduction"
+                ]
+              },
+              {
+                "group": "Video Tracker",
+                "pages": [
+                  "ossm/Analysis/video-tracker/overview",
+                  "ossm/Analysis/video-tracker/installation",
+                  "ossm/Analysis/video-tracker/usage",
+                  "ossm/Analysis/video-tracker/analyzing-data"
+                ]
+              }
+            ]
+          },
+          {
             "tab": "Tools",
             "groups": [
               {
