@@ -66,7 +66,7 @@ class AprilTagConfig:
     family: str = "tagStandard41h12"
     nthreads: int = 4
     quad_decimate: float = 1.0  # Full resolution for accuracy
-    quad_sigma: float = 0.0  # No blur by default
+    quad_sigma: float = 4  # No blur by default
     refine_edges: bool = True  # Better corner accuracy
     decode_sharpening: float = 0.25  # Helps with small tags
     tag_size_mm: float = 11.1  # Physical size of the printed tag (outer edge to outer edge)
