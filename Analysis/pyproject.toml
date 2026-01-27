@@ -11,7 +11,19 @@ dependencies = [
     "pandas>=2.3.3",
     "seaborn>=0.13.2",
     "scipy>=1.15.3",
+    "jupyterlab>=4.0.0",
+    "ipycanvas>=0.13.0",
+    "ipywidgets>=8.0.0",
+    "ipyevents>=2.0.0",
+    "ipympl>=0.9.0",
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["live_tracker"]
 
 [dependency-groups]
 dev = []

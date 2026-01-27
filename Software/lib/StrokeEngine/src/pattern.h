@@ -155,6 +155,37 @@ class Pattern {
     bool _isStillDelayed() {
         return (millis() > (_startDelayMillis + _delayInMillis)) ? false : true;
     }
+
+    /*!
+      @brief Calculate speed and acceleration for a trapezoidal 1/3-1/3-1/3
+      profile, clamping speed to _maxSpeed FIRST and then computing a matching
+      acceleration. This ensures the speed/acceleration ratio is always
+      physically achievable.
+      @param strokeDistance distance of the stroke in steps
+      @param strokeTime time for the stroke in seconds
+    */
+    void _calculateSpeedAndAcceleration(int strokeDistance, float strokeTime) {
+        // Calculate raw speed for 1/3-1/3-1/3 trapezoid
+        int rawSpeed = int(1.5 * strokeDistance / strokeTime);
+
+        // Clamp speed to maximum FIRST
+        if (_maxSpeed > 0 && rawSpeed > (int)_maxSpeed) {
+            _nextMove.speed = _maxSpeed;
+        } else {
+            _nextMove.speed = rawSpeed;
+        }
+
+        // Calculate acceleration based on CLAMPED speed
+        // For a proper trapezoid: accel = 3 * v / t
+        // But if speed was clamped, we need to recalculate based on actual
+        // achievable time
+        if (_nextMove.speed > 0) {
+            float effectiveTime = 1.5 * strokeDistance / _nextMove.speed;
+            _nextMove.acceleration = int(3.0 * _nextMove.speed / effectiveTime);
+        } else {
+            _nextMove.acceleration = _maxAcceleration > 0 ? _maxAcceleration : 1;
+        }
+    }
 };
 
 /**************************************************************************/
@@ -174,11 +205,8 @@ class SimpleStroke : public Pattern {
     }
 
     motionParameter nextTarget(unsigned int index) {
-        // maximum speed of the trapezoidal motion
-        _nextMove.speed = int(1.5 * _stroke / _timeOfStroke);
-
-        // acceleration to meet the profile
-        _nextMove.acceleration = int(3.0 * _nextMove.speed / _timeOfStroke);
+        // Calculate speed and acceleration with proper clamping
+        _calculateSpeedAndAcceleration(_stroke, _timeOfStroke);
 
         // odd stroke is moving out
         if (index % 2) {
@@ -217,21 +245,13 @@ class TeasingPounding : public Pattern {
     motionParameter nextTarget(unsigned int index) {
         // odd stroke is moving out
         if (index % 2) {
-            // maximum speed of the trapezoidal motion
-            _nextMove.speed = int(1.5 * _stroke / _timeOfOutStroke);
-
-            // acceleration to meet the profile
-            _nextMove.acceleration =
-                int(3.0 * float(_nextMove.speed) / _timeOfOutStroke);
+            // Calculate speed and acceleration with proper clamping
+            _calculateSpeedAndAcceleration(_stroke, _timeOfOutStroke);
             _nextMove.stroke = _depth - _stroke;
             // even stroke is moving in
         } else {
-            // maximum speed of the trapezoidal motion
-            _nextMove.speed = int(1.5 * _stroke / _timeOfInStroke);
-
-            // acceleration to meet the profile
-            _nextMove.acceleration =
-                int(3.0 * float(_nextMove.speed) / _timeOfInStroke);
+            // Calculate speed and acceleration with proper clamping
+            _calculateSpeedAndAcceleration(_stroke, _timeOfInStroke);
             _nextMove.stroke = _depth;
         }
         _index = index;
@@ -296,11 +316,19 @@ class RoboStroke : public Pattern {
 
     motionParameter nextTarget(unsigned int index) {
         // maximum speed of the trapezoidal motion
-        float speed = float(_stroke) / ((1 - _x) * _timeOfStroke);
+        float rawSpeed = float(_stroke) / ((1 - _x) * _timeOfStroke);
+
+        // Clamp speed to maximum FIRST
+        float speed = rawSpeed;
+        if (_maxSpeed > 0 && rawSpeed > _maxSpeed) {
+            speed = _maxSpeed;
+        }
         _nextMove.speed = int(speed);
 
-        // acceleration to meet the profile
-        _nextMove.acceleration = int(speed / (_x * _timeOfStroke));
+        // acceleration based on clamped speed
+        // Recalculate effective time based on actual speed
+        float effectiveTime = float(_stroke) / ((1 - _x) * speed);
+        _nextMove.acceleration = int(speed / (_x * effectiveTime));
 
         // odd stroke is moving out
         if (index % 2) {
@@ -357,23 +385,15 @@ class HalfnHalf : public Pattern {
 
         // odd stroke is moving out
         if (index % 2) {
-            // maximum speed of the trapezoidal motion
-            _nextMove.speed = int(1.5 * stroke / _timeOfOutStroke);
-
-            // acceleration to meet the profile
-            _nextMove.acceleration =
-                int(3.0 * float(_nextMove.speed) / _timeOfOutStroke);
+            // Calculate speed and acceleration with proper clamping
+            _calculateSpeedAndAcceleration(stroke, _timeOfOutStroke);
             _nextMove.stroke = _depth - _stroke;
             // every second move is half
             _half = !_half;
             // even stroke is moving in
         } else {
-            // maximum speed of the trapezoidal motion
-            _nextMove.speed = int(1.5 * stroke / _timeOfInStroke);
-
-            // acceleration to meet the profile
-            _nextMove.acceleration =
-                int(3.0 * float(_nextMove.speed) / _timeOfInStroke);
+            // Calculate speed and acceleration with proper clamping
+            _calculateSpeedAndAcceleration(stroke, _timeOfInStroke);
             _nextMove.stroke = (_depth - _stroke) + stroke;
         }
         _index = index;
@@ -455,11 +475,8 @@ class Deeper : public Pattern {
                        " cycleIndex: " + String(cycleIndex));
 #endif
 
-        // maximum speed of the trapezoidal motion
-        _nextMove.speed = int(1.5 * amplitude / _timeOfStroke);
-
-        // acceleration to meet the profile
-        _nextMove.acceleration = int(3.0 * _nextMove.speed / _timeOfStroke);
+        // Calculate speed and acceleration with proper clamping
+        _calculateSpeedAndAcceleration(amplitude, _timeOfStroke);
 
         // odd stroke is moving out
         if (index % 2) {
@@ -502,11 +519,8 @@ class StopNGo : public Pattern {
     }
 
     motionParameter nextTarget(unsigned int index) {
-        // maximum speed of the trapezoidal motion
-        _nextMove.speed = int(1.5 * _stroke / _timeOfStroke);
-
-        // acceleration to meet the profile
-        _nextMove.acceleration = int(3.0 * _nextMove.speed / _timeOfStroke);
+        // Calculate speed and acceleration with proper clamping
+        _calculateSpeedAndAcceleration(_stroke, _timeOfStroke);
 
         // adds a delay between each stroke
         if (_isStillDelayed() == false) {
@@ -636,14 +650,27 @@ class Insist : public Pattern {
     float _strokeFraction = 1.0;
     bool _strokeInFront = false;
     void _updateStrokeTiming() {
-        // maximum speed of the longest trapezoidal motion (full stroke)
-        _speed = int(1.5 * _stroke / _timeOfStroke);
-
-        // Acceleration to hold 1/3 profile with fractional strokes
-        _acceleration =
-            int(3.0 * _nextMove.speed / (_timeOfStroke * _strokeFraction));
-
         // Calculate fractional stroke length
         _realStroke = int((float)_stroke * _strokeFraction);
+
+        // maximum speed of the longest trapezoidal motion (full stroke)
+        int rawSpeed = int(1.5 * _stroke / _timeOfStroke);
+
+        // Clamp speed to maximum FIRST
+        if (_maxSpeed > 0 && rawSpeed > (int)_maxSpeed) {
+            _speed = _maxSpeed;
+        } else {
+            _speed = rawSpeed;
+        }
+
+        // Acceleration based on clamped speed
+        // Recalculate effective time based on actual speed
+        if (_speed > 0) {
+            float effectiveTime = 1.5 * _stroke / _speed;
+            _acceleration =
+                int(3.0 * _speed / (effectiveTime * _strokeFraction));
+        } else {
+            _acceleration = _maxAcceleration > 0 ? _maxAcceleration : 1;
+        }
     }
 };
