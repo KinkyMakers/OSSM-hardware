@@ -17,10 +17,11 @@ from ipywidgets import (
     Output, Label, HTML, Layout, Checkbox
 )
 
-from .types import AprilTagConfig, DetectedTag, TrackerMode, InputSource, InputSourceType
+from .types import AprilTagConfig, DetectedTag, TrackerMode, InputSource, InputSourceType, HybridTrackingState, TrackingSource
 from .tracking import (
     list_cameras, create_apriltag_detector, 
-    detect_apriltags, track_apriltag_frame
+    detect_apriltags, track_apriltag_frame,
+    update_hybrid_tracking_multi, HybridTrackingResult
 )
 
 
@@ -75,6 +76,10 @@ class LiveTracker:
         self._detected_tags: list[DetectedTag] = []  # Tags detected in current frame
         self._tracked_tag_ids: set[int] = set()  # Tag IDs selected for tracking
         self._tag_checkboxes: dict[int, Checkbox] = {}  # UI checkboxes for tag selection
+        
+        # Hybrid tracking state (AprilTag + OpenCV fallback)
+        self._hybrid_states: dict[int, HybridTrackingState] = {}  # Per-tag tracking state
+        self._hybrid_results: dict[int, HybridTrackingResult] = {}  # Latest tracking results for preview
         
         # Canvas dimensions (fixed size)
         self.canvas_width = self.DEFAULT_WIDTH
@@ -506,23 +511,71 @@ class LiveTracker:
                 self._overlay_layer.font = '10px sans-serif'
                 self._overlay_layer.fill_text(quality, canvas_center[0] + 12, canvas_center[1] + 4)
         
-        # Average marker for multiple tracked tags
-        tracked_tags = [t for t in self._detected_tags if t.tag_id in self._tracked_tag_ids]
-        if len(tracked_tags) > 1:
-            avg_x = sum(t.center[0] for t in tracked_tags) / len(tracked_tags)
-            avg_y = sum(t.center[1] for t in tracked_tags) / len(tracked_tags)
-            canvas_avg = self._frame_to_canvas(int(avg_x), int(avg_y))
-            self._draw_cross(canvas_avg, 12, '#ffff00')
+        # Draw OpenCV tracking results (when AprilTag not detected)
+        for tag_id, result in self._hybrid_results.items():
+            if result.source == TrackingSource.OPENCV:
+                # OpenCV is interpolating - draw with different style
+                canvas_center = self._frame_to_canvas(int(result.center[0]), int(result.center[1]))
+                
+                # Get bbox from hybrid state for visualization
+                state = self._hybrid_states.get(tag_id)
+                if state and state.last_bbox:
+                    x, y, w, h = state.last_bbox
+                    # Convert bbox corners to canvas coordinates
+                    top_left = self._frame_to_canvas(x, y)
+                    bottom_right = self._frame_to_canvas(x + w, y + h)
+                    box_w = bottom_right[0] - top_left[0]
+                    box_h = bottom_right[1] - top_left[1]
+                    
+                    # Draw dashed rectangle for OpenCV tracking box
+                    self._draw_opencv_bbox(top_left, box_w, box_h, result.confidence)
+                
+                # Draw center with different marker (circle instead of cross)
+                self._draw_opencv_marker(canvas_center, result.confidence)
+                
+                # Draw label indicating OpenCV tracking
+                self._overlay_layer.fill_style = '#ff9800'
+                self._overlay_layer.font = 'bold 12px sans-serif'
+                label = f"ID:{tag_id} [CV]"
+                self._overlay_layer.fill_text(label, canvas_center[0] - 25, canvas_center[1] - 20)
+                
+                # Show confidence
+                conf_pct = int(result.confidence * 100)
+                self._overlay_layer.font = '10px sans-serif'
+                self._overlay_layer.fill_text(f"{conf_pct}%", canvas_center[0] + 15, canvas_center[1] + 4)
         
-        # Mode indicator
-        mode_messages = {
-            self.STEP_CAMERA: '',
-            self.STEP_CALIBRATE: 'Click to place points, drag to adjust',
-            self.STEP_POINTS: f'AprilTags detected: {len(self._detected_tags)} | Selected: {len(self._tracked_tag_ids)}',
-            self.STEP_TRACK: 'RECORDING' if self.recording_active else 'Press Record to start',
-            self.STEP_EXPORT: '',
-        }
-        msg = mode_messages.get(self.current_step, '')
+        # Average marker for all tracking results (both AprilTag and OpenCV)
+        if self._hybrid_results:
+            centers = [r.center for r in self._hybrid_results.values()]
+            if len(centers) > 1:
+                avg_x = sum(c[0] for c in centers) / len(centers)
+                avg_y = sum(c[1] for c in centers) / len(centers)
+                canvas_avg = self._frame_to_canvas(int(avg_x), int(avg_y))
+                self._draw_cross(canvas_avg, 12, '#ffff00')
+        elif len(self._detected_tags) > 0:
+            # Fallback to AprilTag-only average
+            tracked_tags = [t for t in self._detected_tags if t.tag_id in self._tracked_tag_ids]
+            if len(tracked_tags) > 1:
+                avg_x = sum(t.center[0] for t in tracked_tags) / len(tracked_tags)
+                avg_y = sum(t.center[1] for t in tracked_tags) / len(tracked_tags)
+                canvas_avg = self._frame_to_canvas(int(avg_x), int(avg_y))
+                self._draw_cross(canvas_avg, 12, '#ffff00')
+        
+        # Mode indicator with tracking source info
+        if self.current_step == self.STEP_TRACK and self._hybrid_results and not self.recording_active:
+            apriltag_count = sum(1 for r in self._hybrid_results.values() if r.source == TrackingSource.APRILTAG)
+            opencv_count = sum(1 for r in self._hybrid_results.values() if r.source == TrackingSource.OPENCV)
+            msg = f'Tracking: {len(self._hybrid_results)} tags (AT:{apriltag_count} CV:{opencv_count}) | Press Record'
+        else:
+            mode_messages = {
+                self.STEP_CAMERA: '',
+                self.STEP_CALIBRATE: 'Click to place points, drag to adjust',
+                self.STEP_POINTS: f'AprilTags detected: {len(self._detected_tags)} | Selected: {len(self._tracked_tag_ids)}',
+                self.STEP_TRACK: 'RECORDING' if self.recording_active else 'Press Record to start',
+                self.STEP_EXPORT: '',
+            }
+            msg = mode_messages.get(self.current_step, '')
+        
         if msg:
             self._overlay_layer.fill_style = 'white'
             self._overlay_layer.font = 'bold 14px sans-serif'
@@ -613,6 +666,51 @@ class LiveTracker:
             self._overlay_layer.line_to(*corner)
         self._overlay_layer.close_path()
         self._overlay_layer.stroke()
+    
+    def _draw_opencv_bbox(self, top_left: tuple[int, int], width: int, height: int, confidence: float):
+        """Draw a dashed bounding box for OpenCV tracking region."""
+        # Color fades from orange to red as confidence decreases
+        if confidence > 0.7:
+            color = '#ff9800'  # Orange - high confidence
+        elif confidence > 0.4:
+            color = '#ff5722'  # Deep orange - medium confidence
+        else:
+            color = '#f44336'  # Red - low confidence
+        
+        self._overlay_layer.stroke_style = color
+        self._overlay_layer.line_width = 2
+        self._overlay_layer.set_line_dash([6, 4])  # Dashed line
+        self._overlay_layer.stroke_rect(top_left[0], top_left[1], width, height)
+        self._overlay_layer.set_line_dash([])  # Reset to solid
+    
+    def _draw_opencv_marker(self, center: tuple[int, int], confidence: float):
+        """Draw a marker for OpenCV tracking center (circle with confidence ring)."""
+        # Color based on confidence
+        if confidence > 0.7:
+            color = '#ff9800'  # Orange
+        elif confidence > 0.4:
+            color = '#ff5722'  # Deep orange
+        else:
+            color = '#f44336'  # Red
+        
+        # Outer ring (confidence indicator)
+        ring_radius = 15
+        self._overlay_layer.stroke_style = color
+        self._overlay_layer.line_width = 2
+        self._overlay_layer.begin_path()
+        # Draw partial arc based on confidence
+        start_angle = -math.pi / 2  # Start from top
+        end_angle = start_angle + (2 * math.pi * confidence)
+        self._overlay_layer.arc(center[0], center[1], ring_radius, start_angle, end_angle)
+        self._overlay_layer.stroke()
+        
+        # Inner filled circle
+        self._overlay_layer.fill_style = color
+        self._overlay_layer.global_alpha = 0.6
+        self._overlay_layer.begin_path()
+        self._overlay_layer.arc(center[0], center[1], 5, 0, 2 * math.pi)
+        self._overlay_layer.fill()
+        self._overlay_layer.global_alpha = 1.0
     
     def _update_tags_status(self):
         """Update tag detection status display."""
@@ -888,9 +986,13 @@ class LiveTracker:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"tracking_data_{timestamp}.csv"
         
-        # Include video_frame column if we have video file data
-        fieldnames = ['frame', 'time_s', 'raw_x', 'raw_y', 'mm_per_pixel', 'tags_tracked', 'tag_ids',
-                      'pose_x', 'pose_y', 'pose_z', 'pose_err']
+        # Include all tracking fields including hybrid tracking source
+        fieldnames = [
+            'frame', 'time_s', 'raw_x', 'raw_y', 'mm_per_pixel',
+            'tracking_source', 'tracking_confidence',
+            'tags_tracked', 'tag_ids', 'tag_sources',
+            'pose_x', 'pose_y', 'pose_z', 'pose_err'
+        ]
         if self._input_source and self._input_source.is_video_file:
             fieldnames.append('video_frame')
         
@@ -899,7 +1001,18 @@ class LiveTracker:
             writer.writeheader()
             writer.writerows(self.positions)
         
-        self._export_status.value = f'<span style="color: #4CAF50;">✓ Saved: {filename}</span>'
+        # Calculate source breakdown for summary
+        apriltag_count = sum(1 for p in self.positions if p.get('tracking_source') == 'apriltag')
+        opencv_count = sum(1 for p in self.positions if p.get('tracking_source') == 'opencv')
+        total = len(self.positions)
+        
+        source_summary = ""
+        if total > 0:
+            at_pct = (apriltag_count / total) * 100
+            cv_pct = (opencv_count / total) * 100
+            source_summary = f"<br><span style='font-size: 11px; color: #888;'>AprilTag: {at_pct:.0f}% | OpenCV: {cv_pct:.0f}%</span>"
+        
+        self._export_status.value = f'<span style="color: #4CAF50;">✓ Saved: {filename}</span>{source_summary}'
         self._log(f"Data saved to {filename}")
         
         with self._output:
@@ -930,6 +1043,10 @@ class LiveTracker:
         self._tag_checkboxes = {}
         self._tags_container.children = []
         
+        # Reset hybrid tracking state
+        self._hybrid_states = {}
+        self._hybrid_results = {}
+        
         self._preview_btn.description = 'Start'
         self._preview_btn.button_style = 'info'
         self._camera_next_btn.disabled = True
@@ -955,7 +1072,7 @@ class LiveTracker:
     # === Background Loops ===
     
     def _preview_loop(self):
-        """Background preview loop with AprilTag detection."""
+        """Background preview loop with hybrid tracking (AprilTag + OpenCV)."""
         while self.preview_active and not self.recording_active:
             if self._cap and self._cap.isOpened():
                 ret, frame = self._cap.read()
@@ -988,10 +1105,25 @@ class LiveTracker:
                         self._fps_timer = time.time()
                         self._update_camera_diag()
                     
-                    # Detect AprilTags in current frame
-                    self._detected_tags = detect_apriltags(
-                        self._apriltag_detector, frame, self._apriltag_config.tag_size_mm
-                    )
+                    # Use hybrid tracking if tags are selected, otherwise just detect
+                    if self._tracked_tag_ids and self.current_step >= self.STEP_TRACK:
+                        # Hybrid tracking mode - AprilTag + OpenCV fallback
+                        self._hybrid_results = update_hybrid_tracking_multi(
+                            self._hybrid_states,
+                            self._apriltag_detector,
+                            frame,
+                            self._tracked_tag_ids,
+                            self._apriltag_config.tag_size_mm
+                        )
+                        # Update detected_tags for overlay (AprilTag detections only)
+                        self._detected_tags = [r.tag for r in self._hybrid_results.values() 
+                                               if r.tag is not None]
+                    else:
+                        # Just AprilTag detection (no hybrid tracking yet)
+                        self._detected_tags = detect_apriltags(
+                            self._apriltag_detector, frame, self._apriltag_config.tag_size_mm
+                        )
+                        self._hybrid_results = {}
                     
                     # Update tag checkboxes if in tag selection step
                     if self.current_step == self.STEP_POINTS:
@@ -1005,7 +1137,10 @@ class LiveTracker:
             time.sleep(1 / self.TARGET_FPS)
     
     def _recording_loop(self):
-        """Background loop for recording tracking data using AprilTag detection.
+        """Background loop for recording tracking data using hybrid tracking.
+        
+        Uses AprilTag detection as ground truth, with OpenCV tracker fallback
+        for interpolation when AprilTag detection fails.
         
         Processes frames as fast as possible without preview rendering.
         """
@@ -1014,13 +1149,22 @@ class LiveTracker:
         last_status_update = start_time
         status_update_interval = 0.25  # Update status display every 250ms
         
+        # Initialize hybrid tracking states for each tracked tag
+        self._hybrid_states = {tag_id: HybridTrackingState(tracked_tag_id=tag_id) 
+                               for tag_id in self._tracked_tag_ids}
+        
+        # Stats for tracking source breakdown
+        apriltag_frames = 0
+        opencv_frames = 0
+        lost_frames = 0
+        
         # Wait for preview loop to stop
         time.sleep(0.1)
         
         # Show "recording" indicator on canvas (static, no live preview)
         self._draw_recording_indicator()
         
-        self._log(f"Recording started (preview disabled for max performance)")
+        self._log(f"Recording started with hybrid tracking (AprilTag + OpenCV fallback)")
         
         while self.recording_active:
             if self._cap and self._cap.isOpened():
@@ -1046,41 +1190,64 @@ class LiveTracker:
                     if self._input_source and self._input_source.is_video_file:
                         self._video_current_frame = int(self._cap.get(cv2.CAP_PROP_POS_FRAMES))
                     
-                    # Detect AprilTags and filter to tracked IDs
-                    tracked_tags = track_apriltag_frame(
-                        self._apriltag_detector, frame, self._tracked_tag_ids,
+                    # Use hybrid tracking (AprilTag + OpenCV fallback)
+                    tracking_results = update_hybrid_tracking_multi(
+                        self._hybrid_states,
+                        self._apriltag_detector,
+                        frame,
+                        self._tracked_tag_ids,
                         self._apriltag_config.tag_size_mm
                     )
-                    self._detected_tags = list(tracked_tags.values())
                     
-                    # Record data if we have valid detections
-                    if tracked_tags:
-                        # Calculate average center of all tracked tags
-                        centers = [tag.center for tag in tracked_tags.values()]
+                    # Update detected tags for display (only AprilTag detections)
+                    self._detected_tags = [r.tag for r in tracking_results.values() if r.tag is not None]
+                    
+                    # Record data if we have any valid tracking results
+                    if tracking_results:
+                        # Determine primary tracking source for this frame
+                        sources = [r.source for r in tracking_results.values()]
+                        has_apriltag = TrackingSource.APRILTAG in sources
+                        
+                        if has_apriltag:
+                            apriltag_frames += 1
+                            primary_source = TrackingSource.APRILTAG
+                        else:
+                            opencv_frames += 1
+                            primary_source = TrackingSource.OPENCV
+                        
+                        # Calculate average center from all tracking results
+                        centers = [r.center for r in tracking_results.values()]
                         avg_x = sum(c[0] for c in centers) / len(centers)
                         avg_y = sum(c[1] for c in centers) / len(centers)
                         
-                        # Compute mm_per_pixel from tag size
-                        # Use average tag pixel size (diagonal of corners)
-                        tag_pixel_sizes = []
-                        for tag in tracked_tags.values():
-                            corners = tag.corners
-                            # Compute tag width as average of top and bottom edge lengths
-                            top_edge = math.sqrt((corners[1][0] - corners[0][0])**2 + (corners[1][1] - corners[0][1])**2)
-                            bottom_edge = math.sqrt((corners[2][0] - corners[3][0])**2 + (corners[2][1] - corners[3][1])**2)
-                            tag_pixel_sizes.append((top_edge + bottom_edge) / 2)
+                        # Calculate average confidence
+                        avg_confidence = sum(r.confidence for r in tracking_results.values()) / len(tracking_results)
                         
-                        avg_tag_pixels = sum(tag_pixel_sizes) / len(tag_pixel_sizes) if tag_pixel_sizes else 1
-                        mm_per_pixel = self._apriltag_config.tag_size_mm / avg_tag_pixels if avg_tag_pixels > 0 else 1
+                        # Compute mm_per_pixel from AprilTag detections only
+                        apriltag_results = [r for r in tracking_results.values() 
+                                           if r.source == TrackingSource.APRILTAG and r.tag is not None]
                         
-                        # Store calibration for display
-                        self._mm_per_pixel = mm_per_pixel
+                        if apriltag_results:
+                            # Use actual tag pixel sizes for calibration
+                            tag_pixel_sizes = []
+                            for r in apriltag_results:
+                                corners = r.tag.corners
+                                top_edge = math.sqrt((corners[1][0] - corners[0][0])**2 + (corners[1][1] - corners[0][1])**2)
+                                bottom_edge = math.sqrt((corners[2][0] - corners[3][0])**2 + (corners[2][1] - corners[3][1])**2)
+                                tag_pixel_sizes.append((top_edge + bottom_edge) / 2)
+                            
+                            avg_tag_pixels = sum(tag_pixel_sizes) / len(tag_pixel_sizes)
+                            mm_per_pixel = self._apriltag_config.tag_size_mm / avg_tag_pixels if avg_tag_pixels > 0 else self._mm_per_pixel or 1
+                            self._mm_per_pixel = mm_per_pixel
+                        else:
+                            # Use last known calibration during interpolation
+                            mm_per_pixel = self._mm_per_pixel or 1
                         
                         current_time = time.time() - start_time
                         
-                        # Compute average pose from all tracked tags (if pose data available)
+                        # Compute average pose from AprilTag detections only
                         pose_x, pose_y, pose_z, pose_err = None, None, None, None
-                        tags_with_pose = [t for t in tracked_tags.values() if t.has_pose]
+                        tags_with_pose = [r.tag for r in apriltag_results if r.tag and r.tag.has_pose]
                         if tags_with_pose:
                             pose_x = sum(t.pose_t[0][0] for t in tags_with_pose) / len(tags_with_pose)
                             pose_y = sum(t.pose_t[1][0] for t in tags_with_pose) / len(tags_with_pose)
@@ -1090,20 +1257,29 @@ class LiveTracker:
                         # For video files, also record the source video frame number
                         video_frame = self._video_current_frame if self._input_source and self._input_source.is_video_file else ''
                         
+                        # Per-tag tracking source details
+                        tag_sources = {tid: r.source.value for tid, r in tracking_results.items()}
+                        
                         self.positions.append({
                             'frame': frame_count,
                             'time_s': round(current_time, 4),
                             'raw_x': round(avg_x, 2),
                             'raw_y': round(avg_y, 2),
                             'mm_per_pixel': round(mm_per_pixel, 6),
-                            'tags_tracked': len(tracked_tags),
-                            'tag_ids': ','.join(str(tid) for tid in sorted(tracked_tags.keys())),
+                            'tracking_source': primary_source.value,  # 'apriltag' or 'opencv'
+                            'tracking_confidence': round(avg_confidence, 3),
+                            'tags_tracked': len(tracking_results),
+                            'tag_ids': ','.join(str(tid) for tid in sorted(tracking_results.keys())),
+                            'tag_sources': ','.join(f"{tid}:{src}" for tid, src in sorted(tag_sources.items())),
                             'pose_x': round(pose_x * 1000, 3) if pose_x is not None else '',  # Convert to mm
                             'pose_y': round(pose_y * 1000, 3) if pose_y is not None else '',  # Convert to mm
                             'pose_z': round(pose_z * 1000, 3) if pose_z is not None else '',  # Convert to mm (distance)
                             'pose_err': round(pose_err, 6) if pose_err is not None else '',
                             'video_frame': video_frame,
                         })
+                    else:
+                        # No tracking available this frame
+                        lost_frames += 1
                     
                     frame_count += 1
                     
@@ -1112,7 +1288,8 @@ class LiveTracker:
                     if now - last_status_update >= status_update_interval:
                         elapsed = now - start_time
                         fps = frame_count / elapsed if elapsed > 0 else 0
-                        self._update_recording_status(frame_count, len(self.positions), fps)
+                        self._update_recording_status(frame_count, len(self.positions), fps, 
+                                                     apriltag_frames, opencv_frames, lost_frames)
                         last_status_update = now
             
             # No sleep - process as fast as possible!
@@ -1121,6 +1298,7 @@ class LiveTracker:
         total_time = time.time() - start_time
         avg_fps = frame_count / total_time if total_time > 0 else 0
         self._log(f"Recording stopped: {frame_count} frames in {total_time:.1f}s ({avg_fps:.1f} FPS avg)")
+        self._log(f"Sources: AprilTag={apriltag_frames}, OpenCV={opencv_frames}, Lost={lost_frames}")
     
     def _draw_recording_indicator(self):
         """Draw a static recording indicator on the canvas (no live preview)."""
@@ -1152,8 +1330,9 @@ class LiveTracker:
         )
         self._overlay_layer.text_align = 'left'
     
-    def _update_recording_status(self, frames_processed: int, frames_recorded: int, fps: float):
-        """Update the recording status display."""
+    def _update_recording_status(self, frames_processed: int, frames_recorded: int, fps: float,
+                                  apriltag_frames: int = 0, opencv_frames: int = 0, lost_frames: int = 0):
+        """Update the recording status display with hybrid tracking stats."""
         # Update overlay with current stats
         self._overlay_layer.clear()
         self._overlay_layer.fill_style = '#E91E63'
@@ -1162,7 +1341,7 @@ class LiveTracker:
         self._overlay_layer.fill_text(
             '● RECORDING',
             self.canvas_width // 2,
-            self.canvas_height // 2 - 60
+            self.canvas_height // 2 - 80
         )
         
         self._overlay_layer.fill_style = '#4CAF50'
@@ -1170,7 +1349,7 @@ class LiveTracker:
         self._overlay_layer.fill_text(
             f'{frames_recorded} frames',
             self.canvas_width // 2,
-            self.canvas_height // 2
+            self.canvas_height // 2 - 30
         )
         
         self._overlay_layer.fill_style = '#888'
@@ -1178,24 +1357,56 @@ class LiveTracker:
         self._overlay_layer.fill_text(
             f'{fps:.1f} FPS | {frames_processed} processed',
             self.canvas_width // 2,
-            self.canvas_height // 2 + 40
+            self.canvas_height // 2 + 10
         )
         
-        # Show video progress if applicable
-        if self._input_source and self._input_source.is_video_file and self._video_total_frames > 0:
-            pct = (self._video_current_frame / self._video_total_frames) * 100
+        # Show hybrid tracking source breakdown
+        total_tracked = apriltag_frames + opencv_frames
+        if total_tracked > 0:
+            apriltag_pct = (apriltag_frames / total_tracked) * 100
+            opencv_pct = (opencv_frames / total_tracked) * 100
+            
+            self._overlay_layer.fill_style = '#00ffff'  # Cyan for AprilTag
             self._overlay_layer.fill_text(
-                f'Video: {self._video_current_frame}/{self._video_total_frames} ({pct:.0f}%)',
+                f'AprilTag: {apriltag_frames} ({apriltag_pct:.0f}%)',
+                self.canvas_width // 2 - 80,
+                self.canvas_height // 2 + 45
+            )
+            
+            self._overlay_layer.fill_style = '#ff9800'  # Orange for OpenCV
+            self._overlay_layer.fill_text(
+                f'OpenCV: {opencv_frames} ({opencv_pct:.0f}%)',
+                self.canvas_width // 2 + 20,
+                self.canvas_height // 2 + 45
+            )
+        
+        if lost_frames > 0:
+            self._overlay_layer.fill_style = '#f44336'  # Red for lost
+            self._overlay_layer.fill_text(
+                f'Lost: {lost_frames}',
                 self.canvas_width // 2,
                 self.canvas_height // 2 + 70
             )
         
+        # Show video progress if applicable
+        if self._input_source and self._input_source.is_video_file and self._video_total_frames > 0:
+            pct = (self._video_current_frame / self._video_total_frames) * 100
+            self._overlay_layer.fill_style = '#888'
+            self._overlay_layer.fill_text(
+                f'Video: {self._video_current_frame}/{self._video_total_frames} ({pct:.0f}%)',
+                self.canvas_width // 2,
+                self.canvas_height // 2 + 95
+            )
+        
         self._overlay_layer.text_align = 'left'
         
-        # Also update the step status
+        # Also update the step status with source info
+        source_info = ""
+        if total_tracked > 0:
+            source_info = f" (AT:{apriltag_frames} CV:{opencv_frames})"
         self._track_status.value = (
             f'<span style="color: #E91E63; font-weight: bold;">'
-            f'● {frames_recorded} frames | {fps:.1f} FPS</span>'
+            f'● {frames_recorded} frames | {fps:.1f} FPS{source_info}</span>'
         )
     
     @property

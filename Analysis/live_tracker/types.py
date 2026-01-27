@@ -156,6 +156,56 @@ class TrackerMode(Enum):
     TRACKING = "tracking"
 
 
+class TrackingSource(Enum):
+    """Source of tracking data for a frame."""
+    APRILTAG = "apriltag"      # Ground truth from AprilTag detection
+    OPENCV = "opencv"          # Interpolated from OpenCV tracker
+    LOST = "lost"              # No tracking available
+
+
+@dataclass
+class HybridTrackingState:
+    """
+    State for hybrid AprilTag + OpenCV tracking.
+    
+    AprilTag is ground truth. When detected, it overwrites OpenCV tracker.
+    When AprilTag is lost, OpenCV tracker interpolates between detections.
+    """
+    # OpenCV tracker instance (CSRT or similar)
+    opencv_tracker: Any = None
+    # Whether OpenCV tracker is initialized
+    opencv_initialized: bool = False
+    # Last known position from AprilTag (ground truth)
+    last_apriltag_center: Optional[tuple[float, float]] = None
+    # Last known bounding box for the tracked region
+    last_bbox: Optional[tuple[int, int, int, int]] = None  # (x, y, w, h)
+    # Stored template image (grayscale) for template matching fallback
+    template_image: Optional[np.ndarray] = None
+    # Frames since last AprilTag detection
+    frames_since_apriltag: int = 0
+    # Maximum frames to interpolate before considering tracking lost
+    max_interpolation_frames: int = 30
+    # Last tracking source
+    last_source: TrackingSource = TrackingSource.LOST
+    # Tag ID being tracked (for single-tag hybrid tracking)
+    tracked_tag_id: Optional[int] = None
+    
+    def reset(self):
+        """Reset tracking state."""
+        self.opencv_tracker = None
+        self.opencv_initialized = False
+        self.last_apriltag_center = None
+        self.last_bbox = None
+        self.template_image = None
+        self.frames_since_apriltag = 0
+        self.last_source = TrackingSource.LOST
+    
+    @property
+    def is_tracking_lost(self) -> bool:
+        """Check if tracking is considered lost."""
+        return self.frames_since_apriltag > self.max_interpolation_frames
+
+
 class TrackerStep(Enum):
     """Step-based flow for the tracker UI."""
     CAMERA = 1
