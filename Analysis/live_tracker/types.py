@@ -17,6 +17,7 @@ class AprilTagConfig:
     quad_sigma: float = 0.0  # No blur by default
     refine_edges: bool = True  # Better corner accuracy
     decode_sharpening: float = 0.25  # Helps with small tags
+    tag_size_mm: float = 20.0  # Physical size of the printed tag (outer edge to outer edge)
 
 
 @dataclass
@@ -37,33 +38,6 @@ class DetectedTag:
     def corners_int(self) -> list[tuple[int, int]]:
         """Get corners as integer coordinates."""
         return [(int(c[0]), int(c[1])) for c in self.corners]
-
-
-@dataclass
-class CalibrationData:
-    """Stores calibration line data for pixel-to-mm conversion."""
-    point1: tuple[int, int]
-    point2: tuple[int, int]
-    length_mm: float
-    
-    @property
-    def pixel_length(self) -> float:
-        """Calculate the pixel length of the calibration line."""
-        dx = self.point2[0] - self.point1[0]
-        dy = self.point2[1] - self.point1[1]
-        return math.sqrt(dx * dx + dy * dy)
-    
-    @property
-    def mm_per_pixel(self) -> float:
-        """Get the conversion factor from pixels to millimeters."""
-        return self.length_mm / self.pixel_length
-    
-    @property
-    def angle(self) -> float:
-        """Get the angle of the calibration line in radians."""
-        dx = self.point2[0] - self.point1[0]
-        dy = self.point2[1] - self.point1[1]
-        return math.atan2(dy, dx)
 
 
 @dataclass

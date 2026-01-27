@@ -17,9 +17,9 @@ from ipywidgets import (
     Output, Label, HTML, Layout, Checkbox
 )
 
-from .types import CalibrationData, AprilTagConfig, DetectedTag, TrackerMode
+from .types import AprilTagConfig, DetectedTag, TrackerMode
 from .tracking import (
-    project_to_axis, list_cameras, create_apriltag_detector, 
+    list_cameras, create_apriltag_detector, 
     detect_apriltags, track_apriltag_frame
 )
 
@@ -49,7 +49,6 @@ class LiveTracker:
         # State
         self.current_step = self.STEP_CAMERA
         self.mode = TrackerMode.IDLE
-        self.calibration: Optional[CalibrationData] = None
         self.positions: list[dict] = []
         self.recording_active = False  # Recording data
         self.preview_active = False
@@ -78,10 +77,8 @@ class LiveTracker:
         self._frame_offset_x = 0
         self._frame_offset_y = 0
         
-        # Calibration: two draggable points (canvas coordinates)
-        self._cal_point1: Optional[tuple[int, int]] = None
-        self._cal_point2: Optional[tuple[int, int]] = None
-        self._dragging_cal_point: Optional[int] = None
+        # Calibration: mm per pixel (computed from tag size)
+        self._mm_per_pixel: Optional[float] = None
         
         # Debug
         self._debug_mouse_pos: Optional[tuple[int, int]] = None
@@ -142,30 +139,25 @@ class LiveTracker:
             self._camera_next_btn
         ], layout=Layout(padding='8px', border='1px solid #333', border_radius='5px'))
         
-        # Step 2: Calibration
-        self._cal_length = FloatText(
-            value=200.0,
+        # Step 2: Tag Size (calibration)
+        self._tag_size = FloatText(
+            value=self._apriltag_config.tag_size_mm,
             description='',
-            layout=Layout(width='80px')
+            layout=Layout(width='70px')
         )
+        self._tag_size.observe(self._on_tag_size_change, names='value')
+        self._cal_status = HTML('<span style="color: #888;">Set physical tag size</span>')
         self._cal_done_btn = Button(
-            description='Done ✓',
+            description='Next →',
             button_style='success',
-            disabled=True,
-            layout=Layout(width='80px')
+            layout=Layout(width='70px')
         )
-        self._cal_clear_btn = Button(
-            description='Clear',
-            button_style='warning',
-            layout=Layout(width='60px')
-        )
-        self._cal_status = HTML('<span style="color: #888;">Click to place 2 points</span>')
-        self._step2_header = HTML('<b style="color: #2196F3;">2. Calibrate</b>')
+        self._step2_header = HTML('<b style="color: #2196F3;">2. Tag Size</b>')
         self._step2 = VBox([
             self._step2_header,
-            HBox([Label('Length (mm):'), self._cal_length]),
+            HBox([Label('Tag size (mm):'), self._tag_size]),
             self._cal_status,
-            HBox([self._cal_clear_btn, self._cal_done_btn])
+            self._cal_done_btn
         ], layout=Layout(padding='8px', border='1px solid #333', border_radius='5px'))
         
         # Step 3: Tag Selection (AprilTags)
@@ -272,7 +264,6 @@ class LiveTracker:
         # Button clicks
         self._preview_btn.on_click(self._on_preview)
         self._camera_next_btn.on_click(self._on_camera_next)
-        self._cal_clear_btn.on_click(self._on_cal_clear)
         self._cal_done_btn.on_click(self._on_cal_done)
         self._tags_select_all_btn.on_click(self._on_tags_select_all)
         self._tags_clear_btn.on_click(self._on_tags_clear)
@@ -285,7 +276,7 @@ class LiveTracker:
         """Update step panel styles based on current step."""
         steps = [
             (self._step1, self._step1_header, "1. Camera", "#4CAF50"),
-            (self._step2, self._step2_header, "2. Calibrate", "#2196F3"),
+            (self._step2, self._step2_header, "2. Tag Size", "#2196F3"),
             (self._step3, self._step3_header, "3. Track Points", "#FF9800"),
             (self._step4, self._step4_header, "4. Record", "#E91E63"),
             (self._step5, self._step5_header, "5. Export", "#9C27B0"),
@@ -385,33 +376,6 @@ class LiveTracker:
         """Draw overlay based on current state."""
         self._overlay_layer.clear()
         
-        # Calibration points (two draggable points)
-        if self._cal_point1:
-            self._draw_cal_point(self._cal_point1, "1", self._dragging_cal_point == 1)
-        if self._cal_point2:
-            self._draw_cal_point(self._cal_point2, "2", self._dragging_cal_point == 2)
-        
-        # Calibration line between points
-        if self._cal_point1 and self._cal_point2:
-            self._draw_line(self._cal_point1, self._cal_point2, '#00ff00', 2)
-            # Show pixel length
-            dx = self._cal_point2[0] - self._cal_point1[0]
-            dy = self._cal_point2[1] - self._cal_point1[1]
-            px_len = math.sqrt(dx*dx + dy*dy) / self._frame_scale if self._frame_scale > 0 else 0
-            mid_x = (self._cal_point1[0] + self._cal_point2[0]) // 2
-            mid_y = (self._cal_point1[1] + self._cal_point2[1]) // 2
-            self._overlay_layer.fill_style = 'white'
-            self._overlay_layer.font = '12px sans-serif'
-            self._overlay_layer.fill_text(f'{px_len:.0f} px', mid_x + 5, mid_y - 5)
-        
-        # Confirmed calibration (shown when past calibration step)
-        if self.calibration and self.current_step > self.STEP_CALIBRATE:
-            p1 = self._frame_to_canvas(*self.calibration.point1)
-            p2 = self._frame_to_canvas(*self.calibration.point2)
-            self._draw_line(p1, p2, '#00ff00', 2)
-            self._draw_circle(p1, 6, '#00ff00', fill=True)
-            self._draw_circle(p2, 6, '#00ff00', fill=True)
-        
         # Draw detected AprilTags
         for tag in self._detected_tags:
             is_tracked = tag.tag_id in self._tracked_tag_ids
@@ -470,11 +434,12 @@ class LiveTracker:
             self._overlay_layer.fill_style = '#00ffff'
             self._overlay_layer.font = 'bold 24px sans-serif'
             self._overlay_layer.fill_text(
-                f"Position: {last_pos['position_mm']:.1f} mm",
+                f"X: {last_pos['raw_x']:.1f} px",
                 10, self.canvas_height - 15
             )
             self._overlay_layer.font = '14px sans-serif'
-            tags_info = f"Tags: {last_pos.get('tags_tracked', 0)}"
+            mm_px = last_pos.get('mm_per_pixel', 0)
+            tags_info = f"Tags: {last_pos.get('tags_tracked', 0)} | {mm_px:.4f} mm/px"
             self._overlay_layer.fill_text(
                 f"Frame: {len(self.positions)} | {tags_info}",
                 10, self.canvas_height - 40
@@ -501,18 +466,6 @@ class LiveTracker:
             self._overlay_layer.fill_style = '#ff00ff'
             self._overlay_layer.font = '11px monospace'
             self._overlay_layer.fill_text(f'({mx}, {my})', mx + 5, my - 5)
-    
-    def _draw_cal_point(self, pos: tuple, label: str, active: bool):
-        """Draw a calibration point marker."""
-        color = '#00ffff' if active else '#00ff00'
-        # Outer circle
-        self._draw_circle(pos, 10, color, fill=False)
-        # Inner dot
-        self._draw_circle(pos, 4, color, fill=True)
-        # Label
-        self._overlay_layer.fill_style = color
-        self._overlay_layer.font = 'bold 14px sans-serif'
-        self._overlay_layer.fill_text(label, pos[0] + 14, pos[1] + 5)
     
     def _draw_line(self, p1: tuple, p2: tuple, color: str, width: int):
         """Draw a line on overlay."""
@@ -560,37 +513,6 @@ class LiveTracker:
             self._overlay_layer.line_to(*corner)
         self._overlay_layer.close_path()
         self._overlay_layer.stroke()
-    
-    def _find_cal_point_at(self, x: int, y: int) -> Optional[int]:
-        """Find which calibration point (1 or 2) is at position, or None."""
-        if self._cal_point1:
-            dist = math.sqrt((x - self._cal_point1[0])**2 + (y - self._cal_point1[1])**2)
-            if dist <= 15:
-                return 1
-        if self._cal_point2:
-            dist = math.sqrt((x - self._cal_point2[0])**2 + (y - self._cal_point2[1])**2)
-            if dist <= 15:
-                return 2
-        return None
-    
-    def _update_cal_status(self):
-        """Update calibration status display."""
-        if self._cal_point1 and self._cal_point2:
-            dx = self._cal_point2[0] - self._cal_point1[0]
-            dy = self._cal_point2[1] - self._cal_point1[1]
-            px_len = math.sqrt(dx*dx + dy*dy) / self._frame_scale if self._frame_scale > 0 else 0
-            mm_per_px = self._cal_length.value / px_len if px_len > 0 else 0
-            self._cal_status.value = (
-                f'<span style="color: #4CAF50;">'
-                f'{px_len:.0f}px = {self._cal_length.value}mm</span>'
-            )
-            self._cal_done_btn.disabled = px_len < 20
-        elif self._cal_point1:
-            self._cal_status.value = '<span style="color: #2196F3;">Click to place point 2</span>'
-            self._cal_done_btn.disabled = True
-        else:
-            self._cal_status.value = '<span style="color: #888;">Click to place point 1</span>'
-            self._cal_done_btn.disabled = True
     
     def _update_tags_status(self):
         """Update tag detection status display."""
@@ -641,6 +563,12 @@ class LiveTracker:
             self._tracked_tag_ids.discard(tag_id)
         self._update_tags_status()
     
+    def _on_tag_size_change(self, change):
+        """Handle tag size input change."""
+        new_size = change['new']
+        if new_size > 0:
+            self._apriltag_config.tag_size_mm = new_size
+    
     def _on_canvas_mouse_down(self, x: float, y: float):
         """Handle canvas mousedown - ipycanvas provides x, y directly."""
         pos = (int(x), int(y))
@@ -658,42 +586,11 @@ class LiveTracker:
     
     def _handle_mouse_event(self, event_type: str, pos: tuple[int, int]):
         """Handle mouse events with direct canvas coordinates."""
-        x, y = pos
-        
         # Debug: store mouse position for overlay
         self._debug_mouse_pos = pos
         
-        # Step 2: Calibration - place and drag two points
-        if self.current_step == self.STEP_CALIBRATE:
-            if event_type == 'mousedown':
-                # Check if clicking on existing point
-                hit = self._find_cal_point_at(x, y)
-                if hit:
-                    self._dragging_cal_point = hit
-                else:
-                    # Place new point
-                    if not self._cal_point1:
-                        self._cal_point1 = pos
-                    elif not self._cal_point2:
-                        self._cal_point2 = pos
-                    self._update_cal_status()
-                self._draw_overlay()
-            
-            elif event_type == 'mousemove':
-                if self._dragging_cal_point == 1:
-                    self._cal_point1 = pos
-                    self._update_cal_status()
-                elif self._dragging_cal_point == 2:
-                    self._cal_point2 = pos
-                    self._update_cal_status()
-                # Always redraw overlay for debug crosshair
-                self._draw_overlay()
-            
-            elif event_type == 'mouseup':
-                self._dragging_cal_point = None
-        
         # Step 3: Tag selection - no mouse interaction needed (use checkboxes)
-        elif self.current_step == self.STEP_POINTS:
+        if self.current_step == self.STEP_POINTS:
             if event_type == 'mousemove':
                 # Just update overlay for debug crosshair
                 self._draw_overlay()
@@ -754,41 +651,23 @@ class LiveTracker:
             thread.start()
     
     def _on_camera_next(self, btn):
-        """Advance from camera step to calibration."""
+        """Advance from camera step to tag size."""
         if not self.preview_active:
             self._log("Start preview first")
             return
         self.current_step = self.STEP_CALIBRATE
-        self._cal_point1 = None
-        self._cal_point2 = None
-        self.calibration = None
-        self._update_cal_status()
         self._update_step_styles()
         self._draw_overlay()
     
-    def _on_cal_clear(self, btn):
-        """Clear calibration points."""
-        self._cal_point1 = None
-        self._cal_point2 = None
-        self._update_cal_status()
-        self._draw_overlay()
-    
     def _on_cal_done(self, btn):
-        """Confirm calibration and advance."""
-        if not self._cal_point1 or not self._cal_point2:
-            self._log("Place both calibration points")
+        """Confirm tag size and advance to tag selection."""
+        if self._tag_size.value <= 0:
+            self._log("Tag size must be positive")
             return
         
-        # Convert canvas coords to frame coords
-        frame_p1 = self._canvas_to_frame(*self._cal_point1)
-        frame_p2 = self._canvas_to_frame(*self._cal_point2)
-        
-        self.calibration = CalibrationData(
-            point1=frame_p1,
-            point2=frame_p2,
-            length_mm=self._cal_length.value
-        )
-        self._log(f"Calibration: {self.calibration.mm_per_pixel:.4f} mm/px")
+        self._apriltag_config.tag_size_mm = self._tag_size.value
+        self._cal_status.value = f'<span style="color: #4CAF50;">Tag size: {self._tag_size.value}mm</span>'
+        self._log(f"Tag size set to {self._tag_size.value}mm")
         
         self.current_step = self.STEP_POINTS
         self._tracked_tag_ids = set()
@@ -829,10 +708,6 @@ class LiveTracker:
     
     def _on_track_go(self, btn):
         """Start recording tracking data."""
-        if not self.calibration:
-            self._log("Complete calibration first")
-            return
-        
         if not self._tracked_tag_ids:
             self._log("Select at least one tag to track")
             return
@@ -875,7 +750,7 @@ class LiveTracker:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"tracking_data_{timestamp}.csv"
         
-        fieldnames = ['frame', 'time_s', 'position_mm', 'raw_x', 'raw_y', 'tags_tracked', 'tag_ids']
+        fieldnames = ['frame', 'time_s', 'raw_x', 'raw_y', 'mm_per_pixel', 'tags_tracked', 'tag_ids']
         
         with open(filename, 'w', newline='') as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -898,11 +773,8 @@ class LiveTracker:
             self._cap = None
         
         self.current_step = self.STEP_CAMERA
-        self.calibration = None
+        self._mm_per_pixel = None
         self.positions = []
-        self._cal_point1 = None
-        self._cal_point2 = None
-        self._dragging_cal_point = None
         
         # Reset AprilTag state
         self._detected_tags = []
@@ -914,8 +786,9 @@ class LiveTracker:
         self._preview_btn.button_style = 'info'
         self._camera_next_btn.disabled = True
         self._camera_diag.value = '<span style="color: #666; font-size: 11px;">—</span>'
-        self._cal_status.value = '<span style="color: #888;">Click to place 2 points</span>'
-        self._cal_done_btn.disabled = True
+        self._tag_size.value = 20.0  # Reset to default tag size
+        self._apriltag_config.tag_size_mm = 20.0
+        self._cal_status.value = '<span style="color: #888;">Set physical tag size</span>'
         self._tags_status.value = '<span style="color: #888;">Searching for AprilTags...</span>'
         self._tags_next_btn.disabled = True
         self._track_status.value = '<span style="color: #888;">Ready to record</span>'
@@ -986,23 +859,37 @@ class LiveTracker:
                     )
                     self._detected_tags = list(tracked_tags.values())
                     
-                    # Record data if we have valid detections and calibration
-                    if tracked_tags and self.calibration:
+                    # Record data if we have valid detections
+                    if tracked_tags:
                         # Calculate average center of all tracked tags
                         centers = [tag.center for tag in tracked_tags.values()]
                         avg_x = sum(c[0] for c in centers) / len(centers)
                         avg_y = sum(c[1] for c in centers) / len(centers)
-                        avg_frame_center = (int(avg_x), int(avg_y))
                         
-                        position_mm = project_to_axis(avg_frame_center, self.calibration)
+                        # Compute mm_per_pixel from tag size
+                        # Use average tag pixel size (diagonal of corners)
+                        tag_pixel_sizes = []
+                        for tag in tracked_tags.values():
+                            corners = tag.corners
+                            # Compute tag width as average of top and bottom edge lengths
+                            top_edge = math.sqrt((corners[1][0] - corners[0][0])**2 + (corners[1][1] - corners[0][1])**2)
+                            bottom_edge = math.sqrt((corners[2][0] - corners[3][0])**2 + (corners[2][1] - corners[3][1])**2)
+                            tag_pixel_sizes.append((top_edge + bottom_edge) / 2)
+                        
+                        avg_tag_pixels = sum(tag_pixel_sizes) / len(tag_pixel_sizes) if tag_pixel_sizes else 1
+                        mm_per_pixel = self._apriltag_config.tag_size_mm / avg_tag_pixels if avg_tag_pixels > 0 else 1
+                        
+                        # Store calibration for display
+                        self._mm_per_pixel = mm_per_pixel
+                        
                         current_time = time.time() - start_time
                         
                         self.positions.append({
                             'frame': frame_count,
                             'time_s': round(current_time, 4),
-                            'position_mm': round(position_mm, 2),
-                            'raw_x': avg_frame_center[0],
-                            'raw_y': avg_frame_center[1],
+                            'raw_x': round(avg_x, 2),
+                            'raw_y': round(avg_y, 2),
+                            'mm_per_pixel': round(mm_per_pixel, 6),
                             'tags_tracked': len(tracked_tags),
                             'tag_ids': ','.join(str(tid) for tid in sorted(tracked_tags.keys()))
                         })
@@ -1016,6 +903,18 @@ class LiveTracker:
             time.sleep(1 / self.TARGET_FPS)
         
         self._log(f"Recording stopped: {frame_count} frames captured")
+    
+    @property
+    def tag_size(self) -> float:
+        """Get the current tag size in mm."""
+        return self._apriltag_config.tag_size_mm
+    
+    @tag_size.setter
+    def tag_size(self, value: float):
+        """Set the tag size in mm."""
+        if value > 0:
+            self._apriltag_config.tag_size_mm = value
+            self._tag_size.value = value
     
     def show(self):
         """Display the tracker UI."""

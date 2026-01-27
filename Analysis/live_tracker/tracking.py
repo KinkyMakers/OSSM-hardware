@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 from pupil_apriltags import Detector
 
-from .types import CalibrationData, TrackingCircle, AprilTagConfig, DetectedTag
+from .types import TrackingCircle, AprilTagConfig, DetectedTag
 
 
 # =============================================================================
@@ -99,26 +99,8 @@ def track_apriltag_frame(
 
 
 # =============================================================================
-# Calibration and Position Functions
+# Template Tracking Functions
 # =============================================================================
-
-def project_to_axis(point: tuple[int, int], calibration: CalibrationData) -> float:
-    """Project a point onto the calibration axis and return position in mm."""
-    # Vector from calibration point1 to the tracked point
-    px = point[0] - calibration.point1[0]
-    py = point[1] - calibration.point1[1]
-    
-    # Unit vector along calibration line
-    angle = calibration.angle
-    ux = math.cos(angle)
-    uy = math.sin(angle)
-    
-    # Project onto the line (dot product)
-    projection_pixels = px * ux + py * uy
-    
-    # Convert to mm
-    return projection_pixels * calibration.mm_per_pixel
-
 
 def extract_template(frame: np.ndarray, center: tuple[int, int], 
                      radius: int) -> Optional[np.ndarray]:
