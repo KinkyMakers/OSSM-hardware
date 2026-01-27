@@ -1,4 +1,4 @@
-"""Main LiveTracker class with improved UX flow."""
+"""Main LiveTracker class with AprilTag-based tracking."""
 
 import csv
 import math
@@ -13,13 +13,14 @@ from IPython.display import display, FileLink
 from ipycanvas import MultiCanvas, hold_canvas
 from ipyevents import Event
 from ipywidgets import (
-    Dropdown, Button, FloatText, IntSlider, HBox, VBox,
-    Output, Label, HTML, Layout
+    Dropdown, Button, FloatText, HBox, VBox,
+    Output, Label, HTML, Layout, Checkbox
 )
 
-from .types import CalibrationData, TrackingCircle, MultiTrackingCircles, TrackerMode
+from .types import CalibrationData, AprilTagConfig, DetectedTag, TrackerMode
 from .tracking import (
-    project_to_axis, track_frame, list_cameras, initialize_tracker
+    project_to_axis, list_cameras, create_apriltag_detector, 
+    detect_apriltags, track_apriltag_frame
 )
 
 
@@ -49,13 +50,16 @@ class LiveTracker:
         self.current_step = self.STEP_CAMERA
         self.mode = TrackerMode.IDLE
         self.calibration: Optional[CalibrationData] = None
-        self.tracking_circles = MultiTrackingCircles()
         self.positions: list[dict] = []
         self.recording_active = False  # Recording data
         self.preview_active = False
         
-        # Track last known frame positions for each circle (by index)
-        self._last_frame_centers: dict[int, tuple[int, int]] = {}
+        # AprilTag detection
+        self._apriltag_config = AprilTagConfig()
+        self._apriltag_detector = create_apriltag_detector(self._apriltag_config)
+        self._detected_tags: list[DetectedTag] = []  # Tags detected in current frame
+        self._tracked_tag_ids: set[int] = set()  # Tag IDs selected for tracking
+        self._tag_checkboxes: dict[int, Checkbox] = {}  # UI checkboxes for tag selection
         
         # Canvas dimensions (fixed size)
         self.canvas_width = self.DEFAULT_WIDTH
@@ -78,11 +82,6 @@ class LiveTracker:
         self._cal_point1: Optional[tuple[int, int]] = None
         self._cal_point2: Optional[tuple[int, int]] = None
         self._dragging_cal_point: Optional[int] = None
-        
-        # Tracking point interaction state
-        self._dragging_track_idx: Optional[int] = None
-        self._hover_track_idx: Optional[int] = None
-        self._shift_held = False
         
         # Debug
         self._debug_mouse_pos: Optional[tuple[int, int]] = None
@@ -169,31 +168,32 @@ class LiveTracker:
             HBox([self._cal_clear_btn, self._cal_done_btn])
         ], layout=Layout(padding='8px', border='1px solid #333', border_radius='5px'))
         
-        # Step 3: Tracking Points
-        self._radius_slider = IntSlider(
-            value=20, min=5, max=100, step=1,
-            description='Radius:',
-            layout=Layout(width='200px')
-        )
-        self._points_clear_btn = Button(
-            description='Clear All',
-            button_style='warning',
+        # Step 3: Tag Selection (AprilTags)
+        self._tags_container = VBox([], layout=Layout(max_height='120px', overflow_y='auto'))
+        self._tags_select_all_btn = Button(
+            description='Select All',
+            button_style='info',
             layout=Layout(width='80px')
         )
-        self._points_next_btn = Button(
+        self._tags_clear_btn = Button(
+            description='Clear',
+            button_style='warning',
+            layout=Layout(width='60px')
+        )
+        self._tags_next_btn = Button(
             description='Next →',
             button_style='success',
             disabled=True,
             layout=Layout(width='70px')
         )
-        self._points_status = HTML('<span style="color: #888;">Click to place point</span>')
-        self._step3_header = HTML('<b style="color: #FF9800;">3. Track Points</b>')
+        self._tags_status = HTML('<span style="color: #888;">Searching for AprilTags...</span>')
+        self._step3_header = HTML('<b style="color: #FF9800;">3. Select Tags</b>')
         self._step3 = VBox([
             self._step3_header,
-            self._radius_slider,
-            HTML('<span style="font-size: 11px; color: #888;">Hold Shift for multiple points</span>'),
-            self._points_status,
-            HBox([self._points_clear_btn, self._points_next_btn])
+            HTML('<span style="font-size: 11px; color: #888;">tagStandard41h12 family</span>'),
+            self._tags_status,
+            self._tags_container,
+            HBox([self._tags_select_all_btn, self._tags_clear_btn, self._tags_next_btn])
         ], layout=Layout(padding='8px', border='1px solid #333', border_radius='5px'))
         
         # Step 4: Record
@@ -274,14 +274,12 @@ class LiveTracker:
         self._camera_next_btn.on_click(self._on_camera_next)
         self._cal_clear_btn.on_click(self._on_cal_clear)
         self._cal_done_btn.on_click(self._on_cal_done)
-        self._points_clear_btn.on_click(self._on_points_clear)
-        self._points_next_btn.on_click(self._on_points_next)
+        self._tags_select_all_btn.on_click(self._on_tags_select_all)
+        self._tags_clear_btn.on_click(self._on_tags_clear)
+        self._tags_next_btn.on_click(self._on_tags_next)
         self._track_go_btn.on_click(self._on_track_go)
         self._track_stop_btn.on_click(self._on_track_stop)
         self._reset_btn.on_click(self._on_reset)
-        
-        # Radius slider update
-        self._radius_slider.observe(self._on_radius_change, names='value')
     
     def _update_step_styles(self):
         """Update step panel styles based on current step."""
@@ -414,38 +412,50 @@ class LiveTracker:
             self._draw_circle(p1, 6, '#00ff00', fill=True)
             self._draw_circle(p2, 6, '#00ff00', fill=True)
         
-        # Tracking circles
-        for i, circle in enumerate(self.tracking_circles.circles):
-            is_hover = (i == self._hover_track_idx)
-            color = '#ff4444' if is_hover else '#ffa500'
-            self._draw_circle(circle.center, circle.radius, color, fill=False)
-            self._draw_circle(circle.center, 3, color, fill=True)
+        # Draw detected AprilTags
+        for tag in self._detected_tags:
+            is_tracked = tag.tag_id in self._tracked_tag_ids
+            color = '#00ffff' if is_tracked else '#ff9800'
             
-            # Point number
+            # Convert frame coordinates to canvas coordinates
+            canvas_corners = [self._frame_to_canvas(int(c[0]), int(c[1])) for c in tag.corners]
+            canvas_center = self._frame_to_canvas(*tag.center_int)
+            
+            # Draw quadrilateral outline
+            self._draw_tag_quad(canvas_corners, color)
+            
+            # Draw center cross
+            self._draw_cross(canvas_center, 8, color)
+            
+            # Draw tag ID label
             self._overlay_layer.fill_style = color
-            self._overlay_layer.font = '12px sans-serif'
-            self._overlay_layer.fill_text(str(i + 1), circle.center[0] + circle.radius + 5, circle.center[1])
+            self._overlay_layer.font = 'bold 14px sans-serif'
+            label = f"ID:{tag.tag_id}"
+            # Position label above the tag
+            label_y = min(c[1] for c in canvas_corners) - 8
+            label_x = canvas_center[0] - 15
+            self._overlay_layer.fill_text(label, label_x, label_y)
             
-            # Remove button in point selection mode
-            if self.current_step == self.STEP_POINTS:
-                x_pos = circle.center[0] + circle.radius + 2
-                y_pos = circle.center[1] - circle.radius - 2
-                self._overlay_layer.fill_style = '#ff4444'
-                self._overlay_layer.font = 'bold 14px sans-serif'
-                self._overlay_layer.fill_text('✕', x_pos, y_pos)
+            # Show quality indicator for tracked tags
+            if is_tracked:
+                quality = f"{tag.decision_margin:.0f}"
+                self._overlay_layer.font = '10px sans-serif'
+                self._overlay_layer.fill_text(quality, canvas_center[0] + 12, canvas_center[1] + 4)
         
-        # Average marker for multiple points
-        if len(self.tracking_circles.circles) > 1:
-            avg_x = sum(c.center[0] for c in self.tracking_circles.circles) / len(self.tracking_circles.circles)
-            avg_y = sum(c.center[1] for c in self.tracking_circles.circles) / len(self.tracking_circles.circles)
-            self._draw_cross((int(avg_x), int(avg_y)), 10, '#ffff00')
+        # Average marker for multiple tracked tags
+        tracked_tags = [t for t in self._detected_tags if t.tag_id in self._tracked_tag_ids]
+        if len(tracked_tags) > 1:
+            avg_x = sum(t.center[0] for t in tracked_tags) / len(tracked_tags)
+            avg_y = sum(t.center[1] for t in tracked_tags) / len(tracked_tags)
+            canvas_avg = self._frame_to_canvas(int(avg_x), int(avg_y))
+            self._draw_cross(canvas_avg, 12, '#ffff00')
         
         # Mode indicator
         mode_messages = {
             self.STEP_CAMERA: '',
             self.STEP_CALIBRATE: 'Click to place points, drag to adjust',
-            self.STEP_POINTS: 'Click to place | Shift+Click for more | Drag to move',
-            self.STEP_TRACK: 'RECORDING' if self.recording_active else 'Press Go to record',
+            self.STEP_POINTS: f'AprilTags detected: {len(self._detected_tags)} | Selected: {len(self._tracked_tag_ids)}',
+            self.STEP_TRACK: 'RECORDING' if self.recording_active else 'Press Record to start',
             self.STEP_EXPORT: '',
         }
         msg = mode_messages.get(self.current_step, '')
@@ -464,8 +474,9 @@ class LiveTracker:
                 10, self.canvas_height - 15
             )
             self._overlay_layer.font = '14px sans-serif'
+            tags_info = f"Tags: {last_pos.get('tags_tracked', 0)}"
             self._overlay_layer.fill_text(
-                f"Frame: {len(self.positions)}",
+                f"Frame: {len(self.positions)} | {tags_info}",
                 10, self.canvas_height - 40
             )
         
@@ -537,6 +548,19 @@ class LiveTracker:
         self._overlay_layer.line_to(center[0], center[1] + size)
         self._overlay_layer.stroke()
     
+    def _draw_tag_quad(self, corners: list[tuple[int, int]], color: str):
+        """Draw a quadrilateral for an AprilTag."""
+        if len(corners) != 4:
+            return
+        self._overlay_layer.stroke_style = color
+        self._overlay_layer.line_width = 2
+        self._overlay_layer.begin_path()
+        self._overlay_layer.move_to(*corners[0])
+        for corner in corners[1:]:
+            self._overlay_layer.line_to(*corner)
+        self._overlay_layer.close_path()
+        self._overlay_layer.stroke()
+    
     def _find_cal_point_at(self, x: int, y: int) -> Optional[int]:
         """Find which calibration point (1 or 2) is at position, or None."""
         if self._cal_point1:
@@ -548,23 +572,6 @@ class LiveTracker:
             if dist <= 15:
                 return 2
         return None
-    
-    def _find_track_point_at(self, x: int, y: int) -> Optional[int]:
-        """Find tracking point index at position, or None."""
-        for i, circle in enumerate(self.tracking_circles.circles):
-            dist = math.sqrt((x - circle.center[0])**2 + (y - circle.center[1])**2)
-            if dist <= circle.radius + 10:
-                return i
-        return None
-    
-    def _is_on_remove_button(self, x: int, y: int, idx: int) -> bool:
-        """Check if position is on a tracking point's remove button."""
-        if idx is None or idx >= len(self.tracking_circles.circles):
-            return False
-        circle = self.tracking_circles.circles[idx]
-        x_btn = circle.center[0] + circle.radius + 8
-        y_btn = circle.center[1] - circle.radius - 8
-        return abs(x - x_btn) < 12 and abs(y - y_btn) < 12
     
     def _update_cal_status(self):
         """Update calibration status display."""
@@ -585,16 +592,54 @@ class LiveTracker:
             self._cal_status.value = '<span style="color: #888;">Click to place point 1</span>'
             self._cal_done_btn.disabled = True
     
-    def _update_points_status(self):
-        """Update points status display."""
-        n = len(self.tracking_circles.circles)
-        if n > 0:
-            plural = 's' if n > 1 else ''
-            self._points_status.value = f'<span style="color: #FF9800;">{n} point{plural} placed</span>'
-            self._points_next_btn.disabled = False
+    def _update_tags_status(self):
+        """Update tag detection status display."""
+        n_detected = len(self._detected_tags)
+        n_selected = len(self._tracked_tag_ids)
+        
+        if n_detected > 0:
+            if n_selected > 0:
+                self._tags_status.value = f'<span style="color: #4CAF50;">{n_selected} of {n_detected} tags selected</span>'
+                self._tags_next_btn.disabled = False
+            else:
+                self._tags_status.value = f'<span style="color: #FF9800;">{n_detected} tags detected - select to track</span>'
+                self._tags_next_btn.disabled = True
         else:
-            self._points_status.value = '<span style="color: #888;">Click to place point</span>'
-            self._points_next_btn.disabled = True
+            self._tags_status.value = '<span style="color: #888;">No AprilTags detected</span>'
+            self._tags_next_btn.disabled = True
+    
+    def _update_tag_checkboxes(self):
+        """Update the tag selection checkboxes based on detected tags."""
+        detected_ids = {tag.tag_id for tag in self._detected_tags}
+        
+        # Remove checkboxes for tags no longer detected
+        for tag_id in list(self._tag_checkboxes.keys()):
+            if tag_id not in detected_ids:
+                del self._tag_checkboxes[tag_id]
+        
+        # Add checkboxes for newly detected tags
+        for tag in sorted(self._detected_tags, key=lambda t: t.tag_id):
+            if tag.tag_id not in self._tag_checkboxes:
+                cb = Checkbox(
+                    value=False,
+                    description=f'Tag {tag.tag_id}',
+                    layout=Layout(width='auto'),
+                    indent=False
+                )
+                cb.observe(lambda change, tid=tag.tag_id: self._on_tag_checkbox_change(tid, change), names='value')
+                self._tag_checkboxes[tag.tag_id] = cb
+        
+        # Update container with sorted checkboxes
+        sorted_checkboxes = [self._tag_checkboxes[tag_id] for tag_id in sorted(self._tag_checkboxes.keys())]
+        self._tags_container.children = sorted_checkboxes
+    
+    def _on_tag_checkbox_change(self, tag_id: int, change):
+        """Handle tag checkbox state change."""
+        if change['new']:
+            self._tracked_tag_ids.add(tag_id)
+        else:
+            self._tracked_tag_ids.discard(tag_id)
+        self._update_tags_status()
     
     def _on_canvas_mouse_down(self, x: float, y: float):
         """Handle canvas mousedown - ipycanvas provides x, y directly."""
@@ -647,57 +692,16 @@ class LiveTracker:
             elif event_type == 'mouseup':
                 self._dragging_cal_point = None
         
-        # Step 3: Point selection
+        # Step 3: Tag selection - no mouse interaction needed (use checkboxes)
         elif self.current_step == self.STEP_POINTS:
-            if event_type == 'mousedown':
-                idx = self._find_track_point_at(x, y)
-                
-                # Check for remove button
-                if idx is not None and self._is_on_remove_button(x, y, idx):
-                    self.tracking_circles.circles.pop(idx)
-                    self._update_points_status()
-                    self._draw_overlay()
-                    return
-                
-                # Check for drag
-                if idx is not None and not self._shift_held:
-                    self._dragging_track_idx = idx
-                else:
-                    # Place new point
-                    if self._shift_held or len(self.tracking_circles.circles) == 0:
-                        new_circle = TrackingCircle(center=pos, radius=self._radius_slider.value)
-                        self.tracking_circles.circles.append(new_circle)
-                        # Initialize tracker immediately so it starts following
-                        circle_idx = len(self.tracking_circles.circles) - 1
-                        if self._initialize_circle_tracker(new_circle, circle_idx):
-                            self._log(f"Tracker {circle_idx + 1} initialized - now tracking")
-                        self._update_points_status()
-                    elif len(self.tracking_circles.circles) == 1 and not self._shift_held:
-                        new_circle = TrackingCircle(center=pos, radius=self._radius_slider.value)
-                        self.tracking_circles.circles[0] = new_circle
-                        # Reinitialize tracker at new position
-                        if self._initialize_circle_tracker(new_circle, 0):
-                            self._log("Tracker 1 reinitialized - now tracking")
-                    self._draw_overlay()
-            
-            elif event_type == 'mousemove':
-                if self._dragging_track_idx is not None:
-                    self.tracking_circles.circles[self._dragging_track_idx].center = pos
-                else:
-                    self._hover_track_idx = self._find_track_point_at(x, y)
-                # Always redraw overlay for debug crosshair
+            if event_type == 'mousemove':
+                # Just update overlay for debug crosshair
                 self._draw_overlay()
-            
-            elif event_type == 'mouseup':
-                self._dragging_track_idx = None
     
     def _handle_key(self, ev):
         """Handle keyboard events."""
         key = ev.get('key', '')
         event_type = ev.get('type', '')
-        
-        if key == 'Shift':
-            self._shift_held = (event_type == 'keydown')
         
         if event_type != 'keydown':
             return
@@ -707,41 +711,8 @@ class LiveTracker:
                 self._on_camera_next(None)
             elif self.current_step == self.STEP_CALIBRATE and not self._cal_done_btn.disabled:
                 self._on_cal_done(None)
-            elif self.current_step == self.STEP_POINTS and not self._points_next_btn.disabled:
-                self._on_points_next(None)
-    
-    def _on_radius_change(self, change):
-        """Handle radius slider change."""
-        new_radius = change['new']
-        for circle in self.tracking_circles.circles:
-            circle.radius = new_radius
-        self._draw_overlay()
-    
-    def _initialize_circle_tracker(self, circle: TrackingCircle, idx: int) -> bool:
-        """
-        Initialize tracking for a single circle using the current frame.
-        Called immediately when a point is placed.
-        """
-        if self._last_frame is None:
-            return False
-        
-        # Convert canvas coordinates to frame coordinates
-        frame_center = self._canvas_to_frame(*circle.center)
-        frame_radius = int(circle.radius / self._frame_scale) if self._frame_scale > 0 else circle.radius
-        
-        # Create a temporary circle for initialization in frame coordinates
-        temp_circle = TrackingCircle(center=frame_center, radius=frame_radius)
-        
-        if initialize_tracker(temp_circle, self._last_frame):
-            circle.tracker = temp_circle.tracker
-            circle.tracker_initialized = True
-            # Store initial frame position
-            self._last_frame_centers[idx] = frame_center
-            return True
-        else:
-            circle.tracker = None
-            circle.tracker_initialized = False
-            return False
+            elif self.current_step == self.STEP_POINTS and not self._tags_next_btn.disabled:
+                self._on_tags_next(None)
     
     # === Button Handlers ===
     
@@ -820,23 +791,36 @@ class LiveTracker:
         self._log(f"Calibration: {self.calibration.mm_per_pixel:.4f} mm/px")
         
         self.current_step = self.STEP_POINTS
-        self.tracking_circles = MultiTrackingCircles()
+        self._tracked_tag_ids = set()
+        self._tag_checkboxes = {}
         self._update_step_styles()
-        self._update_points_status()
+        self._update_tags_status()
         self._draw_overlay()
     
-    def _on_points_clear(self, btn):
-        """Clear all tracking points."""
-        self.tracking_circles = MultiTrackingCircles()
-        self._update_points_status()
+    def _on_tags_select_all(self, btn):
+        """Select all detected tags for tracking."""
+        for tag in self._detected_tags:
+            self._tracked_tag_ids.add(tag.tag_id)
+            if tag.tag_id in self._tag_checkboxes:
+                self._tag_checkboxes[tag.tag_id].value = True
+        self._update_tags_status()
         self._draw_overlay()
     
-    def _on_points_next(self, btn):
-        """Confirm points and advance to tracking."""
-        if not self.tracking_circles.circles:
-            self._log("Place at least one tracking point")
+    def _on_tags_clear(self, btn):
+        """Clear all tag selections."""
+        self._tracked_tag_ids.clear()
+        for cb in self._tag_checkboxes.values():
+            cb.value = False
+        self._update_tags_status()
+        self._draw_overlay()
+    
+    def _on_tags_next(self, btn):
+        """Confirm tag selection and advance to tracking."""
+        if not self._tracked_tag_ids:
+            self._log("Select at least one tag to track")
             return
         
+        self._log(f"Tracking tags: {sorted(self._tracked_tag_ids)}")
         self.current_step = self.STEP_TRACK
         self._track_go_btn.disabled = False
         self._track_stop_btn.disabled = True
@@ -845,21 +829,15 @@ class LiveTracker:
     
     def _on_track_go(self, btn):
         """Start recording tracking data."""
-        if not self.calibration or not self.tracking_circles.circles:
-            self._log("Complete setup first")
+        if not self.calibration:
+            self._log("Complete calibration first")
             return
         
-        # Check that at least one tracker is initialized
-        initialized_count = sum(
-            1 for c in self.tracking_circles.circles 
-            if getattr(c, 'tracker_initialized', False)
-        )
-        
-        if initialized_count == 0:
-            self._log("No trackers initialized - place tracking points first")
+        if not self._tracked_tag_ids:
+            self._log("Select at least one tag to track")
             return
         
-        self._log(f"Starting recording with {initialized_count} active tracker(s)")
+        self._log(f"Starting recording - tracking tags: {sorted(self._tracked_tag_ids)}")
         
         self.positions = []
         self.recording_active = True
@@ -897,7 +875,7 @@ class LiveTracker:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"tracking_data_{timestamp}.csv"
         
-        fieldnames = ['frame', 'time_s', 'position_mm', 'raw_x', 'raw_y', 'points_tracked']
+        fieldnames = ['frame', 'time_s', 'position_mm', 'raw_x', 'raw_y', 'tags_tracked', 'tag_ids']
         
         with open(filename, 'w', newline='') as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -921,14 +899,16 @@ class LiveTracker:
         
         self.current_step = self.STEP_CAMERA
         self.calibration = None
-        self.tracking_circles = MultiTrackingCircles()
         self.positions = []
-        self._last_frame_centers = {}
         self._cal_point1 = None
         self._cal_point2 = None
         self._dragging_cal_point = None
-        self._dragging_track_idx = None
-        self._hover_track_idx = None
+        
+        # Reset AprilTag state
+        self._detected_tags = []
+        self._tracked_tag_ids = set()
+        self._tag_checkboxes = {}
+        self._tags_container.children = []
         
         self._preview_btn.description = 'Start'
         self._preview_btn.button_style = 'info'
@@ -936,8 +916,8 @@ class LiveTracker:
         self._camera_diag.value = '<span style="color: #666; font-size: 11px;">—</span>'
         self._cal_status.value = '<span style="color: #888;">Click to place 2 points</span>'
         self._cal_done_btn.disabled = True
-        self._points_status.value = '<span style="color: #888;">Click to place point</span>'
-        self._points_next_btn.disabled = True
+        self._tags_status.value = '<span style="color: #888;">Searching for AprilTags...</span>'
+        self._tags_next_btn.disabled = True
         self._track_status.value = '<span style="color: #888;">Ready to record</span>'
         self._track_go_btn.disabled = True
         self._track_stop_btn.disabled = True
@@ -954,7 +934,7 @@ class LiveTracker:
     # === Background Loops ===
     
     def _preview_loop(self):
-        """Background preview loop with live visual tracking."""
+        """Background preview loop with AprilTag detection."""
         while self.preview_active and not self.recording_active:
             if self._cap and self._cap.isOpened():
                 ret, frame = self._cap.read()
@@ -970,27 +950,13 @@ class LiveTracker:
                         self._fps_timer = time.time()
                         self._update_camera_diag()
                     
-                    # Visual tracking - update circle positions if initialized
-                    for i, circle in enumerate(self.tracking_circles.circles):
-                        if not getattr(circle, 'tracker_initialized', False):
-                            continue
-                        if getattr(circle, 'tracker', None) is None:
-                            continue
-                        
-                        # Get previous frame position
-                        prev_frame_center = self._last_frame_centers.get(
-                            i, self._canvas_to_frame(*circle.center)
-                        )
-                        
-                        # Track using template matching
-                        new_frame_center = track_frame(frame, circle, prev_frame_center)
-                        
-                        if new_frame_center:
-                            # Update stored frame position
-                            self._last_frame_centers[i] = new_frame_center
-                            # Update canvas display position
-                            new_canvas_center = self._frame_to_canvas(*new_frame_center)
-                            circle.center = new_canvas_center
+                    # Detect AprilTags in current frame
+                    self._detected_tags = detect_apriltags(self._apriltag_detector, frame)
+                    
+                    # Update tag checkboxes if in tag selection step
+                    if self.current_step == self.STEP_POINTS:
+                        self._update_tag_checkboxes()
+                        self._update_tags_status()
                     
                     with hold_canvas(self._canvas):
                         self._video_layer.put_image_data(self._frame_to_rgba(frame), 0, 0)
@@ -999,7 +965,7 @@ class LiveTracker:
             time.sleep(1 / self.TARGET_FPS)
     
     def _recording_loop(self):
-        """Background loop for recording tracking data."""
+        """Background loop for recording tracking data using AprilTag detection."""
         frame_count = 0
         start_time = time.time()
         
@@ -1014,37 +980,18 @@ class LiveTracker:
                 if ret:
                     self._last_frame = frame
                     
-                    # Track each point using template matching
-                    tracked_frame_centers = []
-                    for i, circle in enumerate(self.tracking_circles.circles):
-                        if not getattr(circle, 'tracker_initialized', False):
-                            continue
-                        if getattr(circle, 'tracker', None) is None:
-                            continue
-                        
-                        # Get the previous frame position
-                        prev_frame_center = self._last_frame_centers.get(
-                            i, self._canvas_to_frame(*circle.center)
-                        )
-                        
-                        # Track using template matching
-                        new_frame_center = track_frame(frame, circle, prev_frame_center)
-                        
-                        if new_frame_center:
-                            # Update stored frame position
-                            self._last_frame_centers[i] = new_frame_center
-                            # Update canvas display position
-                            new_canvas_center = self._frame_to_canvas(*new_frame_center)
-                            circle.center = new_canvas_center
-                            tracked_frame_centers.append(new_frame_center)
-                        else:
-                            # Tracking lost - keep using last known position
-                            tracked_frame_centers.append(prev_frame_center)
+                    # Detect AprilTags and filter to tracked IDs
+                    tracked_tags = track_apriltag_frame(
+                        self._apriltag_detector, frame, self._tracked_tag_ids
+                    )
+                    self._detected_tags = list(tracked_tags.values())
                     
-                    # Record data if we have valid tracking and calibration
-                    if tracked_frame_centers and self.calibration:
-                        avg_x = sum(c[0] for c in tracked_frame_centers) / len(tracked_frame_centers)
-                        avg_y = sum(c[1] for c in tracked_frame_centers) / len(tracked_frame_centers)
+                    # Record data if we have valid detections and calibration
+                    if tracked_tags and self.calibration:
+                        # Calculate average center of all tracked tags
+                        centers = [tag.center for tag in tracked_tags.values()]
+                        avg_x = sum(c[0] for c in centers) / len(centers)
+                        avg_y = sum(c[1] for c in centers) / len(centers)
                         avg_frame_center = (int(avg_x), int(avg_y))
                         
                         position_mm = project_to_axis(avg_frame_center, self.calibration)
@@ -1056,7 +1003,8 @@ class LiveTracker:
                             'position_mm': round(position_mm, 2),
                             'raw_x': avg_frame_center[0],
                             'raw_y': avg_frame_center[1],
-                            'points_tracked': len(tracked_frame_centers)
+                            'tags_tracked': len(tracked_tags),
+                            'tag_ids': ','.join(str(tid) for tid in sorted(tracked_tags.keys()))
                         })
                     
                     with hold_canvas(self._canvas):

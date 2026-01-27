@@ -5,6 +5,39 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional, Any
 
+import numpy as np
+
+
+@dataclass
+class AprilTagConfig:
+    """Configuration for AprilTag detection."""
+    family: str = "tagStandard41h12"
+    nthreads: int = 2
+    quad_decimate: float = 1.0  # Full resolution for accuracy
+    quad_sigma: float = 0.0  # No blur by default
+    refine_edges: bool = True  # Better corner accuracy
+    decode_sharpening: float = 0.25  # Helps with small tags
+
+
+@dataclass
+class DetectedTag:
+    """Stores a detected AprilTag's information."""
+    tag_id: int
+    center: tuple[float, float]  # (x, y) in pixels
+    corners: np.ndarray  # 4x2 array of corner coordinates
+    decision_margin: float  # Detection quality metric
+    hamming: int  # Number of bit errors corrected
+    
+    @property
+    def center_int(self) -> tuple[int, int]:
+        """Get center as integer coordinates."""
+        return (int(self.center[0]), int(self.center[1]))
+    
+    @property
+    def corners_int(self) -> list[tuple[int, int]]:
+        """Get corners as integer coordinates."""
+        return [(int(c[0]), int(c[1])) for c in self.corners]
+
 
 @dataclass
 class CalibrationData:

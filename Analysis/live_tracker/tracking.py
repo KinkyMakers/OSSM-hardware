@@ -1,13 +1,106 @@
-"""Core tracking functions using template matching with captured appearance."""
+"""Core tracking functions using AprilTag detection and template matching."""
 
 import math
 from typing import Optional
 
 import cv2
 import numpy as np
+from pupil_apriltags import Detector
 
-from .types import CalibrationData, TrackingCircle
+from .types import CalibrationData, TrackingCircle, AprilTagConfig, DetectedTag
 
+
+# =============================================================================
+# AprilTag Detection Functions
+# =============================================================================
+
+def create_apriltag_detector(config: Optional[AprilTagConfig] = None) -> Detector:
+    """
+    Create an AprilTag detector with the given configuration.
+    
+    Args:
+        config: AprilTagConfig with detection parameters, or None for defaults
+        
+    Returns:
+        Configured Detector instance
+    """
+    if config is None:
+        config = AprilTagConfig()
+    
+    return Detector(
+        families=config.family,
+        nthreads=config.nthreads,
+        quad_decimate=config.quad_decimate,
+        quad_sigma=config.quad_sigma,
+        refine_edges=config.refine_edges,
+        decode_sharpening=config.decode_sharpening,
+    )
+
+
+def detect_apriltags(detector: Detector, frame: np.ndarray) -> list[DetectedTag]:
+    """
+    Detect AprilTags in a frame.
+    
+    Args:
+        detector: AprilTag Detector instance
+        frame: BGR or grayscale frame
+        
+    Returns:
+        List of DetectedTag objects
+    """
+    # Convert to grayscale if needed
+    if len(frame.shape) == 3:
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    else:
+        gray = frame
+    
+    # Run detection
+    detections = detector.detect(gray)
+    
+    # Convert to our DetectedTag type
+    results = []
+    for det in detections:
+        tag = DetectedTag(
+            tag_id=det.tag_id,
+            center=(float(det.center[0]), float(det.center[1])),
+            corners=det.corners,
+            decision_margin=det.decision_margin,
+            hamming=det.hamming,
+        )
+        results.append(tag)
+    
+    return results
+
+
+def track_apriltag_frame(
+    detector: Detector,
+    frame: np.ndarray,
+    tracked_ids: Optional[set[int]] = None
+) -> dict[int, DetectedTag]:
+    """
+    Detect and track AprilTags in a frame.
+    
+    Args:
+        detector: AprilTag Detector instance
+        frame: BGR frame to track in
+        tracked_ids: Set of tag IDs to track, or None to track all
+        
+    Returns:
+        Dictionary mapping tag_id to DetectedTag for tracked tags
+    """
+    detections = detect_apriltags(detector, frame)
+    
+    if tracked_ids is None:
+        # Track all detected tags
+        return {det.tag_id: det for det in detections}
+    else:
+        # Only track specified IDs
+        return {det.tag_id: det for det in detections if det.tag_id in tracked_ids}
+
+
+# =============================================================================
+# Calibration and Position Functions
+# =============================================================================
 
 def project_to_axis(point: tuple[int, int], calibration: CalibrationData) -> float:
     """Project a point onto the calibration axis and return position in mm."""

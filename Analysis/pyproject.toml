@@ -16,6 +16,7 @@ dependencies = [
     "ipywidgets>=8.0.0",
     "ipyevents>=2.0.0",
     "ipympl>=0.9.0",
+    "pupil-apriltags",
 ]
 
 [build-system]
@@ -27,3 +28,5 @@ packages = ["live_tracker"]
 
 [dependency-groups]
 dev = []
+
+# No console scripts - use "uv run jupyter lab" to start
