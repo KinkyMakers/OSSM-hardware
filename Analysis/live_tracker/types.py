@@ -3,21 +3,73 @@
 import math
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Any
+from pathlib import Path
+from typing import Optional, Any, Union
 
 import numpy as np
+
+
+class InputSourceType(Enum):
+    """Type of video input source."""
+    WEBCAM = "webcam"
+    VIDEO_FILE = "video_file"
+
+
+@dataclass
+class InputSource:
+    """Configuration for video input source."""
+    source_type: InputSourceType
+    # For WEBCAM: camera index (int)
+    # For VIDEO_FILE: file path (str or Path)
+    source: Union[int, str, Path]
+    # For VIDEO_FILE: whether to loop when reaching end
+    loop: bool = True
+    
+    @classmethod
+    def webcam(cls, camera_index: int = 0) -> "InputSource":
+        """Create a webcam input source."""
+        return cls(source_type=InputSourceType.WEBCAM, source=camera_index)
+    
+    @classmethod
+    def video_file(cls, path: Union[str, Path], loop: bool = True) -> "InputSource":
+        """Create a video file input source."""
+        return cls(source_type=InputSourceType.VIDEO_FILE, source=str(path), loop=loop)
+    
+    @property
+    def is_webcam(self) -> bool:
+        """Check if this is a webcam source."""
+        return self.source_type == InputSourceType.WEBCAM
+    
+    @property
+    def is_video_file(self) -> bool:
+        """Check if this is a video file source."""
+        return self.source_type == InputSourceType.VIDEO_FILE
+    
+    @property
+    def camera_index(self) -> int:
+        """Get camera index (only valid for webcam sources)."""
+        if not self.is_webcam:
+            raise ValueError("Not a webcam source")
+        return int(self.source)
+    
+    @property
+    def file_path(self) -> str:
+        """Get file path (only valid for video file sources)."""
+        if not self.is_video_file:
+            raise ValueError("Not a video file source")
+        return str(self.source)
 
 
 @dataclass
 class AprilTagConfig:
     """Configuration for AprilTag detection."""
     family: str = "tagStandard41h12"
-    nthreads: int = 2
+    nthreads: int = 4
     quad_decimate: float = 1.0  # Full resolution for accuracy
     quad_sigma: float = 0.0  # No blur by default
     refine_edges: bool = True  # Better corner accuracy
     decode_sharpening: float = 0.25  # Helps with small tags
-    tag_size_mm: float = 20.0  # Physical size of the printed tag (outer edge to outer edge)
+    tag_size_mm: float = 11.1  # Physical size of the printed tag (outer edge to outer edge)
 
 
 @dataclass

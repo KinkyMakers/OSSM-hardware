@@ -17,7 +17,7 @@ from ipywidgets import (
     Output, Label, HTML, Layout, Checkbox
 )
 
-from .types import AprilTagConfig, DetectedTag, TrackerMode
+from .types import AprilTagConfig, DetectedTag, TrackerMode, InputSource, InputSourceType
 from .tracking import (
     list_cameras, create_apriltag_detector, 
     detect_apriltags, track_apriltag_frame
@@ -45,13 +45,29 @@ class LiveTracker:
     STEP_TRACK = 4
     STEP_EXPORT = 5
     
-    def __init__(self):
+    def __init__(self, input_source: Optional[InputSource] = None):
+        """
+        Initialize the LiveTracker.
+        
+        Args:
+            input_source: Optional InputSource to pre-configure. If None, webcam mode
+                          with camera selection UI is shown.
+        """
         # State
         self.current_step = self.STEP_CAMERA
         self.mode = TrackerMode.IDLE
         self.positions: list[dict] = []
         self.recording_active = False  # Recording data
         self.preview_active = False
+        
+        # Input source configuration
+        self._input_source: Optional[InputSource] = input_source
+        self._input_source_type = InputSourceType.WEBCAM  # UI selection
+        
+        # Video file specific state
+        self._video_total_frames = 0
+        self._video_current_frame = 0
+        self._video_fps = 0.0
         
         # AprilTag detection
         self._apriltag_config = AprilTagConfig()
@@ -83,7 +99,7 @@ class LiveTracker:
         # Debug
         self._debug_mouse_pos: Optional[tuple[int, int]] = None
         
-        # Camera
+        # Video capture (webcam or video file)
         self._cap: Optional[cv2.VideoCapture] = None
         self._last_frame: Optional[np.ndarray] = None
         
@@ -91,6 +107,10 @@ class LiveTracker:
         self._build_ui()
         self._connect_events()
         self._update_step_styles()
+        
+        # If input source was provided, pre-configure UI
+        if input_source:
+            self._apply_input_source(input_source)
     
     def _build_ui(self):
         """Build all UI components."""
@@ -113,12 +133,43 @@ class LiveTracker:
         self._video_layer.fill_rect(0, 0, self.canvas_width, self.canvas_height)
         self._draw_welcome()
         
-        # Step 1: Camera
+        # Step 1: Input Source (Camera or Video File)
+        self._source_type_dropdown = Dropdown(
+            options=[('Webcam', 'webcam'), ('Video File', 'video_file')],
+            value='webcam',
+            description='',
+            layout=Layout(width='120px')
+        )
         self._camera_dropdown = Dropdown(
             options=list_cameras(),
             description='',
             layout=Layout(width='180px')
         )
+        self._video_path_input = HTML(
+            value='<input type="text" id="video_path" placeholder="Enter video path..." '
+                  'style="width: 170px; padding: 4px; border: 1px solid #555; '
+                  'border-radius: 3px; background: #2a2a2a; color: #fff;">',
+        )
+        # Store the actual path value (since HTML widget is readonly)
+        from ipywidgets import Text
+        self._video_path_text = Text(
+            value='',
+            placeholder='Enter video file path...',
+            description='',
+            layout=Layout(width='180px')
+        )
+        self._video_loop_checkbox = Checkbox(
+            value=True,
+            description='Loop',
+            layout=Layout(width='70px'),
+            indent=False
+        )
+        # Container for webcam controls
+        self._webcam_controls = HBox([self._camera_dropdown])
+        # Container for video file controls  
+        self._video_file_controls = HBox([self._video_path_text, self._video_loop_checkbox])
+        self._video_file_controls.layout.display = 'none'  # Hidden by default
+        
         self._preview_btn = Button(
             description='Start', 
             button_style='info',
@@ -131,10 +182,12 @@ class LiveTracker:
             layout=Layout(width='70px')
         )
         self._camera_diag = HTML('<span style="color: #666; font-size: 11px;">—</span>')
-        self._step1_header = HTML('<b style="color: #4CAF50;">1. Camera</b>')
+        self._step1_header = HTML('<b style="color: #4CAF50;">1. Source</b>')
         self._step1 = VBox([
             self._step1_header,
-            HBox([self._camera_dropdown, self._preview_btn]),
+            HBox([self._source_type_dropdown, self._preview_btn]),
+            self._webcam_controls,
+            self._video_file_controls,
             self._camera_diag,
             self._camera_next_btn
         ], layout=Layout(padding='8px', border='1px solid #333', border_radius='5px'))
@@ -261,6 +314,9 @@ class LiveTracker:
         )
         self._key_event.on_dom_event(self._handle_key)
         
+        # Source type selection
+        self._source_type_dropdown.observe(self._on_source_type_change, names='value')
+        
         # Button clicks
         self._preview_btn.on_click(self._on_preview)
         self._camera_next_btn.on_click(self._on_camera_next)
@@ -296,6 +352,35 @@ class LiveTracker:
                 step_box.layout.opacity = '0.4'
                 header.value = f'<b style="color: #666;">{title}</b>'
     
+    def _on_source_type_change(self, change):
+        """Handle source type dropdown change."""
+        source_type = change['new']
+        self._input_source_type = InputSourceType(source_type)
+        
+        if source_type == 'webcam':
+            self._webcam_controls.layout.display = 'flex'
+            self._video_file_controls.layout.display = 'none'
+        else:
+            self._webcam_controls.layout.display = 'none'
+            self._video_file_controls.layout.display = 'flex'
+    
+    def _apply_input_source(self, source: InputSource):
+        """Apply a pre-configured input source to the UI."""
+        if source.is_webcam:
+            self._source_type_dropdown.value = 'webcam'
+            self._input_source_type = InputSourceType.WEBCAM
+            # Try to select the camera in dropdown
+            cam_options = [opt[1] for opt in self._camera_dropdown.options]
+            if source.camera_index in cam_options:
+                self._camera_dropdown.value = source.camera_index
+        else:
+            self._source_type_dropdown.value = 'video_file'
+            self._input_source_type = InputSourceType.VIDEO_FILE
+            self._video_path_text.value = source.file_path
+            self._video_loop_checkbox.value = source.loop
+        
+        self._input_source = source
+    
     def _log(self, msg: str):
         """Log message to output widget."""
         with self._output:
@@ -308,7 +393,7 @@ class LiveTracker:
         self._overlay_layer.font = '16px sans-serif'
         self._overlay_layer.text_align = 'center'
         self._overlay_layer.fill_text(
-            'Select a camera and click Start',
+            'Select a source and click Start',
             self.canvas_width // 2, 
             self.canvas_height // 2
         )
@@ -360,15 +445,30 @@ class LiveTracker:
         return (cx, cy)
     
     def _update_camera_diag(self):
-        """Update camera diagnostics display."""
+        """Update diagnostics display for webcam or video file."""
         if self._actual_width > 0:
             gcd = math.gcd(self._actual_width, self._actual_height)
             ratio = f"{self._actual_width // gcd}:{self._actual_height // gcd}"
-            self._camera_diag.value = (
-                f'<span style="color: #4CAF50; font-size: 11px;">'
-                f'{self._actual_width}×{self._actual_height} ({ratio}) | '
-                f'{self._measured_fps:.1f} FPS</span>'
-            )
+            
+            if self._input_source and self._input_source.is_video_file:
+                # Video file: show progress
+                progress = ""
+                if self._video_total_frames > 0:
+                    pct = (self._video_current_frame / self._video_total_frames) * 100
+                    progress = f" | {self._video_current_frame}/{self._video_total_frames} ({pct:.0f}%)"
+                loop_indicator = " 🔁" if self._input_source.loop else ""
+                self._camera_diag.value = (
+                    f'<span style="color: #4CAF50; font-size: 11px;">'
+                    f'{self._actual_width}×{self._actual_height} ({ratio}) | '
+                    f'{self._measured_fps:.1f} FPS{progress}{loop_indicator}</span>'
+                )
+            else:
+                # Webcam: show as before
+                self._camera_diag.value = (
+                    f'<span style="color: #4CAF50; font-size: 11px;">'
+                    f'{self._actual_width}×{self._actual_height} ({ratio}) | '
+                    f'{self._measured_fps:.1f} FPS</span>'
+                )
         else:
             self._camera_diag.value = '<span style="color: #666; font-size: 11px;">—</span>'
     
@@ -614,7 +714,7 @@ class LiveTracker:
     # === Button Handlers ===
     
     def _on_preview(self, btn):
-        """Toggle camera preview."""
+        """Toggle preview for webcam or video file."""
         if self.preview_active:
             self.preview_active = False
             if self._cap:
@@ -625,15 +725,42 @@ class LiveTracker:
             self._camera_next_btn.disabled = True
             self._camera_diag.value = '<span style="color: #666; font-size: 11px;">—</span>'
         else:
-            cam_idx = self._camera_dropdown.value
-            if cam_idx < 0:
-                self._log("No camera available")
-                return
-            
-            self._cap = cv2.VideoCapture(cam_idx)
-            if not self._cap.isOpened():
-                self._log(f"Failed to open camera {cam_idx}")
-                return
+            # Determine input source
+            if self._input_source_type == InputSourceType.WEBCAM:
+                cam_idx = self._camera_dropdown.value
+                if cam_idx < 0:
+                    self._log("No camera available")
+                    return
+                
+                self._cap = cv2.VideoCapture(cam_idx)
+                if not self._cap.isOpened():
+                    self._log(f"Failed to open camera {cam_idx}")
+                    return
+                
+                self._input_source = InputSource.webcam(cam_idx)
+                self._video_total_frames = 0  # Live source, no total
+                
+            else:  # VIDEO_FILE
+                video_path = self._video_path_text.value.strip()
+                if not video_path:
+                    self._log("Please enter a video file path")
+                    return
+                
+                import os
+                if not os.path.isfile(video_path):
+                    self._log(f"File not found: {video_path}")
+                    return
+                
+                self._cap = cv2.VideoCapture(video_path)
+                if not self._cap.isOpened():
+                    self._log(f"Failed to open video: {video_path}")
+                    return
+                
+                loop = self._video_loop_checkbox.value
+                self._input_source = InputSource.video_file(video_path, loop=loop)
+                self._video_total_frames = int(self._cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                self._video_current_frame = 0
+                self._video_fps = self._cap.get(cv2.CAP_PROP_FPS)
             
             self._actual_width = int(self._cap.get(cv2.CAP_PROP_FRAME_WIDTH))
             self._actual_height = int(self._cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -740,7 +867,18 @@ class LiveTracker:
             self._track_status.value = '<span style="color: #888;">No data recorded</span>'
         
         self._update_step_styles()
-        self._draw_overlay()
+        
+        # Restart preview to show live feed again
+        if self.preview_active:
+            # For video files, rewind to beginning for next recording
+            if self._input_source and self._input_source.is_video_file:
+                self._cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                self._video_current_frame = 0
+            
+            thread = threading.Thread(target=self._preview_loop, daemon=True)
+            thread.start()
+        else:
+            self._draw_overlay()
     
     def _auto_save_data(self):
         """Automatically save tracking data to a dated file."""
@@ -750,11 +888,14 @@ class LiveTracker:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"tracking_data_{timestamp}.csv"
         
+        # Include video_frame column if we have video file data
         fieldnames = ['frame', 'time_s', 'raw_x', 'raw_y', 'mm_per_pixel', 'tags_tracked', 'tag_ids',
                       'pose_x', 'pose_y', 'pose_z', 'pose_err']
+        if self._input_source and self._input_source.is_video_file:
+            fieldnames.append('video_frame')
         
         with open(filename, 'w', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
             writer.writeheader()
             writer.writerows(self.positions)
         
@@ -776,6 +917,12 @@ class LiveTracker:
         self.current_step = self.STEP_CAMERA
         self._mm_per_pixel = None
         self.positions = []
+        
+        # Reset input source state
+        self._input_source = None
+        self._video_total_frames = 0
+        self._video_current_frame = 0
+        self._video_fps = 0.0
         
         # Reset AprilTag state
         self._detected_tags = []
@@ -812,8 +959,25 @@ class LiveTracker:
         while self.preview_active and not self.recording_active:
             if self._cap and self._cap.isOpened():
                 ret, frame = self._cap.read()
+                
+                # Handle video file end-of-stream
+                if not ret and self._input_source and self._input_source.is_video_file:
+                    if self._input_source.loop:
+                        # Rewind to beginning
+                        self._cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                        self._video_current_frame = 0
+                        continue
+                    else:
+                        # Non-looping: pause at end
+                        time.sleep(0.1)
+                        continue
+                
                 if ret:
                     self._last_frame = frame
+                    
+                    # Track video file position
+                    if self._input_source and self._input_source.is_video_file:
+                        self._video_current_frame = int(self._cap.get(cv2.CAP_PROP_POS_FRAMES))
                     
                     # FPS tracking
                     self._frame_count += 1
@@ -841,20 +1005,46 @@ class LiveTracker:
             time.sleep(1 / self.TARGET_FPS)
     
     def _recording_loop(self):
-        """Background loop for recording tracking data using AprilTag detection."""
+        """Background loop for recording tracking data using AprilTag detection.
+        
+        Processes frames as fast as possible without preview rendering.
+        """
         frame_count = 0
         start_time = time.time()
+        last_status_update = start_time
+        status_update_interval = 0.25  # Update status display every 250ms
         
         # Wait for preview loop to stop
         time.sleep(0.1)
         
-        self._log(f"Recording started")
+        # Show "recording" indicator on canvas (static, no live preview)
+        self._draw_recording_indicator()
+        
+        self._log(f"Recording started (preview disabled for max performance)")
         
         while self.recording_active:
             if self._cap and self._cap.isOpened():
                 ret, frame = self._cap.read()
+                
+                # Handle video file end-of-stream during recording
+                if not ret and self._input_source and self._input_source.is_video_file:
+                    if self._input_source.loop:
+                        # Rewind to beginning
+                        self._cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                        self._video_current_frame = 0
+                        continue
+                    else:
+                        # Non-looping: stop recording at end
+                        self._log("Video file ended")
+                        self.recording_active = False
+                        break
+                
                 if ret:
                     self._last_frame = frame
+                    
+                    # Track video file position
+                    if self._input_source and self._input_source.is_video_file:
+                        self._video_current_frame = int(self._cap.get(cv2.CAP_PROP_POS_FRAMES))
                     
                     # Detect AprilTags and filter to tracked IDs
                     tracked_tags = track_apriltag_frame(
@@ -897,6 +1087,9 @@ class LiveTracker:
                             pose_z = sum(t.pose_t[2][0] for t in tags_with_pose) / len(tags_with_pose)
                             pose_err = sum(t.pose_err for t in tags_with_pose) / len(tags_with_pose)
                         
+                        # For video files, also record the source video frame number
+                        video_frame = self._video_current_frame if self._input_source and self._input_source.is_video_file else ''
+                        
                         self.positions.append({
                             'frame': frame_count,
                             'time_s': round(current_time, 4),
@@ -909,17 +1102,101 @@ class LiveTracker:
                             'pose_y': round(pose_y * 1000, 3) if pose_y is not None else '',  # Convert to mm
                             'pose_z': round(pose_z * 1000, 3) if pose_z is not None else '',  # Convert to mm (distance)
                             'pose_err': round(pose_err, 6) if pose_err is not None else '',
+                            'video_frame': video_frame,
                         })
                     
-                    with hold_canvas(self._canvas):
-                        self._video_layer.put_image_data(self._frame_to_rgba(frame), 0, 0)
-                        self._draw_overlay()
-                    
                     frame_count += 1
+                    
+                    # Update status display periodically (not every frame)
+                    now = time.time()
+                    if now - last_status_update >= status_update_interval:
+                        elapsed = now - start_time
+                        fps = frame_count / elapsed if elapsed > 0 else 0
+                        self._update_recording_status(frame_count, len(self.positions), fps)
+                        last_status_update = now
             
-            time.sleep(1 / self.TARGET_FPS)
+            # No sleep - process as fast as possible!
         
-        self._log(f"Recording stopped: {frame_count} frames captured")
+        # Calculate final stats
+        total_time = time.time() - start_time
+        avg_fps = frame_count / total_time if total_time > 0 else 0
+        self._log(f"Recording stopped: {frame_count} frames in {total_time:.1f}s ({avg_fps:.1f} FPS avg)")
+    
+    def _draw_recording_indicator(self):
+        """Draw a static recording indicator on the canvas (no live preview)."""
+        # Clear video layer to dark background
+        self._video_layer.fill_style = '#1a1a2e'
+        self._video_layer.fill_rect(0, 0, self.canvas_width, self.canvas_height)
+        
+        # Draw recording indicator
+        self._overlay_layer.clear()
+        self._overlay_layer.fill_style = '#E91E63'
+        self._overlay_layer.font = 'bold 24px sans-serif'
+        self._overlay_layer.text_align = 'center'
+        self._overlay_layer.fill_text(
+            '● RECORDING',
+            self.canvas_width // 2,
+            self.canvas_height // 2 - 40
+        )
+        self._overlay_layer.fill_style = '#888'
+        self._overlay_layer.font = '14px sans-serif'
+        self._overlay_layer.fill_text(
+            'Preview disabled for maximum performance',
+            self.canvas_width // 2,
+            self.canvas_height // 2
+        )
+        self._overlay_layer.fill_text(
+            'Processing frames...',
+            self.canvas_width // 2,
+            self.canvas_height // 2 + 30
+        )
+        self._overlay_layer.text_align = 'left'
+    
+    def _update_recording_status(self, frames_processed: int, frames_recorded: int, fps: float):
+        """Update the recording status display."""
+        # Update overlay with current stats
+        self._overlay_layer.clear()
+        self._overlay_layer.fill_style = '#E91E63'
+        self._overlay_layer.font = 'bold 24px sans-serif'
+        self._overlay_layer.text_align = 'center'
+        self._overlay_layer.fill_text(
+            '● RECORDING',
+            self.canvas_width // 2,
+            self.canvas_height // 2 - 60
+        )
+        
+        self._overlay_layer.fill_style = '#4CAF50'
+        self._overlay_layer.font = 'bold 32px sans-serif'
+        self._overlay_layer.fill_text(
+            f'{frames_recorded} frames',
+            self.canvas_width // 2,
+            self.canvas_height // 2
+        )
+        
+        self._overlay_layer.fill_style = '#888'
+        self._overlay_layer.font = '14px sans-serif'
+        self._overlay_layer.fill_text(
+            f'{fps:.1f} FPS | {frames_processed} processed',
+            self.canvas_width // 2,
+            self.canvas_height // 2 + 40
+        )
+        
+        # Show video progress if applicable
+        if self._input_source and self._input_source.is_video_file and self._video_total_frames > 0:
+            pct = (self._video_current_frame / self._video_total_frames) * 100
+            self._overlay_layer.fill_text(
+                f'Video: {self._video_current_frame}/{self._video_total_frames} ({pct:.0f}%)',
+                self.canvas_width // 2,
+                self.canvas_height // 2 + 70
+            )
+        
+        self._overlay_layer.text_align = 'left'
+        
+        # Also update the step status
+        self._track_status.value = (
+            f'<span style="color: #E91E63; font-weight: bold;">'
+            f'● {frames_recorded} frames | {fps:.1f} FPS</span>'
+        )
     
     @property
     def tag_size(self) -> float:
