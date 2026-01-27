@@ -163,16 +163,10 @@ class LiveTracker:
             description='',
             layout=Layout(width='180px')
         )
-        self._video_loop_checkbox = Checkbox(
-            value=True,
-            description='Loop',
-            layout=Layout(width='70px'),
-            indent=False
-        )
         # Container for webcam controls
         self._webcam_controls = HBox([self._camera_dropdown])
         # Container for video file controls  
-        self._video_file_controls = HBox([self._video_path_text, self._video_loop_checkbox])
+        self._video_file_controls = HBox([self._video_path_text])
         self._video_file_controls.layout.display = 'none'  # Hidden by default
         
         self._preview_btn = Button(
@@ -382,7 +376,6 @@ class LiveTracker:
             self._source_type_dropdown.value = 'video_file'
             self._input_source_type = InputSourceType.VIDEO_FILE
             self._video_path_text.value = source.file_path
-            self._video_loop_checkbox.value = source.loop
         
         self._input_source = source
     
@@ -461,11 +454,10 @@ class LiveTracker:
                 if self._video_total_frames > 0:
                     pct = (self._video_current_frame / self._video_total_frames) * 100
                     progress = f" | {self._video_current_frame}/{self._video_total_frames} ({pct:.0f}%)"
-                loop_indicator = " 🔁" if self._input_source.loop else ""
                 self._camera_diag.value = (
                     f'<span style="color: #4CAF50; font-size: 11px;">'
                     f'{self._actual_width}×{self._actual_height} ({ratio}) | '
-                    f'{self._measured_fps:.1f} FPS{progress}{loop_indicator}</span>'
+                    f'{self._measured_fps:.1f} FPS{progress}</span>'
                 )
             else:
                 # Webcam: show as before
@@ -729,15 +721,14 @@ class LiveTracker:
             self._tags_next_btn.disabled = True
     
     def _update_tag_checkboxes(self):
-        """Update the tag selection checkboxes based on detected tags."""
+        """Update the tag selection checkboxes based on detected tags.
+        
+        Never removes checkboxes - if a tag was EVER seen, it stays in the list.
+        Checkboxes are grayed out when not currently detected.
+        """
         detected_ids = {tag.tag_id for tag in self._detected_tags}
         
-        # Remove checkboxes for tags no longer detected
-        for tag_id in list(self._tag_checkboxes.keys()):
-            if tag_id not in detected_ids:
-                del self._tag_checkboxes[tag_id]
-        
-        # Add checkboxes for newly detected tags
+        # Add checkboxes for newly detected tags (never remove existing ones)
         for tag in sorted(self._detected_tags, key=lambda t: t.tag_id):
             if tag.tag_id not in self._tag_checkboxes:
                 cb = Checkbox(
@@ -748,6 +739,17 @@ class LiveTracker:
                 )
                 cb.observe(lambda change, tid=tag.tag_id: self._on_tag_checkbox_change(tid, change), names='value')
                 self._tag_checkboxes[tag.tag_id] = cb
+        
+        # Update checkbox appearance based on current detection status
+        for tag_id, cb in self._tag_checkboxes.items():
+            if tag_id in detected_ids:
+                # Currently visible - full opacity
+                cb.layout.opacity = '1.0'
+                cb.description = f'Tag {tag_id}'
+            else:
+                # Not currently visible - grayed out but still clickable
+                cb.layout.opacity = '0.5'
+                cb.description = f'Tag {tag_id} (lost)'
         
         # Update container with sorted checkboxes
         sorted_checkboxes = [self._tag_checkboxes[tag_id] for tag_id in sorted(self._tag_checkboxes.keys())]
@@ -854,11 +856,12 @@ class LiveTracker:
                     self._log(f"Failed to open video: {video_path}")
                     return
                 
-                loop = self._video_loop_checkbox.value
-                self._input_source = InputSource.video_file(video_path, loop=loop)
+                # Video files never loop - play once and stop
+                self._input_source = InputSource.video_file(video_path, loop=False)
                 self._video_total_frames = int(self._cap.get(cv2.CAP_PROP_FRAME_COUNT))
                 self._video_current_frame = 0
-                self._video_fps = self._cap.get(cv2.CAP_PROP_FPS)
+                # Assume 240 FPS for high-speed video (iPhone slo-mo, etc.)
+                self._video_fps = 240.0
             
             self._actual_width = int(self._cap.get(cv2.CAP_PROP_FRAME_WIDTH))
             self._actual_height = int(self._cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -1142,12 +1145,12 @@ class LiveTracker:
         Uses AprilTag detection as ground truth, with OpenCV tracker fallback
         for interpolation when AprilTag detection fails.
         
-        Processes frames as fast as possible without preview rendering.
+        Processes frames as fast as possible - NO canvas updates during recording.
         """
         frame_count = 0
         start_time = time.time()
         last_status_update = start_time
-        status_update_interval = 0.25  # Update status display every 250ms
+        status_update_interval = 0.5  # Update text status every 500ms (no canvas)
         
         # Initialize hybrid tracking states for each tracked tag
         self._hybrid_states = {tag_id: HybridTrackingState(tracked_tag_id=tag_id) 
@@ -1161,10 +1164,10 @@ class LiveTracker:
         # Wait for preview loop to stop
         time.sleep(0.1)
         
-        # Show "recording" indicator on canvas (static, no live preview)
+        # Show initial recording indicator (once only - no updates during recording)
         self._draw_recording_indicator()
         
-        self._log(f"Recording started with hybrid tracking (AprilTag + OpenCV fallback)")
+        self._log(f"Recording started - canvas disabled for max speed")
         
         while self.recording_active:
             if self._cap and self._cap.isOpened():
@@ -1243,7 +1246,12 @@ class LiveTracker:
                             # Use last known calibration during interpolation
                             mm_per_pixel = self._mm_per_pixel or 1
                         
-                        current_time = time.time() - start_time
+                        # For video files, calculate time from frame number / FPS
+                        # For webcam, use wall-clock time
+                        if self._input_source and self._input_source.is_video_file and self._video_fps > 0:
+                            current_time = self._video_current_frame / self._video_fps
+                        else:
+                            current_time = time.time() - start_time
                         
                         # Compute average pose from AprilTag detections only
                         pose_x, pose_y, pose_z, pose_err = None, None, None, None
@@ -1253,6 +1261,14 @@ class LiveTracker:
                             pose_y = sum(t.pose_t[1][0] for t in tags_with_pose) / len(tags_with_pose)
                             pose_z = sum(t.pose_t[2][0] for t in tags_with_pose) / len(tags_with_pose)
                             pose_err = sum(t.pose_err for t in tags_with_pose) / len(tags_with_pose)
+                        elif avg_x is not None and avg_y is not None and mm_per_pixel is not None:
+                            # Fallback: compute pose from raw pixel coords when AprilTag pose unavailable
+                            # Pose coords are relative to frame center (optical axis), not absolute
+                            center_x = self._actual_width / 2 if self._actual_width else 640
+                            center_y = self._actual_height / 2 if self._actual_height else 360
+                            pose_x = (avg_x - center_x) * mm_per_pixel / 1000  # Center-relative, meters
+                            pose_y = (avg_y - center_y) * mm_per_pixel / 1000  # Center-relative, meters
+                            # pose_z and pose_err remain None (no depth info without AprilTag)
                         
                         # For video files, also record the source video frame number
                         video_frame = self._video_current_frame if self._input_source and self._input_source.is_video_file else ''
@@ -1283,13 +1299,15 @@ class LiveTracker:
                     
                     frame_count += 1
                     
-                    # Update status display periodically (not every frame)
+                    # Update text status only (NO canvas updates for max speed)
                     now = time.time()
                     if now - last_status_update >= status_update_interval:
                         elapsed = now - start_time
                         fps = frame_count / elapsed if elapsed > 0 else 0
-                        self._update_recording_status(frame_count, len(self.positions), fps, 
-                                                     apriltag_frames, opencv_frames, lost_frames)
+                        self._update_recording_status_text_only(
+                            frame_count, len(self.positions), fps,
+                            apriltag_frames, opencv_frames, lost_frames
+                        )
                         last_status_update = now
             
             # No sleep - process as fast as possible!
@@ -1407,6 +1425,24 @@ class LiveTracker:
         self._track_status.value = (
             f'<span style="color: #E91E63; font-weight: bold;">'
             f'● {frames_recorded} frames | {fps:.1f} FPS{source_info}</span>'
+        )
+    
+    def _update_recording_status_text_only(self, frames_processed: int, frames_recorded: int, fps: float,
+                                           apriltag_frames: int = 0, opencv_frames: int = 0, lost_frames: int = 0):
+        """Update recording status via text widget only - NO canvas updates for max speed."""
+        total_tracked = apriltag_frames + opencv_frames
+        source_info = ""
+        if total_tracked > 0:
+            source_info = f" (AT:{apriltag_frames} CV:{opencv_frames})"
+        
+        video_info = ""
+        if self._input_source and self._input_source.is_video_file and self._video_total_frames > 0:
+            pct = (self._video_current_frame / self._video_total_frames) * 100
+            video_info = f" | {pct:.0f}%"
+        
+        self._track_status.value = (
+            f'<span style="color: #E91E63; font-weight: bold;">'
+            f'● {frames_recorded} frames | {fps:.1f} FPS{source_info}{video_info}</span>'
         )
     
     @property

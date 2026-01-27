@@ -65,8 +65,8 @@ class AprilTagConfig:
     """Configuration for AprilTag detection."""
     family: str = "tagStandard41h12"
     nthreads: int = 4
-    quad_decimate: float = 1.0  # Full resolution for accuracy
-    quad_sigma: float = 4  # No blur by default
+    quad_decimate: float = 2.0 
+    quad_sigma: float = 0.8
     refine_edges: bool = True  # Better corner accuracy
     decode_sharpening: float = 0.25  # Helps with small tags
     tag_size_mm: float = 11.1  # Physical size of the printed tag (outer edge to outer edge)
@@ -124,28 +124,6 @@ class TrackingCircle:
     tracker: Any = None
     # Whether this tracker has been initialized with a frame
     tracker_initialized: bool = False
-
-
-@dataclass 
-class MultiTrackingCircles:
-    """Stores multiple tracking circles for averaging."""
-    circles: list[TrackingCircle] = field(default_factory=list)
-    
-    @property
-    def average_center(self) -> tuple[int, int]:
-        """Get the average center of all circles."""
-        if not self.circles:
-            raise ValueError("No circles to average")
-        avg_x = sum(c.center[0] for c in self.circles) / len(self.circles)
-        avg_y = sum(c.center[1] for c in self.circles) / len(self.circles)
-        return (int(avg_x), int(avg_y))
-    
-    @property
-    def average_radius(self) -> int:
-        """Get the average radius of all circles."""
-        if not self.circles:
-            raise ValueError("No circles to average")
-        return int(sum(c.radius for c in self.circles) / len(self.circles))
 
 
 class TrackerMode(Enum):
