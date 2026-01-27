@@ -37,13 +37,14 @@ def create_apriltag_detector(config: Optional[AprilTagConfig] = None) -> Detecto
     )
 
 
-def detect_apriltags(detector: Detector, frame: np.ndarray) -> list[DetectedTag]:
+def detect_apriltags(detector: Detector, frame: np.ndarray, tag_size_mm: float = 20.0) -> list[DetectedTag]:
     """
     Detect AprilTags in a frame.
     
     Args:
         detector: AprilTag Detector instance
         frame: BGR or grayscale frame
+        tag_size_mm: Physical size of the AprilTag in millimeters
         
     Returns:
         List of DetectedTag objects
@@ -54,10 +55,15 @@ def detect_apriltags(detector: Detector, frame: np.ndarray) -> list[DetectedTag]
     else:
         gray = frame
     
-    # Run detection
-    detections = detector.detect(gray)
+    # Run detection with iPhone 16 camera intrinsics (estimated for 1080p)
+    # fx, fy: focal length in pixels (~1450 for 26mm equiv, 67° HFOV)
+    # cx, cy: principal point at image center (960, 540 for 1080p)
+    h, w = gray.shape[:2]
+    fx = fy = 1450.0  # Approximate focal length for iPhone 16 main camera
+    cx, cy = w / 2.0, h / 2.0  # Principal point at image center
+    detections = detector.detect(gray, True, [fx, fy, cx, cy], tag_size_mm / 1000.0)
     
-    # Convert to our DetectedTag type
+    # Convert to our DetectedTag type, including pose estimation data
     results = []
     for det in detections:
         tag = DetectedTag(
@@ -66,6 +72,9 @@ def detect_apriltags(detector: Detector, frame: np.ndarray) -> list[DetectedTag]
             corners=det.corners,
             decision_margin=det.decision_margin,
             hamming=det.hamming,
+            pose_R=det.pose_R,
+            pose_t=det.pose_t,
+            pose_err=det.pose_err,
         )
         results.append(tag)
     
@@ -75,7 +84,8 @@ def detect_apriltags(detector: Detector, frame: np.ndarray) -> list[DetectedTag]
 def track_apriltag_frame(
     detector: Detector,
     frame: np.ndarray,
-    tracked_ids: Optional[set[int]] = None
+    tracked_ids: Optional[set[int]] = None,
+    tag_size_mm: float = 20.0
 ) -> dict[int, DetectedTag]:
     """
     Detect and track AprilTags in a frame.
@@ -84,11 +94,12 @@ def track_apriltag_frame(
         detector: AprilTag Detector instance
         frame: BGR frame to track in
         tracked_ids: Set of tag IDs to track, or None to track all
+        tag_size_mm: Physical size of the AprilTag in millimeters
         
     Returns:
         Dictionary mapping tag_id to DetectedTag for tracked tags
     """
-    detections = detect_apriltags(detector, frame)
+    detections = detect_apriltags(detector, frame, tag_size_mm)
     
     if tracked_ids is None:
         # Track all detected tags

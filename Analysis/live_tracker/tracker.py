@@ -750,7 +750,8 @@ class LiveTracker:
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"tracking_data_{timestamp}.csv"
         
-        fieldnames = ['frame', 'time_s', 'raw_x', 'raw_y', 'mm_per_pixel', 'tags_tracked', 'tag_ids']
+        fieldnames = ['frame', 'time_s', 'raw_x', 'raw_y', 'mm_per_pixel', 'tags_tracked', 'tag_ids',
+                      'pose_x', 'pose_y', 'pose_z', 'pose_err']
         
         with open(filename, 'w', newline='') as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -824,7 +825,9 @@ class LiveTracker:
                         self._update_camera_diag()
                     
                     # Detect AprilTags in current frame
-                    self._detected_tags = detect_apriltags(self._apriltag_detector, frame)
+                    self._detected_tags = detect_apriltags(
+                        self._apriltag_detector, frame, self._apriltag_config.tag_size_mm
+                    )
                     
                     # Update tag checkboxes if in tag selection step
                     if self.current_step == self.STEP_POINTS:
@@ -855,7 +858,8 @@ class LiveTracker:
                     
                     # Detect AprilTags and filter to tracked IDs
                     tracked_tags = track_apriltag_frame(
-                        self._apriltag_detector, frame, self._tracked_tag_ids
+                        self._apriltag_detector, frame, self._tracked_tag_ids,
+                        self._apriltag_config.tag_size_mm
                     )
                     self._detected_tags = list(tracked_tags.values())
                     
@@ -884,6 +888,15 @@ class LiveTracker:
                         
                         current_time = time.time() - start_time
                         
+                        # Compute average pose from all tracked tags (if pose data available)
+                        pose_x, pose_y, pose_z, pose_err = None, None, None, None
+                        tags_with_pose = [t for t in tracked_tags.values() if t.has_pose]
+                        if tags_with_pose:
+                            pose_x = sum(t.pose_t[0][0] for t in tags_with_pose) / len(tags_with_pose)
+                            pose_y = sum(t.pose_t[1][0] for t in tags_with_pose) / len(tags_with_pose)
+                            pose_z = sum(t.pose_t[2][0] for t in tags_with_pose) / len(tags_with_pose)
+                            pose_err = sum(t.pose_err for t in tags_with_pose) / len(tags_with_pose)
+                        
                         self.positions.append({
                             'frame': frame_count,
                             'time_s': round(current_time, 4),
@@ -891,7 +904,11 @@ class LiveTracker:
                             'raw_y': round(avg_y, 2),
                             'mm_per_pixel': round(mm_per_pixel, 6),
                             'tags_tracked': len(tracked_tags),
-                            'tag_ids': ','.join(str(tid) for tid in sorted(tracked_tags.keys()))
+                            'tag_ids': ','.join(str(tid) for tid in sorted(tracked_tags.keys())),
+                            'pose_x': round(pose_x * 1000, 3) if pose_x is not None else '',  # Convert to mm
+                            'pose_y': round(pose_y * 1000, 3) if pose_y is not None else '',  # Convert to mm
+                            'pose_z': round(pose_z * 1000, 3) if pose_z is not None else '',  # Convert to mm (distance)
+                            'pose_err': round(pose_err, 6) if pose_err is not None else '',
                         })
                     
                     with hold_canvas(self._canvas):

@@ -28,6 +28,10 @@ class DetectedTag:
     corners: np.ndarray  # 4x2 array of corner coordinates
     decision_margin: float  # Detection quality metric
     hamming: int  # Number of bit errors corrected
+    # Pose estimation fields (only populated if estimate_tag_pose=True)
+    pose_R: Optional[np.ndarray] = None  # 3x3 rotation matrix
+    pose_t: Optional[np.ndarray] = None  # 3x1 translation vector (in meters)
+    pose_err: Optional[float] = None  # Object-space error of the estimation
     
     @property
     def center_int(self) -> tuple[int, int]:
@@ -38,6 +42,25 @@ class DetectedTag:
     def corners_int(self) -> list[tuple[int, int]]:
         """Get corners as integer coordinates."""
         return [(int(c[0]), int(c[1])) for c in self.corners]
+    
+    @property
+    def has_pose(self) -> bool:
+        """Check if pose estimation data is available."""
+        return self.pose_R is not None and self.pose_t is not None
+    
+    @property
+    def distance_m(self) -> Optional[float]:
+        """Get distance from camera in meters (z component of translation)."""
+        if self.pose_t is not None:
+            return float(self.pose_t[2][0])
+        return None
+    
+    @property
+    def distance_mm(self) -> Optional[float]:
+        """Get distance from camera in millimeters."""
+        if self.pose_t is not None:
+            return float(self.pose_t[2][0]) * 1000.0
+        return None
 
 
 @dataclass
