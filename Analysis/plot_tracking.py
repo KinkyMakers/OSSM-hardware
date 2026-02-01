@@ -23,8 +23,16 @@ sns.set_theme(style="whitegrid", palette="deep")
 
 
 def load_tracking_data(csv_path: Path) -> pd.DataFrame:
-    """Load tracking data from CSV file."""
+    """Load tracking data from CSV file.
+    
+    Supports both old format (with position_mm) and new format (with pose_y).
+    """
     df = pd.read_csv(csv_path)
+    
+    # Handle new format: use pose_y as position_mm
+    if 'pose_y' in df.columns and 'position_mm' not in df.columns:
+        df['position_mm'] = df['pose_y']
+    
     # Drop rows with missing position data
     df = df.dropna(subset=['position_mm'])
     return df
@@ -420,7 +428,11 @@ def plot_all_outputs(output_dir: Path, show: bool = False) -> list[dict]:
     
     Returns list of statistics dictionaries.
     """
-    csv_files = sorted(output_dir.glob("*_tracking_data.csv"))
+    # Support both old pattern (*_tracking_data.csv) and new pattern (tracking_data_*.csv)
+    csv_files = sorted(
+        set(output_dir.glob("*_tracking_data.csv")) | 
+        set(output_dir.glob("tracking_data_*.csv"))
+    )
     
     if not csv_files:
         print(f"No tracking CSV files found in: {output_dir}")

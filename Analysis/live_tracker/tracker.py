@@ -138,13 +138,14 @@ class LiveTracker:
         self._video_layer.fill_rect(0, 0, self.canvas_width, self.canvas_height)
         self._draw_welcome()
         
-        # Step 1: Input Source (Camera or Video File)
+        # Step 1: Input Source (Camera or Video File) - defaults to Video File
         self._source_type_dropdown = Dropdown(
-            options=[('Webcam', 'webcam'), ('Video File', 'video_file')],
-            value='webcam',
+            options=[('Video File', 'video_file'), ('Webcam', 'webcam')],
+            value='video_file',
             description='',
             layout=Layout(width='120px')
         )
+        self._input_source_type = InputSourceType.VIDEO_FILE  # Default to video
         self._camera_dropdown = Dropdown(
             options=list_cameras(),
             description='',
@@ -163,21 +164,15 @@ class LiveTracker:
             description='',
             layout=Layout(width='180px')
         )
-        # Container for webcam controls
+        # Container for webcam controls - hidden by default (video file is default)
         self._webcam_controls = HBox([self._camera_dropdown])
-        # Container for video file controls  
+        self._webcam_controls.layout.display = 'none'
+        # Container for video file controls - shown by default
         self._video_file_controls = HBox([self._video_path_text])
-        self._video_file_controls.layout.display = 'none'  # Hidden by default
         
         self._preview_btn = Button(
             description='Start', 
             button_style='info',
-            layout=Layout(width='70px')
-        )
-        self._camera_next_btn = Button(
-            description='Next →',
-            button_style='success',
-            disabled=True,
             layout=Layout(width='70px')
         )
         self._camera_diag = HTML('<span style="color: #666; font-size: 11px;">—</span>')
@@ -188,31 +183,24 @@ class LiveTracker:
             self._webcam_controls,
             self._video_file_controls,
             self._camera_diag,
-            self._camera_next_btn
         ], layout=Layout(padding='8px', border='1px solid #333', border_radius='5px'))
         
-        # Step 2: Tag Size (calibration)
+        # Step 2: Tag Size (calibration) - simplified, no Next button
         self._tag_size = FloatText(
             value=self._apriltag_config.tag_size_mm,
             description='',
             layout=Layout(width='70px')
         )
         self._tag_size.observe(self._on_tag_size_change, names='value')
-        self._cal_status = HTML('<span style="color: #888;">Set physical tag size</span>')
-        self._cal_done_btn = Button(
-            description='Next →',
-            button_style='success',
-            layout=Layout(width='70px')
-        )
+        self._cal_status = HTML('<span style="color: #888;">Physical tag size</span>')
         self._step2_header = HTML('<b style="color: #2196F3;">2. Tag Size</b>')
         self._step2 = VBox([
             self._step2_header,
             HBox([Label('Tag size (mm):'), self._tag_size]),
             self._cal_status,
-            self._cal_done_btn
         ], layout=Layout(padding='8px', border='1px solid #333', border_radius='5px'))
         
-        # Step 3: Tag Selection (AprilTags)
+        # Step 3: Tag Selection (AprilTags) - auto-advances when tag selected
         self._tags_container = VBox([], layout=Layout(max_height='120px', overflow_y='auto'))
         self._tags_select_all_btn = Button(
             description='Select All',
@@ -224,12 +212,6 @@ class LiveTracker:
             button_style='warning',
             layout=Layout(width='60px')
         )
-        self._tags_next_btn = Button(
-            description='Next →',
-            button_style='success',
-            disabled=True,
-            layout=Layout(width='70px')
-        )
         self._tags_status = HTML('<span style="color: #888;">Searching for AprilTags...</span>')
         self._step3_header = HTML('<b style="color: #FF9800;">3. Select Tags</b>')
         self._step3 = VBox([
@@ -237,7 +219,7 @@ class LiveTracker:
             HTML('<span style="font-size: 11px; color: #888;">tagStandard41h12 family</span>'),
             self._tags_status,
             self._tags_container,
-            HBox([self._tags_select_all_btn, self._tags_clear_btn, self._tags_next_btn])
+            HBox([self._tags_select_all_btn, self._tags_clear_btn])
         ], layout=Layout(padding='8px', border='1px solid #333', border_radius='5px'))
         
         # Step 4: Record
@@ -253,7 +235,7 @@ class LiveTracker:
             disabled=True,
             layout=Layout(width='80px')
         )
-        self._track_status = HTML('<span style="color: #888;">Ready to record</span>')
+        self._track_status = HTML('<span style="color: #888;">Select tags to enable</span>')
         self._step4_header = HTML('<b style="color: #E91E63;">4. Record</b>')
         self._step4 = VBox([
             self._step4_header,
@@ -277,7 +259,7 @@ class LiveTracker:
         
         # Status/log output
         self._output = Output(layout=Layout(
-            height='60px', 
+            height='40px', 
             overflow='auto',
             border='1px solid #333',
             border_radius='5px',
@@ -291,11 +273,34 @@ class LiveTracker:
             self._output
         ], layout=Layout(width='280px', padding='10px'))
         
-        # Main layout
-        self._main_ui = HBox([
+        # Live chart using ipycanvas (thread-safe, always visible)
+        self._chart_width = 920
+        self._chart_height = 150
+        self._chart_canvas = MultiCanvas(2, width=self._chart_width, height=self._chart_height)
+        self._chart_canvas.layout = Layout(
+            width=f'{self._chart_width}px',
+            height=f'{self._chart_height}px',
+        )
+        self._chart_bg = self._chart_canvas[0]  # Background/grid layer
+        self._chart_fg = self._chart_canvas[1]  # Data layer
+        
+        # Draw initial chart background
+        self._draw_chart_background()
+        
+        # Live position data for plotting (separate from recorded positions)
+        self._live_positions: list[dict] = []
+        self._max_live_points = 500  # Rolling window
+        
+        # Main layout - video + controls on top, chart below
+        self._top_row = HBox([
             self._canvas,
             self._controls
         ], layout=Layout(gap='10px'))
+        
+        self._main_ui = VBox([
+            self._top_row,
+            self._chart_canvas
+        ], layout=Layout(gap='5px'))
         
     
     def _connect_events(self):
@@ -316,13 +321,10 @@ class LiveTracker:
         # Source type selection
         self._source_type_dropdown.observe(self._on_source_type_change, names='value')
         
-        # Button clicks
+        # Button clicks - simplified, no Next buttons
         self._preview_btn.on_click(self._on_preview)
-        self._camera_next_btn.on_click(self._on_camera_next)
-        self._cal_done_btn.on_click(self._on_cal_done)
         self._tags_select_all_btn.on_click(self._on_tags_select_all)
         self._tags_clear_btn.on_click(self._on_tags_clear)
-        self._tags_next_btn.on_click(self._on_tags_next)
         self._track_go_btn.on_click(self._on_track_go)
         self._track_stop_btn.on_click(self._on_track_stop)
         self._reset_btn.on_click(self._on_reset)
@@ -330,25 +332,30 @@ class LiveTracker:
     def _update_step_styles(self):
         """Update step panel styles based on current step."""
         steps = [
-            (self._step1, self._step1_header, "1. Camera", "#4CAF50"),
+            (self._step1, self._step1_header, "1. Source", "#4CAF50"),
             (self._step2, self._step2_header, "2. Tag Size", "#2196F3"),
-            (self._step3, self._step3_header, "3. Track Points", "#FF9800"),
+            (self._step3, self._step3_header, "3. Select Tags", "#FF9800"),
             (self._step4, self._step4_header, "4. Record", "#E91E63"),
             (self._step5, self._step5_header, "5. Export", "#9C27B0"),
         ]
         
         for i, (step_box, header, title, color) in enumerate(steps, 1):
-            if i == self.current_step:
+            # Step 2 (Tag Size) is always accessible, never grayed out
+            if i == 2:
+                step_box.layout.border = f'1px solid {color}'
+                step_box.layout.opacity = '1'
+                header.value = f'<b style="color: {color};">{title}</b>'
+            elif i == self.current_step:
                 step_box.layout.border = f'2px solid {color}'
                 step_box.layout.opacity = '1'
                 header.value = f'<b style="color: {color};">▶ {title}</b>'
             elif i < self.current_step:
                 step_box.layout.border = '1px solid #4CAF50'
-                step_box.layout.opacity = '0.7'
+                step_box.layout.opacity = '0.8'
                 header.value = f'<b style="color: #4CAF50;">✓ {title}</b>'
             else:
                 step_box.layout.border = '1px solid #333'
-                step_box.layout.opacity = '0.4'
+                step_box.layout.opacity = '0.5'
                 header.value = f'<b style="color: #666;">{title}</b>'
     
     def _on_source_type_change(self, change):
@@ -712,13 +719,10 @@ class LiveTracker:
         if n_detected > 0:
             if n_selected > 0:
                 self._tags_status.value = f'<span style="color: #4CAF50;">{n_selected} of {n_detected} tags selected</span>'
-                self._tags_next_btn.disabled = False
             else:
                 self._tags_status.value = f'<span style="color: #FF9800;">{n_detected} tags detected - select to track</span>'
-                self._tags_next_btn.disabled = True
         else:
             self._tags_status.value = '<span style="color: #888;">No AprilTags detected</span>'
-            self._tags_next_btn.disabled = True
     
     def _update_tag_checkboxes(self):
         """Update the tag selection checkboxes based on detected tags.
@@ -762,6 +766,14 @@ class LiveTracker:
         else:
             self._tracked_tag_ids.discard(tag_id)
         self._update_tags_status()
+        
+        # Auto-enable/disable recording based on tag selection
+        if self._tracked_tag_ids:
+            self._track_go_btn.disabled = False
+            self._track_status.value = f'<span style="color: #4CAF50;">Ready - {len(self._tracked_tag_ids)} tag(s) selected</span>'
+        else:
+            self._track_go_btn.disabled = True
+            self._track_status.value = '<span style="color: #888;">Select tags to enable</span>'
     
     def _on_tag_size_change(self, change):
         """Handle tag size input change."""
@@ -769,6 +781,161 @@ class LiveTracker:
         if new_size > 0:
             self._apriltag_config.tag_size_mm = new_size
     
+    def _draw_chart_background(self):
+        """Draw the chart background, grid, and labels."""
+        w, h = self._chart_width, self._chart_height
+        margin_left = 50
+        margin_right = 10
+        margin_top = 20
+        margin_bottom = 25
+        
+        # Clear and fill background
+        self._chart_bg.fill_style = '#1a1a2e'
+        self._chart_bg.fill_rect(0, 0, w, h)
+        
+        # Draw plot area background
+        plot_w = w - margin_left - margin_right
+        plot_h = h - margin_top - margin_bottom
+        self._chart_bg.fill_style = '#252540'
+        self._chart_bg.fill_rect(margin_left, margin_top, plot_w, plot_h)
+        
+        # Draw grid lines
+        self._chart_bg.stroke_style = '#333'
+        self._chart_bg.line_width = 1
+        
+        # Horizontal grid (5 lines)
+        for i in range(5):
+            y = margin_top + (plot_h * i / 4)
+            self._chart_bg.begin_path()
+            self._chart_bg.move_to(margin_left, y)
+            self._chart_bg.line_to(w - margin_right, y)
+            self._chart_bg.stroke()
+        
+        # Vertical grid (10 lines)
+        for i in range(11):
+            x = margin_left + (plot_w * i / 10)
+            self._chart_bg.begin_path()
+            self._chart_bg.move_to(x, margin_top)
+            self._chart_bg.line_to(x, h - margin_bottom)
+            self._chart_bg.stroke()
+        
+        # Labels
+        self._chart_bg.fill_style = '#888'
+        self._chart_bg.font = '11px sans-serif'
+        self._chart_bg.text_align = 'center'
+        self._chart_bg.fill_text('Time (s)', w / 2, h - 5)
+        
+        # Y-axis label (rotated text not supported, use short label)
+        self._chart_bg.text_align = 'right'
+        self._chart_bg.fill_text('X', margin_left - 5, margin_top + plot_h * 0.25)
+        self._chart_bg.fill_style = '#ff9800'
+        self._chart_bg.fill_text('Y', margin_left - 5, margin_top + plot_h * 0.75)
+        
+        # Legend
+        self._chart_bg.text_align = 'left'
+        self._chart_bg.font = '10px sans-serif'
+        self._chart_bg.fill_style = '#00ffff'
+        self._chart_bg.fill_text('— X', w - 60, 12)
+        self._chart_bg.fill_style = '#ff9800'
+        self._chart_bg.fill_text('— Y', w - 30, 12)
+    
+    def _update_live_chart(self, x_pos: float, y_pos: float, time_s: float):
+        """Update the live chart with new position data."""
+        # Add to rolling buffer
+        self._live_positions.append({'time_s': time_s, 'x': x_pos, 'y': y_pos})
+        
+        # Trim to max points
+        if len(self._live_positions) > self._max_live_points:
+            self._live_positions = self._live_positions[-self._max_live_points:]
+        
+        # Draw chart data
+        self._draw_chart_data()
+    
+    def _draw_chart_data(self):
+        """Draw X and Y position data on the chart."""
+        if len(self._live_positions) < 2:
+            return
+        
+        w, h = self._chart_width, self._chart_height
+        margin_left = 50
+        margin_right = 10
+        margin_top = 20
+        margin_bottom = 25
+        plot_w = w - margin_left - margin_right
+        plot_h = h - margin_top - margin_bottom
+        
+        # Get data
+        times = [p['time_s'] for p in self._live_positions]
+        x_vals = [p['x'] for p in self._live_positions]
+        y_vals = [p['y'] for p in self._live_positions]
+        
+        # Calculate ranges
+        t_min, t_max = min(times), max(times)
+        if t_max == t_min:
+            t_max = t_min + 1
+        
+        # Use combined range so both are on same scale
+        all_vals = x_vals + y_vals
+        v_min, v_max = min(all_vals), max(all_vals)
+        if v_max == v_min:
+            v_max = v_min + 100
+        
+        # Add 5% padding
+        v_range = v_max - v_min
+        v_min -= v_range * 0.05
+        v_max += v_range * 0.05
+        
+        # Helper to convert data to canvas coords
+        def to_canvas(t, v):
+            cx = margin_left + ((t - t_min) / (t_max - t_min)) * plot_w
+            cy = margin_top + plot_h - ((v - v_min) / (v_max - v_min)) * plot_h
+            return (cx, cy)
+        
+        with hold_canvas(self._chart_canvas):
+            # Clear foreground
+            self._chart_fg.clear()
+            
+            # Draw X line (cyan)
+            self._chart_fg.stroke_style = '#00ffff'
+            self._chart_fg.line_width = 1.5
+            self._chart_fg.begin_path()
+            cx, cy = to_canvas(times[0], x_vals[0])
+            self._chart_fg.move_to(cx, cy)
+            for i in range(1, len(times)):
+                cx, cy = to_canvas(times[i], x_vals[i])
+                self._chart_fg.line_to(cx, cy)
+            self._chart_fg.stroke()
+            
+            # Draw Y line (orange)
+            self._chart_fg.stroke_style = '#ff9800'
+            self._chart_fg.line_width = 1.5
+            self._chart_fg.begin_path()
+            cx, cy = to_canvas(times[0], y_vals[0])
+            self._chart_fg.move_to(cx, cy)
+            for i in range(1, len(times)):
+                cx, cy = to_canvas(times[i], y_vals[i])
+                self._chart_fg.line_to(cx, cy)
+            self._chart_fg.stroke()
+            
+            # Draw axis values
+            self._chart_fg.fill_style = '#666'
+            self._chart_fg.font = '9px sans-serif'
+            self._chart_fg.text_align = 'right'
+            self._chart_fg.fill_text(f'{v_max:.0f}', margin_left - 3, margin_top + 10)
+            self._chart_fg.fill_text(f'{v_min:.0f}', margin_left - 3, h - margin_bottom - 2)
+            
+            self._chart_fg.text_align = 'center'
+            self._chart_fg.fill_text(f'{t_min:.1f}', margin_left, h - margin_bottom + 12)
+            self._chart_fg.fill_text(f'{t_max:.1f}', w - margin_right, h - margin_bottom + 12)
+            
+            # Current values readout
+            self._chart_fg.font = 'bold 11px sans-serif'
+            self._chart_fg.text_align = 'left'
+            self._chart_fg.fill_style = '#00ffff'
+            self._chart_fg.fill_text(f'X: {x_vals[-1]:.1f}', margin_left + 5, margin_top + 12)
+            self._chart_fg.fill_style = '#ff9800'
+            self._chart_fg.fill_text(f'Y: {y_vals[-1]:.1f}', margin_left + 80, margin_top + 12)
+
     def _on_canvas_mouse_down(self, x: float, y: float):
         """Handle canvas mousedown - ipycanvas provides x, y directly."""
         pos = (int(x), int(y))
@@ -803,13 +970,12 @@ class LiveTracker:
         if event_type != 'keydown':
             return
         
-        if key == 'Enter':
-            if self.current_step == self.STEP_CAMERA and self.preview_active:
-                self._on_camera_next(None)
-            elif self.current_step == self.STEP_CALIBRATE and not self._cal_done_btn.disabled:
-                self._on_cal_done(None)
-            elif self.current_step == self.STEP_POINTS and not self._tags_next_btn.disabled:
-                self._on_tags_next(None)
+        # Spacebar or R to toggle recording
+        if key in (' ', 'r', 'R') and self._tracked_tag_ids:
+            if self.recording_active:
+                self._on_track_stop(None)
+            elif not self._track_go_btn.disabled:
+                self._on_track_go(None)
     
     # === Button Handlers ===
     
@@ -822,8 +988,10 @@ class LiveTracker:
                 self._cap = None
             btn.description = 'Start'
             btn.button_style = 'info'
-            self._camera_next_btn.disabled = True
             self._camera_diag.value = '<span style="color: #666; font-size: 11px;">—</span>'
+            # Reset to step 1 when stopping
+            self.current_step = self.STEP_CAMERA
+            self._update_step_styles()
         else:
             # Determine input source
             if self._input_source_type == InputSourceType.WEBCAM:
@@ -870,39 +1038,16 @@ class LiveTracker:
             self.preview_active = True
             btn.description = 'Stop'
             btn.button_style = 'warning'
-            self._camera_next_btn.disabled = False
+            
+            # Auto-advance to tag selection step (skip tag size, it can be edited anytime)
+            self.current_step = self.STEP_POINTS
+            self._update_step_styles()
             
             self._fps_timer = time.time()
             self._frame_count = 0
             
             thread = threading.Thread(target=self._preview_loop, daemon=True)
             thread.start()
-    
-    def _on_camera_next(self, btn):
-        """Advance from camera step to tag size."""
-        if not self.preview_active:
-            self._log("Start preview first")
-            return
-        self.current_step = self.STEP_CALIBRATE
-        self._update_step_styles()
-        self._draw_overlay()
-    
-    def _on_cal_done(self, btn):
-        """Confirm tag size and advance to tag selection."""
-        if self._tag_size.value <= 0:
-            self._log("Tag size must be positive")
-            return
-        
-        self._apriltag_config.tag_size_mm = self._tag_size.value
-        self._cal_status.value = f'<span style="color: #4CAF50;">Tag size: {self._tag_size.value}mm</span>'
-        self._log(f"Tag size set to {self._tag_size.value}mm")
-        
-        self.current_step = self.STEP_POINTS
-        self._tracked_tag_ids = set()
-        self._tag_checkboxes = {}
-        self._update_step_styles()
-        self._update_tags_status()
-        self._draw_overlay()
     
     def _on_tags_select_all(self, btn):
         """Select all detected tags for tracking."""
@@ -921,29 +1066,22 @@ class LiveTracker:
         self._update_tags_status()
         self._draw_overlay()
     
-    def _on_tags_next(self, btn):
-        """Confirm tag selection and advance to tracking."""
-        if not self._tracked_tag_ids:
-            self._log("Select at least one tag to track")
-            return
-        
-        self._log(f"Tracking tags: {sorted(self._tracked_tag_ids)}")
-        self.current_step = self.STEP_TRACK
-        self._track_go_btn.disabled = False
-        self._track_stop_btn.disabled = True
-        self._update_step_styles()
-        self._draw_overlay()
-    
     def _on_track_go(self, btn):
         """Start recording tracking data."""
         if not self._tracked_tag_ids:
             self._log("Select at least one tag to track")
             return
         
-        self._log(f"Starting recording - tracking tags: {sorted(self._tracked_tag_ids)}")
+        if not self.preview_active:
+            self._log("Start preview first")
+            return
+        
+        self._log(f"Recording - tracking tags: {sorted(self._tracked_tag_ids)}")
         
         self.positions = []
         self.recording_active = True
+        self.current_step = self.STEP_TRACK
+        self._update_step_styles()
         
         self._track_go_btn.disabled = True
         self._track_stop_btn.disabled = False
@@ -964,6 +1102,13 @@ class LiveTracker:
             self._track_status.value = f'<span style="color: #4CAF50;">✓ {n} frames captured</span>'
             self._auto_save_data()
             self.current_step = self.STEP_EXPORT
+            
+            # Update chart with recorded data
+            self._live_positions = [
+                {'time_s': p['time_s'], 'x': p['raw_x'], 'y': p['raw_y']}
+                for p in self.positions
+            ]
+            self._draw_chart_data()
         else:
             self._track_status.value = '<span style="color: #888;">No data recorded</span>'
         
@@ -975,6 +1120,9 @@ class LiveTracker:
             if self._input_source and self._input_source.is_video_file:
                 self._cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 self._video_current_frame = 0
+            
+            # Reset live positions for new preview
+            self._live_positions = []
             
             thread = threading.Thread(target=self._preview_loop, daemon=True)
             thread.start()
@@ -1050,16 +1198,18 @@ class LiveTracker:
         self._hybrid_states = {}
         self._hybrid_results = {}
         
+        # Reset live chart
+        self._live_positions = []
+        self._chart_fg.clear()
+        self._draw_chart_background()
+        
         self._preview_btn.description = 'Start'
         self._preview_btn.button_style = 'info'
-        self._camera_next_btn.disabled = True
         self._camera_diag.value = '<span style="color: #666; font-size: 11px;">—</span>'
-        self._tag_size.value = 20.0  # Reset to default tag size
-        self._apriltag_config.tag_size_mm = 20.0
-        self._cal_status.value = '<span style="color: #888;">Set physical tag size</span>'
+        self._tag_size.value = self._apriltag_config.tag_size_mm  # Keep current tag size
+        self._cal_status.value = '<span style="color: #888;">Physical tag size</span>'
         self._tags_status.value = '<span style="color: #888;">Searching for AprilTags...</span>'
-        self._tags_next_btn.disabled = True
-        self._track_status.value = '<span style="color: #888;">Ready to record</span>'
+        self._track_status.value = '<span style="color: #888;">Select tags to enable</span>'
         self._track_go_btn.disabled = True
         self._track_stop_btn.disabled = True
         self._export_status.value = '<span style="color: #888;">—</span>'
@@ -1076,6 +1226,10 @@ class LiveTracker:
     
     def _preview_loop(self):
         """Background preview loop with hybrid tracking (AprilTag + OpenCV)."""
+        preview_start_time = time.time()
+        chart_update_interval = 0.1  # Update chart every 100ms
+        last_chart_update = preview_start_time
+        
         while self.preview_active and not self.recording_active:
             if self._cap and self._cap.isOpened():
                 ret, frame = self._cap.read()
@@ -1086,6 +1240,9 @@ class LiveTracker:
                         # Rewind to beginning
                         self._cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                         self._video_current_frame = 0
+                        # Reset live chart on loop
+                        self._live_positions = []
+                        preview_start_time = time.time()
                         continue
                     else:
                         # Non-looping: pause at end
@@ -1108,8 +1265,8 @@ class LiveTracker:
                         self._fps_timer = time.time()
                         self._update_camera_diag()
                     
-                    # Use hybrid tracking if tags are selected, otherwise just detect
-                    if self._tracked_tag_ids and self.current_step >= self.STEP_TRACK:
+                    # Always do AprilTag detection and hybrid tracking when tags are selected
+                    if self._tracked_tag_ids:
                         # Hybrid tracking mode - AprilTag + OpenCV fallback
                         self._hybrid_results = update_hybrid_tracking_multi(
                             self._hybrid_states,
@@ -1121,6 +1278,21 @@ class LiveTracker:
                         # Update detected_tags for overlay (AprilTag detections only)
                         self._detected_tags = [r.tag for r in self._hybrid_results.values() 
                                                if r.tag is not None]
+                        
+                        # Update live chart with tracking data (even when not recording)
+                        now = time.time()
+                        if now - last_chart_update >= chart_update_interval and self._hybrid_results:
+                            centers = [r.center for r in self._hybrid_results.values()]
+                            if centers:
+                                avg_x = sum(c[0] for c in centers) / len(centers)
+                                avg_y = sum(c[1] for c in centers) / len(centers)
+                                # Use video time for files, wall time for webcam
+                                if self._input_source and self._input_source.is_video_file and self._video_fps > 0:
+                                    current_time = self._video_current_frame / self._video_fps
+                                else:
+                                    current_time = now - preview_start_time
+                                self._update_live_chart(avg_x, avg_y, current_time)
+                                last_chart_update = now
                     else:
                         # Just AprilTag detection (no hybrid tracking yet)
                         self._detected_tags = detect_apriltags(
@@ -1128,10 +1300,9 @@ class LiveTracker:
                         )
                         self._hybrid_results = {}
                     
-                    # Update tag checkboxes if in tag selection step
-                    if self.current_step == self.STEP_POINTS:
-                        self._update_tag_checkboxes()
-                        self._update_tags_status()
+                    # Update tag checkboxes (always, not just in step 3)
+                    self._update_tag_checkboxes()
+                    self._update_tags_status()
                     
                     with hold_canvas(self._canvas):
                         self._video_layer.put_image_data(self._frame_to_rgba(frame), 0, 0)
