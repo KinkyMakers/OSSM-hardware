@@ -96,11 +96,12 @@ class FTSCallbacks : public NimBLECharacteristicCallbacks {
             uint16_t time = (static_cast<uint8_t>(value[1]) << 8) |
                             static_cast<uint8_t>(value[2]);
 
-            ESP_LOGV("NIMBLE", "FTS Command - Position: %d, Time: %d ms",
+            ESP_LOGI("NIMBLE", "FTS Command - Position: %d, Time: %d ms",
                      position, time);
 
             lastPositionTime = targetPositionTime;
             targetPositionTime = {position, time};
+            markTargetUpdated();  // Signal that new data arrived
 
         } else {
             ESP_LOGW("NIMBLE", "FTS write - Invalid data length: %d bytes",

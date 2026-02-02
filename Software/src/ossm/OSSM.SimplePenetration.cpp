@@ -122,78 +122,62 @@ void startStreamingTask(void *pvParameters) {
 
     // Motion state
     float currentPosition = 0;
-    float currentVelocity = 0;
-
     float targetPosition = 0.0f;
-    float targetVelocity = 0.0f;
 
-    // set stepper to max speed and max acceleration
+    // Set initial max speed and acceleration
     ossm->stepper->setSpeedInHz((1_mm) * Config::Driver::maxSpeedMmPerSecond);
     ossm->stepper->setAcceleration((1_mm) * Config::Driver::maxAcceleration);
 
-    // Speed multipliers for different speed levels
-    const float speedMultipliers[] = {10.0, 11.0, 12.0, 13.0, 14.0, 15.0};
-    int speedMultiplierIndex = 0;
-
-    float RMS_position = 0;
-    int rms_samples = 0;
-
-    int lastTime = 0;
-    long loopStart = 0;
-
     while (isInCorrectState(ossm)) {
-        // Calculate target position
-        targetPosition =
-            -(constrain(static_cast<float>(180 - targetPositionTime.position),
-                        0.0f, 180.0f) /
-              180.0f) *
-            ossm->measuredStrokeSteps;
-
-        ESP_LOGD("Streaming", "%d, %d, %d", ossm->stepper->getCurrentPosition(),
-                 static_cast<int32_t>(targetPosition),
-                 targetPositionTime.inTime);
-        if (!hasTargetChanged()) {
+        // Wait for new command from BLE
+        if (!consumeTargetUpdate()) {
             vTaskDelay(1);
             continue;
         }
 
+        // Calculate target position from FTS position (0-180)
+        // FTS: 0 = retracted, 180 = extended
+        // Stepper: 0 = home (retracted), negative = extended
+        targetPosition =
+            -(static_cast<float>(targetPositionTime.position) / 180.0f) *
+            ossm->measuredStrokeSteps;
+
         currentPosition =
             static_cast<float>(ossm->stepper->getCurrentPosition());
-        currentVelocity =
-            static_cast<float>(ossm->stepper->getCurrentSpeedInMilliHz());
 
-        // Kinematic calculation: Always use max acceleration, compute required
-        // velocity Convert units: velocity from milliHz to Hz, time from ms to
-        // seconds
-        float v0 = currentVelocity / 1000.0f;  // Current velocity in steps/s
-        float deltaX =
-            targetPosition - currentPosition;           // Displacement in steps
-        float t = targetPositionTime.inTime / 1000.0f;  // Time in seconds
+        // Calculate distance to travel (in steps)
+        float distance = abs(targetPosition - currentPosition);
+
+        // Time to reach target (in seconds)
+        float timeSeconds = targetPositionTime.inTime / 1000.0f;
 
         float maxSpeed = Config::Driver::maxSpeedMmPerSecond * (1_mm);
         float maxAccel = Config::Driver::maxAcceleration * (1_mm);
 
-        // Always use maximum acceleration to guarantee we can meet timing
+        // Always use maximum acceleration for responsive motion
         ossm->stepper->setAcceleration(maxAccel);
 
-        // Handle edge cases
-        if (t <= 0.001f) {
-            // If time is too small, use maximum speed
-            targetVelocity = maxSpeed;
-        } else {
-            // Calculate required velocity using: deltaX = (v0 + v1)/2 * t
-            // Solving for v1: v1 = 2*deltaX/t - v0
-            targetVelocity = 2.0f * deltaX / t - v0;
+        // Calculate required speed to reach target in given time
+        if (timeSeconds > 0.01f && distance > 1.0f) {
+            // v = d / t (basic kinematics for constant velocity)
+            // Use 1.5x to account for accel/decel phases eating into travel time
+            float requiredSpeed = (distance / timeSeconds) * 1.5f;
 
-            // Take absolute value and clamp to max speed
-            targetVelocity = maxSpeed;
+            // Clamp to safe limits
+            requiredSpeed = constrain(requiredSpeed, 100.0f, maxSpeed);
+
+            ESP_LOGI("Streaming", "Pos: %d -> %.0f, Dist: %.0f, Time: %.3fs, Speed: %.0f",
+                     targetPositionTime.position, targetPosition, distance, timeSeconds, requiredSpeed);
+
+            ossm->stepper->setSpeedInHz(static_cast<uint32_t>(requiredSpeed));
+        } else {
+            // Very short time or no distance - use max speed
+            ossm->stepper->setSpeedInHz(static_cast<uint32_t>(maxSpeed));
         }
 
-        ossm->stepper->setSpeedInHz(maxSpeed);
         ossm->stepper->applySpeedAcceleration();
+        ossm->stepper->moveTo(static_cast<int32_t>(targetPosition), false);
 
-        vTaskDelay(1);
-        ossm->stepper->moveTo(targetPosition, false);
         vTaskDelay(1);
     }
 

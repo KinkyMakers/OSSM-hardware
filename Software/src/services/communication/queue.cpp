@@ -4,8 +4,16 @@ std::queue<String> messageQueue = {};
 
 PositionTime lastPositionTime = {0, 0};
 PositionTime targetPositionTime = {0, 0};
+bool targetUpdated = false;
 
-bool hasTargetChanged() {
-    return abs(lastPositionTime.position - targetPositionTime.position) > 2 ||
-           abs(lastPositionTime.inTime - targetPositionTime.inTime) > 10;
+void markTargetUpdated() {
+    targetUpdated = true;
+}
+
+bool consumeTargetUpdate() {
+    if (targetUpdated) {
+        targetUpdated = false;
+        return true;
+    }
+    return false;
 }
