@@ -1130,12 +1130,18 @@ class LiveTracker:
             self._draw_overlay()
     
     def _auto_save_data(self):
-        """Automatically save tracking data to a dated file."""
+        """Automatically save tracking data to the Output directory."""
         if not self.positions:
             return
         
+        # Ensure Output directory exists
+        import os
+        output_dir = "Output"
+        os.makedirs(output_dir, exist_ok=True)
+        
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"tracking_data_{timestamp}.csv"
+        filepath = os.path.join(output_dir, filename)
         
         # Include all tracking fields including hybrid tracking source
         fieldnames = [
@@ -1147,7 +1153,7 @@ class LiveTracker:
         if self._input_source and self._input_source.is_video_file:
             fieldnames.append('video_frame')
         
-        with open(filename, 'w', newline='') as f:
+        with open(filepath, 'w', newline='') as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
             writer.writeheader()
             writer.writerows(self.positions)
@@ -1163,11 +1169,11 @@ class LiveTracker:
             cv_pct = (opencv_count / total) * 100
             source_summary = f"<br><span style='font-size: 11px; color: #888;'>AprilTag: {at_pct:.0f}% | OpenCV: {cv_pct:.0f}%</span>"
         
-        self._export_status.value = f'<span style="color: #4CAF50;">✓ Saved: {filename}</span>{source_summary}'
-        self._log(f"Data saved to {filename}")
+        self._export_status.value = f'<span style="color: #4CAF50;">✓ Saved: {filepath}</span>{source_summary}'
+        self._log(f"Data saved to {filepath}")
         
         with self._output:
-            display(FileLink(filename))
+            display(FileLink(filepath))
     
     def _on_reset(self, btn):
         """Reset everything and start over."""

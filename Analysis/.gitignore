@@ -30,3 +30,6 @@ uv.lock
 
 # macOS
 .DS_Store
+
+# Output directory (tracking data exports)
+Output/
