@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <services/board.h>
+#include <services/communication/queue.h>
 
 #include <command/commands.hpp>
 
@@ -72,6 +73,7 @@ class OSSM : public OSSMInterface {
                 o.startHoming();
             };
             auto drawPlayControls = [](OSSM &o) { o.drawPlayControls(); };
+            auto startStreaming = [](OSSM &o) { o.startStreaming(); };
             auto drawPatternControls = [](OSSM &o) { o.drawPatternControls(); };
             auto drawPreflight = [](OSSM &o) { o.drawPreflight(); };
 
@@ -219,6 +221,13 @@ class OSSM : public OSSMInterface {
                 "strokeEngine.pattern"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
                 "strokeEngine.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
+                "streaming"_s [isNotHomed] = "homing"_s,
+                "streaming"_s [isPreflightSafe] / ( drawPlayControls, startStreaming) = "streaming.idle"_s,
+                "streaming"_s / drawPreflight = "streaming.preflight"_s,
+                "streaming.preflight"_s + done / ( drawPlayControls, startStreaming) = "streaming.idle"_s,
+                "streaming.preflight"_s + longPress = "menu"_s,
+                "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+
                 "update"_s [isOnline] / drawUpdate = "update.checking"_s,
                 "update"_s = "wifi"_s,
                 "update.checking"_s [isUpdateAvailable] / (drawUpdating, updateOSSM) = "update.updating"_s,
@@ -301,6 +310,8 @@ class OSSM : public OSSMInterface {
      * ///////////////////////////////////////////
      */
     static void startHomingTask(void *pvParameters);
+
+    void startStreaming();
 
     void startStrokeEngine();
 
@@ -430,6 +441,17 @@ class OSSM : public OSSMInterface {
             case Commands::setPattern:
                 setting.pattern =
                     static_cast<StrokePatterns>(command.value % 7);
+                break;
+            case Commands::streamPosition:
+                // Scale position from 0-100 to 0-180 (internal format)
+                // and update streaming target
+                lastPositionTime = targetPositionTime;
+                targetPositionTime = {
+                    static_cast<uint8_t>((command.value * 180) / 100),
+                    static_cast<uint16_t>(command.time)};
+                markTargetUpdated();
+                ESP_LOGD("OSSM", "Stream: pos=%d, time=%d", command.value,
+                         command.time);
                 break;
             case Commands::ignore:
                 break;

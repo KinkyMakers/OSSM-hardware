@@ -44,7 +44,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
                ossm->sm->is("simplePenetration.idle"_s) ||
                ossm->sm->is("strokeEngine"_s) ||
                ossm->sm->is("strokeEngine.idle"_s) ||
-               ossm->sm->is("streaming"_s);
+               ossm->sm->is("streaming"_s) || ossm->sm->is("streaming.idle"_s);
     };
 
     // Line heights

@@ -25,8 +25,18 @@ export const OssmBleController = () => {
     return typeof navigator !== 'undefined' && 'bluetooth' in navigator;
   };
 
-  // Slider component
-  const Slider = ({ label, value, onChange, color = 'violet', disabled = false }) => {
+  // Slider component with smooth dragging and send-on-release
+  const Slider = ({ label, value, onChange, onRelease, color = 'violet', disabled = false }) => {
+    const [localValue, setLocalValue] = useState(value);
+    const isDraggingRef = useRef(false);
+
+    // Sync local value with prop when not dragging
+    useEffect(() => {
+      if (!isDraggingRef.current) {
+        setLocalValue(value);
+      }
+    }, [value]);
+
     const colorClasses = {
       violet: 'accent-violet-500',
       red: 'accent-red-500',
@@ -35,20 +45,36 @@ export const OssmBleController = () => {
       orange: 'accent-orange-500',
     };
 
+    const handleChange = (e) => {
+      const newValue = parseInt(e.target.value, 10);
+      isDraggingRef.current = true;
+      setLocalValue(newValue);
+      onChange(newValue);
+    };
+
+    const handleRelease = () => {
+      isDraggingRef.current = false;
+      if (onRelease) {
+        onRelease(localValue);
+      }
+    };
+
     return (
       <div className="flex flex-col gap-2">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{label}</label>
           <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400 tabular-nums">
-            {value}%
+            {localValue}%
           </span>
         </div>
         <input
           type="range"
           min="0"
           max="100"
-          value={value}
-          onChange={(e) => onChange(parseInt(e.target.value, 10))}
+          value={localValue}
+          onChange={handleChange}
+          onMouseUp={handleRelease}
+          onTouchEnd={handleRelease}
           disabled={disabled}
           className={`w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 ${colorClasses[color]} disabled:opacity-50 disabled:cursor-not-allowed`}
         />
@@ -83,15 +109,13 @@ export const OssmBleController = () => {
   const [patterns, setPatterns] = useState(DEFAULT_PATTERNS);
   const [isPaused, setIsPaused] = useState(true);
 
+  // Dev tools state
+  const [logs, setLogs] = useState([]);
+  const [logsExpanded, setLogsExpanded] = useState(false);
+  const [rawInput, setRawInput] = useState('');
+
   const commandCharacteristicRef = useRef(null);
   const serverRef = useRef(null);
-
-  // Debounce refs for slider controls
-  const DEBOUNCE_MS = 100;
-  const speedDebounceRef = useRef(null);
-  const depthDebounceRef = useRef(null);
-  const strokeDebounceRef = useRef(null);
-  const sensationDebounceRef = useRef(null);
 
   const [isSupported, setIsSupported] = useState(true);
 
@@ -99,14 +123,24 @@ export const OssmBleController = () => {
     setIsSupported(isWebBluetoothSupported());
   }, []);
 
-  // Cleanup debounce timers on unmount
+  const logsContainerRef = useRef(null);
+
+  // Auto-scroll logs when new entries are added (only within the container)
   useEffect(() => {
-    return () => {
-      if (speedDebounceRef.current) clearTimeout(speedDebounceRef.current);
-      if (depthDebounceRef.current) clearTimeout(depthDebounceRef.current);
-      if (strokeDebounceRef.current) clearTimeout(strokeDebounceRef.current);
-      if (sensationDebounceRef.current) clearTimeout(sensationDebounceRef.current);
+    if (logsExpanded && logsContainerRef.current) {
+      logsContainerRef.current.scrollTop = logsContainerRef.current.scrollHeight;
+    }
+  }, [logs]);
+
+  // Helper to add log entries
+  const addLog = useCallback((direction, data) => {
+    const entry = {
+      id: Date.now() + Math.random(),
+      timestamp: new Date().toISOString().split('T')[1].slice(0, 12),
+      direction,
+      data,
     };
+    setLogs((prev) => [...prev.slice(-99), entry]); // Keep last 100 entries
   }, []);
 
   const sendCommand = useCallback(async (command) => {
@@ -116,6 +150,7 @@ export const OssmBleController = () => {
     }
 
     console.log('[OSSM BLE] Sending:', command);
+    addLog('TX', command);
 
     try {
       const encoder = new TextEncoder();
@@ -123,48 +158,47 @@ export const OssmBleController = () => {
       return true;
     } catch (err) {
       console.error('Failed to send command:', err);
+      addLog('ERR', `Send failed: ${err.message}`);
       setError(`Failed to send command: ${err.message}`);
       return false;
     }
-  }, []);
+  }, [addLog]);
 
+  // Local state updates during drag (no network calls)
   const handleSpeedChange = useCallback((value) => {
     setSpeed(value);
     if (value > 0 && isPaused) {
       setIsPaused(false);
     }
-
-    if (speedDebounceRef.current) clearTimeout(speedDebounceRef.current);
-    speedDebounceRef.current = setTimeout(() => {
-      sendCommand(`set:speed:${value}`);
-    }, DEBOUNCE_MS);
-  }, [sendCommand, isPaused]);
+  }, [isPaused]);
 
   const handleDepthChange = useCallback((value) => {
     setDepth(value);
-
-    if (depthDebounceRef.current) clearTimeout(depthDebounceRef.current);
-    depthDebounceRef.current = setTimeout(() => {
-      sendCommand(`set:depth:${value}`);
-    }, DEBOUNCE_MS);
-  }, [sendCommand]);
+  }, []);
 
   const handleStrokeChange = useCallback((value) => {
     setStroke(value);
-
-    if (strokeDebounceRef.current) clearTimeout(strokeDebounceRef.current);
-    strokeDebounceRef.current = setTimeout(() => {
-      sendCommand(`set:stroke:${value}`);
-    }, DEBOUNCE_MS);
-  }, [sendCommand]);
+  }, []);
 
   const handleSensationChange = useCallback((value) => {
     setSensation(value);
+  }, []);
 
-    if (sensationDebounceRef.current) clearTimeout(sensationDebounceRef.current);
-    sensationDebounceRef.current = setTimeout(() => {
-      sendCommand(`set:sensation:${value}`);
-    }, DEBOUNCE_MS);
+  // Send commands on slider release
+  const handleSpeedRelease = useCallback((value) => {
+    sendCommand(`set:speed:${value}`);
+  }, [sendCommand]);
+
+  const handleDepthRelease = useCallback((value) => {
+    sendCommand(`set:depth:${value}`);
+  }, [sendCommand]);
+
+  const handleStrokeRelease = useCallback((value) => {
+    sendCommand(`set:stroke:${value}`);
+  }, [sendCommand]);
+
+  const handleSensationRelease = useCallback((value) => {
+    sendCommand(`set:sensation:${value}`);
   }, [sendCommand]);
 
   const handlePatternChange = useCallback(async (patternIdx) => {
@@ -222,7 +256,9 @@ export const OssmBleController = () => {
       try {
         const stateChar = await service.getCharacteristic(OSSM_STATE_CHARACTERISTIC_UUID);
         const stateValue = await stateChar.readValue();
-        const state = JSON.parse(new TextDecoder().decode(stateValue));
+        const stateRaw = new TextDecoder().decode(stateValue);
+        addLog('RX', `state: ${stateRaw}`);
+        const state = JSON.parse(stateRaw);
         console.log('[OSSM BLE] Parsed state:', {
           speed: state.speed,
           depth: state.depth,
@@ -261,7 +297,9 @@ export const OssmBleController = () => {
       try {
         const patternsChar = await service.getCharacteristic(OSSM_PATTERNS_CHARACTERISTIC_UUID);
         const patternsValue = await patternsChar.readValue();
-        const devicePatterns = JSON.parse(new TextDecoder().decode(patternsValue));
+        const patternsRaw = new TextDecoder().decode(patternsValue);
+        addLog('RX', `patterns: ${patternsRaw}`);
+        const devicePatterns = JSON.parse(patternsRaw);
         console.log('[OSSM BLE] Parsed patterns:', devicePatterns);
 
         if (Array.isArray(devicePatterns) && devicePatterns.length > 0) {
@@ -303,6 +341,7 @@ export const OssmBleController = () => {
       try {
         const speedKnobLimitChar = await service.getCharacteristic(OSSM_SPEED_KNOB_LIMIT_CHARACTERISTIC_UUID);
         console.log('[OSSM BLE] Sending: speedKnobLimit = false');
+        addLog('TX', 'speedKnobLimit: false');
         await speedKnobLimitChar.writeValue(encoder.encode('false'));
       } catch (knobErr) {
         console.warn('Could not set speed knob limit:', knobErr);
@@ -310,6 +349,7 @@ export const OssmBleController = () => {
 
       // Enter stroke engine mode
       console.log('[OSSM BLE] Sending: go:strokeEngine');
+      addLog('TX', 'go:strokeEngine');
       await commandChar.writeValue(encoder.encode('go:strokeEngine'));
 
       setDevice(bleDevice);
@@ -325,7 +365,9 @@ export const OssmBleController = () => {
     if (commandCharacteristicRef.current) {
       try {
         const encoder = new TextEncoder();
+        addLog('TX', 'set:speed:0');
         await commandCharacteristicRef.current.writeValue(encoder.encode('set:speed:0'));
+        addLog('TX', 'go:menu');
         await commandCharacteristicRef.current.writeValue(encoder.encode('go:menu'));
       } catch (err) {
         console.warn('Could not send disconnect commands:', err);
@@ -454,6 +496,7 @@ export const OssmBleController = () => {
               label="Speed"
               value={speed}
               onChange={handleSpeedChange}
+              onRelease={handleSpeedRelease}
               color="violet"
             />
           </div>
@@ -464,18 +507,21 @@ export const OssmBleController = () => {
               label="Depth"
               value={depth}
               onChange={handleDepthChange}
+              onRelease={handleDepthRelease}
               color="red"
             />
             <Slider
               label="Stroke"
               value={stroke}
               onChange={handleStrokeChange}
+              onRelease={handleStrokeRelease}
               color="green"
             />
             <Slider
               label="Sensation"
               value={sensation}
               onChange={handleSensationChange}
+              onRelease={handleSensationRelease}
               color="blue"
             />
           </div>
@@ -495,6 +541,99 @@ export const OssmBleController = () => {
                   disabled={false}
                 />
               ))}
+            </div>
+          </div>
+
+          {/* Dev Tools Section */}
+          <div className="mt-6 border-t border-zinc-200 dark:border-zinc-700 pt-4">
+            {/* Raw Text Input */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                Raw Command
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={rawInput}
+                  onChange={(e) => setRawInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && rawInput.trim()) {
+                      sendCommand(rawInput.trim());
+                      setRawInput('');
+                    }
+                  }}
+                  placeholder="e.g., set:speed:50"
+                  className="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-mono text-zinc-900 placeholder-zinc-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+                />
+                <button
+                  onClick={() => {
+                    if (rawInput.trim()) {
+                      sendCommand(rawInput.trim());
+                      setRawInput('');
+                    }
+                  }}
+                  disabled={!rawInput.trim()}
+                  className="rounded-lg bg-violet-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+
+            {/* Collapsible Raw Logs */}
+            <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+              <button
+                onClick={() => setLogsExpanded(!logsExpanded)}
+                className="w-full flex items-center justify-between px-3 py-2 bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+              >
+                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Raw Logs ({logs.length})
+                </span>
+                <svg
+                  className={`h-4 w-4 text-zinc-500 transition-transform ${logsExpanded ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {logsExpanded && (
+                <div ref={logsContainerRef} className="max-h-48 overflow-y-auto bg-zinc-900 p-2">
+                  {logs.length === 0 ? (
+                    <p className="text-xs text-zinc-500 font-mono">No logs yet...</p>
+                  ) : (
+                    <div className="space-y-0.5">
+                      {logs.map((log) => (
+                        <div key={log.id} className="text-xs font-mono flex gap-2">
+                          <span className="text-zinc-500 shrink-0">{log.timestamp}</span>
+                          <span
+                            className={`shrink-0 font-semibold ${log.direction === 'TX'
+                              ? 'text-green-400'
+                              : log.direction === 'RX'
+                                ? 'text-blue-400'
+                                : 'text-red-400'
+                              }`}
+                          >
+                            {log.direction}
+                          </span>
+                          <span className="text-zinc-300 break-all">{log.data}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {logsExpanded && logs.length > 0 && (
+                <button
+                  onClick={() => setLogs([])}
+                  className="w-full px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 bg-zinc-50 dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700"
+                >
+                  Clear Logs
+                </button>
+              )}
             </div>
           </div>
         </>

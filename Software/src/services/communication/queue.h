@@ -5,6 +5,19 @@
 
 #include <queue>
 
+struct PositionTime {
+    // 0 - 180
+    uint8_t position;
+    // in ms
+    uint16_t inTime;
+};
+
 extern std::queue<String> messageQueue;
+extern PositionTime lastPositionTime;
+extern PositionTime targetPositionTime;
+extern bool targetUpdated;
+
+void markTargetUpdated();
+bool consumeTargetUpdate();
 
 #endif  // OSSM_COMMUNICATION_QUEUE_H

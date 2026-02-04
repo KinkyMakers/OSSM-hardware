@@ -4,6 +4,7 @@
 
 #include "constants/Config.h"
 #include "services/communication/nimble.h"
+#include "services/communication/queue.h"
 
 void OSSM::startSimplePenetrationTask(void *pvParameters) {
     OSSM *ossm = (OSSM *)pvParameters;
@@ -105,4 +106,88 @@ void OSSM::startSimplePenetration() {
         startSimplePenetrationTask, "startSimplePenetrationTask", stackSize,
         this, configMAX_PRIORITIES - 1, &Tasks::runSimplePenetrationTaskH,
         Tasks::operationTaskCore);
+}
+
+void startStreamingTask(void *pvParameters) {
+    OSSM *ossm = (OSSM *)pvParameters;
+
+    auto isInCorrectState = [](OSSM *ossm) {
+        return ossm->sm->is("streaming"_s) ||
+               ossm->sm->is("streaming.preflight"_s) ||
+               ossm->sm->is("streaming.idle"_s);
+    };
+    // Reset to home position
+    ossm->stepper->moveTo(0, true);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
+    // Motion state
+    float currentPosition = 0;
+    float targetPosition = 0.0f;
+
+    // Set initial max speed and acceleration
+    ossm->stepper->setSpeedInHz((1_mm) * Config::Driver::maxSpeedMmPerSecond);
+    ossm->stepper->setAcceleration((1_mm) * Config::Driver::maxAcceleration);
+
+    while (isInCorrectState(ossm)) {
+        // Wait for new command from BLE
+        if (!consumeTargetUpdate()) {
+            vTaskDelay(1);
+            continue;
+        }
+
+        // Calculate target position from FTS position (0-180)
+        // FTS: 0 = retracted, 180 = extended
+        // Stepper: 0 = home (retracted), negative = extended
+        targetPosition =
+            -(static_cast<float>(targetPositionTime.position) / 180.0f) *
+            ossm->measuredStrokeSteps;
+
+        currentPosition =
+            static_cast<float>(ossm->stepper->getCurrentPosition());
+
+        // Calculate distance to travel (in steps)
+        float distance = abs(targetPosition - currentPosition);
+
+        // Time to reach target (in seconds)
+        float timeSeconds = targetPositionTime.inTime / 1000.0f;
+
+        float maxSpeed = Config::Driver::maxSpeedMmPerSecond * (1_mm);
+        float maxAccel = Config::Driver::maxAcceleration * (1_mm);
+
+        // Always use maximum acceleration for responsive motion
+        ossm->stepper->setAcceleration(maxAccel);
+
+        // Calculate required speed to reach target in given time
+        if (timeSeconds > 0.01f && distance > 1.0f) {
+            // v = d / t (basic kinematics for constant velocity)
+            // Use 1.5x to account for accel/decel phases eating into travel time
+            float requiredSpeed = (distance / timeSeconds) * 1.5f;
+
+            // Clamp to safe limits
+            requiredSpeed = constrain(requiredSpeed, 100.0f, maxSpeed);
+
+            ESP_LOGI("Streaming", "Pos: %d -> %.0f, Dist: %.0f, Time: %.3fs, Speed: %.0f",
+                     targetPositionTime.position, targetPosition, distance, timeSeconds, requiredSpeed);
+
+            ossm->stepper->setSpeedInHz(static_cast<uint32_t>(requiredSpeed));
+        } else {
+            // Very short time or no distance - use max speed
+            ossm->stepper->setSpeedInHz(static_cast<uint32_t>(maxSpeed));
+        }
+
+        ossm->stepper->applySpeedAcceleration();
+        ossm->stepper->moveTo(static_cast<int32_t>(targetPosition), false);
+
+        vTaskDelay(1);
+    }
+
+    vTaskDelete(nullptr);
+}
+
+void OSSM::startStreaming() {
+    int stackSize = 10 * configMINIMAL_STACK_SIZE;
+
+    xTaskCreatePinnedToCore(startStreamingTask, "startStreamingTask", stackSize,
+                            this, configMAX_PRIORITIES - 1, nullptr,
+                            Tasks::operationTaskCore);
 }
