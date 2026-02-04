@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSSM Funscript Player</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0f0f0f;
+            color: #e4e4e7;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .card {
+            background-color: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fafafa;
+            margin: 0;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #a1a1aa;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #71717a;
+        }
+
+        .status-dot.connected {
+            background-color: #22c55e;
+        }
+
+        .status-dot.connecting {
+            background-color: #eab308;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: #7c3aed;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #6d28d9;
+        }
+
+        .btn-secondary {
+            background-color: #27272a;
+            color: #e4e4e7;
+            border: 1px solid #3f3f46;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #3f3f46;
+        }
+
+        .btn-danger {
+            background-color: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background-color: #b91c1c;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .video-container {
+            position: relative;
+            background-color: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        #video-player {
+            width: 100%;
+            max-height: 400px;
+            display: block;
+        }
+
+        .video-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: #71717a;
+            gap: 12px;
+        }
+
+        .video-placeholder svg {
+            width: 48px;
+            height: 48px;
+        }
+
+        .file-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .file-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .file-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .file-input-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #a1a1aa;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-input-display {
+            padding: 12px 16px;
+            background-color: #27272a;
+            border: 1px dashed #3f3f46;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #a1a1aa;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .file-input-wrapper:hover .file-input-display {
+            border-color: #7c3aed;
+            color: #e4e4e7;
+        }
+
+        .file-input-display.has-file {
+            border-style: solid;
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .slider-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #a1a1aa;
+            margin-bottom: 4px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #27272a;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #7c3aed;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #7c3aed;
+            cursor: pointer;
+            border: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .stat-item {
+            background-color: #27272a;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fafafa;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #71717a;
+            margin-top: 4px;
+        }
+
+        .logs-container {
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #0f0f0f;
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            display: flex;
+            gap: 8px;
+            padding: 2px 0;
+        }
+
+        .log-time {
+            color: #52525b;
+            flex-shrink: 0;
+        }
+
+        .log-direction {
+            font-weight: 600;
+            flex-shrink: 0;
+            width: 24px;
+        }
+
+        .log-direction.tx {
+            color: #22c55e;
+        }
+
+        .log-direction.rx {
+            color: #3b82f6;
+        }
+
+        .log-direction.err {
+            color: #ef4444;
+        }
+
+        .log-direction.info {
+            color: #eab308;
+        }
+
+        .log-message {
+            color: #a1a1aa;
+            word-break: break-all;
+        }
+
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .logs-toggle {
+            font-size: 13px;
+            color: #71717a;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .logs-toggle:hover {
+            color: #a1a1aa;
+        }
+
+        .position-preview {
+            height: 8px;
+            background-color: #27272a;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 16px;
+        }
+
+        .position-bar {
+            height: 100%;
+            background-color: #7c3aed;
+            width: 0%;
+            transition: width 0.05s linear;
+        }
+
+        .warning-banner {
+            background-color: #422006;
+            border: 1px solid #854d0e;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .warning-banner.visible {
+            display: block;
+        }
+
+        .warning-text {
+            color: #fef08a;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Warning Banner -->
+        <div id="browser-warning" class="warning-banner">
+            <p class="warning-text">
+                Web Bluetooth is not supported in this browser. Please use Chrome, Edge, or Opera on desktop or Android.
+            </p>
+        </div>
+
+        <!-- Connection Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">OSSM Connection</h2>
+                <div class="status-indicator">
+                    <span class="status-dot" id="status-dot"></span>
+                    <span id="status-text">Disconnected</span>
+                </div>
+            </div>
+            <div class="button-group">
+                <button id="connect-btn" class="btn btn-primary">Connect to OSSM</button>
+                <button id="disconnect-btn" class="btn btn-secondary hidden">Disconnect</button>
+            </div>
+        </div>
+
+        <!-- Video & Files Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Video & Funscript</h2>
+            </div>
+
+            <div class="file-inputs">
+                <div class="file-input-group">
+                    <label>Video File</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="video-input" accept="video/*">
+                        <div class="file-input-display" id="video-file-display">
+                            Drop or click to select video
+                        </div>
+                    </div>
+                </div>
+                <div class="file-input-group">
+                    <label>Funscript File</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="funscript-input" accept=".funscript,.json">
+                        <div class="file-input-display" id="funscript-file-display">
+                            Drop or click to select .funscript
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="video-container">
+                <div class="video-placeholder" id="video-placeholder">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
+                    <span>Load a video file to begin</span>
+                </div>
+                <video id="video-player" controls class="hidden"></video>
+            </div>
+
+            <div class="position-preview">
+                <div class="position-bar" id="position-bar"></div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="current-time">0:00</div>
+                    <div class="stat-label">Current Time</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="current-position">0</div>
+                    <div class="stat-label">Position</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="actions-count">0</div>
+                    <div class="stat-label">Actions</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="commands-sent">0</div>
+                    <div class="stat-label">Commands Sent</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Playback Settings Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Playback Settings</h2>
+            </div>
+
+            <div class="controls-row">
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Time Offset</span>
+                        <span id="offset-value">0ms</span>
+                    </div>
+                    <input type="range" class="slider" id="offset-slider" min="-500" max="500" value="0">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Look-ahead</span>
+                        <span id="lookahead-value">100ms</span>
+                    </div>
+                    <input type="range" class="slider" id="lookahead-slider" min="0" max="500" value="100">
+                </div>
+            </div>
+        </div>
+
+        <!-- Debug Logs Card -->
+        <div class="card">
+            <div class="logs-header">
+                <h2 class="card-title">Debug Logs</h2>
+                <span class="logs-toggle" id="clear-logs">Clear</span>
+            </div>
+            <div class="logs-container" id="logs-container">
+                <!-- Log entries will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

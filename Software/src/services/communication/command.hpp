@@ -12,7 +12,7 @@
 #include "services/led.h"
 
 static const std::regex commandRegex(
-    R"(go:(simplePenetration|strokeEngine|menu)|set:(speed|stroke|depth|sensation|pattern):\d+)");
+    R"(go:(simplePenetration|strokeEngine|streaming|menu)|set:(speed|stroke|depth|sensation|pattern):\d+|stream:\d+:\d+)");
 
 /** Handler class for characteristic actions */
 class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
@@ -30,7 +30,7 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
             return;
         }
         messageQueue.push(String(cmd.c_str()));
-        
+
         // Trigger LED communication pulse for received command
         pulseForCommunication();
     }

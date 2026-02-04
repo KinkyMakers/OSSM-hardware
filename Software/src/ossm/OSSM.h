@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <services/board.h>
+#include <services/communication/queue.h>
 
 #include <command/commands.hpp>
 
@@ -440,6 +441,17 @@ class OSSM : public OSSMInterface {
             case Commands::setPattern:
                 setting.pattern =
                     static_cast<StrokePatterns>(command.value % 7);
+                break;
+            case Commands::streamPosition:
+                // Scale position from 0-100 to 0-180 (internal format)
+                // and update streaming target
+                lastPositionTime = targetPositionTime;
+                targetPositionTime = {
+                    static_cast<uint8_t>((command.value * 180) / 100),
+                    static_cast<uint16_t>(command.time)};
+                markTargetUpdated();
+                ESP_LOGD("OSSM", "Stream: pos=%d, time=%d", command.value,
+                         command.time);
                 break;
             case Commands::ignore:
                 break;
