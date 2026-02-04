@@ -289,6 +289,15 @@
                       "ossm/Hardware/ossm-mods/salad-dressing/weight-plate",
                       "ossm/Hardware/ossm-mods/salad-dressing/quick-change-toy-mount"
                     ]
+                  },
+                  {
+                    "group": "Basic Mount (Legacy)",
+                    "pages": [
+                      "ossm/Hardware/ossm-mods/basic-mount/introduction",
+                      "ossm/Hardware/ossm-mods/basic-mount/side-1",
+                      "ossm/Hardware/ossm-mods/basic-mount/side-2",
+                      "ossm/Hardware/ossm-mods/basic-mount/spacer"
+                    ]
                   }
                 ]
               },
