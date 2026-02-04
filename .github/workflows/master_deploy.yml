@@ -1,0 +1,243 @@
+name: Master Branch Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  check_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changes_detected: ${{ steps.check_changes.outputs.changes_detected }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes in Software directory
+        id: check_changes
+        run: |
+          # Compare the previous state of master with the current state after merge
+          # This captures all commits that were merged in the PR
+          if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q "^Software/"; then
+            echo "Changes detected in Software directory"
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+          else
+            echo "No changes in Software directory, skipping build"
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+          fi
+
+  build:
+    needs: check_changes
+    if: needs.check_changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Build PlatformIO Project
+        run: |
+          cd Software
+          pio run -e production
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-bin
+          path: |
+            Software/.pio/build/production/firmware.bin
+            Software/.pio/build/production/partitions.bin
+            Software/.pio/build/production/bootloader.bin
+          retention-days: 1
+
+  upload_to_supabase:
+    needs: [check_changes, build]
+    if: needs.check_changes.outputs.changes_detected == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download firmware artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware-bin
+          path: ./firmware
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Clear master directory in Supabase
+        run: |
+          # List all files in master directory and remove any that aren't our target files
+          BUCKET="ossm-firmware"
+          PREFIX="master/"
+
+          # Get list of files via Supabase REST API
+          RESPONSE=$(curl -s -X POST "https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/list/${BUCKET}" \
+            -H "apikey: ${SUPABASE_ACCESS_TOKEN}" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"prefix\": \"${PREFIX}\", \"limit\": 1000}")
+
+          # Extract file names and delete any that aren't our 4 target files
+          echo "$RESPONSE" | jq -r '.[]?.name // empty' | while read -r file; do
+            if [ -n "$file" ]; then
+              # Remove the prefix to get just the filename
+              filename="${file#$PREFIX}"
+              if [[ "$filename" != "firmware.bin" && "$filename" != "partitions.bin" && "$filename" != "bootloader.bin" && "$filename" != "manifest.json" ]]; then
+                echo "Removing unexpected file: $file"
+                curl -s -X DELETE "https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/${BUCKET}/${file}" \
+                  -H "apikey: ${SUPABASE_ACCESS_TOKEN}" \
+                  -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" || true
+              fi
+            fi
+          done
+        continue-on-error: true
+
+      - name: Upload firmware to Supabase Storage
+        run: |
+          supabase storage rm "ss:///ossm-firmware/master/firmware.bin" --experimental --yes 
+          supabase storage rm "ss:///ossm-firmware/master/partitions.bin" --experimental --yes 
+          supabase storage rm "ss:///ossm-firmware/master/bootloader.bin" --experimental --yes 
+          supabase storage rm "ss:///ossm-firmware/master/manifest.json" --experimental --yes 
+          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/master/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/master/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          supabase storage cp ./firmware/bootloader.bin "ss:///ossm-firmware/master/bootloader.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+
+      - name: Create and upload manifest.json
+        run: |
+          # Create a temporary manifest file with "master" as the branch name
+          cat .github/artifacts/manifest.json | sed "s/{{ branchName }}/master/g" > ./manifest.json
+
+          # Upload the manifest file to Supabase Storage
+          supabase storage cp ./manifest.json "ss:///ossm-firmware/master/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
+
+      - name: Download registry.json
+        id: download_registry
+        run: |
+          if supabase storage cp "ss:///ossm-firmware/registry.json" ./registry.json --experimental; then
+            echo "registry_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Registry.json does not exist. Failing workflow."
+            exit 1
+          fi
+
+      - name: Determine merged branch and clean up registry
+        id: cleanup_registry
+        run: |
+          # Get commits between before and after to find merge commits
+          MERGE_COMMITS=$(git log --format="%H %s" ${{ github.event.before }}..${{ github.event.after }} --merges || echo "")
+
+          MERGED_BRANCH=""
+          if [ -n "$MERGE_COMMITS" ]; then
+            # Try to extract branch name from merge commit message
+            # GitHub merge commits typically have format: "Merge pull request #X from owner/branch-name"
+            while IFS= read -r line; do
+              if echo "$line" | grep -q "Merge pull request"; then
+                # Extract branch name from merge commit message
+                BRANCH_NAME=$(echo "$line" | sed -n 's/.*from [^/]*\/\(.*\)/\1/p' | head -1)
+                if [ -n "$BRANCH_NAME" ]; then
+                  # URL encode the branch name
+                  ENCODED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/\//%2F/g' | sed 's/+/%2B/g' | sed 's/ /%20/g')
+                  
+                  # Check if this branch exists in registry
+                  if cat ./registry.json | jq -e "has(\"$ENCODED_BRANCH\")" > /dev/null 2>&1; then
+                    MERGED_BRANCH="$ENCODED_BRANCH"
+                    echo "Found merged branch in registry: $MERGED_BRANCH"
+                    break
+                  fi
+                fi
+              fi
+            done <<< "$MERGE_COMMITS"
+          fi
+
+          # If we didn't find it from merge commits, check all branches in registry
+          if [ -z "$MERGED_BRANCH" ]; then
+            echo "Checking all branches in registry for merged branches..."
+            for branch_path in $(cat ./registry.json | jq -r 'keys[]'); do
+              # Skip master branch
+              if [ "$branch_path" = "master" ]; then
+                continue
+              fi
+              
+              # Decode branch name (basic URL decode)
+              DECODED_BRANCH=$(echo "$branch_path" | sed 's/%2F/\//g' | sed 's/%2B/+/g' | sed 's/%20/ /g')
+              
+              # Check if branch still exists as a remote branch
+              if ! git ls-remote --heads origin "$DECODED_BRANCH" > /dev/null 2>&1; then
+                MERGED_BRANCH="$branch_path"
+                echo "Found merged branch (no longer exists): $MERGED_BRANCH"
+                break
+              fi
+            done
+          fi
+
+          if [ -n "$MERGED_BRANCH" ]; then
+            echo "merged_branch=$MERGED_BRANCH" >> $GITHUB_OUTPUT
+            echo "Will clean up branch: $MERGED_BRANCH"
+          else
+            echo "No merged branch found to clean up"
+          fi
+
+      - name: Remove merged branch from registry and storage
+        if: steps.cleanup_registry.outputs.merged_branch != ''
+        run: |
+          MERGED_BRANCH="${{ steps.cleanup_registry.outputs.merged_branch }}"
+          BUCKET="ossm-firmware"
+
+          # Remove branch from registry
+          REGISTRY=$(cat ./registry.json)
+          REGISTRY=$(echo "$REGISTRY" | jq "del(.[\"$MERGED_BRANCH\"])")
+          echo "$REGISTRY" > ./registry.json
+          echo "Removed $MERGED_BRANCH from registry"
+
+          # Delete all files for this branch from Supabase storage
+          # List all files with the branch prefix
+          RESPONSE=$(curl -s -X POST "https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/list/${BUCKET}" \
+            -H "apikey: ${SUPABASE_ACCESS_TOKEN}" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"prefix\": \"${MERGED_BRANCH}/\", \"limit\": 1000}")
+
+          # Delete each file
+          echo "$RESPONSE" | jq -r '.[]?.name // empty' | while read -r file; do
+            if [ -n "$file" ]; then
+              echo "Deleting file: $file"
+              curl -s -X DELETE "https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/${BUCKET}/${file}" \
+                -H "apikey: ${SUPABASE_ACCESS_TOKEN}" \
+                -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" || true
+            fi
+          done
+
+          echo "Cleaned up all files for branch: $MERGED_BRANCH"
+
+      - name: Upload updated registry.json
+        if: steps.cleanup_registry.outputs.merged_branch != ''
+        run: |
+          # Delete existing registry.json if it exists, then upload the updated one
+          supabase storage rm "ss:///ossm-firmware/registry.json" --experimental --yes || true
+          supabase storage cp ./registry.json "ss:///ossm-firmware/registry.json" --content-type "application/json" --cache-control "no-cache" --experimental

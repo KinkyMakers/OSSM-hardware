@@ -1,0 +1,86 @@
+---
+title: "Stand - Extrusion Cap"
+description: "End cap for finishing exposed 3030 aluminum extrusion ends"
+---
+
+import { STLViewer } from '/snippets/ossm/stl-render.jsx';
+
+<STLViewer url="https://raw.githubusercontent.com/KinkyMakers/OSSM-hardware/main/Printed%20Parts/Stand/OSSM%20-%20Stand%20-%203030%20Extrusion%20Base%20-%20Extrusion%20Cap.stl" />
+
+## Overview
+
+The Extrusion Cap cleanly finishes exposed ends of 3030 aluminum extrusion on the stand assembly. It press‑fits into the profile to cover sharp edges, improve appearance, and prevent dust ingress on non‑floor‑contact ends.
+
+<Info>
+You need 6 Extrusion Caps per stand.
+</Info>
+
+## Printing guidance
+
+- Material: PLA or PETG (PETG recommended for higher temperature environments)
+- Layer height: 0.20–0.28 mm
+- Nozzle: 0.4 mm (standard)
+- Supports: None
+- Build plate adhesion: Skirt or none
+- Quantity: Print 6 caps
+
+<Tip>
+These small parts print quickly. Consider arranging all 6 on one plate to save time.
+</Tip>
+
+### Slicer settings
+
+- Walls: 6
+- Infill: 25% (Cross Hatch or Gyroid)
+- Top/Bottom: Use your standard profile; solid top layers produce the best finish
+
+<Warning>
+Do not substitute these for feet on floor‑contact ends. They are cosmetic and not designed to bear load or provide grip.
+</Warning>
+
+## Install and verify
+
+<Steps>
+<Step title="Orient and print">
+  Place the cap with the face down on the build plate for a smooth exterior. Print with the settings above.
+</Step>
+
+<Step title="Deburr if needed">
+  After printing, remove any brim or stringing. Lightly chamfer edges with a hobby knife for easier insertion.
+</Step>
+
+<Step title="Test‑fit one cap">
+  Press‑fit a single cap into a spare 3030 extrusion end. The fit should be snug without cracking. If it is too tight, reduce X/Y scale by 0.5–1.0% and reprint; if too loose, increase X/Y scale by 0.5–1.0%.
+
+  <Check>
+  A correct fit sits flush with the extrusion face and does not wobble when pulled.
+  </Check>
+</Step>
+
+<Step title="Install remaining caps">
+  Press‑fit the remaining caps on all non‑floor‑contact ends of the stand frame.
+</Step>
+</Steps>
+
+<AccordionGroup>
+<Accordion title="Troubleshooting">
+- Cap won’t seat fully: Check for elephant’s foot on the first layer; add a 0.2–0.3 mm negative horizontal expansion on the first layer or enable a small chamfer in CAD.
+- Fit too tight: Lower print temperature slightly, enable outer‑wall slowdown, or reduce X/Y scale by small increments (0.5%).
+- Fit too loose: Increase X/Y scale in 0.5% steps or raise wall count to 8 for slightly more stiffness.
+</Accordion>
+
+<Accordion title="Maintenance">
+Wipe caps with a damp cloth. If a cap loosens over time, apply a small strip of painter’s tape or a dot of removable adhesive to the inner wall and re‑install.
+</Accordion>
+</AccordionGroup>
+
+## Download files
+
+<CardGroup cols={2}>
+  <Card title="STL File" icon="cube" href="https://github.com/KinkyMakers/OSSM-hardware/blob/main/Printed%20Parts/Stand/OSSM%20-%20Stand%20-%203030%20Extrusion%20Base%20-%20Extrusion%20Cap.stl">
+    Download for slicing
+  </Card>
+  <Card title="STEP File" icon="drafting-compass" href="https://github.com/KinkyMakers/OSSM-hardware/blob/main/Printed%20Parts/Stand/STEP/OSSM%20-%20Stand%20-%203030%20Extrusion%20Base%20-%20Extrusion%20Cap.stp">
+    For CAD modification
+  </Card>
+</CardGroup>

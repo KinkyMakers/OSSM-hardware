@@ -1,0 +1,238 @@
+---
+title: "WiFi and Updates"
+description: "Configure WiFi connectivity and install over-the-air firmware updates on your OSSM"
+---
+
+The OSSM supports WiFi connectivity for over-the-air (OTA) firmware updates. This guide explains how to connect your OSSM to your home network and check for updates.
+
+## WiFi setup
+
+### Starting WiFi setup
+
+<Steps>
+<Step title="Navigate to WiFi Setup">
+From the main menu, scroll to **WiFi Setup** and press the encoder to select it.
+</Step>
+
+<Step title="View connection instructions">
+The display shows:
+
+- "WiFi Setup" header
+- Instructions to connect to 'OSSM Setup'
+- A QR code for quick connection
+
+The QR code encodes: `WIFI:S:OSSM Setup;T:nopass;;`
+</Step>
+
+<Step title="Connect to the OSSM access point">
+On your phone or computer:
+
+1. Open WiFi settings
+2. Look for a network named **OSSM Setup**
+3. Connect (no password required)
+
+<Tip>
+Scan the QR code with your phone's camera for one-tap connection on supported devices.
+</Tip>
+</Step>
+
+<Step title="Configure your home network">
+After connecting to the OSSM access point:
+
+1. A captive portal should open automatically
+2. If not, open a browser and navigate to `192.168.4.1`
+3. Select your home WiFi network from the list
+4. Enter your WiFi password
+5. Click **Save**
+
+The OSSM will attempt to connect to your home network.
+</Step>
+
+<Step title="Exit WiFi setup">
+Press the encoder or select **Restart** to exit WiFi setup mode. The OSSM will restart and connect to your configured network.
+</Step>
+</Steps>
+
+### Verifying connection
+
+After restarting, the OSSM will attempt to connect to your configured WiFi network. You can verify the connection by:
+
+1. Selecting **Update** from the main menu
+2. If WiFi is connected, you'll see "Checking for update..."
+3. If WiFi is not connected, you'll be redirected to WiFi setup
+
+<Note>
+The OSSM doesn't display its IP address on screen. For advanced networking, you can find it in your router's DHCP client list or use network scanning tools.
+</Note>
+
+### Clearing WiFi settings
+
+To connect to a different network or troubleshoot connection issues:
+
+1. Select **WiFi Setup** from the menu
+2. The previous network configuration will be overwritten when you save new settings
+3. Alternatively, reflash the firmware to clear all settings
+
+## Over-the-air updates
+
+The OSSM can download and install firmware updates directly over WiFi, without connecting to a computer.
+
+### Prerequisites
+
+- Active WiFi connection (configured via WiFi Setup)
+- Internet access from your network
+- Sufficient battery/power during the update process
+
+### Checking for updates
+
+<Steps>
+<Step title="Navigate to Update">
+From the main menu, scroll to **Update** and press the encoder.
+</Step>
+
+<Step title="Wait for version check">
+The display shows "Checking for update..." while the OSSM contacts the update server.
+
+The firmware sends its current version (`SW_VERSION`) to the server, which responds with whether an update is available.
+</Step>
+
+<Step title="Review result">
+You'll see one of two screens:
+
+**No update available:**
+- "No Update Available" message
+- Press the encoder to return to the menu
+
+**Update available:**
+- "Updating OSSM..." message
+- Update begins automatically
+</Step>
+</Steps>
+
+### During the update
+
+<Warning>
+Do not power off or disconnect your OSSM during an update. This can corrupt the firmware and require manual recovery.
+</Warning>
+
+The update process:
+
+1. Downloads the new firmware binary (~1-2 MB)
+2. Verifies the download integrity
+3. Writes the firmware to flash memory
+4. Restarts the device automatically
+
+The display shows: "Update is in progress. This may take up to 60s."
+
+### After the update
+
+The OSSM restarts automatically after a successful update. It will:
+
+1. Boot with the new firmware
+2. Perform the homing sequence
+3. Return to the main menu
+
+<Check>
+Your settings and WiFi configuration are preserved across updates.
+</Check>
+
+### Update channels
+
+The OSSM firmware supports multiple update channels:
+
+| Channel | URL | Description |
+|---------|-----|-------------|
+| Production | `d2g4f7zewm360.cloudfront.net` | Stable releases for general use |
+| Development | `d2oq8yqnezqh3r.cloudfront.net` | Pre-release versions for testing |
+
+<Note>
+The update channel is determined at compile time. Production firmware checks the production server; development firmware checks the development server.
+</Note>
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="Can't find OSSM Setup network">
+- Ensure you're in WiFi Setup mode (screen shows QR code)
+- Move closer to the OSSM
+- Try refreshing your device's WiFi list
+- Restart the OSSM and try again
+</Accordion>
+
+<Accordion title="Captive portal doesn't appear">
+- Open a browser manually and navigate to `192.168.4.1`
+- Disable mobile data on your phone temporarily
+- Try a different device
+</Accordion>
+
+<Accordion title="WiFi won't connect to home network">
+- Verify your WiFi password is correct
+- Ensure your network is 2.4GHz (ESP32 doesn't support 5GHz)
+- Check that your router allows new devices
+- Try moving the OSSM closer to your router
+</Accordion>
+
+<Accordion title="Update check fails">
+- Verify WiFi is connected (try WiFi Setup first)
+- Check your internet connection
+- The update server may be temporarily unavailable
+- Try again in a few minutes
+</Accordion>
+
+<Accordion title="Update download fails or times out">
+- Ensure stable WiFi signal during update
+- Move closer to your router if needed
+- Verify your internet connection is working
+- Try again with a fresh power connection
+</Accordion>
+
+<Accordion title="OSSM won't boot after update">
+This is rare but can happen if the update was interrupted. Recovery options:
+
+1. Try power cycling (unplug and replug power)
+2. If the device doesn't boot, you'll need to reflash via USB using [PlatformIO](/ossm/Software/getting-started/PlatformIO)
+</Accordion>
+</AccordionGroup>
+
+## Technical details
+
+### Update server communication
+
+The OSSM sends a POST request to the update server with:
+
+```json
+{
+  "ossmSwVersion": "x.y.z"
+}
+```
+
+The server responds with:
+
+```json
+{
+  "response": {
+    "needUpdate": true
+  }
+}
+```
+
+If `needUpdate` is `true`, the firmware downloads the binary from the firmware distribution server.
+
+### Firmware binary locations
+
+| Channel | Binary URL |
+|---------|------------|
+| Production | `d2sy3zdr3r1gt5.cloudfront.net/firmware.bin` |
+| Development | `d2sy3zdr3r1gt5.cloudfront.net/firmware-dev.bin` |
+
+## Related pages
+
+<CardGroup cols={2}>
+<Card title="PlatformIO Setup" icon="wrench" href="/ossm/Software/getting-started/PlatformIO">
+  Manual firmware updates via USB for development or recovery.
+</Card>
+
+<Card title="BLE Protocol" icon="bluetooth" href="/ossm/Software/communication/ble">
+  Control your OSSM wirelessly via Bluetooth instead of WiFi.
+</Card>
+</CardGroup>

@@ -1,0 +1,513 @@
+---
+title: "FAQs"
+description: "Common questions about OSSM hardware, motors, printing, mounting, and control options"
+---
+
+## General
+
+<AccordionGroup>
+<Accordion title="What is OSSM?">
+OSSM is a compact, customizable sex machine based around the NEMA23 motor mount pattern. You can drive it with stepper motors or, for best results, servo motors. The design combines 3D printed parts with off-the-shelf components, giving you full control over your build.
+</Accordion>
+
+<Accordion title="Why build an OSSM instead of buying a ready-made machine?">
+OSSM offers several advantages over commercial alternatives:
+
+- **Full control**: Adjust stroke speed and depth precisely
+- **Open platform**: You're not locked into a specific company's ecosystem
+- **Customizable**: Create patterns, write your own control software, or modify the hardware
+- **Adaptable**: Swap attachments, use different toy mounts, or upgrade to a larger motor
+- **Cost-effective**: More features than equivalently priced commercial machines
+</Accordion>
+
+<Accordion title="What parts do I need?">
+Check the [Bill of Materials](/ossm/guides/getting-started/build-guide/step-1.0_required_tools_and_parts) for the complete parts list. The BOM is regularly maintained and includes links to suppliers.
+</Accordion>
+
+<Accordion title="How powerful is the OSSM?">
+**Standard recommended build specs:**
+
+- **32 lbs (14 kg) of force** at 20V DC
+- **Up to 50 lbs (22 kg) of force** at 36V DC
+- **8" (20 cm) stroke** with a 350mm rail
+
+Many users successfully use large knotted toys anally without issue.
+</Accordion>
+
+<Accordion title="Why is there a 2.5 lb (1.1 kg) max toy weight?">
+The 2.5 lb (1.1 kg) maximum toy weight is a **conservative recommendation for reliable long-term performance**, not a hard failure threshold. Several factors contribute to this limit:
+
+- **Inertia during direction changes:** Heavier toys create more stress on the belt, printed parts, and mounting hardware during rapid acceleration and deceleration at stroke endpoints
+- **Belt wear and slippage:** Additional weight increases the load on the timing belt, especially at higher speeds
+- **Printed part durability:** Standard PLA or PETG parts may experience faster wear or creep under sustained heavy loads
+- **Cantilever stress:** The toy extends from the end-effector, creating a lever arm that amplifies forces on the rail carriage and bearings
+
+**If you want to exceed the recommendation:**
+
+- Print load-bearing parts in stronger materials (PETG, ABS, polycarbonate, or nylon)
+- Use the pitclamp system for improved rigidity
+- Request a wider 15mm belt for better power transfer
+- Reduce maximum speed to lower inertial forces during direction changes
+- Ensure proper belt tension and rail alignment
+
+The motor itself can handle significantly more—the spec reflects safe operating margins for the full mechanical system under typical use. Community members have experimented with heavier setups; join the Kinky Makers Discord to discuss modifications and real-world results.
+
+<DiscordInvite community="kinky-makers" />
+</Accordion>
+
+<Accordion title="Is the OSSM quiet?">
+Yes. OSSM uses a nearly silent belt drive system. When paired with a servo motor (recommended), the machine operates very quietly.
+</Accordion>
+
+<Accordion title="Is the OSSM really open source?">
+Yes—OSSM is certified open-source hardware under the **CERN Open Hardware Licence Version 2 - Strongly Reciprocal**.
+
+[![OSHWA Certification Badge](./_images/af168015-b80a-4464-8778-e391278d9748.webp)](https://certification.oshwa.org/ca000057.html)
+
+All contributions to the GitHub repository are assumed to use the same license.
+</Accordion>
+
+<Accordion title="What's the difference between DIY Kit and Ready-to-Play?">
+The main differences between the DIY Kit and Ready-to-Play are the mounting system and assembly state:
+
+| Feature | DIY Kit | Ready-to-Play |
+|---------|---------|---------------|
+| **Assembly** | Requires assembly using the build guide | Fully assembled, ready to use |
+| **Mounting system** | Middle pivot body (angle adjustment at the actuator) | PitClamp Mini (quick-release with integrated pivot for easier mobility) |
+| **Stand** | Not included—source your own or build a custom mount | Includes collapsible stand with sandbag counterweight |
+| **Remote** | Wired remote included | Wired or wireless remote (depending on configuration) |
+| **Power supply** | USB-C PD adapter included | 24V barrel jack supply included |
+
+The PitClamp Mini mounting system on Ready-to-Play units provides easier repositioning and angle adjustment during use. The DIY Kit's middle pivot body offers the same core functionality but requires more effort to reposition.
+
+Both configurations support the same stroke patterns, speeds, and accessories. For most users, the choice comes down to whether you want a hands-on build experience or a ready-to-use solution.
+
+<Tip>
+**Want the PitClamp Mini with your DIY Kit?** You can purchase the [PitClamp Mini kit](https://www.researchanddesire.com/products/pitclamp-mini) separately alongside the DIY Kit. The PitClamp kit includes its own non-pivot actuator middle body, which replaces the middle pivot body from the DIY Kit. You'll end up with a few extra parts, but everything is fully compatible.
+</Tip>
+</Accordion>
+</AccordionGroup>
+
+## Motors
+
+<AccordionGroup>
+<Accordion title="Which motor should I use?">
+While you can theoretically use any NEMA23 mount motor, some work better than others. The community recommends **closed-loop servo motors** over stepper motors because they are:
+
+- More efficient
+- Quieter during operation
+- Easier to program
+- More responsive across the full speed range
+
+<Warning>
+**Do not purchase the 60AIM motor.** Despite the similar naming, the 60AIM uses a larger NEMA24 (60 mm) frame that does not fit the standard OSSM printed parts. Stick with NEMA23 (57 mm) frame motors like the 57AIM30 Gold Motor.
+</Warning>
+
+<Tip>
+Stepper motors are cheaper but significantly noisier. For the best experience, invest in a servo motor.
+</Tip>
+</Accordion>
+
+<Accordion title="What motor strength do I need?">
+Your motor choice depends on several factors:
+
+- Vaginal or anal use
+- Size of toys
+- Desired speed
+
+**Motor recommendations:**
+
+| Motor | Use Case | Force |
+|-------|----------|-------|
+| **57AIM30 (Gold Motor)** | General purpose, recommended for new builds | ~20 lbs |
+| **100W iHSV57 Servo** | Vaginal with medium toys, anal with smaller toys | 10 lbs |
+| **140W iHSV57 Servo** | Vaginal with larger toys, anal with medium toys | 15 lbs |
+| **180W iHSV57 Servo** | Wide range of toys, vaginal or anal | 20 lbs |
+
+<Note>
+Servo motors deliver consistent torque across the entire speed range. Stepper motors produce maximum force at lower speeds and have a lower top speed than servos.
+</Note>
+
+For extremely large toys, consider the Squooter build (see the Kinky Makers Discord) which uses the larger NEMA34 motor mount.
+</Accordion>
+
+<Accordion title="Why does anal use require more powerful motors?">
+The muscles in the anal region are powerful. Users commonly bear down or clench during stimulation, which creates significant resistance. Larger toys combined with strong muscles require more motor power to maintain consistent motion.
+</Accordion>
+</AccordionGroup>
+
+## 3D Printing
+
+<AccordionGroup>
+<Accordion title="Where can I download STL files?">
+All OSSM STL files are available on the [Kinky Makers GitHub repository](https://github.com/KinkyMakers/OSSM-hardware/tree/main/Printed%20Parts). This includes:
+
+- Core actuator components
+- Toy mounting options (Vac-U-Lock adapter, flange base, double-double)
+- Stand parts
+- Remote enclosure
+- PitClamp Mini (if you want to upgrade from the standard middle pivot body)
+
+Each part in the [Hardware documentation](/ossm/Hardware/getting-started/introduction) also includes direct download links to the STL and STEP files.
+
+<Tip>
+If your DIY Kit came with a middle pivot body and you want the PitClamp Mini mounting system instead, you can print the PitClamp parts yourself using the files from GitHub. You'll also need the fasteners listed in the [PitClamp Mini Bill of Materials](/ossm/Hardware/standard-printed-parts/pitclamp/BOM)—these are not included in the DIY Kit. Contact [support@researchanddesire.com](mailto:support@researchanddesire.com) to purchase a hardware-only kit, or source the components yourself.
+</Tip>
+</Accordion>
+
+<Accordion title="What printer bed size do I need?">
+**Minimum requirements:**
+- Bed size: 105mm × 105mm
+- Print height: ~125mm (for the Vac-U-Lock compatible adapter)
+
+The plate mount is significantly shorter if height is a constraint.
+</Accordion>
+
+<Accordion title="What material should I use?">
+**Structural parts**: Use strong materials such as:
+- PLA
+- PETG
+- ABS
+- ASA
+- PCTG
+
+**Non-structural parts**: Print in whatever material you prefer.
+
+<Warning>
+Additives used in matte filaments may weaken the material. Check the material properties before using specialty filaments.
+</Warning>
+
+If you experiment with unusual materials, share your results in the Kinky Makers Discord!
+</Accordion>
+
+<Accordion title="What infill percentage should I use?">
+**30% infill** works well for PLA on non-flexible parts.
+</Accordion>
+
+<Accordion title="What wall thickness should I use?">
+Use at least **3mm walls** for non-flexible parts.
+</Accordion>
+
+<Accordion title="How do I print the flexible parts?">
+Some mounting solutions use clamps that require flexibility. For these parts:
+
+- Wall thickness: 2mm
+- Lower infill percentage
+- Gyroid infill pattern
+</Accordion>
+</AccordionGroup>
+
+## Mounting and Toys
+
+<AccordionGroup>
+<Accordion title="How do I mount toys onto the OSSM?">
+After choosing your motor, selecting a toy mount is your next decision. Options include:
+
+- **Vac-U-Lock compatible mount**: Works with the popular Vac-U-Lock system
+- **Double-double mount**: Alternative mounting system
+- **OSSM Platten**: Plate mount for suction cup toys with tie-down points
+</Accordion>
+
+<Accordion title="Does OSSM support KlicLok adapters?">
+Research & Desire does not currently sell a KlicLok adapter. OSSM uses a Vac-U-Lock compatible mounting system as its standard toy interface.
+
+If you have toys with KlicLok fittings, you have a few options:
+
+- **Community designs**: Some community members have designed KlicLok adapters—check the Kinky Makers Discord for community-contributed designs and discussions
+- **Third-party adapters**: KlicLok-to-Vac-U-Lock adapters are available from various retailers, allowing you to use KlicLok toys with the standard OSSM mount
+- **Alternative mounting**: Use the harness-style clamp or tie-on mounting methods, which can secure toys regardless of their base type
+
+<Tip>
+The M24×3 threaded end effector is an open standard—if you have 3D printing capabilities, you can design custom adapters for any mounting system.
+</Tip>
+</Accordion>
+
+<Accordion title="What can I mount the machine on?">
+Several mounting options are available:
+
+- Standard pipe mounts (US/Canadian sizing)
+- 80/20 aluminum extrusion rails (modular construction system)
+- Manfrotto boom compatible adapters
+
+Your mounting solution is limited only by your imagination and use case.
+</Accordion>
+
+<Accordion title="Can I use 4040 extrusion instead of 3030?">
+Yes, the OSSM actuator and PitClamp Mini mounting base are compatible with any slotted aluminum extrusion, including both 3030 and 4040. The T-nuts included with R+D kits fit both 3030 and 4040 extrusion slots.
+
+**Key considerations for 4040:**
+
+| Component | 3030 | 4040 |
+|-----------|------|------|
+| **Actuator / PitClamp Mini base** | Full compatibility | Full compatibility |
+| **T-nuts** | Standard fit | Standard fit (same T-nuts work) |
+| **Pivot plates** | Designed for 3030 | Usable, but tolerances are closer |
+| **Printed feet and caps** | Press-fit designed for 3030 | May not fit—print custom or leave open |
+
+**Pivot plate notes:**
+
+The standard pivot plates are designed for 3030 extrusion but will work on 4040. However, some intentionally toleranced connections—where bolts seat fully against the internal extrusion structure when tightened—will not engage the same way on 4040. The T-nuts will still provide good rigidity, but expect slightly closer tolerances.
+
+<Note>
+Each additional pivot point you add to a stand introduces some play. Building a rigid stand that can handle the OSSM's forces is often the harder part of the build.
+</Note>
+
+**Community alternatives:**
+
+The Kinky Makers Discord has several community-designed 4040 stand variations. A popular option is the "Shick's Mount," which is specifically designed for 4040 extrusion.
+
+<DiscordInvite community="kinky-makers" />
+
+<Tip>
+If you're sourcing your own extrusion and want maximum compatibility with the standard printed parts, 3030 is the easier choice. If you prefer 4040 for added rigidity, expect to adapt or reprint some stand components.
+</Tip>
+</Accordion>
+</AccordionGroup>
+
+## Control and Software
+
+<AccordionGroup>
+<Accordion title="How do I control my OSSM?">
+Control options depend on your use case:
+
+- **Wired remote**: Included with DIY kits and some Ready-to-Play configurations
+- **RADR (Research and Desire Remote)**: Official wireless remote with Bluetooth connectivity
+- **xToys app**: Control OSSM via Bluetooth using the [xToys](https://xtoys.app) phone or desktop app—no physical remote required (see [xToys Integration](/ossm/guides/community/hardware/x-toys))
+- **Custom solutions**: Build your own controller—that's the advantage of open-source hardware
+
+<Note>
+**Is a physical remote required?** Yes. You need a physical remote to control the OSSM safely. This can either be the wired remote or the RADR wireless remote. If you prefer app-based control, you can skip the wired or wireless remote and use xToys in addition to your physical remote. xToys connects directly to your OSSM via Bluetooth and provides full control including custom patterns, multi-toy coordination, and scripted interactions. However, this is not tested or maintained by Research & Desire.
+</Note>
+</Accordion>
+
+<Accordion title="Does the Wireless Remote option include the Wired Remote board?">
+No. Each electronics package option includes only one remote type. If you select the **Wireless - Fully Assembled** option, you receive the RADR wireless remote only—the wired remote board is not included.
+
+If you want both remotes, purchase the wired remote board separately. You can only use one remote at a time, but having both gives you a backup or lets you switch between wired and wireless control depending on your preference.
+
+<Card title="Wired Remote board" icon="plug" href="https://www.researchanddesire.com/products/wired-remote-board">
+  Purchase the wired remote board separately
+</Card>
+</Accordion>
+
+<Accordion title="Can I upgrade my wired OSSM to use the Wireless Remote (RADR)?">
+Yes. If you have an existing OSSM with the wired remote, you can add wireless control without replacing any hardware on the OSSM itself.
+
+**What you need:**
+
+1. **Purchase a RADR** — The [RADR Wireless Remote](https://www.researchanddesire.com/products/radr-ossm-wireless-remote) is available from Research & Desire
+2. **Update your OSSM firmware** — Flash firmware version 2.0.0 or newer using the [Web Flasher](/ossm/tools/web-flasher)
+
+That's it. No mainboard replacement, no soldering, no physical modifications. The same OSSM PCB that works with the wired remote also supports Bluetooth connectivity with the RADR after the firmware update.
+
+<Card title="RADR Quick Start" icon="rocket" href="/research-and-desire-remote/quick-start">
+  Follow the setup guide to pair your RADR with your OSSM.
+</Card>
+</Accordion>
+
+<Accordion title="What's the difference between wired and wireless remotes?">
+Both remotes provide full control over your OSSM, including access to all stroke patterns. The main differences are in connectivity and ease of pattern switching:
+
+| Feature | Wired Remote | RADR (Wireless) |
+|---------|--------------|-----------------|
+| **Connection** | Ethernet cable to OSSM board | Bluetooth (wireless) |
+| **Stroke patterns** | All 7 patterns available via Stroke Engine | All 7 patterns available via Pattern Mode |
+| **Pattern switching** | Double-press the right encoder to open pattern menu | Single press of the dedicated Pattern button |
+| **Multi-device support** | OSSM only | OSSM + other Bluetooth devices (Lovense, etc.) |
+| **Power** | Powered via cable | Built-in rechargeable battery (USB-C charging) |
+
+<Note>
+The RADR connects via Bluetooth only—there is no option to connect it via an Ethernet or USB cable. If you need a wired connection, use the standard wired remote.
+</Note>
+
+Both remotes support the same motion patterns: Simple Stroke, Teasing or Pounding, Robo Stroke, Half'n'Half, Deeper, Stop'n'Go, and Insist. Pattern switching is slightly more convenient on the RADR due to its dedicated button, but the wired remote provides identical functionality.
+
+<Warning>
+Only one remote can be connected at a time. You cannot use both the wired remote and RADR simultaneously. If you want a backup remote, you can purchase both separately, but you'll need to disconnect one before connecting the other.
+</Warning>
+</Accordion>
+
+<Accordion title="Can I control OSSM over the internet?">
+<Warning>
+As of August 2023, you cannot control an OSSM over the internet.
+</Warning>
+
+Previously, Research & Desire offered a web page for basic WiFi control with speed and depth settings. This feature is no longer available.
+</Accordion>
+
+<Accordion title="What about X-Toys and Funscript support?">
+<Warning>
+As of August 2023, X-Toys firmware is highly experimental and **not considered safe for use on humans**. Known issues include frequent pauses, position tracking errors, and random extension to maximum depth.
+</Warning>
+
+Development of improved X-Toys firmware is ongoing but complex.
+</Accordion>
+
+<Accordion title="Why is X-Toys/Funscript/Buttplug.io integration so difficult?">
+Several technical challenges make this integration complex:
+
+1. **Motion core limitations**: The current motion system doesn't support position streaming. A complete redesign of the safety architecture is required—you don't want accidental rapid movements to maximum depth.
+
+2. **Latency constraints**: Experimental testing revealed extremely tight latency margins. Bluetooth communication struggles to meet these requirements.
+
+3. **Data model incompatibility**: X-Toys and Buttplug.io don't support the complex data models OSSM requires. Scaling commands to OSSM's full stroke length isn't straightforward. Emulating another toy might work as a workaround, but you won't have full control over all OSSM features.
+</Accordion>
+</AccordionGroup>
+
+## Hardware and Power
+
+<AccordionGroup>
+<Accordion title="Do I need to buy the OSSM reference board?">
+No, the reference board is optional. However, it significantly simplifies the build process by eliminating the need for soldering.
+</Accordion>
+
+<Accordion title="What's included in the Extrusion Kit?">
+The **Extrusion Kit** (also called "Mount Full Extrusion Kit") includes:
+
+- Pre-cut 3030 aluminum extrusion pieces
+- Fasteners (bolts, T-nuts, etc.)
+- Hardware bags for stand assembly
+
+**The Extrusion Kit does not include 3D printed parts.** You still need to print the pivot plates, extrusion caps, extrusion feet, and other printed components listed in the [Stand BOM](/ossm/Hardware/standard-printed-parts/stand/introduction).
+
+If you don't have access to a 3D printer, you can:
+- Purchase the [3D Printed Parts Kit](https://www.researchanddesire.com/products/ossm-3d-printed-part-kit) separately
+- Use a local printing service or maker space
+- Order prints from online services like Craftcloud or JLC3DP
+
+<Tip>
+To build a complete stand, you need **both** the Extrusion Kit (metal parts + hardware) **and** the printed parts (either self-printed or purchased separately).
+</Tip>
+</Accordion>
+
+<Accordion title="What power supply do I need?">
+Power supply requirements depend on your motor wattage and connection type:
+
+**24V barrel jack (recommended for maximum performance):**
+
+| Motor | Recommended Power Supply |
+|-------|-------------------------|
+| 100W JMC | 24V, 4A |
+| 140W / 180W JMC | 24V, 6A |
+| Gold Motor (57AIM30) | 24V, 4A minimum |
+
+**USB-C Power Delivery (included with DIY kits):**
+
+If your kit includes a USB-C power adapter, use a USB-C Power Delivery charger with the following specifications:
+
+| Specification | Requirement |
+|---------------|-------------|
+| Minimum wattage | 65W |
+| Recommended voltage | 19V or higher |
+| Protocol | USB Power Delivery (PD) |
+
+<Note>
+USB-C PD adapters deliver slightly less force than a dedicated 24V supply (35 lbs vs 45 lbs). For most users, this difference is imperceptible. If you need maximum force, use a 24V barrel jack power supply.
+</Note>
+
+<Tip>
+**DIY kit customers who want maximum force:** The USB-C adapter included with DIY kits provides 35 lbs of force, which is sufficient for most use cases. If you want the full 45 lbs of force, you can purchase a 24V barrel jack power supply separately from R+D or source one locally.
+</Tip>
+
+<Warning>
+For safety, use a desktop power supply that is ideally double-insulated. Supplies from reputable distributors (Mouser, Digikey, Conrad, RS) cost more than unbranded units from AliExpress/eBay/Amazon, but unbranded supplies have shown inconsistent quality and long-term stability issues.
+</Warning>
+
+**International customers (EU, UK, and other regions):**
+
+Power supplies sold by R+D use North American plugs (Type A/B, 120V compatible). If you're ordering from outside North America:
+
+- **Option 1:** Purchase R+D's 24V power supply and use a plug adapter for your region's wall sockets. The power supply accepts 100–240V AC input, so only the plug shape needs adapting—no voltage converter is required.
+- **Option 2:** Source a 24V, 4A (or higher) power supply locally with your region's plug type. Ensure it is safety-certified (CE for EU, UKCA for UK) and has a 5.5mm × 2.1mm barrel jack connector with center-positive polarity.
+
+<Note>
+If sourcing locally, verify the barrel jack size (5.5mm outer diameter × 2.1mm inner diameter) and polarity (center-positive) match the OSSM PCB requirements. Incorrect polarity can damage the board.
+</Note>
+
+**36V power supply (advanced users):**
+
+Some users opt for a third-party 36V power supply to increase force output by approximately 20%. While the motor and electronics can handle 36V, there is an important safety consideration:
+
+<Warning>
+**Always unplug a 36V power supply from the wall socket, not from the barrel jack on the board.** Disconnecting 36V from the barrel jack while the supply is still energized can cause voltage spikes that damage the control board. This risk is lower with 24V supplies but still good practice to follow.
+</Warning>
+
+Research & Desire does not sell 36V power supplies. If you choose to source one yourself, ensure it is from a reputable manufacturer and rated for at least 4A continuous output.
+</Accordion>
+
+<Accordion title="How long should my H-rail be?">
+Rail length determines maximum stroke depth. A **350mm rail** provides approximately **195mm of usable depth**.
+
+Calculate your maximum stroke using this formula: **rail length − 180mm = maximum stroke**.
+
+| Rail Length | Maximum Stroke |
+|-------------|----------------|
+| 350mm (14 in) | 170mm (7 in) |
+| 400mm (16 in) | 220mm (9 in) |
+| 450mm (18 in) | 270mm (11 in) |
+| 500mm (20 in) | 320mm (13 in) |
+
+<Warning>
+We do not recommend using a rail longer than **500mm (20 in)**. Longer rails increase bending and friction under load, which can cause binding, inconsistent motion, and accelerated wear. If you need more stroke, ensure the rail is properly supported along its length.
+</Warning>
+</Accordion>
+
+<Accordion title="What thread size is used on the end effector?">
+The end effector uses **M24×3** threading.
+
+<Tip>
+Print a test piece when creating a new end effector—you may need to upsize by 3-5% depending on your printer's tolerances.
+</Tip>
+</Accordion>
+</AccordionGroup>
+
+## Maintenance and Replacement Parts
+
+<AccordionGroup>
+<Accordion title="What parts wear out over time?">
+With regular use, certain components may wear out and need replacement. The most common wear items are:
+
+- **Tensioner set** (front and rear tensioners): The printed tensioner components experience stress during belt tensioning and direction changes. Cracks or deformation can develop over extended use.
+- **Threaded end-effector**: The M24×3 threads can wear or strip over time, especially with frequent toy changes or heavy toys.
+- **Timing belt**: The belt may stretch, fray, or develop cracks after extended high-speed operation.
+- **Belt clamps**: These grip the belt and can wear or crack under repeated stress.
+
+How quickly parts wear depends on usage intensity, print material, and print quality. Parts printed in stronger materials (PETG, ABS, polycarbonate) generally last longer than PLA.
+</Accordion>
+
+<Accordion title="How do I order replacement parts?">
+If you need replacement parts for your OSSM:
+
+1. **Contact support** at [support@researchanddesire.com](mailto:support@researchanddesire.com)
+2. Include your **original order number** and describe which parts you need
+3. Support will send you an invoice for the replacement parts
+
+<Tip>
+If you have access to a 3D printer, you can also print replacement parts yourself using the STL files from the [Kinky Makers GitHub repository](https://github.com/KinkyMakers/OSSM-hardware/tree/main/Printed%20Parts).
+</Tip>
+</Accordion>
+
+<Accordion title="How often should I inspect my OSSM?">
+Perform a visual inspection periodically, especially if you notice changes in performance:
+
+**Before each use:**
+- Check that the belt is properly tensioned (no slipping or ratcheting sounds)
+- Ensure the toy mount is secure
+
+**Monthly (or every 10–20 hours of use):**
+- Inspect printed parts for cracks, especially tensioners and belt clamps
+- Check the threaded end-effector for wear or stripping
+- Examine the belt for fraying, cracks, or excessive stretch
+- Verify all fasteners are tight
+
+**Signs a part needs replacement:**
+- Visible cracks or deformation in printed parts
+- Belt slipping despite proper tension adjustment
+- Threads no longer grip securely
+- Unusual noises during operation
+
+<Note>
+Continuing to use worn parts can cause further damage or unexpected failures. Replace worn components promptly.
+</Note>
+</Accordion>
+</AccordionGroup>

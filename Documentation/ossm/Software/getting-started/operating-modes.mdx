@@ -1,0 +1,188 @@
+---
+title: "Operating Modes"
+description: "Learn about Simple Penetration, Stroke Engine, and Streaming modes on your OSSM"
+---
+
+The OSSM firmware provides three main operating modes, each designed for different use cases. This guide explains how to navigate the menu system and use each mode effectively.
+
+## Menu navigation
+
+After homing completes, the OSSM displays the main menu on the remote's OLED screen.
+
+| Action | Result |
+|--------|--------|
+| **Rotate encoder** | Scroll through menu options |
+| **Press encoder** | Select the highlighted option |
+| **Long-press encoder** | Return to menu (from any operating mode) |
+
+<Info>
+The menu wraps around—scrolling past the last item brings you back to the first.
+</Info>
+
+## Main menu options
+
+| Option | Description |
+|--------|-------------|
+| **Simple Penetration** | Basic operation with speed and stroke controls |
+| **Stroke Engine** | Advanced pattern-based control with depth, stroke, and sensation |
+| **Streaming (beta)** | External control mode for third-party applications |
+| **Update** | Check for and install firmware updates (requires WiFi) |
+| **WiFi Setup** | Configure wireless network connection |
+| **Get Help** | Display QR code linking to setup documentation |
+| **Restart** | Restart the controller and re-home |
+
+## Simple Penetration mode
+
+Simple Penetration provides straightforward control with minimal parameters. It's ideal for users who want reliable operation without complexity.
+
+### Default settings
+
+| Parameter | Default Value |
+|-----------|---------------|
+| Speed | 0% |
+| Stroke | 0% |
+| Depth | 50% |
+| Sensation | 50% |
+
+### Controls
+
+<Tabs>
+<Tab title="Speed">
+The **left knob** (potentiometer) controls speed from 0% to 100%.
+
+- Turn clockwise to increase speed
+- Turn counterclockwise to decrease speed
+- Speed must be near zero to enter the mode (safety feature)
+</Tab>
+
+<Tab title="Stroke">
+The **right encoder** controls stroke length from 0% to 100%.
+
+- Turn clockwise to increase stroke length
+- Turn counterclockwise to decrease stroke length
+- Stroke determines how far the actuator travels on each cycle
+</Tab>
+</Tabs>
+
+### Session statistics
+
+Simple Penetration tracks three statistics during your session:
+
+| Statistic | Description |
+|-----------|-------------|
+| **Stroke count** | Number of complete strokes performed |
+| **Distance** | Total distance traveled (displayed in meters or feet) |
+| **Time** | Duration since the session started |
+
+These statistics display at the bottom of the screen and reset when you return to the menu.
+
+<Tip>
+Simple Penetration is best for straightforward use cases where you want consistent, predictable motion without pattern variations.
+</Tip>
+
+## Stroke Engine mode
+
+Stroke Engine provides advanced pattern-based control with four adjustable parameters. It uses the [StrokeEngine library](/ossm/Software/motion/stroke-engine/introduction) to generate varied motion patterns.
+
+### Default settings
+
+| Parameter | Default Value |
+|-----------|---------------|
+| Speed | 0% |
+| Stroke | 50% |
+| Depth | 10% |
+| Sensation | 50% |
+
+<Note>
+Stroke Engine starts with different defaults than Simple Penetration—notably a lower depth (10%) and higher stroke (50%)—to provide a gentler initial experience with pattern-based motion.
+</Note>
+
+### Controls
+
+<Tabs>
+<Tab title="Speed">
+The **left knob** (potentiometer) controls speed from 0% to 100%.
+
+Speed affects how fast the patterns execute, measured in cycles per minute.
+</Tab>
+
+<Tab title="Parameters">
+The **right encoder** controls three parameters. Press the encoder to cycle between them:
+
+| Parameter | Description |
+|-----------|-------------|
+| **Depth** | How far into the body the actuator travels at its deepest point |
+| **Stroke** | The distance the actuator retracts from the deepest point |
+| **Sensation** | A pattern-specific modifier that changes behavior (see [Patterns](/ossm/Software/motion/stroke-engine/Pattern)) |
+
+The currently selected parameter displays with a full-width bar; inactive parameters show as smaller indicators.
+</Tab>
+
+<Tab title="Pattern selection">
+**Double-press** the right encoder to open pattern selection.
+
+Use the encoder to scroll through available patterns, then press to select. The pattern changes immediately.
+
+Press the encoder or double-press again to return to parameter controls.
+</Tab>
+</Tabs>
+
+### Available patterns
+
+Stroke Engine provides 7 motion patterns:
+
+| Index | Pattern | Behavior |
+|-------|---------|----------|
+| 0 | Simple Stroke | Balanced acceleration, coasting, and deceleration |
+| 1 | Teasing Pounding | Speed shifts based on sensation; balances faster strokes |
+| 2 | Robo Stroke | Sensation varies acceleration from robotic to gradual |
+| 3 | Half'n'Half | Alternates between full and half depth strokes |
+| 4 | Deeper | Stroke depth increases each cycle; sensation sets cycle count |
+| 5 | Stop'n'Go | Pauses between strokes; sensation adjusts pause length |
+| 6 | Insist | Modifies stroke length while maintaining speed |
+
+<Info>
+For detailed pattern descriptions and sensation effects, see the [Pattern documentation](/ossm/Software/motion/stroke-engine/Pattern).
+</Info>
+
+## Streaming mode (beta)
+
+<Warning>
+Streaming mode is currently in beta. Functionality may change in future firmware updates.
+</Warning>
+
+Streaming mode allows external applications to control the OSSM via BLE commands. It uses the same display interface as other modes but is designed to receive real-time position commands from connected devices.
+
+### When to use Streaming mode
+
+- Integration with third-party control applications
+- Synchronized playback with external content
+- Custom automation via BLE-connected devices
+
+### Controls
+
+While in Streaming mode, the local controls (encoder and potentiometer) remain active but may be overridden by incoming BLE commands. The display shows current parameter values regardless of whether they're set locally or remotely.
+
+<Tip>
+For BLE command reference, see the [BLE Protocol documentation](/ossm/Software/communication/ble).
+</Tip>
+
+## Exiting any mode
+
+From any operating mode, **long-press the encoder for approximately 3 seconds** to trigger an emergency stop and return to the main menu.
+
+<Warning>
+Emergency stop immediately halts motion and marks the device as "not homed." You may need to restart and re-home before operating again.
+</Warning>
+
+## Related pages
+
+<CardGroup cols={2}>
+<Card title="Safety Features" icon="shield" href="/ossm/Software/getting-started/safety-features">
+  Learn about preflight checks, disconnect safety, and emergency stop.
+</Card>
+
+<Card title="StrokeEngine Patterns" icon="wave-pulse" href="/ossm/Software/motion/stroke-engine/Pattern">
+  Detailed descriptions of each motion pattern and sensation effects.
+</Card>
+</CardGroup>

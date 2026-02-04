@@ -1,0 +1,125 @@
+---
+title: "Overview"
+description: "Print settings and bill of materials for the OSSM wired remote control enclosure"
+---
+
+The OSSM wired remote control provides a compact, handheld interface for your machine. This page shows exactly what to print, the slicer settings to use, and the minimal hardware required to assemble the wired remote enclosure.
+
+<Info>
+Looking for a wireless option? Meet the Research and Desire Wireless Remote (RADR). Start here: <a href="/research-and-desire-remote/quick-start">RADR quick start</a>.
+</Info>
+
+## Printed parts
+
+Print the following components:
+
+| Part (STL name) | Quantity |
+|---|---|
+| Remote Body (OSSM-Remote-Body) | 1 |
+| Top Cover (OSSM-Remote-Cover) | 1 |
+| Rotary Knob (OSSM-Remote-Rotary Knobs) | 2 |
+
+<Tip>
+Prefer a different look? Alternate knob styles are available in the “Non-standard” folder of the source repository. Print any two compatible knob variants.
+</Tip>
+
+## Recommended print settings
+
+Use these settings for all enclosure parts unless otherwise noted:
+
+| Setting | Value |
+|---|---|
+| Nozzle | 0.4 mm |
+| Layer height | 0.20 mm (0.28 mm draft acceptable) |
+| Walls | 3 |
+| Top/bottom layers | 4–5 |
+| Infill | 25% Gyroid or Crosshatch |
+| Supports | Yes — Auto (cover off, internal cavities clear) |
+| Material | PLA+ or PETG |
+| Bed adhesion | Skirt; add a small brim for knobs if your bed adhesion is weak |
+
+<Note>
+Estimated filament usage for all parts is approximately <strong>70 g</strong>.
+</Note>
+
+<Tip>
+Orientation recommendations:
+- Body: Flat face down so the encoder holes point up. This keeps the front surface clean and strong around the controls.
+- Top Cover: Flat face down.
+- Knobs: Print face down for best surface finish on the top.
+</Tip>
+
+<Warning>
+Dry-fit before final assembly. If bolt holes feel tight due to printer tolerances, chase them with a 4.0 mm drill bit by hand rather than over-tightening fasteners.
+</Warning>
+
+## Bill of materials (enclosure)
+
+| Item | Quantity | Notes |
+|---|---|---|
+| M4 button cap bolt, 6–8 mm length | 2 | Secures top cover to body. Choose length based on fit; 8 mm is commonly used.
+
+<Info>
+If you purchased the “OSSM Remote PCB Only,” it typically ships with a 7 ft CAT6 cable and two M4×8 mm fasteners you can use for this enclosure. If you received a different length, use any two M4 button cap bolts between 6–8 mm that do not bottom out when the cover is installed.
+</Info>
+
+## Assembly overview
+
+<Steps>
+<Step title="Print and prep the parts">
+Slice and print the body, cover, and two knobs using the settings above. Remove supports and lightly deburr holes.
+
+<Check>
+The cover sits flush on the body and bolts pass through the cover freely by hand.
+</Check>
+</Step>
+
+<Step title="Test fit the electronics (dry fit)">
+Place your remote PCB into the body to check clearance around the encoder shafts and cable exit. Adjust any stringing or bumps so the PCB seats flat.
+
+<Tip>
+If a knob rubs the cover after assembly, add a 0.2–0.3 mm Z-offset shim under the encoder or lightly sand the underside of the knob.
+</Tip>
+</Step>
+
+<Step title="Install the knobs">
+Press-fit the printed knobs onto the encoder shafts. They should be snug but not require force that might stress the PCB.
+
+<Warning>
+If the fit is too tight, do not force it. Warm the knob slightly with your hands, or scale it to 100.5–101% and reprint.
+</Warning>
+</Step>
+
+<Step title="Close the enclosure">
+Place the top cover, align holes, and fasten with two M4 button cap bolts (6–8 mm). Do not overtighten.
+
+<Check>
+Knobs rotate freely without scraping, and the cover sits flush with no gaps.
+</Check>
+</Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="Bolts bottom out before the cover is tight">
+Use 6 mm bolts instead of 8 mm, or add a thin washer under each head.
+</Accordion>
+
+<Accordion title="Knobs scrape the cover">
+Check that the PCB is fully seated in the body. Add a thin shim under the PCB standoffs or lightly sand the underside of the knobs.
+</Accordion>
+
+<Accordion title="Holes too tight for M4 hardware">
+Lightly ream with a 4.0 mm drill bit by hand. Do not use a power drill inside the enclosure.
+</Accordion>
+</AccordionGroup>
+
+## Related guides
+
+- Updating firmware for OSSM and RADR: <a href="/open-source-sex-machine/flashing-your-ossm">Flashing your OSSM/RADR</a>
+- What ships with OSSM Ready-to-Play (includes wired remote + Ethernet cable): <a href="/open-source-sex-machine/ossm-ready-to-play/ossm-info-sheet-ready-to-play">OSSM Info Sheet</a>
+
+<Check>
+You’ve now printed and assembled the wired remote enclosure. Connect the Ethernet cable to your OSSM and you’re ready to play.
+</Check>

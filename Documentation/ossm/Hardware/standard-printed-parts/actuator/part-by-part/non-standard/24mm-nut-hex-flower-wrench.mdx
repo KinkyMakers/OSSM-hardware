@@ -1,0 +1,122 @@
+---
+title: "24 mm Hex Flower Nut — Wrench"
+description: "Printed companion wrench for tightening and loosening the 24 mm Hex Flower nut on the OSSM actuator."
+---
+
+import { STLViewer } from '/snippets/ossm/stl-render.jsx';
+
+<STLViewer url="https://raw.githubusercontent.com/KinkyMakers/OSSM-hardware/main/Printed%20Parts/Actuator/Non-standard/OSSM%20-%2024mm%20Nut%20-%20Hex%20Flower%20-%20Wrench.stl" />
+
+## Overview
+
+The Hex Flower Wrench is a compact, printed tool designed to positively engage the 24 mm Hex Flower nut variant used on the OSSM actuator. Use it when you need more control than hand‑tightening provides.
+
+- Interfaces with the Hex Flower pattern for secure grip
+- Applies additional torque safely beyond hand-tight
+- Aids in controlled loosening without slipping
+- Slim profile for easy storage with your OSSM kit
+
+<Note>
+This wrench is only needed for the Hex Flower nut variant. The standard 5‑sided nut is intended for hand‑tightening only and does not use this tool.
+</Note>
+
+## Compatibility
+
+- Fits: 24 mm Hex Flower nut variant for OSSM
+- Does not fit: Standard 5‑sided nut or other non‑Hex Flower profiles
+
+<Tip>
+If you are unsure which nut you have, compare your nut’s face to the STL preview above. The Hex Flower nut shows a repeating “flower” contour rather than straight flats.
+</Tip>
+
+## Print recommendations
+
+These settings balance strength and print time for a durable tool. Adjust to your printer and filament.
+
+- Material: PETG or ABS/ASA recommended for heat and impact resistance; PLA+ works but is more brittle in high‑torque/warmer environments
+- Layer height: 0.20 mm (0.16 mm for tighter dimensional accuracy)
+- Perimeters (walls): 4–6
+- Top/bottom layers: 6–8
+- Infill: 40–60% (Gyroid/Cubic recommended)
+- Orientation: Lay the wrench flat on the bed so the Hex Flower face prints upward; this aligns layer lines to resist torque
+- Supports: Not required for most slicers; enable only if your preview shows sagging in the cavity
+- Adhesion: Skirt or brim as needed for bed adhesion
+
+<Warning>
+This is a printed tool. Do not use cheater bars, impact drivers, or power tools. Excessive torque can crack the wrench or damage the nut.
+</Warning>
+
+## Prepare and use
+
+<Steps>
+<Step title="Slice and print">
+  Slice the STL with the settings above and print in PETG/ABS/ASA for best durability.
+
+  <Check>
+  The part should come off the bed flat with clean cavity edges and no layer separation.
+  </Check>
+</Step>
+
+<Step title="Deburr and test‑fit">
+  Remove any strings or burrs from the Hex Flower cavity. Gently test the fit on the nut without force.
+
+  <Tip>
+  If the fit is tight, a light pass with fine sandpaper (320–600 grit) on the cavity walls usually resolves it.
+  </Tip>
+</Step>
+
+<Step title="Tighten the nut">
+  Seat the wrench fully onto the Hex Flower nut. Hold the mating parts steady and turn the wrench clockwise to snug.
+
+  <Warning>
+  Stop at snug‑tight. Printed tools are for moderate torque; over‑tightening can cause cracking.
+  </Warning>
+</Step>
+
+<Step title="Loosen the nut">
+  To remove, seat the wrench fully and turn counter‑clockwise while supporting the assembly to avoid side‑loading.
+
+  <Check>
+  After loosening, inspect the wrench for whitening, cracks, or deformation before using it again.
+  </Check>
+</Step>
+</Steps>
+
+## Care and maintenance
+
+- Inspect before each use for cracks, layer splits, or rounding of the cavity
+- Retire and reprint the tool if you see damage or excessive wear
+- Store flat, out of direct heat or sunlight to preserve material strength
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="Wrench won’t fully seat on the nut">
+- Verify you have the Hex Flower nut variant (not the 5‑sided nut)
+- Check for print elephants’ foot; lightly chamfer the cavity edge with a knife or sandpaper
+- Reduce horizontal expansion/XY compensation in your slicer by 0.05–0.15 mm and reprint
+</Accordion>
+
+<Accordion title="Wrench slips under torque">
+- Ensure the wrench is fully seated before turning
+- Increase wall count to 6 and infill to 60% and reprint in PETG/ABS/ASA
+- Replace the wrench if the cavity shows rounding or glaze
+</Accordion>
+
+<Accordion title="Part cracked during use">
+- Reprint in a stronger material (ABS/ASA or PETG) with more perimeters and higher infill
+- Reorient to print flat (face up) so layers resist torsion
+- Reduce applied torque; do not use extensions or power tools
+</Accordion>
+</AccordionGroup>
+
+## Download files
+
+<CardGroup cols={2}>
+  <Card title="STL File" icon="cube" href="https://github.com/KinkyMakers/OSSM-hardware/blob/main/Printed%20Parts/Actuator/Non-standard/OSSM%20-%2024mm%20Nut%20-%20Hex%20Flower%20-%20Wrench.stl">
+    Download for slicing
+  </Card>
+  <Card title="STEP File" icon="drafting-compass" href="https://github.com/KinkyMakers/OSSM-hardware/blob/main/Printed%20Parts/Actuator/Non-standard/STEP/OSSM%20-%2024mm%20Nut%20-%20Hex%20Flower%20-%20Wrench.stp">
+    For CAD modification
+  </Card>
+</CardGroup>

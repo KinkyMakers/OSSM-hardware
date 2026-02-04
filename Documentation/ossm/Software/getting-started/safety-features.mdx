@@ -1,0 +1,212 @@
+---
+title: "Safety Features"
+description: "Understand the safety mechanisms built into OSSM firmware to protect you and your hardware"
+---
+
+The OSSM firmware includes several safety features designed to prevent accidents, protect hardware, and ensure predictable operation. This guide explains each safety mechanism and how it works.
+
+<Warning>
+Safety features are a supplement to—not a replacement for—safe usage practices. Always follow the [safety guidance](/ossm/guides/housekeeping/safety/guidance) when operating your OSSM.
+</Warning>
+
+## Preflight safety check
+
+Before entering any operating mode, the OSSM performs a preflight check to prevent accidental high-speed starts.
+
+### How it works
+
+When you select Simple Penetration or Stroke Engine from the menu:
+
+1. The firmware reads the speed potentiometer
+2. If speed is above 1% (`commandDeadZonePercentage`), a warning screen appears
+3. The warning displays current speed and instructs you to decrease it
+4. Once speed drops below 1%, the mode starts automatically
+
+### What you'll see
+
+```
+Simple Penetration
+Speed: 45%
+Decrease the speed to begin playing.
+```
+
+### Bypassing preflight
+
+You cannot bypass the preflight check. The mode will not start until the speed knob is near zero. This ensures you always begin at a safe speed and consciously increase it.
+
+<Tip>
+If the preflight screen appears, simply turn your speed knob fully counterclockwise. The mode will start within a second once the reading drops below the threshold.
+</Tip>
+
+### Exiting preflight
+
+**Long-press the encoder** to return to the main menu without starting the mode.
+
+## BLE disconnection safety
+
+When controlling your OSSM via Bluetooth, an unexpected disconnect could leave the device running at high speed. The firmware includes automatic ramp-down to prevent this.
+
+### How it works
+
+When a BLE connection is lost:
+
+1. The firmware captures the current speed at disconnect
+2. After a **1 second delay**, the ramp-down begins
+3. Over **2 seconds**, speed decreases to zero using an ease-in-out-sine curve
+4. The device continues running at zero speed until reconnected or manually stopped
+
+### Why the delay?
+
+The 1-second delay prevents false triggers from momentary signal dropouts. Brief interference won't cause unnecessary slowdowns during normal operation.
+
+### Ramp curve
+
+The ease-in-out-sine curve provides smooth deceleration:
+
+- Starts slowly (gentle initial deceleration)
+- Accelerates through the middle of the ramp
+- Ends slowly (gentle final stop)
+
+This feels more natural than linear deceleration and reduces mechanical stress.
+
+<Note>
+If the speed was already zero when the connection dropped, no ramp occurs—the device simply continues at rest.
+</Note>
+
+### Manual override
+
+Local controls (potentiometer and encoder) remain active during and after disconnect. You can:
+
+- Manually stop the device using the speed knob
+- Long-press the encoder for emergency stop
+- Reconnect via BLE to resume control
+
+## Homing safety
+
+The homing sequence includes several safety checks to detect mechanical problems before operation begins.
+
+### Timeout protection
+
+Homing must complete within **40 seconds**. If the actuator hasn't found both ends of travel within this time:
+
+1. The motor stops
+2. An error screen displays: "Homing took too long. Please check your wiring and try again."
+3. A QR code appears linking to troubleshooting resources
+4. Press the encoder to restart
+
+**Common causes of timeout:**
+- Insufficient power supply
+- Disconnected motor wiring
+- Mechanical obstruction
+- Belt too loose or broken
+
+### Current sensing
+
+The OSSM uses sensorless homing—it detects end-of-travel by monitoring motor current. When current exceeds `sensorlessCurrentLimit` (default: 1.5%), the firmware knows the actuator has reached a physical stop.
+
+<Info>
+Sensorless homing eliminates the need for limit switches while still detecting mechanical boundaries reliably.
+</Info>
+
+### Minimum stroke validation
+
+After homing, the firmware validates that the measured stroke length exceeds `minStrokeLengthMm` (default: 50mm). If the stroke is too short:
+
+1. An error screen displays: "Stroke too short. Please check your drive belt."
+2. The device enters error state
+3. Press the encoder to view help, then press again to restart
+
+**Common causes of short stroke:**
+- Belt slipping on pulleys
+- Belt tension too loose
+- Mechanical binding or obstruction
+- Incorrect motor configuration
+
+### Offset buffer
+
+After detecting each end of travel, the actuator backs off by `strokeZeroOffsetMm` (default: 6mm). This buffer:
+
+- Prevents the actuator from repeatedly hitting the physical endstop
+- Provides a safety margin for position errors
+- Reduces wear on mechanical components
+
+## Emergency stop
+
+At any time during operation, you can trigger an immediate stop.
+
+### How to trigger
+
+**Long-press the encoder for approximately 3 seconds** from any operating mode.
+
+### What happens
+
+1. `forceStop()` is called on the stepper driver
+2. Motor outputs are disabled immediately
+3. The device is marked as "not homed"
+4. You return to the main menu
+
+<Warning>
+Emergency stop causes the OSSM to lose its position reference. You must restart and re-home before operating again.
+</Warning>
+
+### When to use
+
+Use emergency stop when:
+
+- Something feels wrong during operation
+- You need to stop immediately for any reason
+- The device behaves unexpectedly
+- You hear unusual sounds from the mechanical system
+
+<Note>
+Don't hesitate to use emergency stop—it's there for your safety. Re-homing only takes a few seconds.
+</Note>
+
+## Error states
+
+When the firmware detects a problem, it enters an error state with helpful information.
+
+### Error screen
+
+The error screen displays:
+
+1. "Error" header
+2. A description of the problem
+3. Instructions for next steps
+
+### Help screen
+
+Press the encoder on the error screen to view the help screen, which displays:
+
+- "Get Help" header
+- Instructions to visit Discord or GitHub
+- A QR code linking to [unbox.ossm.tech](https://unbox.ossm.tech)
+
+Press the encoder again to restart the device.
+
+## Configuration safety values
+
+Several configuration parameters affect safety behavior:
+
+| Parameter | Default | Effect |
+|-----------|---------|--------|
+| `commandDeadZonePercentage` | 1.0% | Preflight threshold for speed knob |
+| `sensorlessCurrentLimit` | 1.5% | Current threshold for homing detection |
+| `minStrokeLengthMm` | 50mm | Minimum valid stroke after homing |
+| `strokeZeroOffsetMm` | 6mm | Safety buffer from physical endstops |
+
+<Warning>
+Modifying these values can reduce safety margins. Only change them if you understand the implications and have tested thoroughly.
+</Warning>
+
+## Related pages
+
+<CardGroup cols={2}>
+<Card title="Troubleshooting" icon="wrench" href="/ossm/guides/getting-started/user-guide/troubleshooting">
+  Diagnose and resolve common issues with your OSSM.
+</Card>
+
+<Card title="Configuration Reference" icon="sliders" href="/ossm/Software/getting-started/configuration">
+  Understand all configurable parameters and their defaults.
+</Card>
+</CardGroup>

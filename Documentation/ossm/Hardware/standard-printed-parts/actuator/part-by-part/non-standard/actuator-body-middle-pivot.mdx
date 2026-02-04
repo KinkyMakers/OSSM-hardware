@@ -1,0 +1,151 @@
+---
+title: "Actuator Body - Middle Pivot"
+description: "Drop-in middle body variant with an integrated pivot for angular positioning and expanded mounting flexibility"
+---
+
+import { STLViewer } from '/snippets/ossm/stl-render.jsx';
+
+<STLViewer url="https://raw.githubusercontent.com/KinkyMakers/OSSM-hardware/main/Printed%20Parts/Actuator/Non-standard/OSSM%20-%20Actuator%20-%20Body%20-%20Middle%20Pivot.stl" />
+
+## Overview
+
+The Middle Pivot body replaces the standard middle body section on the OSSM actuator to add a controllable pivot joint. You get the same linear rail mounting and belt path as the standard middle, plus angle adjustment for setups that need a non-parallel actuator.
+
+- Maintains standard linear rail mounting and belt routing
+- Adds a pivot joint for setting the actuator angle relative to your mount
+- Improves fit in tight spaces and unconventional mounting orientations
+- Recommended when using extrusion or bench mounts that benefit from tilt adjustment
+
+<Note>
+This is a non-standard part. The default build uses the standard Middle Body.
+</Note>
+
+<Info>
+Looking for compatible mounts? See:
+- OSSM mounting overview: [/open-source-sex-machine/ossm-mounting]
+- Extrusion Mount (includes pivot hardware/BOM): [/open-source-sex-machine/ossm-mounting/ossm-extrusion-mount]
+- Basic Mount V2 (integrated middle pivot concept): [/open-source-sex-machine/ossm-mounting/ossm-basic-mount-v2]
+</Info>
+
+<Warning>
+Print in the default file orientation. Rotating this model in the slicer weakens the layer lines at the pivot boss and can cause premature failure.
+</Warning>
+
+## Compatibility
+
+- Drop-in replacement for the standard OSSM Middle Body
+- Works with the 350 mm linear rail used in OSSM kits
+- Designed to interface with pivot plates/brackets from supported mounts (see Extrusion Mount BOM for fasteners and friction washers)
+
+<Tip>
+For consistent pivot friction and to reduce squeaks, place rubber or fiber washers between mating pivot faces as shown in the Extrusion Mount BOM. Adjust clamp torque to taste.
+</Tip>
+
+## Print guidelines
+
+- Material: PETG or PLA+ recommended for dimensional stability; use ABS/ASA or Nylon for high-heat environments
+- Layer height: 0.2–0.28 mm
+- Perimeters: 4–6 walls
+- Infill: 35–50% (gyroid or grid)
+- Top/bottom: 5–7 layers
+- Supports: Only where required by your slicer for the pivot cavity chamfers
+- Bed adhesion: Skirt or brim as needed for your printer and filament
+
+<Warning>
+Avoid standard PLA for parts that may experience elevated temperatures (sunlight, enclosed spaces). If you must use PLA, prefer PLA+ and re-check fasteners periodically.
+</Warning>
+
+## Hardware you’ll need
+
+Use the hardware from your chosen mount kit; specifics can vary. Typical items include:
+
+- Pivot through-bolt with matching nut or cam/handle
+- Flat washers and rubber/fiber friction washers for both sides of the pivot
+- Linear rail mounting screws (reuse from standard middle body)
+- Idler/guide hardware as in the standard build
+
+<Note>
+Refer to the Extrusion Mount BOM for an example bill of materials, including rubber washers for the pivot stack-up.
+</Note>
+
+## Assembly
+
+<Steps>
+<Step title="Prepare the actuator">
+Power off, remove belt tension, and remove the standard Middle Body. Keep the linear rail screws, idlers, and belt handy.
+
+<Check>
+All parts from the standard middle should transfer over; nothing new is needed beyond your mount’s pivot fastener stack.
+</Check>
+</Step>
+
+<Step title="Transfer the linear rail">
+Place the rail on the Middle Pivot body using the same hole pattern. Install screws finger-tight, then snug in a star pattern. Apply medium threadlocker if desired.
+</Step>
+
+<Step title="Install the pivot interface">
+Mount the Middle Pivot body to your base/pivot plates. Build the stack: flat washer → rubber/fiber washer → Middle Pivot → rubber/fiber washer → flat washer → nut/handle. Insert the pivot fastener and tighten until you feel steady friction while still allowing adjustment.
+
+<Tip>
+Start with light clamp force. You’ll fine-tune friction after belt routing.
+</Tip>
+</Step>
+
+<Step title="Route and tension the belt">
+Route the belt as per the standard build. Verify the belt runs true and does not rub at the idlers through the full stroke. Tension until there’s no visible slack and minimal twang.
+</Step>
+
+<Step title="Set angle and secure">
+Manually position the actuator to the desired angle. Tighten the pivot fastener or lever to lock the angle. Do not over-tighten—excess torque can crush printed layers.
+
+<Check>
+Slide the carriage end-to-end by hand. It should move smoothly with no binding or belt rub at your chosen angle.
+</Check>
+</Step>
+</Steps>
+
+## Verification
+
+- Home the device and run a slow test stroke at your chosen angle
+- Check clearance to mounts, cables, and end effector across full travel
+- Re-check pivot clamp torque after a few minutes of operation
+
+<Check>
+If everything stays aligned and quiet after 5–10 minutes of motion, you’re good to go.
+</Check>
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="Pivot drifts during use">
+- Increase clamp force slightly
+- Add or replace rubber/fiber washers
+- Clean pivot faces to remove lubricant or dust that can reduce friction
+</Accordion>
+
+<Accordion title="Belt rubs or sings at certain angles">
+- Re-center idlers and verify the belt path
+- Reduce the angle slightly to bring pulleys back into plane
+- Re-tension the belt and test again
+</Accordion>
+
+<Accordion title="Carriage binds near stroke limits">
+- Loosen rail screws and re-seat the rail while the carriage is mid-stroke
+- Verify mount hardware isn’t contacting the body at extreme angles
+</Accordion>
+</AccordionGroup>
+
+## Download
+
+<Card title="STL: Middle Pivot Body" icon="cube" href="https://github.com/KinkyMakers/OSSM-hardware/blob/main/Printed%20Parts/Actuator/Non-standard/OSSM%20-%20Actuator%20-%20Body%20-%20Middle%20Pivot.stl">
+  Download for slicing
+</Card>
+
+<CardGroup cols={2}>
+<Card title="OSSM Mounting Overview" icon="brackets" href="/open-source-sex-machine/ossm-mounting">
+  Recommended mounts and reference links
+</Card>
+<Card title="Extrusion Mount (BOM)" icon="wrench" href="/open-source-sex-machine/ossm-mounting/ossm-extrusion-mount">
+  Includes example pivot hardware and rubber washers
+</Card>
+</CardGroup>

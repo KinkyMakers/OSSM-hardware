@@ -1,0 +1,209 @@
+---
+title: "Design Guidelines"
+description: "Safety principles and guidance for OSSM designers, builders, and users"
+---
+
+The OSSM is open hardware and software. Anyone can modify it—which means your choices directly affect safety. The machine operates close to the body with moving belts, a high‑torque motor, and pinch points. Treat it like power equipment: misuse or poor design can cause injury.
+
+<Info>
+This page summarizes role‑specific guidance and cross‑links to setup and reference docs. Use it alongside assembly guides and electronics references.
+</Info>
+
+## Understanding your role
+
+The hazard space spans design, build, and use. You may belong to more than one group.
+
+<AccordionGroup>
+  <Accordion title="Designers" icon="compass-drafting">
+    You contribute parts, firmware, patterns, or mounts. Your responsibility is to prevent foreseeable harm through safe defaults, protective geometry, and clear documentation for builders and users.
+
+    <Tip>
+    Maintain a checklist for new designs: identify hazards, list mitigations, define print orientation and materials, and specify required guards/covers.
+    </Tip>
+  </Accordion>
+  
+  <Accordion title="Builders" icon="wrench">
+    You turn designs into reality. Your job is to choose appropriate materials, follow critical print orientations, assemble to spec, and install all safety components and covers.
+  </Accordion>
+  
+  <Accordion title="Users" icon="user">
+    You might be an operator (controls the device) and/or a receptive user (experiences it directly). Even perfect designs can be used unsafely—operate cautiously, with situational awareness and consent.
+  </Accordion>
+</AccordionGroup>
+
+## Core safety principles
+
+- Respect force and motion: keep body parts, hair, and clothing away from belts, pulleys, and the rail carriage.
+- Prefer physical controls for safety‑critical actions (power switch, dedicated stop) over software alone.
+- Design and test for failure: the safest default is the machine stopping when something goes wrong.
+- Progressively test at low speed and short stroke before full‑range operation.
+- Communicate clearly: document limits, materials, torque specs, and print orientation so others can build safely.
+
+<Warning>
+Some ideas cannot be made safe. If a concept relies on user perfection or software alone to prevent harm, choose a different approach.
+</Warning>
+
+## Guidance for designers
+
+- Identify new hazards
+  - List how your part/firmware/pattern could pinch, strike, trap, or over‑penetrate.
+  - Define mitigations: guards, rounded edges, stroke limits, safe defaults, and recovery behaviors.
+- Design inclusively
+  - Account for users with limited vision, mobility, or sensation; larger affordances and clearer feedback usually improve safety for everyone.
+- Understand FDM limits
+  - Specify layer orientation for load paths, minimum wall counts, infill type/density, and acceptable materials (e.g., PLA+ vs. PETG vs. Nylon).
+- Default to hardware safety
+  - Provide for power cutoff and an accessible stop action. If integrating with the wireless remote (RADR), plan for safe behavior on disconnect.
+  
+  <Note>
+  When the wireless remote loses connection, OSSM ramps down and pauses. Validate that your motion patterns recover safely after reconnect. See <a href="/research-and-desire-remote/quick-start">RADR Quick Start</a>.
+  </Note>
+
+- Document assumptions
+  - Call out critical fasteners, threadlocker use, torque specs, belt tension targets, and inspection intervals.
+- Protect the user
+  - Enclose belts where practical. Chamfer or round edges. Avoid crevices that can catch skin or hair near the rail.
+- Electrical expectations
+  - Specify a quality, UL‑listed 24V supply and current requirements. See <a href="/open-source-sex-machine/ossm-electronics/ossm-pcb-spec-sheet">PCB Spec Sheet</a>.
+- Firmware and homing
+  - Sensorless homing requires motion clearance. Instruct users to keep the rail area clear during homing and first power‑up. See <a href="/open-source-sex-machine/flashing-your-ossm">Flashing your OSSM</a>.
+
+<Tip>
+Provide a one‑page "Safety & Limits" section with every design: maximum tested speed/stroke, intended materials and print settings, required covers/guards, and a pre‑use checklist.
+</Tip>
+
+## Guidance for builders
+
+<Tip>
+Learn your printer’s strengths. For structural parts, use thicker walls, larger layer heights, higher extrusion temperatures (within spec), and proper cooling to maximize layer adhesion.
+</Tip>
+
+- Materials and printing
+  - Use FDM for structural parts; avoid resin prints for load‑bearing components.
+  - Follow the designer’s specified orientation and material. Increase perimeters and infill for high‑stress parts.
+- Mechanical assembly
+  - Use the correct fasteners; apply threadlocker where specified.
+  - Set belt tension per design guidance; re‑check after initial run‑in.
+  - Deburr and soften edges anywhere the device may contact skin.
+- Electrical and power
+  - Use a high‑quality 24V supply and verify polarity before powering on. See <a href="/open-source-sex-machine/ossm-electronics/ossm-pcb-spec-sheet">PCB Spec Sheet</a>.
+  - Route and strain‑relieve cables away from moving parts. Follow the <a href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">motor wiring guide</a>.
+- Firmware and controls
+  - Flash recommended firmware and confirm homing works before mounting toys. See <a href="/open-source-sex-machine/flashing-your-ossm">Flashing your OSSM</a>.
+  - Verify the stop control works (wired remote or RADR stop) and is reachable during use. See <a href="/research-and-desire-remote/quick-start">RADR Quick Start</a>.
+- Covers and guards
+  - Install all safety covers before operation; never assume users will compensate for missing parts.
+
+<Warning>
+Never operate an OSSM with missing belt covers, loose wiring, or incomplete assembly. Install all protective components and verify stop behavior before first use.
+</Warning>
+
+<Steps>
+<Step title="Bench‑test the build (no load)">
+  Power on with no attachments. Home the device and run short, slow strokes. Listen for belt slip, grinding, or overheating.
+
+<Check>
+  The carriage moves smoothly end‑to‑end at low speed without abnormal noise or error.
+</Check>
+</Step>
+
+<Step title="Verify stop and power cut">
+  Trigger the stop action while moving; then power‑cycle. Confirm the device does not resume motion unexpectedly.
+
+<Check>
+  Motion halts promptly and does not restart until you explicitly command it.
+</Check>
+</Step>
+
+<Step title="Install guards and re‑test">
+  Install belt/rail covers and re‑run tests at medium speed and stroke.
+
+<Check>
+  No rubbing or interference from covers; wiring remains clear of motion paths.
+</Check>
+</Step>
+</Steps>
+
+## Guidance for users
+
+<Steps>
+  <Step title="Understand the risks">
+    Read the <a href="/open-source-sex-machine/ossm-ready-to-play/ossm-info-sheet-ready-to-play">OSSM safety notes</a>. Keep fingers, hair, and clothing away from belts and the rail.
+  </Step>
+  
+  <Step title="Prepare your environment">
+    Place the stand on a stable surface and weight it if needed (use the sandbag if your setup includes one). Keep the area around the rail clear.
+  </Step>
+  
+  <Step title="Inspect before every session">
+    Check for loose fasteners, damaged prints, frayed belts, or exposed wiring. Do not use the device if anything looks wrong.
+  </Step>
+  
+  <Step title="Home and test at low speed">
+    Power on, let the device home, then test a short stroke at low speed before approaching the body.
+  </Step>
+  
+  <Step title="Use appropriate attachments">
+    Choose toys designed for powered use and mount them securely. Avoid brittle or improvised adapters.
+  </Step>
+  
+  <Step title="Keep a stop within reach">
+    Keep the wired remote or RADR nearby, and ensure you can reach the power switch. If the wireless connection drops, OSSM will ramp down and pause.
+
+  <Note>
+    See <a href="/research-and-desire-remote/quick-start">RADR Quick Start</a> for pairing, reconnect behavior, and control basics.
+  </Note>
+  </Step>
+  
+  <Step title="Use adequate lubrication">
+    Lubrication reduces friction and tissue damage risk. Reapply during longer sessions.
+  </Step>
+  
+  <Step title="Take frequent breaks">
+    Extended use increases fatigue and injury risk. Pause regularly to reassess comfort and hardware condition.
+  </Step>
+  
+  <Step title="Operate with clear judgment">
+    Do not use the OSSM under the influence of substances or when cognitively impaired.
+  </Step>
+  
+  <Step title="Be cautious with restraints">
+    Restraints increase the risk of over‑penetration because you cannot move away.
+
+    <Warning>
+    If you use restraints, ensure an attentive partner can intervene immediately and keep cutting tools or quick‑release mechanisms on hand.
+    </Warning>
+  </Step>
+</Steps>
+
+<Warning>
+Stop immediately if you feel sharp pain, numbness, loss of sensation, or if the machine behaves unexpectedly. Power off before investigating.
+</Warning>
+
+<Check>
+If you completed the checks above, verified stop behavior, and can reach the power switch at all times, you’re set up for a safer session.
+</Check>
+
+## Related references
+
+<CardGroup cols={2}>
+<Card title="OSSM Info Sheet" icon="info" href="/open-source-sex-machine/ossm-ready-to-play/ossm-info-sheet-ready-to-play">
+  Safety notes and setup guidance.
+</Card>
+
+<Card title="Flashing your OSSM" icon="microchip" href="/open-source-sex-machine/flashing-your-ossm">
+  Firmware updates and flashing instructions.
+</Card>
+
+<Card title="PCB Spec Sheet" icon="bolt" href="/open-source-sex-machine/ossm-electronics/ossm-pcb-spec-sheet">
+  Power specs, 24V requirements, and protection details.
+</Card>
+
+<Card title="Motor Wiring" icon="plug" href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">
+  Wiring guide for Gold Motor.
+</Card>
+
+<Card title="RADR Quick Start" icon="radio" href="/research-and-desire-remote/quick-start">
+  Wireless remote pairing and safety behavior.
+</Card>
+</CardGroup>

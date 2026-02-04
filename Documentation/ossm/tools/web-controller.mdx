@@ -1,0 +1,87 @@
+---
+title: "Web Controller"
+description: "Control your OSSM device directly from your browser using Web Bluetooth"
+---
+
+import { OssmBleController } from "/snippets/ossm/ble-controller.jsx"
+
+Control your OSSM wirelessly from any compatible browser using Web Bluetooth. No apps or additional software required.
+
+<OssmBleController />
+
+## Requirements
+
+- **OSSM firmware**: Version 3.0 or later (with BLE support)
+- **Compatible browser**: Chrome, Edge, or Opera on desktop/Android
+- **Bluetooth**: Enabled on your device
+
+<Note>
+Web Bluetooth is **not supported** on iOS devices (iPhone/iPad) or in Safari/Firefox browsers. For these platforms, consider using the [RADR wireless controller](https://www.researchanddesire.com/products/radr-ossm-wireless-remote) instead.
+</Note>
+
+## How to Use
+
+1. Ensure your OSSM is powered on and running the latest firmware
+2. Click the **Connect** button above
+3. Select your OSSM from the Bluetooth device list
+4. Use the sliders to control speed, depth, stroke, and sensation
+5. Select different patterns using the pattern buttons
+
+## How It Works
+
+The web controller connects directly to your OSSM via Bluetooth Low Energy (BLE). All communication happens locally between your browser and the device — no data is sent to any servers.
+
+### Available Controls
+
+| Control | Description |
+|---------|-------------|
+| **Speed** | Controls motor speed (0-100%) |
+| **Depth** | Adjusts penetration depth (0-100%) |
+| **Stroke** | Sets stroke length (0-100%) |
+| **Sensation** | Modifies stroke feel/profile (0-100%) |
+| **Pattern** | Selects from available motion patterns |
+
+### Safety Features
+
+- **Pause**: Immediately stops all motion
+- **Auto-stop on disconnect**: Device returns to menu when connection is lost
+
+<Warning>
+The **Pause** button immediately stops all motion. Use it if you need to stop the device quickly.
+</Warning>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Device not appearing in list">
+    - Ensure your OSSM is powered on and not connected to another device
+    - Make sure Bluetooth is enabled on your computer/phone
+    - Try refreshing the page and clicking Connect again
+    - Check that your OSSM has firmware version 3.0 or later
+  </Accordion>
+  
+  <Accordion title="Connection drops frequently">
+    - Stay within Bluetooth range (typically 10 meters / 30 feet)
+    - Ensure there's a clear line of sight to the device
+    - Close other Bluetooth-intensive applications
+    - Try updating your browser to the latest version
+  </Accordion>
+  
+  <Accordion title="Controls not responding">
+    - Check the connection status indicator (should be green)
+    - Try disconnecting and reconnecting
+    - Ensure the device hasn't entered sleep mode
+  </Accordion>
+</AccordionGroup>
+
+## Official Resources
+
+<CardGroup cols={2}>
+  <Card title="OSSM Official Page" icon="house" href="https://www.researchanddesire.com/pages/ossm">
+    Learn more about the Open Source Sex Machine project.
+  </Card>
+  
+  <Card title="RADR Controller" icon="gamepad" href="https://www.researchanddesire.com/products/radr-ossm-wireless-remote">
+    Dedicated wireless controller hardware for OSSM.
+  </Card>
+</CardGroup>

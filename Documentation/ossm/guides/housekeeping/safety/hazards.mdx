@@ -1,0 +1,217 @@
+---
+title: "Hazard Reference"
+description: "Known hazards, vulnerabilities, and mitigation strategies for OSSM designers, builders, and users"
+---
+
+<Warning>
+This page summarizes known hazards for OSSM-style builds. Your specific configuration may introduce additional risks. If you change materials, dimensions, electronics, firmware, or mounting, perform your own hazard assessment before use.
+</Warning>
+
+## Before you begin: safety checklist
+
+<Steps>
+<Step title="Stage the area and controls">
+- Place the stand on a flat, stable surface with all fasteners tightened.
+- Route cables to avoid trip and snag points. Keep the power supply off the floor and away from liquids.
+- Identify your physical emergency stop (power switch or quick-disconnect) and ensure it’s reachable without crossing moving parts.
+
+<Check>
+Confirm you can cut power in under 1 second without touching the moving carriage.
+</Check>
+</Step>
+
+<Step title="Power-on and firmware sanity checks">
+- Power on the device and let it complete homing.
+- Verify low-speed, short-stroke motion works as expected before any contact with the body.
+- If using the Wireless Remote (RADR), pair normally and note that OSSM will ramp down and pause if the connection is lost.
+
+<Info>
+See <a href="/research-and-desire-remote/quick-start">RADR Quick Start</a> and <a href="/open-source-sex-machine/flashing-your-ossm">Flashing your OSSM</a> for pairing and firmware guidance.
+</Info>
+
+<Check>
+With no load attached, start a short pattern and stop it using the emergency control. Movement should cease immediately.
+</Check>
+</Step>
+
+<Step title="Mounting and guards">
+- Install pulley/bearing covers and any rail guards supplied by your design.
+- Use a toy adapter with a wide base that acts as a physical stop.
+- Verify stand orientation prevents fluid pooling on the PCB cover.
+
+<Check>
+With the device powered off, move the carriage by hand to the rear stop to verify a hard stop exists.
+</Check>
+</Step>
+</Steps>
+
+<Tip>
+Start every session at the lowest speed and shortest stroke. Increase gradually only after verifying control and comfort.
+</Tip>
+
+## Mechanical hazards
+
+<AccordionGroup>
+  <Accordion title="Pinch points: body parts caught in mechanism" icon="gears">
+    **Vulnerability:** Exposed pulleys, belts, and bearings create pinch points at the front and rear of the linear rail.
+
+    **Likely consequences:** Pinching, crushing, lacerations.
+
+    **Mitigations**
+    - **Designer:** Provide covers for pulleys/bearings; ensure clearances and shielded pinch zones in the CAD; label hazard areas in documentation.
+    - **Builder:** Install all provided covers and guards; verify no fasteners protrude into motion paths; deburr printed edges.
+    - **User:** Keep hands, skin, clothing, and accessories away from the rail ends and belt path; adjust the device via the stand, not the moving body.
+  </Accordion>
+
+  <Accordion title="Hair entanglement" icon="scissors">
+    **Vulnerability:** Long hair or loose clothing can be drawn into the drive mechanism.
+
+    **Likely consequences:** Hair loss, scalp injury, tissue trauma.
+
+    **Mitigations**
+    - **Designer:** Provide belt/pulley guards and smooth external surfaces near the carriage.
+    - **Builder:** Install all guards; ensure no gaps around moving belts and pulleys.
+    - **User:** Tie back hair; avoid leaning over the device; position the mechanism below waist level when practical.
+  </Accordion>
+
+  <Accordion title="Toy mount thread or adapter failure" icon="bolt">
+    **Vulnerability:** FDM parts can fail along layer lines, exposing sharp splinters or the metal rail.
+
+    **Likely consequences:** Cuts, bleeding, internal injuries.
+
+    **Mitigations**
+    - **Designer:** Use thread forms that are supported by the rail or a metal insert; specify wall thickness, perimeters, and infill; avoid geometries that create shard-like fracture paths toward the user.
+    - **Builder:** Print with sufficient wall count and infill; optimize layer height for strength; use materials with good interlayer adhesion; inspect for cracks and reprint if in doubt.
+    - **User:** Mount toys per instructions; avoid excessive leverage on adapters; replace any part that shows stress whitening or cracks.
+  </Accordion>
+
+  <Accordion title="Interchangeable head failure" icon="circle-exclamation">
+    **Vulnerability:** Printed mounting plates or quick-change interfaces can fracture along deposition lines.
+
+    **Likely consequences:** Cuts, bleeding, internal injuries.
+
+    **Mitigations**
+    - **Designer:** Reinforce screw bosses, plates, and outer walls; chamfer or shield edges so broken pieces don’t point toward the user; document print settings and minimum material specs.
+    - **Builder:** Use recommended materials; verify fit without forcing; discard parts with poor layer bonding or voids.
+    - **User:** Avoid side-loading; mount and lock heads fully; stop use at the first sign of cracking or unusual sounds.
+  </Accordion>
+</AccordionGroup>
+
+## Over‑penetration hazards
+
+<Warning>
+GPIO or software-only limits are not sufficient to prevent over‑penetration in a fault. Always include physical controls such as a hard rear stop and a reachable emergency power cut.
+</Warning>
+
+<AccordionGroup>
+  <Accordion title="Software fault causing over‑penetration" icon="code">
+    **Vulnerability:** A firmware or control error commands excessive depth.
+
+    **Likely consequences:** Tissue trauma or internal injury.
+
+    **Mitigations**
+    - **Designer:** Isolate depth/position logic in well-tested modules; require code review and bench testing; provide a hardware rear stop; include a clearly labeled emergency stop that removes motor power; recommend conservative rail lengths; design adapters with wide physical bases.
+    - **Builder:** Use the shortest practical rail; avoid overspecifying motor torque; wire and test the emergency stop; verify the hard stop engages before the maximum stroke.
+    - **User:** Maintain the ability to move away; avoid restraints; prefer shorter toys with wide bases; test the stop before each session.
+  </Accordion>
+
+  <Accordion title="Operator error causing over‑penetration" icon="user-xmark">
+    **Vulnerability:** Incorrect setup, distraction, or misuse leads to excessive depth.
+
+    **Likely consequences:** Tissue trauma or internal injury.
+
+    **Mitigations**
+    - **Designer:** Specify stand weight, base dimensions, and dynamic load limits; provide multiple securing points; publish recommended materials and print settings; supply wide‑base adapters by default.
+    - **Builder:** Use the shortest practical rail; match motor to application; implement and label the emergency stop; ballast or secure the stand per spec.
+    - **User:** Maintain communication with partners; don’t adjust while operating; keep body alignment stable; prefer shorter, wide‑base toys.
+  </Accordion>
+
+  <Accordion title="Stand failure or tipping" icon="triangle-exclamation">
+    **Vulnerability:** Structural failure or instability of the stand causes unintentional depth or angle changes.
+
+    **Likely consequences:** Tissue trauma or internal injury.
+
+    **Mitigations**
+    - **Designer:** Consider FDM failure modes and print orientation; specify fastener grades and minimum section thickness; require multiple securing points; document maximum reach and cantilever limits.
+    - **Builder:** Use appropriate materials; torque fasteners correctly; add ballast (e.g., sandbag) when specified; verify no wobble at full extension.
+    - **User:** Keep the ability to move away; operate within design limits; perform a quick stability check before each use.
+  </Accordion>
+</AccordionGroup>
+
+## Electrical hazards
+
+<AccordionGroup>
+  <Accordion title="Over‑current or mis‑wiring leading to fire" icon="fire">
+    **Vulnerability:** Over‑current, short circuits, or reversed polarity can overheat wiring or components.
+
+    **Likely consequences:** Burns, smoke, or fire; electric shock.
+
+    **Mitigations**
+    - **Designer:** Specify correctly rated power supplies and connectors; keep operating voltage ≤ 50 V; provide a PCB cover over high‑voltage/current areas; include polarity markings and strain relief.
+    - **Builder:** Use the specified 24 V supply and correct amperage; double‑check polarity before power‑on; install all covers; keep wiring away from motion paths; add fusing if your design calls for it.
+    - **User:** Keep hands dry; do not touch the body of the OSSM during operation—adjust via the stand; disconnect power before servicing.
+  </Accordion>
+
+  <Accordion title="Fluid ingress to electronics" icon="droplet">
+    **Vulnerability:** Fluids contacting the PCB or connectors can cause shorts.
+
+    **Likely consequences:** Electric shock, burns, or device failure.
+
+    **Mitigations**
+    - **Designer:** Provide a PCB cover oriented to protect the user‑facing side; design stand geometry to avoid pooling; route cables with drip‑loops when feasible.
+    - **Builder:** Install the correct cover for your stand orientation; seal or shield openings as specified.
+    - **User:** Operate within design parameters; keep liquids away from the power supply and controller; inspect covers before use.
+  </Accordion>
+
+  <Accordion title="EMI causing unpredictable motion" icon="bolt">
+    **Vulnerability:** Poor‑quality power supplies or cabling can inject noise, leading to unintended motion or control glitches.
+
+    **Likely consequences:** Unexpected movement; risk of tissue trauma.
+
+    <Note>
+    Community reports point to unbranded budget power supplies as a common cause. Substituting a reputable PSU resolved the issue.
+    </Note>
+
+    **Mitigations**
+    - **Designer/Builder:** Specify and use quality, reputable power supplies; keep signal and power cables tidy and separated; add ferrites if needed.
+    - **User:** Use manufacturer‑recommended or equivalent quality PSUs; stop immediately if motion becomes erratic and inspect power and signal connections.
+  </Accordion>
+</AccordionGroup>
+
+## Security hazards
+
+<AccordionGroup>
+  <Accordion title="Malicious or unexpected remote control" icon="user-secret">
+    **Vulnerability:** A remote user gains control during local operation, risking over‑penetration.
+
+    **Likely consequences:** Tissue trauma or internal injury.
+
+    <Note>
+    Dual‑control can be valuable for training or coaching scenarios. Decide whether an override is appropriate for your use case.
+    </Note>
+
+    **Mitigations**
+    - **Designer:** Default to remote lockout when local controls are active; require explicit re‑enablement after each restart; provide clear UI for control state.
+    - **User/Builder:** Prefer local‑only sessions for manual operation; require authentication for any network control; verify control source before play; power‑cycle the device to reset control state before switching modes.
+  </Accordion>
+</AccordionGroup>
+
+## Related resources
+
+<CardGroup cols={2}>
+<Card title="OSSM Info Sheet" icon="info" href="/open-source-sex-machine/ossm-ready-to-play/ossm-info-sheet-ready-to-play">
+  Safety notes and setup tips for your build.
+</Card>
+
+<Card title="RADR Quick Start" icon="radio" href="/research-and-desire-remote/quick-start">
+  Wireless Remote pairing and connection loss behavior.
+</Card>
+
+<Card title="Flashing your OSSM" icon="microchip" href="/open-source-sex-machine/flashing-your-ossm">
+  Firmware updates and flashing guide.
+</Card>
+</CardGroup>
+
+<Check>
+You’ve reviewed the checklist, tested your stop, and confirmed physical limits. You’re ready to proceed—stay within design limits and keep safety first.
+</Check>

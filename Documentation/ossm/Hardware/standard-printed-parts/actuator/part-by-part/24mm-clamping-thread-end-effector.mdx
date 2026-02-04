@@ -1,0 +1,123 @@
+---
+title: "24mm Clamping Thread - End Effector"
+description: "Output interface with 24 mm external threading for OSSM toy‑mount adapters"
+---
+
+import { STLViewer } from '/snippets/ossm/stl-render.jsx';
+
+<STLViewer url="https://raw.githubusercontent.com/KinkyMakers/OSSM-hardware/main/Printed%20Parts/Actuator/OSSM%20-%2024mm%20Clamping%20Thread%20-%20End%20Effector.stl" />
+
+<Info>
+Drag to rotate. Scroll or pinch to zoom. Right‑click (or two‑finger drag) to pan.
+</Info>
+
+## Function
+
+The 24 mm Clamping Thread – End Effector is the business end of the OSSM actuator. It:
+
+- Provides a 24 mm external thread that mates with OSSM toy‑mount adapters and the 24 mm five‑sided nut
+- Bolts to the carriage on the MGN12H linear bearing and aligns with the belt clamp
+- Transfers thrust from the actuator to the attached toy mount while maintaining axial alignment
+
+## Specifications at a glance
+
+- Threading: 24 mm external, compatible with OSSM 24 mm adapters and 24 mm five‑sided nut
+- Mounting interface: MGN12H carriage pattern; mates with OSSM belt clamp on the carriage
+- Intended load path: Axial (in line with rail). Avoid side‑loading or prying on the threaded section
+
+<Warning>
+Print this part in the default file orientation. Re‑orienting threaded parts weakens layer adhesion and can cause failure under load.
+</Warning>
+
+## Printing guidelines
+
+Use these settings as a starting point and adjust for your filament and printer.
+
+- Material: PETG or nylon recommended for toughness; ABS/ASA acceptable with enclosure; avoid PLA for high‑temperature use
+- Layer height: 0.16–0.24 mm; use 0.2 mm for best thread quality
+- Perimeters (walls): 4–6; top/bottom: 6+
+- Infill: 40–60% (gyroid or grid)
+- Supports: Not required in the default orientation
+- External perimeter speed: slow for clean threads (e.g., ≤ 25 mm/s)
+
+<Tip>
+If your slicer supports it, add 2 raft layers or a 6–10 mm brim to improve adhesion under the threaded section.
+</Tip>
+
+<Note>
+Elephant’s foot on the first layer can interfere with thread starts. Use “elephant foot compensation” (0.1–0.2 mm) or slightly raise your Z‑offset if the nut binds on the first turn.
+</Note>
+
+## Post‑processing and fit
+
+- Deburr the first thread with a sharp blade if needed
+- “Chase” the threads by slowly threading the 24 mm five‑sided nut on and off a few times
+- If the fit is too tight, increase horizontal (XY) expansion by +0.05 to +0.10 mm and reprint; if too loose, reduce by a similar amount
+- A light dry PTFE or silicone lubricant on the threads can reduce wear
+
+## Installation
+
+<Steps>
+<Step title="Prepare the carriage">
+Power off the OSSM. Ensure the MGN12H carriage and belt clamp are installed and square on the rail.
+</Step>
+
+<Step title="Mount the end effector">
+Align the end effector with the MGN12H carriage holes and fasten using the hardware from your OSSM kit. Tighten evenly and verify the face seats flush.
+</Step>
+
+<Step title="Attach your adapter">
+Thread on your chosen OSSM 24 mm adapter and secure it with the 24 mm five‑sided nut. Hand‑tighten until snug; do not overtighten.
+</Step>
+
+<Step title="Verify motion">
+Manually slide the carriage to confirm there is no interference. After re‑powering, run a homing cycle and check for smooth travel.
+
+<Check>
+The nut should engage smoothly by hand and the assembly should remain rigid under light axial load.
+</Check>
+</Step>
+</Steps>
+
+<Warning>
+Do not use tools (pliers, wrenches) on the printed nut or threads. Hand‑tighten only to avoid cracking.
+</Warning>
+
+## Maintenance
+
+- Inspect threads and the interface to the carriage before use; replace the part if you see cracks or delamination
+- Keep threads free of debris; clean with a soft brush
+- Re‑check fasteners after the first session and periodically thereafter
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="Nut starts but binds after 1–2 turns">
+- Likely first‑layer bulge (elephant’s foot). Enable elephant‑foot compensation or lightly chamfer the first thread with a blade.
+- Reduce external perimeter speed or lower nozzle temperature for sharper thread definition.
+</Accordion>
+
+<Accordion title="Nut is wobbly or won’t hold position">
+- Increase perimeters and infill for a stiffer thread form.
+- Reduce horizontal (XY) expansion or scale XY to 99.5% and reprint.
+</Accordion>
+
+<Accordion title="Layer split near the thread root">
+- Use a tougher material (PETG/nylon), raise nozzle temperature within spec, and ensure the default orientation.
+- Avoid over‑tightening; apply a light dry lubricant to reduce torque.
+</Accordion>
+</AccordionGroup>
+
+## Download files
+
+<CardGroup cols={3}>
+  <Card title="STL File" icon="cube" href="https://github.com/KinkyMakers/OSSM-hardware/blob/main/Printed%20Parts/Actuator/OSSM%20-%2024mm%20Clamping%20Thread%20-%20End%20Effector.stl">
+    Download for slicing
+  </Card>
+  <Card title="STEP File" icon="drafting-compass" href="https://github.com/KinkyMakers/OSSM-hardware/blob/main/Printed%20Parts/Actuator/STEP/OSSM%20-%2024mm%20Clamping%20Thread%20-%20End%20Effector.stp">
+    For CAD modification
+  </Card>
+  <Card title="3MF (Full Assembly)" icon="layer-group" href="https://github.com/KinkyMakers/OSSM-hardware/tree/main/Printed%20Parts/Actuator/Preconfigured%203mf">
+    Pre‑configured print files
+  </Card>
+</CardGroup>

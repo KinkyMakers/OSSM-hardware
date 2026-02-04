@@ -1,0 +1,132 @@
+---
+title: "Stand - Pivot Plate Left"
+description: "Left-side pivot plate that provides adjustable angle mounting for the actuator"
+---
+
+import { STLViewer } from '/snippets/ossm/stl-render.jsx';
+
+<STLViewer url="https://raw.githubusercontent.com/KinkyMakers/OSSM-hardware/main/Printed%20Parts/Stand/OSSM%20-%20Stand%20-%203030%20Extrusion%20Base%20-%20Pivot%20Plate%20Left.stl" />
+
+## Overview
+
+The Pivot Plate Left is one of two matching plates that create the adjustable pivot for the OSSM stand. Together with the right plate, it lets you set and lock the actuator angle relative to the 3030 extrusion base.
+
+- Mounts to 3030 aluminum extrusion
+- Provides the left-side pivot point for the actuator arm
+- Works with the Pivot Plate Right for synchronized angle adjustment
+- Uses M6 hardware with rubber or fiber washers for friction locking
+
+<Note>
+You need 1 Pivot Plate Left and 1 Pivot Plate Right per stand assembly.
+</Note>
+
+## Compatibility and material guidance
+
+- Stand type: 3030 extrusion base
+- Hardware: M6 fasteners and M6 T-slot nuts for 3030 extrusion
+- Recommended filament: PETG, ABS, or ASA for heat and creep resistance (PLA may deform under sustained load or heat)
+
+<Tip>
+Use slightly flexible friction washers (rubber, TPU, or fiber) on the pivot fastener to hold angle securely while still allowing smooth adjustment.
+</Tip>
+
+## Print settings
+
+| Setting | Value |
+|---------|-------|
+| Walls | 6 |
+| Infill Type | Cross Hatch or Gyroid |
+| Infill Percentage | 25% |
+| Supports | None |
+
+<Tip>
+Parts are pre-oriented in the STL. Print in the default orientation for best strength and dimensional accuracy.
+</Tip>
+
+<Info>
+Typical slicer defaults work well: 0.2–0.28 mm layer height with a 0.4 mm nozzle. Increase top/bottom layers if you want a smoother finish on visible faces.
+</Info>
+
+## Hardware checklist
+
+- M6 button head or hex bolts
+- M6 nyloc nuts (or threadlocker if using standard nuts)
+- M6 flat washers
+- Rubber/TPU or fiber friction washers for the pivot joint
+- M6 T-slot nuts compatible with 3030 extrusion
+
+<Warning>
+Do not substitute undersized hardware. Using smaller fasteners reduces clamp force and can cause the plate to slip under load.
+</Warning>
+
+## Assembly
+
+<Steps>
+<Step title="Attach the plate to the extrusion">
+Slide M6 T-slot nuts into the 3030 extrusion. Align the plate’s mounting holes with the nuts and install M6 bolts finger-tight so the plate can still move.
+
+<Check>
+The plate should slide for alignment but not wobble. If it wobbles, add a washer or adjust nut position.
+</Check>
+</Step>
+
+<Step title="Install the pivot hardware">
+Place a flat washer and a friction washer on the pivot bolt. Pass the bolt through the left plate and the mating bracket, then add a friction washer, flat washer, and nyloc nut.
+
+<Tip>
+Friction washers on both sides of the joint improve holding power and reduce squeak.
+</Tip>
+</Step>
+
+<Step title="Set angle and tighten">
+Rotate the assembly to your desired angle. Tighten the pivot nut until the joint holds position with firm hand force but still allows adjustment when loosened slightly. Snug the plate-to-extrusion bolts.
+
+<Check>
+Push on the actuator bracket. The angle should remain fixed without slipping.
+</Check>
+</Step>
+</Steps>
+
+## Verification
+
+- The plate sits flush against the extrusion and does not rock
+- The pivot rotates smoothly without binding
+- The left and right plates mirror each other and align symmetrically
+- Clamped angle holds under expected load
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="The angle slips during use">
+- Increase clamp force on the pivot nut incrementally
+- Add or replace friction washers (rubber/TPU/fiber)
+- Ensure washers are clean and free of lubricant
+</Accordion>
+
+<Accordion title="Misalignment between left and right plates">
+- Loosen plate-to-extrusion bolts, square both plates, then re-tighten evenly
+- Confirm T-slot nuts are seated and not cross-tilted inside the extrusion
+</Accordion>
+
+<Accordion title="Squeaking or rough movement">
+- Replace worn friction washers
+- Lightly deburr the printed pivot hole; do not lubricate friction surfaces
+</Accordion>
+</AccordionGroup>
+
+## Maintenance
+
+- Recheck bolt tightness after initial use and periodically thereafter
+- Inspect for cracks or layer separation; reprint if you see damage
+- Replace friction washers if you notice slipping or noise
+
+## Download files
+
+<CardGroup cols={2}>
+  <Card title="STL File" icon="cube" href="https://github.com/KinkyMakers/OSSM-hardware/blob/main/Printed%20Parts/Stand/OSSM%20-%20Stand%20-%203030%20Extrusion%20Base%20-%20Pivot%20Plate%20Left.stl">
+    Download for slicing
+  </Card>
+  <Card title="STEP File" icon="drafting-compass" href="https://github.com/KinkyMakers/OSSM-hardware/blob/main/Printed%20Parts/Stand/STEP/OSSM%20-%20Stand%20-%203030%20Extrusion%20Base%20-%20Pivot%20Plate%20Left.stp">
+    For CAD modification
+  </Card>
+</CardGroup>
