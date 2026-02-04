@@ -45,7 +45,7 @@ The main menu provides the following options:
 |--------|-------------|
 | **Simple Penetration** | Basic operation with speed and stroke controls |
 | **Stroke Engine** | Advanced pattern-based control with depth, stroke, and sensation settings |
-| **Streaming (beta)** | External control mode for third-party applications via BLE |
+| **Streaming (experimental)** | External control mode for funscript playback and third-party applications via BLE |
 | **Update** | Check for and install over-the-air firmware updates (requires WiFi) |
 | **WiFi Setup** | Configure wireless network connectivity |
 | **Get Help** | Display a QR code linking to setup documentation and support |
@@ -122,6 +122,31 @@ Press the right encoder **twice quickly** to open the pattern selection menu.
 
 Scroll to your desired pattern and press the encoder to select it. The pattern changes immediately.
 
+## Streaming mode (experimental)
+
+<Warning>
+Streaming mode is experimental and not recommended for general play. Only use streaming with trusted applications.
+</Warning>
+
+Streaming mode allows external applications to control your OSSM in real-time via Bluetooth. This enables synchronized playback with video content using funscript files.
+
+### When to use Streaming mode
+
+- Playing funscript files synchronized with video
+- Using third-party control applications
+- Developer testing and integration
+
+### Getting started with streaming
+
+1. Select **Streaming** from the main menu
+2. The OSSM will home and wait for external commands
+3. Connect using the [Funscript Player](/ossm/tools/funscript-player) or a compatible application
+4. The external application controls motion—local controls are not active during streaming
+
+<Info>
+For detailed streaming documentation, see [Operating Modes](/ossm/Software/getting-started/operating-modes#streaming-mode-experimental) and the [BLE Protocol](/ossm/Software/communication/ble) reference.
+</Info>
+
 ## Next steps
 
 <CardGroup cols={2}>
@@ -130,5 +155,8 @@ Diagnose and resolve common issues with your OSSM.
 </Card>
 <Card title="Community mods" icon="puzzle-piece" href="/ossm/guides/community">
 Explore community-built extensions and modifications.
+</Card>
+<Card title="Funscript Player" icon="play" href="/ossm/tools/funscript-player">
+Play funscript files synchronized with video (experimental).
 </Card>
 </CardGroup>

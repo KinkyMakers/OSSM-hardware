@@ -155,6 +155,19 @@ Never operate an OSSM with missing belt covers, loose wiring, or incomplete asse
   </Note>
   </Step>
   
+  <Step title="Use streaming mode carefully (if applicable)">
+    Streaming mode is experimental and accepts real-time commands from external applications. If using streaming:
+    
+    - Only use trusted applications from known sources
+    - Test at low intensity before full engagement
+    - Verify the application handles disconnection safely (OSSM ramps down over 2 seconds on BLE disconnect)
+    - Keep physical stop controls accessible—emergency stop (long-press encoder) always works
+    
+  <Warning>
+    Streaming mode bypasses local speed/stroke controls. The external application determines all motion. Ensure you trust the source before enabling streaming.
+  </Warning>
+  </Step>
+  
   <Step title="Use adequate lubrication">
     Lubrication reduces friction and tissue damage risk. Reapply during longer sessions.
   </Step>

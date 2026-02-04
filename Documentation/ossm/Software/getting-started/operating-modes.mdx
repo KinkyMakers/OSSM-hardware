@@ -25,7 +25,7 @@ The menu wraps around—scrolling past the last item brings you back to the firs
 |--------|-------------|
 | **Simple Penetration** | Basic operation with speed and stroke controls |
 | **Stroke Engine** | Advanced pattern-based control with depth, stroke, and sensation |
-| **Streaming (beta)** | External control mode for third-party applications |
+| **Streaming (experimental)** | External control mode for funscript playback and third-party applications |
 | **Update** | Check for and install firmware updates (requires WiFi) |
 | **WiFi Setup** | Configure wireless network connection |
 | **Get Help** | Display QR code linking to setup documentation |
@@ -145,27 +145,77 @@ Stroke Engine provides 7 motion patterns:
 For detailed pattern descriptions and sensation effects, see the [Pattern documentation](/ossm/Software/motion/stroke-engine/Pattern).
 </Info>
 
-## Streaming mode (beta)
+## Streaming mode (experimental)
 
 <Warning>
-Streaming mode is currently in beta. Functionality may change in future firmware updates.
+Streaming mode is experimental and not recommended for general play. The protocol and behavior may change in future firmware updates. Only use streaming with trusted applications from known sources.
 </Warning>
 
-Streaming mode allows external applications to control the OSSM via BLE commands. It uses the same display interface as other modes but is designed to receive real-time position commands from connected devices.
+Streaming mode allows external applications to send real-time position commands to the OSSM via BLE. Unlike Simple Penetration and Stroke Engine which generate motion patterns internally, Streaming mode receives exact position targets from an external source—enabling synchronized playback with video content, funscripts, or custom control applications.
+
+### How streaming works
+
+1. Select **Streaming** from the main menu (or send `go:streaming` via BLE)
+2. The OSSM homes to position 0 (fully retracted) and waits for commands
+3. External applications send `stream:<position>:<time>` commands
+4. The OSSM moves to each target position within the specified time
+5. The display shows the current streaming state
+
+```mermaid
+sequenceDiagram
+    participant App as External App
+    participant OSSM as OSSM
+    
+    App->>OSSM: go:streaming
+    OSSM->>OSSM: Home to position 0
+    loop Playback
+        App->>OSSM: stream:pos:time
+        OSSM->>OSSM: Calculate speed, move
+    end
+    App->>OSSM: go:menu
+```
 
 ### When to use Streaming mode
 
-- Integration with third-party control applications
-- Synchronized playback with external content
-- Custom automation via BLE-connected devices
+- **Funscript playback**: Sync motion with video content using the [Funscript Player](/ossm/tools/funscript-player)
+- **Third-party integrations**: Applications that generate real-time position data
+- **Custom automation**: Developers building BLE control applications
+
+### Safety considerations
+
+<Warning>
+Streaming mode accepts commands from external sources. Only use applications you trust, and always test at low intensity before full engagement. Keep your physical stop controls accessible.
+</Warning>
+
+- The OSSM validates incoming commands but relies on the external application for safe motion planning
+- If the BLE connection is lost, the OSSM ramps down speed over 2 seconds and stops
+- Local controls remain accessible—use the emergency stop (long-press encoder) if needed
 
 ### Controls
 
-While in Streaming mode, the local controls (encoder and potentiometer) remain active but may be overridden by incoming BLE commands. The display shows current parameter values regardless of whether they're set locally or remotely.
+While in Streaming mode:
+- **Speed knob**: Not used for streaming (external commands control motion)
+- **Encoder rotation**: Not used for streaming
+- **Long-press encoder**: Emergency stop and return to menu
 
-<Tip>
-For BLE command reference, see the [BLE Protocol documentation](/ossm/Software/communication/ble).
-</Tip>
+### Technical details
+
+| Property | Value |
+|----------|-------|
+| Command format | `stream:<position>:<time>` |
+| Position range | 0-100 (percentage of stroke) |
+| Time unit | Milliseconds |
+| Minimum firmware | Version 3.0+ |
+
+<CardGroup cols={2}>
+<Card title="Funscript Player" icon="play" href="/ossm/tools/funscript-player">
+  Play funscript files synchronized with video.
+</Card>
+
+<Card title="BLE Protocol" icon="bluetooth" href="/ossm/Software/communication/ble">
+  Full streaming command reference and protocol details.
+</Card>
+</CardGroup>
 
 ## Exiting any mode
 
@@ -184,5 +234,13 @@ Emergency stop immediately halts motion and marks the device as "not homed." You
 
 <Card title="StrokeEngine Patterns" icon="wave-pulse" href="/ossm/Software/motion/stroke-engine/Pattern">
   Detailed descriptions of each motion pattern and sensation effects.
+</Card>
+
+<Card title="Funscript Player" icon="play" href="/ossm/tools/funscript-player">
+  Play funscript files synchronized with video using streaming mode.
+</Card>
+
+<Card title="BLE Protocol" icon="bluetooth" href="/ossm/Software/communication/ble">
+  Technical reference for BLE commands including streaming.
 </Card>
 </CardGroup>

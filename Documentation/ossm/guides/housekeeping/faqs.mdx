@@ -86,6 +86,26 @@ Both configurations support the same stroke patterns, speeds, and accessories. F
 **Want the PitClamp Mini with your DIY Kit?** You can purchase the [PitClamp Mini kit](https://www.researchanddesire.com/products/pitclamp-mini) separately alongside the DIY Kit. The PitClamp kit includes its own non-pivot actuator middle body, which replaces the middle pivot body from the DIY Kit. You'll end up with a few extra parts, but everything is fully compatible.
 </Tip>
 </Accordion>
+
+<Accordion title="What is Streaming mode?">
+Streaming mode is an **experimental** feature that allows external applications to control your OSSM in real-time via Bluetooth. Unlike Simple Penetration and Stroke Engine which generate motion patterns internally, Streaming mode receives position commands from an external source.
+
+**Common uses:**
+- Playing funscript files synchronized with video content
+- Integration with third-party control applications
+- Developer testing and custom automation
+
+<Warning>
+Streaming mode is experimental and not recommended for general play. Only use streaming with trusted applications from known sources. Always test at low intensity first and keep physical stop controls accessible.
+</Warning>
+
+**Getting started:**
+1. Update to firmware version 3.0 or later
+2. Select **Streaming** from the main menu
+3. Use the [Funscript Player](/ossm/tools/funscript-player) or a compatible BLE application
+
+For technical details, see the [Operating Modes](/ossm/Software/getting-started/operating-modes#streaming-mode-experimental) and [BLE Protocol](/ossm/Software/communication/ble) documentation.
+</Accordion>
 </AccordionGroup>
 
 ## Motors

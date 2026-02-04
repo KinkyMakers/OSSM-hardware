@@ -5,6 +5,10 @@ description: "Play funscript files synced with video directly to your OSSM via B
 
 import { OssmFunscriptPlayer } from "/snippets/ossm/funscript-player.jsx"
 
+<Warning>
+**Experimental Feature**: The Funscript Player uses streaming mode, which is experimental and not recommended for general play. The protocol and behavior may change in future firmware updates. Use at your own risk and always test at low intensity first.
+</Warning>
+
 Sync your OSSM with funscript files for video-synchronized playback. Load a video and matching `.funscript` file, connect via Bluetooth, and enjoy automated motion control.
 
 <OssmFunscriptPlayer />
@@ -112,6 +116,16 @@ The funscript player uses the OSSM's native streaming protocol via BLE:
 - **Update rate**: Commands are sent every 10ms when new actions are due
 - **BLE characteristic**: Uses the primary OSSM command characteristic (`522b443a-4f53-534d-1000-420badbabe69`)
 
+<Info>
+Position streaming is experimental. The firmware calculates the required speed to reach each target position within the specified time, using maximum acceleration for responsive motion. If the BLE connection is lost, the OSSM automatically ramps down and stops over 2 seconds.
+</Info>
+
+<CardGroup cols={2}>
 <Card title="BLE Protocol Documentation" icon="bluetooth" href="/ossm/Software/communication/ble">
-  Learn more about the OSSM's Bluetooth communication protocol.
+  Full streaming command reference and protocol details.
 </Card>
+
+<Card title="Operating Modes" icon="sliders" href="/ossm/Software/getting-started/operating-modes#streaming-mode-experimental">
+  Learn about streaming mode and other operating modes.
+</Card>
+</CardGroup>
