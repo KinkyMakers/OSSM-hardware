@@ -15,7 +15,9 @@ struct PositionTime {
 extern std::queue<String> messageQueue;
 extern PositionTime lastPositionTime;
 extern PositionTime targetPositionTime;
+extern bool targetUpdated;
 
-bool hasTargetChanged();
+void markTargetUpdated();
+bool consumeTargetUpdate();
 
 #endif  // OSSM_COMMUNICATION_QUEUE_H
