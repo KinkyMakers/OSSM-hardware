@@ -1,0 +1,72 @@
+---
+title: Video Tracker Overview
+description: Track OSSM motion from video and export position-time data
+---
+
+# Video Tracker
+
+The Video Tracker tool analyzes video recordings of an OSSM to extract position-time data using OpenCV computer vision.
+
+## Features
+
+- Load any standard video format (MP4, AVI, MOV, etc.)
+- **iPhone slo-mo support** (120fps/240fps)
+- Interactive calibration using a known reference length
+- Point tracking with adjustable tracking circle
+- Real-time visualization during tracking
+- CSV export for further analysis
+
+## How It Works
+
+<Steps>
+  <Step title="Load Video">
+    The tool loads your video file and extracts the first frame for setup.
+  </Step>
+  <Step title="Calibrate Scale">
+    You draw a line along a known length (like the linear rail) and enter the real-world dimension in millimeters. This establishes the pixel-to-mm conversion.
+  </Step>
+  <Step title="Select Tracking Point">
+    Click to place a tracking circle on the point you want to follow (typically the end effector or a high-contrast marker).
+  </Step>
+  <Step title="Process Video">
+    The tool processes each frame, tracking the selected point and calculating its position along the calibration axis.
+  </Step>
+  <Step title="Export Data">
+    Position-time data is saved to a CSV file for analysis in your preferred tools.
+  </Step>
+</Steps>
+
+## Output Format
+
+The exported CSV contains the following columns:
+
+| Column | Description |
+|--------|-------------|
+| `frame` | Frame number (0-indexed) |
+| `time_s` | Time in seconds |
+| `position_mm` | Position along the calibration axis in millimeters |
+| `raw_x` | Raw pixel X coordinate |
+| `raw_y` | Raw pixel Y coordinate |
+
+## Tips for Best Results
+
+<AccordionGroup>
+  <Accordion title="Lighting">
+    Ensure consistent, even lighting throughout the video. Avoid shadows that move across the tracking point.
+  </Accordion>
+  <Accordion title="Camera Position">
+    Mount the camera perpendicular to the direction of motion. Avoid angles that cause perspective distortion.
+  </Accordion>
+  <Accordion title="Tracking Point">
+    Use a high-contrast marker (like a bright sticker or tape) on the end effector for more reliable tracking.
+  </Accordion>
+  <Accordion title="Frame Rate">
+    Higher frame rates capture faster movements more accurately. 60fps or higher is recommended for high-speed operation. iPhone slo-mo (120/240fps) is excellent for capturing fast strokes.
+  </Accordion>
+  <Accordion title="iPhone Slo-Mo Videos">
+    iPhone slow-motion videos use variable frame rate (VFR) - normal sections are 30fps while the slo-mo portion is 120/240fps. For the most accurate timing data, trim your video to just the slow-motion section before analysis. The Photos app or iMovie can export just the slo-mo portion.
+  </Accordion>
+  <Accordion title="Calibration Line">
+    Draw the calibration line along the exact path of motion for the most accurate position measurements.
+  </Accordion>
+</AccordionGroup>

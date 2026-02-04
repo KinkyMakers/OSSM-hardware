@@ -289,6 +289,15 @@
                       "ossm/Hardware/ossm-mods/salad-dressing/weight-plate",
                       "ossm/Hardware/ossm-mods/salad-dressing/quick-change-toy-mount"
                     ]
+                  },
+                  {
+                    "group": "Basic Mount (Legacy)",
+                    "pages": [
+                      "ossm/Hardware/ossm-mods/basic-mount/introduction",
+                      "ossm/Hardware/ossm-mods/basic-mount/side-1",
+                      "ossm/Hardware/ossm-mods/basic-mount/side-2",
+                      "ossm/Hardware/ossm-mods/basic-mount/spacer"
+                    ]
                   }
                 ]
               },
@@ -328,6 +337,26 @@
                 "pages": [
                   "ossm/Software/motion/stroke-engine/introduction",
                   "ossm/Software/motion/stroke-engine/Pattern"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "Analysis",
+            "groups": [
+              {
+                "group": "Getting Started",
+                "pages": [
+                  "ossm/Analysis/getting-started/introduction"
+                ]
+              },
+              {
+                "group": "Video Tracker",
+                "pages": [
+                  "ossm/Analysis/video-tracker/overview",
+                  "ossm/Analysis/video-tracker/installation",
+                  "ossm/Analysis/video-tracker/usage",
+                  "ossm/Analysis/video-tracker/analyzing-data"
                 ]
               }
             ]

@@ -1,0 +1,177 @@
+---
+title: Analyzing Data
+description: Tips for working with the exported position-time data
+---
+
+# Analyzing Tracking Data
+
+Once you have your CSV file, you can analyze the data in various ways to understand your OSSM's performance.
+
+## Data Format
+
+The exported CSV contains:
+
+```csv
+frame,time_s,position_mm,raw_x,raw_y
+0,0.0,0.0,245,312
+1,0.0167,0.52,246,312
+2,0.0333,1.15,248,312
+```
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `frame` | int | Frame number (0-indexed) |
+| `time_s` | float | Time in seconds |
+| `position_mm` | float or empty | Position along calibration axis |
+| `raw_x` | int or empty | Pixel X coordinate |
+| `raw_y` | int or empty | Pixel Y coordinate |
+
+<Note>
+  Empty values indicate frames where tracking was lost. Handle these appropriately in your analysis.
+</Note>
+
+## Quick Analysis with Python
+
+Here's a simple script to visualize your data:
+
+```python
+import csv
+import matplotlib.pyplot as plt
+
+# Load data
+times = []
+positions = []
+
+with open('video_tracking_data.csv', 'r') as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        if row['position_mm']:  # Skip lost frames
+            times.append(float(row['time_s']))
+            positions.append(float(row['position_mm']))
+
+# Plot position over time
+plt.figure(figsize=(12, 6))
+plt.plot(times, positions)
+plt.xlabel('Time (s)')
+plt.ylabel('Position (mm)')
+plt.title('OSSM Position Over Time')
+plt.grid(True)
+plt.savefig('position_plot.png')
+plt.show()
+```
+
+## Calculating Velocity
+
+Derive velocity from position data:
+
+```python
+import numpy as np
+
+# Calculate velocity (mm/s)
+positions = np.array(positions)
+times = np.array(times)
+
+# Use gradient for smoother derivative
+velocity = np.gradient(positions, times)
+
+# Plot velocity
+plt.figure(figsize=(12, 6))
+plt.plot(times, velocity)
+plt.xlabel('Time (s)')
+plt.ylabel('Velocity (mm/s)')
+plt.title('OSSM Velocity Over Time')
+plt.grid(True)
+plt.show()
+
+print(f"Max velocity: {np.max(np.abs(velocity)):.1f} mm/s")
+```
+
+## Key Metrics
+
+### Stroke Length
+
+```python
+stroke_length = np.max(positions) - np.min(positions)
+print(f"Stroke length: {stroke_length:.1f} mm")
+```
+
+### Average Speed
+
+```python
+# Calculate instantaneous speeds
+speeds = np.abs(velocity)
+avg_speed = np.mean(speeds)
+max_speed = np.max(speeds)
+
+print(f"Average speed: {avg_speed:.1f} mm/s")
+print(f"Maximum speed: {max_speed:.1f} mm/s")
+```
+
+### Cycle Detection
+
+For repetitive patterns, detect individual strokes:
+
+```python
+from scipy.signal import find_peaks
+
+# Find peaks (top of stroke)
+peaks, _ = find_peaks(positions, distance=20)
+
+# Find troughs (bottom of stroke)
+troughs, _ = find_peaks(-np.array(positions), distance=20)
+
+# Calculate cycle times
+if len(peaks) > 1:
+    cycle_times = np.diff(times[peaks])
+    avg_cycle = np.mean(cycle_times)
+    frequency = 1.0 / avg_cycle
+    
+    print(f"Average cycle time: {avg_cycle:.3f} s")
+    print(f"Frequency: {frequency:.2f} Hz ({frequency * 60:.0f} strokes/min)")
+```
+
+## Spreadsheet Analysis
+
+The CSV can be opened directly in Excel, Google Sheets, or similar tools:
+
+1. **Open** the CSV file in your spreadsheet application
+2. **Create charts** using the time and position columns
+3. **Add calculated columns** for velocity, acceleration, etc.
+4. **Use built-in functions** like `MAX()`, `MIN()`, `AVERAGE()`
+
+### Useful Formulas
+
+| Metric | Excel Formula |
+|--------|---------------|
+| Stroke Length | `=MAX(C:C) - MIN(C:C)` |
+| Average Position | `=AVERAGE(C:C)` |
+| Frame Rate | `=1 / (B3 - B2)` |
+
+## Comparison Analysis
+
+To compare different configurations or patterns:
+
+1. Run the tracker on multiple videos with consistent calibration
+2. Load all CSVs into the same analysis script
+3. Plot overlaid or side-by-side comparisons
+
+```python
+# Compare two runs
+data1 = load_csv('run1_tracking_data.csv')
+data2 = load_csv('run2_tracking_data.csv')
+
+plt.figure(figsize=(12, 6))
+plt.plot(data1['time'], data1['position'], label='Run 1')
+plt.plot(data2['time'], data2['position'], label='Run 2')
+plt.legend()
+plt.show()
+```
+
+## Exporting for Other Tools
+
+The CSV format is compatible with:
+
+- **MATLAB** - `readtable('data.csv')`
+- **R** - `read.csv('data.csv')`
+- **Julia** - `CSV.read("data.csv", DataFrame)`
+- **LabVIEW** - Read Delimited Spreadsheet VI
