@@ -33,8 +33,8 @@ struct LanguageStruct {
     const char* WiFiSetupLine1;
     const char* WiFiSetupLine2;
     const char* YouShouldNotBeHere;
-    const char* StrokeEngineDescriptions[7];
-    const char* StrokeEngineNames[7];
+    const char* StrokeEngineDescriptions[8];
+    const char* StrokeEngineNames[8];
 };
 
 #endif  // OSSM_SOFTWARE_LANGUAGESTRUCT_H
