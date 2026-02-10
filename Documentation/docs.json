@@ -109,6 +109,13 @@
                     ]
                   }
                 ]
+              },
+              {
+                "group": "Changelog",
+                "pages": [
+                  "ossm/guides/changelog/overview",
+                  "ossm/guides/changelog/v0.0.0"
+                ]
               }
             ]
           },
