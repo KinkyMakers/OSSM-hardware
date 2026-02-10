@@ -310,6 +310,24 @@ If you want both remotes, purchase the wired remote board separately. You can on
 </Card>
 </Accordion>
 
+<Accordion title="I bought the DIY Kit with the 'Fully Assembled' option but received parts to assemble. What's going on?">
+The **DIY Kit always requires assembly of the OSSM actuator**—you'll receive components that need to be assembled using the [Build Guide](/ossm/guides/getting-started/build-guide/step-0.0_introduction).
+
+When you see "Fully Assembled" in the DIY Kit options, this refers **only to the remote**, not the main machine:
+
+| Option | What's preassembled | What you assemble |
+|--------|---------------------|-------------------|
+| **Wired Remote - Unassembled** | Nothing | OSSM actuator + remote enclosure |
+| **Wired Remote - Fully Assembled** | Wired remote only | OSSM actuator |
+| **Wireless Remote - Fully Assembled** | Wireless remote (RADR) only | OSSM actuator |
+
+If you want a fully assembled OSSM that's ready to use out of the box with no assembly required, you need the [Ready-to-Play](/ossm/guides/getting-started/ready-to-play/introduction) edition instead of the DIY Kit.
+
+<Tip>
+**Quick summary**: DIY Kit = you build the machine. Ready-to-Play = we build it for you. The remote assembly options within the DIY Kit only affect whether your remote arrives assembled.
+</Tip>
+</Accordion>
+
 <Accordion title="Can I upgrade my wired OSSM to use the Wireless Remote (RADR)?">
 Yes. If you have an existing OSSM with the wired remote, you can add wireless control without replacing any hardware on the OSSM itself.
 
@@ -379,6 +397,21 @@ Several technical challenges make this integration complex:
 <AccordionGroup>
 <Accordion title="Do I need to buy the OSSM reference board?">
 No, the reference board is optional. However, it significantly simplifies the build process by eliminating the need for soldering.
+</Accordion>
+
+<Accordion title="What's included in the Wired Remote electronics options?">
+The **Reference Remote: Wired - Unassembled** option includes:
+
+- **OSSM Control Board (PCB)** with embedded ESP32 microcontroller
+- **Wired Remote Board** (the handheld controller circuit board)
+
+You receive both boards unassembled—you'll need to mount them in their respective enclosures and connect the cables as part of your build.
+
+If you purchase the **Fully Assembled** wired option, these same components come pre-mounted and ready to connect.
+
+<Note>
+The OSSM Control Board contains the ESP32 that runs the firmware. The Wired Remote Board is a separate component that connects to the control board via an Ethernet cable and provides the physical interface (display, knobs, buttons).
+</Note>
 </Accordion>
 
 <Accordion title="What's included in the Extrusion Kit?">
@@ -484,6 +517,23 @@ Print a test piece when creating a new end effector—you may need to upsize by 
 ## Maintenance and Replacement Parts
 
 <AccordionGroup>
+<Accordion title="Does the linear rail need cleaning and greasing before assembly?">
+Yes. Linear rails in OSSM kits ship with factory packaging and a protective coating that prevents corrosion during storage and shipping. Before assembly:
+
+1. **Clean the rail**: Wipe down the rail and carriage with isopropyl alcohol or a degreaser to remove the factory preservative coating. Pay attention to the carriage's ball bearing tracks.
+
+2. **Apply fresh grease**: Once clean, apply a light machine grease or linear rail lubricant to the rail surface. Move the carriage back and forth several times to distribute the grease evenly through the ball bearings.
+
+**Recommended lubricants:**
+- Super Lube synthetic grease (PTFE-based)
+- White lithium grease
+- Any quality linear rail or ball bearing grease
+
+<Note>
+Running the rail without proper lubrication can cause premature wear on the ball bearings and increase friction. A small amount of grease goes a long way—you don't need to coat the entire rail heavily.
+</Note>
+</Accordion>
+
 <Accordion title="What parts wear out over time?">
 With regular use, certain components may wear out and need replacement. The most common wear items are:
 
