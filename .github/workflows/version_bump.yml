@@ -25,21 +25,12 @@ jobs:
             echo "is_bot=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Generate GitHub App Token
-        id: generate_token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ secrets.RAD_VERSION_CONTROL_APP_ID }}
-          private-key: ${{ secrets.RAD_VERSION_CONTROL_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: ${{ github.event.repository.name }}
-
       - name: Checkout code
         if: ${{ steps.bot_check.outputs.is_bot != 'true' }}
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
 
       - name: Exit early if only markdown files changed
         if: ${{ steps.bot_check.outputs.is_bot != 'true' }}
@@ -90,7 +81,7 @@ jobs:
       - name: Update version
         if: ${{ steps.bot_check.outputs.is_bot != 'true' && steps.check_changes.outputs.skip != 'true' }}
         env:
-          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
           NEXT_VERSION: ${{ steps.get_next_version.outputs.NEXT_VERSION }}
         id: version_update
         run: |
@@ -178,7 +169,7 @@ jobs:
         if: ${{ steps.bot_check.outputs.is_bot != 'true' && steps.check_changes.outputs.skip != 'true' }}
         env:
           NEXT_VERSION: ${{ steps.get_next_version.outputs.NEXT_VERSION }}
-          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token || secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
