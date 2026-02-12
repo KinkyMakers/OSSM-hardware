@@ -89,7 +89,10 @@ void OSSM::drawWiFi() {
                     vTaskDelay(50);
                 }
 
-                wm.stopConfigPortal();
+                // Only stop portal if user left the screen, not on successful connection
+                if (WiFiClass::status() != WL_CONNECTED) {
+                    wm.stopConfigPortal();
+                }
                 vTaskDelete(nullptr);
             },
             "wmProcessTask", 4 * configMINIMAL_STACK_SIZE, this,
