@@ -10,12 +10,12 @@ using namespace sml;
 
 OSSM *ossm = nullptr;
 
-// Static member definition
+// Static member definition, with first pattern.
 SettingPercents OSSM::setting = {.speed = 0,
                                  .stroke = 50,
                                  .sensation = 50,
                                  .depth = 10,
-                                 .pattern = StrokePatterns::SimpleStroke};
+                                 .pattern = StrokePatterns(0)};
 
 // Now we can define the OSSM constructor since OSSMStateMachine::operator() is
 // fully defined

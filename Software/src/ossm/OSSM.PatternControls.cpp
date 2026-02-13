@@ -4,11 +4,6 @@
 #include "utils/analog.h"
 #include "utils/format.h"
 
-size_t numberOfDescriptions =
-    sizeof(UserConfig::language.StrokeEngineDescriptions) /
-    sizeof(UserConfig::language.StrokeEngineDescriptions[0]);
-size_t numberOfPatterns = 7;
-
 void OSSM::drawPatternControlsTask(void *pvParameters) {
     // parse ossm from the parameters
     OSSM *ossm = (OSSM *)pvParameters;
@@ -19,16 +14,15 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
         return ossm->sm->is("strokeEngine.pattern"_s);
     };
 
-    int nextPattern = (int)OSSM::setting.pattern;
+    StrokePatterns nextPattern = OSSM::setting.pattern;
     bool shouldUpdateDisplay = true;
-    const char *patternName = "nextPattern";
-    const char *patternDescription =
-        UserConfig::language.StrokeEngineDescriptions[nextPattern];
+    String patternName;
+    String patternDescription;
 
     // Change encode
     ossm->encoder.setAcceleration(10);
-    ossm->encoder.setBoundaries(0, numberOfPatterns * 3 - 1, true);
-    ossm->encoder.setEncoderValue(nextPattern * 3);
+    ossm->encoder.setBoundaries(0, static_cast<int>(StrokePatterns::Count) * 3 - 1, true);
+    ossm->encoder.setEncoderValue((int)nextPattern * 3);
 
     while (isInCorrectState(ossm)) {
         float speed;
@@ -46,24 +40,16 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
             OSSM::setting.speed = speed;
         }
 
-        nextPattern = ossm->encoder.readEncoder() / 3;
-        shouldUpdateDisplay =
-            shouldUpdateDisplay || (int)OSSM::setting.pattern != nextPattern;
+        nextPattern = StrokePatterns(ossm->encoder.readEncoder() / 3);
+        shouldUpdateDisplay = shouldUpdateDisplay || OSSM::setting.pattern != nextPattern;
         if (!shouldUpdateDisplay) {
             vTaskDelay(100);
             continue;
         }
 
-        patternName = UserConfig::language.StrokeEngineNames[nextPattern];
-
-        if (nextPattern < numberOfDescriptions) {
-            patternDescription =
-                UserConfig::language.StrokeEngineDescriptions[nextPattern];
-        } else {
-            patternDescription = "No description available";
-        }
-
-        OSSM::setting.pattern = (StrokePatterns)nextPattern;
+        patternName = UserConfig::language.StrokeEngineNames[(int)nextPattern];
+        patternDescription = UserConfig::language.StrokeEngineDescriptions[(int)nextPattern];
+        OSSM::setting.pattern = nextPattern;
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
             clearPage(true, true);
@@ -71,7 +57,7 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
             // Draw the title
             drawStr::title(patternName);
             drawStr::multiLine(0, 20, patternDescription);
-            drawShape::scroll(100 * nextPattern / numberOfPatterns);
+            drawShape::scroll(100 * (int)nextPattern /(int)StrokePatterns::Count);
 
             refreshPage(true, true);
             xSemaphoreGive(displayMutex);

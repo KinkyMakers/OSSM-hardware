@@ -17,8 +17,7 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
     Stroker.setSensation(calculateSensation(OSSM::setting.sensation), true);
 
     Stroker.setDepth(0.01f * OSSM::setting.depth * abs(measuredStrokeMm), true);
-    Stroker.setStroke(0.01f * OSSM::setting.stroke * abs(measuredStrokeMm),
-                      true);
+    Stroker.setStroke(0.01f * OSSM::setting.stroke * abs(measuredStrokeMm), true);
 
     auto isInCorrectState = [](OSSM *ossm) {
         // Add any states that you want to support here.
@@ -35,8 +34,12 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
             } else if (Stroker.getState() == READY) {
                 Stroker.startPattern();
             }
-
-            Stroker.setSpeed(OSSM::setting.speed * 3, true);
+            
+            //Curve the speed based on userconfig
+            float exp = UserConfig::strokeEngineSpeedCurve;
+            float speed = OSSM::setting.speed/100;
+            speed = pow( 1 - pow( 1 - speed, exp), 1 / exp) * 100;
+            Stroker.setSpeed(speed, true);
             lastSetting.speed = OSSM::setting.speed;
         }
 
@@ -69,33 +72,7 @@ void OSSM::startStrokeEngineTask(void *pvParameters) {
         if (lastSetting.pattern != OSSM::setting.pattern) {
             ESP_LOGD("UTILS", "change pattern: %d", OSSM::setting.pattern);
 
-            switch (OSSM::setting.pattern) {
-                case StrokePatterns::SimpleStroke:
-                    Stroker.setPattern(new SimpleStroke("Simple Stroke"),
-                                       false);
-                    break;
-                case StrokePatterns::TeasingPounding:
-                    Stroker.setPattern(new TeasingPounding("Teasing Pounding"),
-                                       false);
-                    break;
-                case StrokePatterns::RoboStroke:
-                    Stroker.setPattern(new RoboStroke("Robo Stroke"), false);
-                    break;
-                case StrokePatterns::HalfnHalf:
-                    Stroker.setPattern(new HalfnHalf("Half'n'Half"), false);
-                    break;
-                case StrokePatterns::Deeper:
-                    Stroker.setPattern(new Deeper("Deeper"), false);
-                    break;
-                case StrokePatterns::StopNGo:
-                    Stroker.setPattern(new StopNGo("Stop'n'Go"), false);
-                    break;
-                case StrokePatterns::Insist:
-                    Stroker.setPattern(new Insist("Insist"), false);
-                    break;
-                default:
-                    break;
-            }
+            Stroker.setPattern(OSSM::setting.pattern, false);
 
             lastSetting.pattern = OSSM::setting.pattern;
         }

@@ -440,7 +440,7 @@ class OSSM : public OSSMInterface {
                 break;
             case Commands::setPattern:
                 setting.pattern =
-                    static_cast<StrokePatterns>(command.value % 7);
+                    static_cast<StrokePatterns>(command.value % (int)StrokePatterns::Count);
                 break;
             case Commands::streamPosition:
                 // Scale position from 0-100 to 0-180 (internal format)
