@@ -32,6 +32,8 @@ enum class StrokePatterns {
     Deeper,
     StopNGo,
     Insist,
+    ProgressiveStroke,
+    RandomStroke,
     //Add additional strokes here
     Count
 };
@@ -161,8 +163,8 @@ class Pattern {
 /**************************************************************************/
 /*!
   @brief  Simple Stroke Pattern. It creates a trapezoidal stroke profile
-  with 1/3 acceleration, 1/3 coasting, 1/3 deceleration. Sensation has
-  no effect.
+  with 1/3 acceleration, 1/3 coasting, 1/3 deceleration. Sensation creates
+  randomness to either the depth or the stroke while respecting bounds.
 */
 /**************************************************************************/
 class SimpleStroke : public Pattern {
@@ -177,22 +179,25 @@ class SimpleStroke : public Pattern {
         // time of a trapezoidal motion maximizing at speed
         _timeOfStroke = max(1.5 * _stroke / _speed, 0.1);
     }
-
     motionParameter nextTarget(unsigned int index) {
         _nextMove.speed = int(_speed);
-
         // acceleration to meet the profile
         _nextMove.acceleration = int(3.0 * _nextMove.speed / _timeOfStroke);
-
+        float maxRange = min(_depth,_stroke) / 2 * abs(_sensation/100.0);
+        float randStroke = maxRange * ((float)rand()/(float)(RAND_MAX));
         // odd stroke is moving out
         if (index % 2) {
             _nextMove.stroke = _depth - _stroke;
-
-            // even stroke is moving in
+            if (_sensation < 0){
+                _nextMove.stroke += int(randStroke);
+            }
+        // even stroke is moving in
         } else {
             _nextMove.stroke = _depth;
+            if (_sensation > 0){
+                _nextMove.stroke -= int(randStroke);
+            }
         }
-
         _index = index;
         return _nextMove;
     }
@@ -606,23 +611,91 @@ class Insist : public Pattern {
   protected:
     int _countStrokesForRamp = 2;
 };
-        } else {
-            // odd stroke is moving out
-            if (index % 2) {
-                _nextMove.stroke = _depth - _stroke;
 
-                // even stroke is moving in
-            } else {
-                _nextMove.stroke = (_depth - _stroke) + _realStroke;
+/**************************************************************************/
+/*!
+  @brief  Sensation reduces the effective stroke length while sweeping the 
+  full range of the stroke. Produces a vibrating stroke at high speeds.
+*/
+/**************************************************************************/
+class ProgressiveStroke : public Pattern {
+  public:
+    void setSensation(float sensation) {
+        _sensation = sensation;
+        // maps sensation to useful values [2,22] with 12 beeing neutral
+        if (sensation < 0) {
+            _countStrokesForRamp = map(sensation, -100, 0, 2, 11);
+        } else {
+            _countStrokesForRamp = map(sensation, 0, 100, 11, 32);
+        }
+#ifdef DEBUG_PATTERN
+        Serial.println("_countStrokesForRamp: " + String(_countStrokesForRamp));
+#endif
+    }
+    motionParameter nextTarget(unsigned int index) {
+        _timeOfStroke = 1.5 * _stroke / _speed;
+        _nextMove.speed = int(_speed);
+        _nextMove.acceleration = int(3.0 * _nextMove.speed / _timeOfStroke);
+        // calculate a segement length from the shorter of the stroke or depth
+        int segmentLength = min(_stroke,_depth) / _countStrokesForRamp;
+        // calcylate the position in the cycle
+        int fullCycleIndex = (index/2) % (_countStrokesForRamp * 2 - 1);
+        int position = fullCycleIndex % _countStrokesForRamp;
+        // moving outwards
+        if (fullCycleIndex > _countStrokesForRamp - 1) {
+            position = _countStrokesForRamp -  position;
+            if(index % 2){
+                position -= 2;
+            }
+        } else {
+            if (!(index % 2)) {
+                position += 1;
             }
         }
-
+        _nextMove.stroke = _depth - (segmentLength * position);
         _index = index;
-
         return _nextMove;
     }
 
   protected:
+    int _countStrokesForRamp = 2;
+};
+
+/**************************************************************************/
+/*!
+  @brief  Random... hehe
+*/
+/**************************************************************************/
+class RandomStroke : public Pattern {
+  public:
+    void setSensation(float sensation) {
+        _sensation = sensation/250.0 + .5;
+    }
+    motionParameter nextTarget(unsigned int index) {
+        _nextMove.speed = int(_speed);
+        float maxRange = min(_depth,_stroke);
+        float maxStroke = maxRange * _sensation;
+        float dist = maxRange;
+        int i = 0;
+        while (dist >= maxStroke && i < 10) {
+            float target = maxRange * ((float)rand()/(float)(RAND_MAX));
+            dist = abs(_depth - target - _lastTarget);
+            _nextMove.stroke = _depth - target;
+            i++;//break after 10ish tries.
+        }
+        _lastTarget = _nextMove.stroke;
+#ifdef DEBUG_PATTERN
+        Serial.println("Target: " + String(_nextMove.stroke));
+#endif
+        _timeOfStroke = max(1.5 * dist / _speed, 0.1);
+        _nextMove.acceleration = int(3.0 * _nextMove.speed / _timeOfStroke);
+        _index = index;
+        return _nextMove;
+    }
+  protected:
+    float _lastTarget = 0;
+};
+
 inline Pattern* Pattern::Create(StrokePatterns pattern){
     switch(pattern){
         case StrokePatterns::TeasingPounding:
@@ -637,5 +710,11 @@ inline Pattern* Pattern::Create(StrokePatterns pattern){
             return new StopNGo();
         case StrokePatterns::Insist:
             return new Insist();
+        case StrokePatterns::ProgressiveStroke:
+            return new ProgressiveStroke();
+        case StrokePatterns::RandomStroke:
+            return new RandomStroke();
+        default:
+            return new SimpleStroke();
     }
 }
