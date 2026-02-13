@@ -129,28 +129,27 @@ void startStreamingTask(void *pvParameters) {
     ossm->stepper->setAcceleration((1_mm) * Config::Driver::maxAcceleration);
 
     while (isInCorrectState(ossm)) {
-        // Wait for new command from BLE
-        if (!consumeTargetUpdate()) {
+        if (ossm->stepper->isRunning()){
             vTaskDelay(1);
             continue;
         }
+        // Wait for new command from BLE
+        if (targetQueue.empty()){
+            vTaskDelay(1);
+            continue;
+        }
+        PositionTime targetPositionTime = targetQueue.front();
 
-        // Calculate target position from FTS position (0-180)
-        // FTS: 0 = retracted, 180 = extended
-        // Stepper: 0 = home (retracted), negative = extended
-        targetPosition =
-            -(static_cast<float>(targetPositionTime.position) / 180.0f) *
-            ossm->measuredStrokeSteps;
+        targetQueue.pop();
 
-        currentPosition =
-            static_cast<float>(ossm->stepper->getCurrentPosition());
+        float maxStroke = abs(((float)OSSM::setting.stroke / 100.0) * ossm->measuredStrokeSteps);
+        float offset = (ossm->measuredStrokeSteps - maxStroke) * 0.5;
+        targetPosition = -(1-(static_cast<float>(targetPositionTime.position) / 180.0f)) * maxStroke - offset;
+        currentPosition = static_cast<float>(ossm->stepper->getCurrentPosition());
 
         // Calculate distance to travel (in steps)
         float distance = abs(targetPosition - currentPosition);
-
-        // Time to reach target (in seconds)
         float timeSeconds = targetPositionTime.inTime / 1000.0f;
-
         float maxSpeed = Config::Driver::maxSpeedMmPerSecond * (1_mm);
         float maxAccel = Config::Driver::maxAcceleration * (1_mm);
 
@@ -159,23 +158,18 @@ void startStreamingTask(void *pvParameters) {
 
         // Calculate required speed to reach target in given time
         if (timeSeconds > 0.01f && distance > 1.0f) {
-            // v = d / t (basic kinematics for constant velocity)
-            // Use 1.5x to account for accel/decel phases eating into travel time
             float requiredSpeed = (distance / timeSeconds) * 1.5f;
-
-            // Clamp to safe limits
             requiredSpeed = constrain(requiredSpeed, 100.0f, maxSpeed);
-
-            ESP_LOGI("Streaming", "Pos: %d -> %.0f, Dist: %.0f, Time: %.3fs, Speed: %.0f",
-                     targetPositionTime.position, targetPosition, distance, timeSeconds, requiredSpeed);
-
+            float requiredAccel = int(3.0 * requiredSpeed / timeSeconds);
+            requiredAccel = constrain(requiredAccel, 100.0f, maxAccel);
+            ossm->stepper->setAcceleration(requiredAccel);
             ossm->stepper->setSpeedInHz(static_cast<uint32_t>(requiredSpeed));
-        } else {
-            // Very short time or no distance - use max speed
+            ossm->stepper->moveTo(static_cast<int32_t>(targetPosition), false);
+
             ossm->stepper->setSpeedInHz(static_cast<uint32_t>(maxSpeed));
         }
 
-        ossm->stepper->applySpeedAcceleration();
+        }
         ossm->stepper->moveTo(static_cast<int32_t>(targetPosition), false);
 
         vTaskDelay(1);

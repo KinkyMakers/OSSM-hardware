@@ -2,7 +2,6 @@
 
 #include <ArduinoJson.h>
 #include <constants/LogTags.h>
-#include <constants/UserConfig.h>
 #include <services/board.h>
 #include <services/tasks.h>
 
@@ -96,12 +95,8 @@ class FTSCallbacks : public NimBLECharacteristicCallbacks {
             uint16_t time = (static_cast<uint8_t>(value[1]) << 8) |
                             static_cast<uint8_t>(value[2]);
 
-            ESP_LOGI("NIMBLE", "FTS Command - Position: %d, Time: %d ms",
-                     position, time);
-
-            lastPositionTime = targetPositionTime;
-            targetPositionTime = {position, time};
-            markTargetUpdated();  // Signal that new data arrived
+            ESP_LOGI("NIMBLE", "FTS Command - Position: %d, Time: %d ms", position, time);
+            targetQueue.push({position, time});
 
         } else {
             ESP_LOGW("NIMBLE", "FTS write - Invalid data length: %d bytes",

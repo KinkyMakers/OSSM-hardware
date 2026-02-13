@@ -391,7 +391,6 @@ class OSSM : public OSSMInterface {
     void ble_click(String commandString) {
         // Visit current state to handle state-specific commands
 
-        ESP_LOGD("OSSM", "PROCESSING CLICK");
         CommandValue command = commandFromString(commandString);
         ESP_LOGD("OSSM", "COMMAND: %d", command.command);
 
@@ -445,13 +444,10 @@ class OSSM : public OSSMInterface {
             case Commands::streamPosition:
                 // Scale position from 0-100 to 0-180 (internal format)
                 // and update streaming target
-                lastPositionTime = targetPositionTime;
-                targetPositionTime = {
+                targetQueue.push({
                     static_cast<uint8_t>((command.value * 180) / 100),
-                    static_cast<uint16_t>(command.time)};
-                markTargetUpdated();
-                ESP_LOGD("OSSM", "Stream: pos=%d, time=%d", command.value,
-                         command.time);
+                    static_cast<uint16_t>(command.time),
+                    std::chrono::steady_clock::now()});
                 break;
             case Commands::ignore:
                 break;
