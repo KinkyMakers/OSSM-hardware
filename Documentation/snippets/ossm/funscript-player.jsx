@@ -99,7 +99,7 @@ export const OssmFunscriptPlayer = () => {
 
     try {
       const encoder = new TextEncoder();
-      await commandCharacteristicRef.current.writeValue(encoder.encode(command));
+      await commandCharacteristicRef.current.writeValueWithoutResponse(encoder.encode(command));
       addLog('TX', command);
       return true;
     } catch (err) {
