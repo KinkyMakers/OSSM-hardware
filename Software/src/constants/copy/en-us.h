@@ -55,6 +55,8 @@ static const char enUs_StrokeEngineDescriptions_5[] PROGMEM =
     "Pauses between strokes; sensation adjusts length.";
 static const char enUs_StrokeEngineDescriptions_6[] PROGMEM =
     "Modifies length, maintains speed; sensation influences direction.";
+static const char enUs_StrokeEngineDescriptions_7[] PROGMEM =
+    "Linear triangular wave from min to max and back.";
 
 static const char enUs_StrokeEngineNames_0[] PROGMEM = "Simple Stroke";
 static const char enUs_StrokeEngineNames_1[] PROGMEM = "Teasing Pounding";
@@ -63,6 +65,7 @@ static const char enUs_StrokeEngineNames_3[] PROGMEM = "Half'n'Half";
 static const char enUs_StrokeEngineNames_4[] PROGMEM = "Deeper";
 static const char enUs_StrokeEngineNames_5[] PROGMEM = "Stop'n'Go";
 static const char enUs_StrokeEngineNames_6[] PROGMEM = "Insist";
+static const char enUs_StrokeEngineNames_7[] PROGMEM = "Test Pattern 1";
 
 static const LanguageStruct enUs = {
     .DeepThroatTrainerSync = enUs_DeepThroatTrainerSync,
@@ -100,10 +103,11 @@ static const LanguageStruct enUs = {
                                  enUs_StrokeEngineDescriptions_3,
                                  enUs_StrokeEngineDescriptions_4,
                                  enUs_StrokeEngineDescriptions_5,
-                                 enUs_StrokeEngineDescriptions_6},
+                                 enUs_StrokeEngineDescriptions_6,
+                                 enUs_StrokeEngineDescriptions_7},
     .StrokeEngineNames = {enUs_StrokeEngineNames_0, enUs_StrokeEngineNames_1,
                           enUs_StrokeEngineNames_2, enUs_StrokeEngineNames_3,
                           enUs_StrokeEngineNames_4, enUs_StrokeEngineNames_5,
-                          enUs_StrokeEngineNames_6}};
+                          enUs_StrokeEngineNames_6, enUs_StrokeEngineNames_7}};
 
 #endif  // OSSM_SOFTWARE_EN_US_H
