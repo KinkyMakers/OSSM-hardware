@@ -152,20 +152,6 @@ export const OssmFunscriptPlayer = () => {
       commandCharacteristicRef.current = await service.getCharacteristic(OSSM_COMMAND_CHARACTERISTIC_UUID);
       addLog('INFO', 'Got command characteristic');
 
-      // Try to subscribe to state notifications
-      try {
-        const stateChar = await service.getCharacteristic(OSSM_STATE_CHARACTERISTIC_UUID);
-        await stateChar.startNotifications();
-        stateChar.addEventListener('characteristicvaluechanged', (event) => {
-          const decoder = new TextDecoder();
-          const value = decoder.decode(event.target.value);
-          addLog('RX', `State: ${value}`);
-        });
-        addLog('INFO', 'Subscribed to state notifications');
-      } catch (e) {
-        addLog('INFO', 'State notifications not available');
-      }
-
       // Enter streaming mode
       addLog('INFO', 'Entering streaming mode...');
       await sendCommand('go:streaming');
