@@ -31,7 +31,7 @@ void OSSM::drawPatternControlsTask(void *pvParameters) {
     ossm->encoder.setEncoderValue(nextPattern * 3);
 
     while (isInCorrectState(ossm)) {
-float speed;
+        float speed;
         float speedKnob = getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
         OSSM::setting.speedKnob = speedKnob;
         if (USE_SPEED_KNOB_AS_LIMIT || !OSSM::setting.speedBLE.has_value()) {
