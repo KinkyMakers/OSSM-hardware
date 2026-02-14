@@ -195,9 +195,9 @@ void startStreamingTask(void *pvParameters) {
             ossm->stepper->setSpeedInHz(static_cast<uint32_t>(requiredSpeed));
             ossm->stepper->moveTo(static_cast<int32_t>(targetPosition), false);
 
-            ESP_LOGI("Streaming", "P(%d): %.0f -> %.0f = %.0f, T: %.3fs, S: %.0f, A: %.0f, Q: %d",
-                     targetPositionTime.position, currentPosition, targetPosition, distance, 
-                     timeSeconds, requiredSpeed, requiredAccel, targetQueue.size());
+            ESP_LOGI("Streaming", "P(%d): %.0f -> %.0f = %.0f, T: %.3f, S: %.0f, A: %.0f, Q: %d",
+                     targetPositionTime.position, currentPosition/(1_mm), targetPosition/(1_mm), distance/(1_mm), 
+                     timeSeconds, requiredSpeed/(1_mm), requiredAccel/(1_mm), targetQueue.size());
         }
         vTaskDelay(1);
     }
