@@ -6,7 +6,7 @@
 #include <queue>
 
 struct PositionTime {
-    uint8_t position; // 0 - 180
+    uint8_t position; // 0 - 100
     uint16_t inTime;     // in ms
     std::optional<std::chrono::steady_clock::time_point> setTime; //received timestamp
 };

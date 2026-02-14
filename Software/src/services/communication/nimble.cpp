@@ -88,10 +88,10 @@ class FTSCallbacks : public NimBLECharacteristicCallbacks {
         std::string value = pCharacteristic->getValue();
 
         // Expected format: [position, timeHigh, timeLow]
-        // position: uint8 (0-180)
+        // position: uint8 (0-180), convert to 100
         // time: uint16 big-endian (MSB first)
         if (value.length() >= 3) {
-            uint8_t position = static_cast<uint8_t>(value[0]);
+            uint8_t position = static_cast<uint8_t>(value[0]/1.8);
             uint16_t time = (static_cast<uint8_t>(value[1]) << 8) |
                             static_cast<uint8_t>(value[2]);
 

@@ -442,10 +442,9 @@ class OSSM : public OSSMInterface {
                     static_cast<StrokePatterns>(command.value % (int)StrokePatterns::Count);
                 break;
             case Commands::streamPosition:
-                // Scale position from 0-100 to 0-180 (internal format)
-                // and update streaming target
+                // Position (0-100)
                 targetQueue.push({
-                    static_cast<uint8_t>((command.value * 180) / 100),
+                    static_cast<uint8_t>(command.value),
                     static_cast<uint16_t>(command.time),
                     std::chrono::steady_clock::now()});
                 break;

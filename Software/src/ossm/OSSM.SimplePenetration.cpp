@@ -179,7 +179,7 @@ void startStreamingTask(void *pvParameters) {
 
         float maxStroke = abs(((float)OSSM::setting.stroke / 100.0) * ossm->measuredStrokeSteps);
         float offset = (ossm->measuredStrokeSteps - maxStroke) * 0.5;
-        targetPosition = -(1-(static_cast<float>(targetPositionTime.position) / 180.0f)) * maxStroke - offset;
+        targetPosition = -(1-(static_cast<float>(targetPositionTime.position) / 100.0f)) * maxStroke - offset;
         currentPosition = static_cast<float>(ossm->stepper->getCurrentPosition());
 
         // Calculate distance to travel (in steps)
