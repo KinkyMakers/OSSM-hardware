@@ -44,8 +44,7 @@ static const char fr_YouShouldNotBeHere[] PROGMEM =
     "Vous ne devriez pas être ici.";
 
 static const char fr_StrokeEngineDescriptions_0[] PROGMEM =
-    "Accélération, roulement, décélération également répartis ; sans "
-    "sensation.";
+    "Accélération, roulement, décélération également répartis ;";
 static const char fr_StrokeEngineDescriptions_1[] PROGMEM =
     "La vitesse change avec la sensation ; équilibre les coups rapides.";
 static const char fr_StrokeEngineDescriptions_2[] PROGMEM =
@@ -59,8 +58,11 @@ static const char fr_StrokeEngineDescriptions_4[] PROGMEM =
 static const char fr_StrokeEngineDescriptions_5[] PROGMEM =
     "Pauses entre les coups ; la sensation ajuste la longueur.";
 static const char fr_StrokeEngineDescriptions_6[] PROGMEM =
-    "Modifie la longueur, maintient la vitesse ; la sensation influe sur la "
-    "direction.";
+    "";
+static const char fr_StrokeEngineDescriptions_7[] PROGMEM =
+    "";
+static const char fr_StrokeEngineDescriptions_8[] PROGMEM =
+    "";
 
 static const char fr_StrokeEngineNames_0[] PROGMEM = "Simple Stroke";
 static const char fr_StrokeEngineNames_1[] PROGMEM = "Teasing Pounding";
@@ -69,6 +71,8 @@ static const char fr_StrokeEngineNames_3[] PROGMEM = "Half'n'Half";
 static const char fr_StrokeEngineNames_4[] PROGMEM = "Deeper";
 static const char fr_StrokeEngineNames_5[] PROGMEM = "Stop'n'Go";
 static const char fr_StrokeEngineNames_6[] PROGMEM = "Insist";
+static const char fr_StrokeEngineNames_7[] PROGMEM = "Progressive Stroke";
+static const char fr_StrokeEngineNames_8[] PROGMEM = "Random Stroke";
 
 static const LanguageStruct fr = {
     .DeepThroatTrainerSync = fr_DeepThroatTrainerSync,
@@ -106,10 +110,20 @@ static const LanguageStruct fr = {
                                  fr_StrokeEngineDescriptions_3,
                                  fr_StrokeEngineDescriptions_4,
                                  fr_StrokeEngineDescriptions_5,
-                                 fr_StrokeEngineDescriptions_6},
-    .StrokeEngineNames = {fr_StrokeEngineNames_0, fr_StrokeEngineNames_1,
-                          fr_StrokeEngineNames_2, fr_StrokeEngineNames_3,
-                          fr_StrokeEngineNames_4, fr_StrokeEngineNames_5,
-                          fr_StrokeEngineNames_6}};
+                                 fr_StrokeEngineDescriptions_6,
+                                 fr_StrokeEngineDescriptions_7,
+                                 fr_StrokeEngineDescriptions_8
+    },
+    .StrokeEngineNames = {fr_StrokeEngineNames_0,
+                          fr_StrokeEngineNames_1,
+                          fr_StrokeEngineNames_2,
+                          fr_StrokeEngineNames_3,
+                          fr_StrokeEngineNames_4,
+                          fr_StrokeEngineNames_5,
+                          fr_StrokeEngineNames_6,
+                          fr_StrokeEngineNames_7,
+                          fr_StrokeEngineNames_8
+    }
+};
 
 #endif  // OSSM_SOFTWARE_FR_H
