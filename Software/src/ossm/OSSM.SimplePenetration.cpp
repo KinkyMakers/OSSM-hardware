@@ -128,6 +128,8 @@ void startStreamingTask(void *pvParameters) {
     float targetPosition = 0.0f;
     bool finished = true; //for debugging when strokes finish early.
     int compensate = 70;
+    float maxSpeed = Config::Driver::maxSpeedMmPerSecond * (1_mm);
+    float maxAccel = Config::Driver::maxAcceleration * (1_mm);
 
     // Set initial max speed and acceleration
     ossm->stepper->setSpeedInHz((1_mm) * Config::Driver::maxSpeedMmPerSecond);
@@ -183,8 +185,6 @@ void startStreamingTask(void *pvParameters) {
         // Calculate distance to travel (in steps)
         float distance = abs(targetPosition - currentPosition);
         float timeSeconds = targetPositionTime.inTime / 1000.0f;
-        float maxSpeed = Config::Driver::maxSpeedMmPerSecond * (1_mm);
-        float maxAccel = Config::Driver::maxAcceleration * (1_mm);
 
         if (timeSeconds > 0.01f && distance > 1.0f) {
             float requiredSpeed = (distance / timeSeconds) * 1.5f;
