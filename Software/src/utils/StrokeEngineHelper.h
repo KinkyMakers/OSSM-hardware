@@ -16,9 +16,7 @@
 enum PlayControls { STROKE, DEPTH, SENSATION };
 
 static motorProperties servoMotor{
-    .maxSpeed =
-        60 * (Config::Driver::maxSpeedMmPerSecond /
-              (Config::Driver::pulleyToothCount * Config::Driver::beltPitchMm)),
+    .maxSpeed = Config::Driver::maxSpeedMmPerSecond,
     .maxAcceleration = Config::Driver::maxAcceleration,
     .stepsPerMillimeter =
         Config::Driver::motorStepPerRevolution /
