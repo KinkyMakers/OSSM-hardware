@@ -28,6 +28,7 @@ void OSSM::drawPreflightTask(void *pvParameters) {
     auto isInPreflight = [](OSSM *ossm) {
         // Add your preflight checks states here.
         return ossm->sm->is("simplePenetration.preflight"_s) ||
+               ossm->sm->is("streaming.preflight"_s) ||
                ossm->sm->is("strokeEngine.preflight"_s);
     };
 

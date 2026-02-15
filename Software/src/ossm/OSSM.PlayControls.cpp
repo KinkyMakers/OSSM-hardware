@@ -44,7 +44,8 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
                ossm->sm->is("simplePenetration.idle"_s) ||
                ossm->sm->is("strokeEngine"_s) ||
                ossm->sm->is("strokeEngine.idle"_s) ||
-               ossm->sm->is("streaming"_s) || ossm->sm->is("streaming.idle"_s);
+               ossm->sm->is("streaming"_s) || 
+               ossm->sm->is("streaming.idle"_s);
     };
 
     // Line heights
@@ -52,8 +53,11 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
     short lh4 = 64;
     static float encoder = 0;
 
-    bool isStrokeEngine =
-        ossm->sm->is("strokeEngine"_s) || ossm->sm->is("strokeEngine.idle"_s);
+    bool isStrokeEngine = ossm->sm->is("strokeEngine"_s) || 
+                          ossm->sm->is("strokeEngine.idle"_s);
+    
+    bool isStreaming = ossm->sm->is("streaming"_s) || 
+                       ossm->sm->is("streaming.idle"_s);
 
     bool shouldUpdateDisplay = false;
 
@@ -76,8 +80,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         encoder = ossm->encoder.readEncoder();
 
         if (USE_SPEED_KNOB_AS_LIMIT || !OSSM::setting.speedBLE.has_value()) {
-            next.speed =
-                next.speedKnob * (OSSM::setting.speedBLE.value_or(100)) / 100;
+            next.speed = next.speedKnob * (OSSM::setting.speedBLE.value_or(100)) / 100;
         } else {
             next.speedKnob = OSSM::setting.speedBLE.value_or(100);
             next.speed = OSSM::setting.speedBLE.value_or(100);
@@ -127,8 +130,9 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
             // Check and update the header text... don't worry if this is the
             // same as last time, nothing happens.
             if (isStrokeEngine) {
-                headerText = UserConfig::language
-                                 .StrokeEngineNames[(int)OSSM::setting.pattern];
+                headerText = UserConfig::language.StrokeEngineNames[(int)OSSM::setting.pattern];
+            } else if (isStreaming){
+                headerText = UserConfig::language.Streaming;
             } else {
                 headerText = UserConfig::language.SimplePenetration;
             }
@@ -138,13 +142,18 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
             clearPage(true);
             ossm->display.setFont(Config::Font::base);
 
-            drawShape::settingBar(UserConfig::language.Speed, next.speedKnob);
+            if (!isStreaming){
+                drawShape::settingBar(UserConfig::language.Speed, next.speedKnob);
+            } else {
+                drawShape::settingBar("Max", next.speedKnob);
+                ossm->display.setFont(Config::Font::bold);
+                ossm->display.drawUTF8(14, 36, UserConfig::language.Speed);
+            }
 
             if (isStrokeEngine) {
                 switch (ossm->playControl) {
                     case PlayControls::STROKE:
-                        drawShape::settingBarSmall(OSSM::setting.sensation,
-                                                   125);
+                        drawShape::settingBarSmall(OSSM::setting.sensation, 125);
                         drawShape::settingBarSmall(OSSM::setting.depth, 120);
                         drawShape::settingBar(strokeString,
                                               OSSM::setting.stroke, 118, 0,
@@ -156,15 +165,39 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
                                               RIGHT_ALIGNED, 10);
                         drawShape::settingBarSmall(OSSM::setting.depth, 113);
                         drawShape::settingBarSmall(OSSM::setting.stroke, 108);
-
                         break;
                     case PlayControls::DEPTH:
-                        drawShape::settingBarSmall(OSSM::setting.sensation,
-                                                   125);
+                        drawShape::settingBarSmall(OSSM::setting.sensation, 125);
                         drawShape::settingBar(F("Depth"), OSSM::setting.depth,
                                               123, 0, RIGHT_ALIGNED, 5);
                         drawShape::settingBarSmall(OSSM::setting.stroke, 108);
-
+                        break;
+                }
+            } else if (isStreaming) {
+                switch (ossm->playControl) {
+                    case PlayControls::STROKE:
+                        drawShape::settingBarSmall(OSSM::setting.sensation, 125);
+                        drawShape::settingBarSmall(OSSM::setting.depth, 120);
+                        drawShape::settingBar(strokeString,
+                                              OSSM::setting.stroke, 118, 0,
+                                              RIGHT_ALIGNED);
+                        break;
+                    case PlayControls::SENSATION:
+                        drawShape::settingBar(F("Max"),
+                                              OSSM::setting.sensation, 128, 0,
+                                              RIGHT_ALIGNED, 10);
+                        ossm->display.setFont(Config::Font::bold);
+                        strokeString = String("Accel");
+                        stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
+                        ossm->display.drawUTF8(104 - stringWidth, 36, strokeString.c_str());
+                        drawShape::settingBarSmall(OSSM::setting.depth, 113);
+                        drawShape::settingBarSmall(OSSM::setting.stroke, 108);
+                        break;
+                    case PlayControls::DEPTH:
+                        drawShape::settingBarSmall(OSSM::setting.sensation, 125);
+                        drawShape::settingBar(F("Depth"), OSSM::setting.depth,
+                                              123, 0, RIGHT_ALIGNED, 5);
+                        drawShape::settingBarSmall(OSSM::setting.stroke, 108);
                         break;
                 }
             } else {
@@ -179,10 +212,12 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
              *
              * These controls are associated with stroke and distance
              */
-            ossm->display.setFont(Config::Font::small);
-            strokeString = "# " + String(ossm->sessionStrokeCount);
-            ossm->display.drawUTF8(14, lh4, strokeString.c_str());
 
+            if (!isStrokeEngine && !isStreaming) {
+                ossm->display.setFont(Config::Font::small);
+                strokeString = "# " + String(ossm->sessionStrokeCount);
+                ossm->display.drawUTF8(14, lh4, strokeString.c_str());
+            }
             /**
              * /////////////////////////////////////////////
              * /////////// Play Controls Right  ////////////
@@ -191,7 +226,7 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
              * These controls are associated with stroke and distance
              */
 
-            if (!isStrokeEngine) {
+            if (!isStrokeEngine && !isStreaming) {
                 strokeString = formatDistance(ossm->sessionDistanceMeters);
                 stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
                 ossm->display.drawUTF8(104 - stringWidth, lh3,

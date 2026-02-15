@@ -90,6 +90,24 @@ class OSSM : public OSSMInterface {
                 o.encoder.setBoundaries(0, 100, false);
                 o.encoder.setAcceleration(10);
                 o.encoder.setEncoderValue(OSSM::setting.depth);
+                // record session start time rounded to the nearest second
+                o.sessionStartTime = millis();
+            };
+
+            auto resetSettingsStreaming = [](OSSM &o) {
+                OSSM::setting.speed = 0;
+                OSSM::setting.stroke = 50;
+                OSSM::setting.depth = 50;
+                OSSM::setting.sensation = 100;
+                o.playControl = PlayControls::DEPTH;
+
+                // Prepare the encoder
+                o.encoder.setBoundaries(0, 100, false);
+                o.encoder.setAcceleration(10);
+                o.encoder.setEncoderValue(OSSM::setting.depth);
+
+                // record session start time rounded to the nearest second
+                o.sessionStartTime = millis();
             };
 
             auto resetSettingsSimplePen = [](OSSM &o) {
@@ -222,11 +240,12 @@ class OSSM : public OSSMInterface {
                 "strokeEngine.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
                 "streaming"_s [isNotHomed] = "homing"_s,
-                "streaming"_s [isPreflightSafe] / ( drawPlayControls, startStreaming) = "streaming.idle"_s,
+                "streaming"_s [isPreflightSafe] / (resetSettingsStreaming, drawPlayControls, startStreaming) = "streaming.idle"_s,
                 "streaming"_s / drawPreflight = "streaming.preflight"_s,
-                "streaming.preflight"_s + done / ( drawPlayControls, startStreaming) = "streaming.idle"_s,
+                "streaming.preflight"_s + done / (resetSettingsStreaming, drawPlayControls, startStreaming) = "streaming.idle"_s,
                 "streaming.preflight"_s + longPress = "menu"_s,
                 "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+                "streaming.idle"_s + buttonPress / incrementControl = "streaming.idle"_s,
 
                 "update"_s [isOnline] / drawUpdate = "update.checking"_s,
                 "update"_s = "wifi"_s,
