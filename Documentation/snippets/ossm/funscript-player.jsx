@@ -152,10 +152,6 @@ export const OssmFunscriptPlayer = () => {
       commandCharacteristicRef.current = await service.getCharacteristic(OSSM_COMMAND_CHARACTERISTIC_UUID);
       addLog('INFO', 'Got command characteristic');
 
-      // Enter streaming mode
-      addLog('INFO', 'Entering streaming mode...');
-      await sendCommand('go:streaming');
-
       setDevice(bleDevice);
       setConnectionStatus('connected');
       addLog('INFO', 'Ready for funscript playback');
@@ -186,7 +182,6 @@ export const OssmFunscriptPlayer = () => {
 
     try {
       await sendCommand('set:speed:0');
-      await sendCommand('go:menu');
     } catch (e) {
       // Ignore errors during disconnect
     }
