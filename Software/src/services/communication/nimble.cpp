@@ -45,6 +45,7 @@ class ServerCallbacks : public NimBLEServerCallbacks {
         // Set BLE connection status to true
         if (ossmInterface) {
             ossmInterface->setBLEConnectionStatus(true);
+            ossmInterface->ble_click("go:streaming");
         }
 
         lostConnectionTime = 0;
@@ -60,6 +61,7 @@ class ServerCallbacks : public NimBLEServerCallbacks {
         // Set BLE connection status to false when no connections remain
         if (ossmInterface && pServer->getConnectedCount() == 0) {
             ossmInterface->setBLEConnectionStatus(false);
+            ossmInterface->ble_click("go:menu");
         }
 
         // Capture current speed when connection is lost
