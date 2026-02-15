@@ -127,7 +127,9 @@ void startStreamingTask(void *pvParameters) {
     float currentPosition = 0;
     float targetPosition = 0.0f;
     bool finished = true; //for debugging when strokes finish early.
-    int compensate = 70;
+
+    //TODO: make these settings adjustable via remote/etc.
+    int compensate = 70; 
     float maxSpeed = Config::Driver::maxSpeedMmPerSecond * (1_mm);
     float maxAccel = Config::Driver::maxAcceleration * (1_mm);
 
@@ -156,6 +158,7 @@ void startStreamingTask(void *pvParameters) {
         PositionTime targetPositionTime = targetQueue.front();
         targetQueue.pop();
         
+        // settime is when the message was received. If we trust the source we can reduce perceived lag by creating a buffer.
         if (targetPositionTime.setTime){
             int lag = std::chrono::duration_cast<std::chrono::milliseconds>(targetPositionTime.setTime.value() - best).count();
             if (lag < 0 || lag > compensate * 10){
@@ -175,9 +178,12 @@ void startStreamingTask(void *pvParameters) {
                 targetPositionTime.inTime -= reduction;
             }
             lastPositionTime = targetPositionTime;
+        } else {
+            best = std::chrono::steady_clock::now();
         }
 
         float maxStroke = abs(((float)OSSM::setting.stroke / 100.0) * ossm->measuredStrokeSteps);
+        // TODO: Once this is more stable, set this to max depth-stroke instead. Currently centered to avoid crashing while testing.
         float offset = (ossm->measuredStrokeSteps - maxStroke) * 0.5;
         targetPosition = -(1-(static_cast<float>(targetPositionTime.position) / 100.0f)) * maxStroke - offset;
         currentPosition = static_cast<float>(ossm->stepper->getCurrentPosition());
@@ -185,11 +191,30 @@ void startStreamingTask(void *pvParameters) {
         // Calculate distance to travel (in steps)
         float distance = abs(targetPosition - currentPosition);
         float timeSeconds = targetPositionTime.inTime / 1000.0f;
-
         if (timeSeconds > 0.01f && distance > 1.0f) {
-            float requiredSpeed = (distance / timeSeconds) * 1.5f;
+            //calculate max distance possible to travel given available time, max acceleration, and unlimited speed.
+            float maxDistance = maxAccel * (timeSeconds/2) * (timeSeconds/2);
+            //if the distance asked for is greater then the maximum possible, reduce the ask.
+            //Is it what they asked for? No. Will they notice at these speeds? Also no.
+            if (distance > maxDistance){
+                ESP_LOGI("Streaming","Too fast, shortening distance: %.0f -> %.0f",distance,maxDistance);
+                distance = maxDistance - (2_mm);
+                if (targetPosition > currentPosition) {
+                    targetPosition = currentPosition + distance;
+                } else {
+                    targetPosition = currentPosition - distance;
+                }
+            }
+            // start by calculating a triangular motion with unlimited
+            float requiredSpeed = (2 * distance) / timeSeconds;
+            // constrain it to legal maximums
             requiredSpeed = constrain(requiredSpeed, 100.0f, maxSpeed);
-            float requiredAccel = int(3.0 * requiredSpeed / timeSeconds);
+            // calculate what proportion of the move needs to be at max speed, if any.
+            float vt = requiredSpeed * timeSeconds;
+            float proportion = max(-((2 * distance - 2 * vt)/vt),0.01f);
+            // calculate acceleration such that triangle or trapezoid is created depending on needs
+            float requiredAccel = requiredSpeed / (timeSeconds * proportion / 2);
+            // constrain just in case, but reducing the distance should mostly preven this.
             requiredAccel = constrain(requiredAccel, 100.0f, maxAccel);
             ossm->stepper->setAcceleration(requiredAccel);
             ossm->stepper->setSpeedInHz(static_cast<uint32_t>(requiredSpeed));

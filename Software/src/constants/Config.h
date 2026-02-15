@@ -23,7 +23,7 @@ namespace Config {
         // Top linear speed of the device.
         constexpr float motorStepPerRevolution = 800.0f;
         // Top acceleration of the device in mm/s/s
-        constexpr float maxAcceleration = 100000.0f;
+        constexpr float maxAcceleration = 50000.0f;
         // Number of steps to move the arm 1mm
         constexpr float maxSpeedMmPerSecond = maxRPM / 60.0 * pulleyToothCount * beltPitchMm;
         // This should match the step/rev of your stepper or servo.
