@@ -81,6 +81,7 @@ class OSSM : public OSSMInterface {
             // for more tailored UX
             auto resetSettingsStrokeEngine = [](OSSM &o) {
                 OSSM::setting.speed = 0;
+                OSSM::setting.speedBLE = std::nullopt;
                 OSSM::setting.stroke = 50;
                 OSSM::setting.depth = 10;
                 OSSM::setting.sensation = 50;
@@ -113,6 +114,7 @@ class OSSM : public OSSMInterface {
 
             auto resetSettingsSimplePen = [](OSSM &o) {
                 OSSM::setting.speed = 0;
+                OSSM::setting.speedBLE = std::nullopt;
                 OSSM::setting.stroke = 0;
                 OSSM::setting.depth = 50;
                 OSSM::setting.sensation = 50;
