@@ -26,8 +26,6 @@ void startStreamingTask(void *pvParameters) {
     float targetPosition = 0.0f;
     bool finished = true; //for debugging when strokes finish early.
 
-    //TODO: make compensation buffer adjustable via remote/etc.
-    int compensate = 70; 
     float maxSpeed = Config::Driver::maxSpeedMmPerSecond * (1_mm);
     float maxAccel = Config::Driver::maxAcceleration * (1_mm);
 
@@ -41,12 +39,12 @@ void startStreamingTask(void *pvParameters) {
             continue;
         }
 
-        int buffer = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - best).count();
+        int currentBuffer = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - best).count();
         // Wait for new command from BLE
         if (targetQueue.empty()){
             if(!finished){
                 finished = true;
-                Serial.println("Movement Done: " + String(buffer));
+                Serial.println("Movement Done: " + String(currentBuffer));
             }
             vTaskDelay(1);
             continue;
@@ -59,19 +57,19 @@ void startStreamingTask(void *pvParameters) {
         // settime is when the message was received. If we trust the source we can reduce perceived lag by creating a buffer.
         if (targetPositionTime.setTime){
             int lag = std::chrono::duration_cast<std::chrono::milliseconds>(targetPositionTime.setTime.value() - best).count();
-            if (lag < 0 || lag > compensate * 10){
+            if (lag < 0 || lag > OSSM::setting.buffer * 10){
                 best = targetPositionTime.setTime.value();
                 lag = 0;
             }
             best += std::chrono::milliseconds(targetPositionTime.inTime);
-            ESP_LOGI("Streaming", "Lag: %d, Buffer: %d", lag, buffer);
+            ESP_LOGI("Streaming", "Lag: %d, Buffer: %d", lag, currentBuffer);
 
-            int mincomp =  min(compensate,int(lastPositionTime.inTime));
-            if (buffer < mincomp){
-                ESP_LOGI("Streaming", "Buffer not full, waiting %dms",mincomp-buffer);
-                vTaskDelay((mincomp-buffer) / portTICK_PERIOD_MS);
+            int mincomp =  min(int(OSSM::setting.buffer),int(lastPositionTime.inTime));
+            if (currentBuffer < mincomp){
+                ESP_LOGI("Streaming", "Buffer not full, waiting %dms",mincomp-currentBuffer);
+                vTaskDelay((mincomp-currentBuffer) / portTICK_PERIOD_MS);
             } else {
-                int reduction = min(targetPositionTime.inTime/4, buffer - mincomp);
+                int reduction = min(targetPositionTime.inTime/4, currentBuffer - mincomp);
                 ESP_LOGI("Streaming", "Lag too great, shortening stroke by %dms", reduction);
                 targetPositionTime.inTime -= reduction;
             }
@@ -128,6 +126,8 @@ void startStreamingTask(void *pvParameters) {
                         targetPositionTime.position, currentPosition/(1_mm), targetPosition/(1_mm), distance/(1_mm), 
                         timeSeconds, requiredSpeed/(1_mm), requiredAccel/(1_mm), targetQueue.size());
             }
+        } else {
+            ESP_LOGI("Streaming", "Spped or accel too slow, skipping moves");
         }
         vTaskDelay(1);
     }

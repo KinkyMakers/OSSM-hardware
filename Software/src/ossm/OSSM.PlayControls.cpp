@@ -22,11 +22,14 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
         case PlayControls::DEPTH:
             ossm->encoder.setEncoderValue(OSSM::setting.depth);
             break;
+        case PlayControls::BUFFER:
+            ossm->encoder.setEncoderValue(OSSM::setting.buffer);
+            break;
     }
 
     auto menuString = menuStrings[ossm->menuOption];
 
-    SettingPercents next = {0, 0, 0, 0};
+    SettingPercents next = {0, 0, 0, 0, 0};
     unsigned long displayLastUpdated = 0;
 
     /**
@@ -111,6 +114,12 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
                                       next.depth - OSSM::setting.depth >= 1;
                 OSSM::setting.depth = next.depth;
                 break;
+            case PlayControls::BUFFER:
+                next.buffer = encoder;
+                shouldUpdateDisplay = shouldUpdateDisplay ||
+                                      next.buffer - OSSM::setting.buffer >=1;
+                OSSM::setting.buffer = next.buffer;
+                break;
         }
 
         shouldUpdateDisplay =
@@ -175,29 +184,40 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
                 }
             } else if (isStreaming) {
                 switch (ossm->playControl) {
+                    case PlayControls::BUFFER:
+                        drawShape::settingBar(F("Buffer"),
+                                              OSSM::setting.buffer, 128, 0,
+                                              RIGHT_ALIGNED, 15);
+                        drawShape::settingBarSmall(OSSM::setting.sensation, 113);
+                        drawShape::settingBarSmall(OSSM::setting.depth, 108);
+                        drawShape::settingBarSmall(OSSM::setting.stroke, 103);
+                        break;
                     case PlayControls::STROKE:
-                        drawShape::settingBarSmall(OSSM::setting.sensation, 125);
-                        drawShape::settingBarSmall(OSSM::setting.depth, 120);
+                        drawShape::settingBarSmall(OSSM::setting.buffer, 125);
+                        drawShape::settingBarSmall(OSSM::setting.sensation, 120);
+                        drawShape::settingBarSmall(OSSM::setting.depth, 115);
                         drawShape::settingBar(strokeString,
-                                              OSSM::setting.stroke, 118, 0,
+                                              OSSM::setting.stroke, 113, 0,
                                               RIGHT_ALIGNED);
                         break;
                     case PlayControls::SENSATION:
+                        drawShape::settingBarSmall(OSSM::setting.buffer, 125);
                         drawShape::settingBar(F("Max"),
-                                              OSSM::setting.sensation, 128, 0,
+                                              OSSM::setting.sensation, 123, 0,
                                               RIGHT_ALIGNED, 10);
                         ossm->display.setFont(Config::Font::bold);
                         strokeString = String("Accel");
                         stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-                        ossm->display.drawUTF8(104 - stringWidth, 36, strokeString.c_str());
-                        drawShape::settingBarSmall(OSSM::setting.depth, 113);
-                        drawShape::settingBarSmall(OSSM::setting.stroke, 108);
+                        ossm->display.drawUTF8(99 - stringWidth, 36, strokeString.c_str());
+                        drawShape::settingBarSmall(OSSM::setting.depth, 108);
+                        drawShape::settingBarSmall(OSSM::setting.stroke, 103);
                         break;
                     case PlayControls::DEPTH:
-                        drawShape::settingBarSmall(OSSM::setting.sensation, 125);
+                        drawShape::settingBarSmall(OSSM::setting.buffer, 125);
+                        drawShape::settingBarSmall(OSSM::setting.sensation, 120);
                         drawShape::settingBar(F("Depth"), OSSM::setting.depth,
-                                              123, 0, RIGHT_ALIGNED, 5);
-                        drawShape::settingBarSmall(OSSM::setting.stroke, 108);
+                                              118, 0, RIGHT_ALIGNED, 5);
+                        drawShape::settingBarSmall(OSSM::setting.stroke, 103);
                         break;
                 }
             } else {
@@ -232,12 +252,12 @@ void OSSM::drawPlayControlsTask(void *pvParameters) {
                 ossm->display.drawUTF8(104 - stringWidth, lh3,
                                        strokeString.c_str());
             }
-
-            strokeString =
-                formatTime(displayLastUpdated - ossm->sessionStartTime).c_str();
-            stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
-            ossm->display.drawUTF8(104 - stringWidth, lh4,
-                                   strokeString.c_str());
+            if (!isStreaming){
+                strokeString =
+                    formatTime(displayLastUpdated - ossm->sessionStartTime).c_str();
+                stringWidth = ossm->display.getUTF8Width(strokeString.c_str());
+                ossm->display.drawUTF8(104 - stringWidth, lh4, strokeString.c_str());
+            }
 
             refreshPage(true);
             xSemaphoreGive(displayMutex);

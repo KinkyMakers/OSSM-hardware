@@ -99,6 +99,7 @@ class OSSM : public OSSMInterface {
                 OSSM::setting.stroke = 50;
                 OSSM::setting.depth = 50;
                 OSSM::setting.sensation = 100;
+                OSSM::setting.buffer = 70;
                 o.playControl = PlayControls::DEPTH;
 
                 // Prepare the encoder
@@ -128,10 +129,8 @@ class OSSM : public OSSMInterface {
                 o.sessionDistanceMeters = 0;
             };
 
-            auto incrementControl = [](OSSM &o) {
-                o.playControl =
-                    static_cast<PlayControls>((o.playControl + 1) % 3);
-
+            auto incrementControlStrokeEngine = [](OSSM &o) {
+                o.playControl = static_cast<PlayControls>((o.playControl + 1) % 3);
                 switch (o.playControl) {
                     case PlayControls::STROKE:
                         o.encoder.setEncoderValue(OSSM::setting.stroke);
@@ -141,6 +140,24 @@ class OSSM : public OSSMInterface {
                         break;
                     case PlayControls::SENSATION:
                         o.encoder.setEncoderValue(OSSM::setting.sensation);
+                        break;
+                }
+            };
+
+            auto incrementControlStreaming = [](OSSM &o) {
+                o.playControl = static_cast<PlayControls>((o.playControl + 1) % 4);
+                switch (o.playControl) {
+                    case PlayControls::STROKE:
+                        o.encoder.setEncoderValue(OSSM::setting.stroke);
+                        break;
+                    case PlayControls::DEPTH:
+                        o.encoder.setEncoderValue(OSSM::setting.depth);
+                        break;
+                    case PlayControls::SENSATION:
+                        o.encoder.setEncoderValue(OSSM::setting.sensation);
+                        break;
+                    case PlayControls::BUFFER:
+                        o.encoder.setEncoderValue(OSSM::setting.buffer);
                         break;
                 }
             };
@@ -232,7 +249,7 @@ class OSSM : public OSSMInterface {
                 "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
                 "strokeEngine.preflight"_s + done / (resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
                 "strokeEngine.preflight"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
-                "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
+                "strokeEngine.idle"_s + buttonPress / incrementControlStrokeEngine = "strokeEngine.idle"_s,
                 "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
                 "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
                 "strokeEngine.pattern"_s + doublePress / drawPlayControls = "strokeEngine.idle"_s,
@@ -245,7 +262,7 @@ class OSSM : public OSSMInterface {
                 "streaming.preflight"_s + done / (resetSettingsStreaming, drawPlayControls, startStreaming) = "streaming.idle"_s,
                 "streaming.preflight"_s + longPress = "menu"_s,
                 "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
-                "streaming.idle"_s + buttonPress / incrementControl = "streaming.idle"_s,
+                "streaming.idle"_s + buttonPress / incrementControlStreaming = "streaming.idle"_s,
 
                 "update"_s [isOnline] / drawUpdate = "update.checking"_s,
                 "update"_s = "wifi"_s,
@@ -456,6 +473,11 @@ class OSSM : public OSSMInterface {
                 encoder.setEncoderValue(command.value);
                 setting.sensation = command.value;
                 break;
+            case Commands::setBuffer:
+                playControl = PlayControls::BUFFER;
+                encoder.setEncoderValue(command.value);
+                setting.buffer = command.value;
+                break;
             case Commands::setPattern:
                 setting.pattern =
                     static_cast<StrokePatterns>(command.value % (int)StrokePatterns::Count);
@@ -488,6 +510,7 @@ class OSSM : public OSSMInterface {
         json += "\"speed\":" + String((int)setting.speed) + ",";
         json += "\"stroke\":" + String((int)setting.stroke) + ",";
         json += "\"sensation\":" + String((int)setting.sensation) + ",";
+        json += "\"buffer\":" + String((int)setting.buffer) + ",";
         json += "\"depth\":" + String((int)setting.depth) + ",";
         json += "\"pattern\":" + String(static_cast<int>(setting.pattern));
         json += "}";

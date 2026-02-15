@@ -15,6 +15,7 @@ SettingPercents OSSM::setting = {.speed = 0,
                                  .stroke = 50,
                                  .sensation = 50,
                                  .depth = 10,
+                                 .buffer = 70,
                                  .pattern = StrokePatterns(0)};
 
 // Now we can define the OSSM constructor since OSSMStateMachine::operator() is
