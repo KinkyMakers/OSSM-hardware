@@ -97,6 +97,7 @@ class OSSM : public OSSMInterface {
 
             auto resetSettingsStreaming = [](OSSM &o) {
                 OSSM::setting.speed = 0;
+                OSSM::setting.speedBLE = std::nullopt;
                 OSSM::setting.stroke = 50;
                 OSSM::setting.depth = 50;
                 OSSM::setting.sensation = 100;
