@@ -4,8 +4,7 @@ export const OssmFunscriptPlayer = () => {
   // OSSM BLE UUIDs
   const OSSM_SERVICE_UUID = '522b443a-4f53-534d-0001-420badbabe69';
   const OSSM_COMMAND_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1000-420badbabe69';
-  const OSSM_STATE_CHARACTERISTIC_UUID = '522b443a-4f53-534d-2000-420badbabe69';
-
+  const OSSM_SPEED_KNOB_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1010-420badbabe69';
   // Check if Web Bluetooth is supported
   const isWebBluetoothSupported = () => {
     return typeof navigator !== 'undefined' && 'bluetooth' in navigator;
@@ -30,8 +29,12 @@ export const OssmFunscriptPlayer = () => {
   const [commandsSent, setCommandsSent] = useState(0);
 
   // Settings
-  const [timeOffset, setTimeOffset] = useState(0);
-  const [lookAhead, setLookAhead] = useState(100);
+  const [timeOffset, setTimeOffset] = useState(5);
+  const [buffer, setBuffer] = useState(70);
+  const [speed, setSpeed] = useState(0);
+  const [stroke, setStroke] = useState(50);
+  const [depth, setDepth] = useState(50);
+  const [sensation, setSensation] = useState(100);
 
   // Logs
   const [logs, setLogs] = useState([]);
@@ -39,6 +42,7 @@ export const OssmFunscriptPlayer = () => {
 
   // Refs
   const commandCharacteristicRef = useRef(null);
+  const speedKnobCharacteristicRef = useRef(null);
   const serverRef = useRef(null);
   const videoRef = useRef(null);
   const logsContainerRef = useRef(null);
@@ -125,6 +129,26 @@ export const OssmFunscriptPlayer = () => {
     return success;
   }, [sendCommand]);
 
+  const handleBufferChange = useCallback((value) => {
+    sendCommand(`set:buffer:${value}`);
+  }, [sendCommand]);
+
+  const handleSpeedChange = useCallback((value) => {
+    sendCommand(`set:speed:${value}`);
+  }, [sendCommand]);
+
+  const handleStrokeChange = useCallback((value) => {
+    sendCommand(`set:stroke:${value}`);
+  }, [sendCommand]);
+
+  const handleSensationChange = useCallback((value) => {
+    sendCommand(`set:sensation:${value}`);
+  }, [sendCommand]);
+
+  const handleDepthChange = useCallback((value) => {
+    sendCommand(`set:depth:${value}`);
+  }, [sendCommand]);
+
   // Connect to OSSM
   const handleConnect = async () => {
     setError(null);
@@ -151,6 +175,13 @@ export const OssmFunscriptPlayer = () => {
 
       commandCharacteristicRef.current = await service.getCharacteristic(OSSM_COMMAND_CHARACTERISTIC_UUID);
       addLog('INFO', 'Got command characteristic');
+
+      speedKnobCharacteristicRef.current = await service.getCharacteristic(OSSM_SPEED_KNOB_CHARACTERISTIC_UUID);
+      addLog('INFO','Got speed knob characteristic');
+
+      const encoder = new TextEncoder();
+      await speedKnobCharacteristicRef.current.writeValue(encoder.encode('false'));
+      addLog('INFO','Disable speed knob as override');
 
       setDevice(bleDevice);
       setConnectionStatus('connected');
@@ -234,7 +265,7 @@ export const OssmFunscriptPlayer = () => {
   const syncFunscript = useCallback(() => {
     if (!videoRef.current || funscriptActions.length === 0) return;
 
-    const currentTimeMs = (videoRef.current.currentTime * 1000) + timeOffset + lookAhead;
+    const currentTimeMs = (videoRef.current.currentTime * 1000) + timeOffset + buffer;
     setCurrentTime(videoRef.current.currentTime);
 
     while (currentActionIndexRef.current < funscriptActions.length) {
@@ -257,7 +288,7 @@ export const OssmFunscriptPlayer = () => {
 
       currentActionIndexRef.current++;
     }
-  }, [funscriptActions, timeOffset, lookAhead, sendStreamPosition]);
+  }, [funscriptActions, timeOffset, buffer, sendStreamPosition]);
 
   // Start sync loop
   const startSync = useCallback(() => {
@@ -523,30 +554,95 @@ export const OssmFunscriptPlayer = () => {
         <div className="space-y-4">
           <div>
             <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Max Speed</label>
+              <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{speed}</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={speed}
+              onChange={(e) => setSpeed(parseInt(e.target.value))}
+              onMouseUp={(e) => handleSpeedChange(parseInt(e.target.value))}
+              onTouchEnd={(e) => handleSpeedChange(parseInt(e.target.value))}
+              className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
+            />
+          </div>
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Max Stroke Length</label>
+              <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{stroke}</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={stroke}
+              onChange={(e) => setStroke(parseInt(e.target.value))}
+              onMouseUp={(e) => handleStrokeChange(parseInt(e.target.value))}
+              onTouchEnd={(e) => handleStrokeChange(parseInt(e.target.value))}
+              className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
+            />
+          </div>
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Max Depth</label>
+              <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{depth}</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={depth}
+              onChange={(e) => setDepth(parseInt(e.target.value))}
+              onMouseUp={(e) => handleDepthChange(parseInt(e.target.value))}
+              onTouchEnd={(e) => handleDepthChange(parseInt(e.target.value))}
+              className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
+            />
+          </div>
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Max Accelration</label>
+              <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{sensation}</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={sensation}
+              onChange={(e) => setSensation(parseInt(e.target.value))}
+              onMouseUp={(e) => handleSensationChange(parseInt(e.target.value))}
+              onTouchEnd={(e) => handleSensationChange(parseInt(e.target.value))}
+              className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
+            />
+          </div>
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Device Buffer</label>
+              <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{buffer}ms</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={buffer}
+              onChange={(e) => setBuffer(parseInt(e.target.value))}
+              onMouseUp={(e) => handleBufferChange(parseInt(e.target.value))}
+              onTouchEnd={(e) => handleBufferChange(parseInt(e.target.value))}
+              className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
+            />
+          </div>
+          <div>
+            <div className="flex justify-between items-center mb-2">
               <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Time Offset</label>
               <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{timeOffset}ms</span>
             </div>
             <input
               type="range"
-              min="-500"
-              max="500"
+              min="-50"
+              max="50"
               value={timeOffset}
               onChange={(e) => setTimeOffset(parseInt(e.target.value))}
-              className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
-            />
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Look-ahead</label>
-              <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{lookAhead}ms</span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="500"
-              value={lookAhead}
-              onChange={(e) => setLookAhead(parseInt(e.target.value))}
               className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
             />
           </div>
