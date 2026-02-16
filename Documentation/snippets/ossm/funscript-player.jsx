@@ -1,5 +1,3 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-
 export const OssmFunscriptPlayer = () => {
   // OSSM BLE UUIDs
   const OSSM_SERVICE_UUID = '522b443a-4f53-534d-0001-420badbabe69';

@@ -1,10 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-
 export const OssmBleController = () => {
   // OSSM BLE UUIDs
   const OSSM_SERVICE_UUID = '522b443a-4f53-534d-0001-420badbabe69';
   const OSSM_COMMAND_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1000-420badbabe69';
   const OSSM_SPEED_KNOB_LIMIT_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1010-420badbabe69';
+  const OSSM_WIFI_CONFIG_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1020-420badbabe69';
   const OSSM_STATE_CHARACTERISTIC_UUID = '522b443a-4f53-534d-2000-420badbabe69';
   const OSSM_PATTERNS_CHARACTERISTIC_UUID = '522b443a-4f53-534d-3000-420badbabe69';
   const OSSM_PATTERN_DESCRIPTION_CHARACTERISTIC_UUID = '522b443a-4f53-534d-3010-420badbabe69';
@@ -26,7 +25,7 @@ export const OssmBleController = () => {
   };
 
   // Slider component with smooth dragging and send-on-release
-  const Slider = ({ label, value, onChange, onRelease, color = 'violet', disabled = false }) => {
+  const Slider = ({ label, value, onRelease, color = 'violet', disabled = false }) => {
     const [localValue, setLocalValue] = useState(value);
     const isDraggingRef = useRef(false);
 
@@ -49,7 +48,7 @@ export const OssmBleController = () => {
       const newValue = parseInt(e.target.value, 10);
       isDraggingRef.current = true;
       setLocalValue(newValue);
-      onChange(newValue);
+      // No longer calling onChange - just update local state for smooth dragging
     };
 
     const handleRelease = () => {
@@ -82,21 +81,6 @@ export const OssmBleController = () => {
     );
   };
 
-  // Pattern button component
-  const PatternButton = ({ pattern, isActive, onClick, disabled }) => (
-    <button
-      onClick={() => onClick(pattern.idx)}
-      disabled={disabled}
-      title={pattern.description || pattern.name}
-      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${isActive
-        ? 'bg-violet-500 text-white shadow-md'
-        : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700'
-        } disabled:opacity-50 disabled:cursor-not-allowed`}
-    >
-      {pattern.name}
-    </button>
-  );
-
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [device, setDevice] = useState(null);
   const [error, setError] = useState(null);
@@ -109,12 +93,21 @@ export const OssmBleController = () => {
   const [patterns, setPatterns] = useState(DEFAULT_PATTERNS);
   const [isPaused, setIsPaused] = useState(true);
 
+  // WiFi state
+  const [wifiSSID, setWifiSSID] = useState('');
+  const [wifiPassword, setWifiPassword] = useState('');
+  const [wifiStatus, setWifiStatus] = useState(null);
+  const [isWifiSaving, startWifiTransition] = useTransition();
+
   // Dev tools state
   const [logs, setLogs] = useState([]);
-  const [logsExpanded, setLogsExpanded] = useState(false);
   const [rawInput, setRawInput] = useState('');
 
+  // Tab state
+  const [activeTab, setActiveTab] = useState('controller');
+
   const commandCharacteristicRef = useRef(null);
+  const wifiConfigCharacteristicRef = useRef(null);
   const serverRef = useRef(null);
 
   const [isSupported, setIsSupported] = useState(true);
@@ -127,10 +120,10 @@ export const OssmBleController = () => {
 
   // Auto-scroll logs when new entries are added (only within the container)
   useEffect(() => {
-    if (logsExpanded && logsContainerRef.current) {
+    if (activeTab === 'logs' && logsContainerRef.current) {
       logsContainerRef.current.scrollTop = logsContainerRef.current.scrollHeight;
     }
-  }, [logs]);
+  }, [logs, activeTab]);
 
   // Helper to add log entries
   const addLog = useCallback((direction, data) => {
@@ -164,40 +157,27 @@ export const OssmBleController = () => {
     }
   }, [addLog]);
 
-  // Local state updates during drag (no network calls)
-  const handleSpeedChange = useCallback((value) => {
+  // Send commands on slider release
+  const handleSpeedRelease = useCallback((value) => {
     setSpeed(value);
     if (value > 0 && isPaused) {
       setIsPaused(false);
     }
-  }, [isPaused]);
-
-  const handleDepthChange = useCallback((value) => {
-    setDepth(value);
-  }, []);
-
-  const handleStrokeChange = useCallback((value) => {
-    setStroke(value);
-  }, []);
-
-  const handleSensationChange = useCallback((value) => {
-    setSensation(value);
-  }, []);
-
-  // Send commands on slider release
-  const handleSpeedRelease = useCallback((value) => {
     sendCommand(`set:speed:${value}`);
-  }, [sendCommand]);
+  }, [sendCommand, isPaused]);
 
   const handleDepthRelease = useCallback((value) => {
+    setDepth(value);
     sendCommand(`set:depth:${value}`);
   }, [sendCommand]);
 
   const handleStrokeRelease = useCallback((value) => {
+    setStroke(value);
     sendCommand(`set:stroke:${value}`);
   }, [sendCommand]);
 
   const handleSensationRelease = useCallback((value) => {
+    setSensation(value);
     sendCommand(`set:sensation:${value}`);
   }, [sendCommand]);
 
@@ -219,11 +199,56 @@ export const OssmBleController = () => {
     }
   }, [isPaused, speed, sendCommand]);
 
-  const handlePause = useCallback(async () => {
-    setSpeed(0);
-    setIsPaused(true);
-    await sendCommand('set:speed:0');
-  }, [sendCommand]);
+  const handleWifiSave = useCallback(() => {
+    if (!wifiConfigCharacteristicRef.current || !wifiSSID || !wifiPassword) {
+      console.warn('WiFi characteristic not available or credentials missing');
+      return;
+    }
+
+    startWifiTransition(async () => {
+      const command = `set:wifi:${wifiSSID}|${wifiPassword}`;
+      console.log('[OSSM BLE] Configuring WiFi:', wifiSSID);
+      addLog('TX', command.replace(/\|.*$/, '|***')); // Hide password in logs
+
+      try {
+        const encoder = new TextEncoder();
+        await wifiConfigCharacteristicRef.current.writeValue(encoder.encode(command));
+
+        // Read the response
+        const responseValue = await wifiConfigCharacteristicRef.current.readValue();
+        const response = new TextDecoder().decode(responseValue);
+        addLog('RX', response);
+        console.log('[OSSM BLE] WiFi config response:', response);
+
+        // Wait a moment then read status
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        const statusValue = await wifiConfigCharacteristicRef.current.readValue();
+        const status = JSON.parse(new TextDecoder().decode(statusValue));
+        setWifiStatus(status);
+        console.log('[OSSM BLE] WiFi status:', status);
+      } catch (err) {
+        console.error('Failed to configure WiFi:', err);
+        addLog('ERR', `WiFi config failed: ${err.message}`);
+        setError(`Failed to configure WiFi: ${err.message}`);
+      }
+    });
+  }, [wifiSSID, wifiPassword, addLog, startWifiTransition]);
+
+  const handleWifiRefresh = useCallback(async () => {
+    if (!wifiConfigCharacteristicRef.current) {
+      console.warn('WiFi characteristic not available');
+      return;
+    }
+
+    try {
+      const statusValue = await wifiConfigCharacteristicRef.current.readValue();
+      const status = JSON.parse(new TextDecoder().decode(statusValue));
+      setWifiStatus(status);
+      console.log('[OSSM BLE] WiFi status refreshed:', status);
+    } catch (err) {
+      console.error('Failed to read WiFi status:', err);
+    }
+  }, []);
 
   const handleConnect = async () => {
     setError(null);
@@ -251,6 +276,22 @@ export const OssmBleController = () => {
 
       const commandChar = await service.getCharacteristic(OSSM_COMMAND_CHARACTERISTIC_UUID);
       commandCharacteristicRef.current = commandChar;
+
+      // Get WiFi config characteristic
+      try {
+        const wifiConfigChar = await service.getCharacteristic(OSSM_WIFI_CONFIG_CHARACTERISTIC_UUID);
+        wifiConfigCharacteristicRef.current = wifiConfigChar;
+
+        // Read initial WiFi status
+        const wifiStatusValue = await wifiConfigChar.readValue();
+        const wifiStatusRaw = new TextDecoder().decode(wifiStatusValue);
+        addLog('RX', `wifi status: ${wifiStatusRaw}`);
+        const wifiStatusData = JSON.parse(wifiStatusRaw);
+        console.log('[OSSM BLE] WiFi status:', wifiStatusData);
+        setWifiStatus(wifiStatusData);
+      } catch (wifiErr) {
+        console.warn('[OSSM BLE] Could not get WiFi characteristic:', wifiErr);
+      }
 
       // Read current state from device
       try {
@@ -381,9 +422,11 @@ export const OssmBleController = () => {
     setDevice(null);
     setConnectionStatus('disconnected');
     commandCharacteristicRef.current = null;
+    wifiConfigCharacteristicRef.current = null;
     serverRef.current = null;
     setSpeed(0);
     setIsPaused(true);
+    setWifiStatus(null);
   };
 
   // Show unsupported message if Web Bluetooth is not available
@@ -467,140 +510,238 @@ export const OssmBleController = () => {
       {/* Controls (only shown when connected) */}
       {isConnected && (
         <>
-          {/* Pause button */}
-          <div className="mb-6">
-            <button
-              onClick={handlePause}
-              className="w-full rounded-lg bg-red-500 px-6 py-3 text-lg font-bold text-white transition-colors hover:bg-red-600 active:bg-red-700"
-            >
-              PAUSE
-            </button>
-          </div>
-
-          {/* Resume button */}
-          <div className="mb-6">
-            <button
-              onClick={handlePauseToggle}
-              className={`w-full rounded-lg px-6 py-3 text-base font-medium transition-colors ${isPaused
-                ? 'bg-green-500 text-white hover:bg-green-600'
-                : 'bg-amber-500 text-white hover:bg-amber-600'
+          {/* Tabs */}
+          <div className="mb-4 flex border-b border-zinc-200 dark:border-zinc-700">
+            {[
+              { id: 'controller', label: 'Controller' },
+              { id: 'wifi', label: 'WiFi Settings' },
+              { id: 'logs', label: 'Raw Logs' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                  activeTab === tab.id
+                    ? 'border-violet-500 text-violet-600 dark:text-violet-400'
+                    : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300'
                 }`}
-            >
-              {isPaused ? 'Resume' : 'Pause'}
-            </button>
+              >
+                {tab.label}
+                {tab.id === 'logs' && logs.length > 0 && (
+                  <span className="ml-1.5 text-xs text-zinc-400">({logs.length})</span>
+                )}
+              </button>
+            ))}
           </div>
 
-          {/* Speed control */}
-          <div className="mb-6 p-4 rounded-lg bg-zinc-50 dark:bg-zinc-800/50">
-            <Slider
-              label="Speed"
-              value={speed}
-              onChange={handleSpeedChange}
-              onRelease={handleSpeedRelease}
-              color="violet"
-            />
-          </div>
-
-          {/* Other controls */}
-          <div className="mb-6 space-y-4">
-            <Slider
-              label="Depth"
-              value={depth}
-              onChange={handleDepthChange}
-              onRelease={handleDepthRelease}
-              color="red"
-            />
-            <Slider
-              label="Stroke"
-              value={stroke}
-              onChange={handleStrokeChange}
-              onRelease={handleStrokeRelease}
-              color="green"
-            />
-            <Slider
-              label="Sensation"
-              value={sensation}
-              onChange={handleSensationChange}
-              onRelease={handleSensationRelease}
-              color="blue"
-            />
-          </div>
-
-          {/* Pattern selection */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
-              Pattern
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {patterns.map((p) => (
-                <PatternButton
-                  key={p.idx}
-                  pattern={p}
-                  isActive={pattern === p.idx}
-                  onClick={handlePatternChange}
-                  disabled={false}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Dev Tools Section */}
-          <div className="mt-6 border-t border-zinc-200 dark:border-zinc-700 pt-4">
-            {/* Raw Text Input */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                Raw Command
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={rawInput}
-                  onChange={(e) => setRawInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && rawInput.trim()) {
-                      sendCommand(rawInput.trim());
-                      setRawInput('');
-                    }
-                  }}
-                  placeholder="e.g., set:speed:50"
-                  className="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-mono text-zinc-900 placeholder-zinc-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
-                />
+          {/* Controller Tab */}
+          {activeTab === 'controller' && (
+            <>
+              {/* Play/Pause toggle */}
+              <div className="mb-6">
                 <button
-                  onClick={() => {
-                    if (rawInput.trim()) {
-                      sendCommand(rawInput.trim());
-                      setRawInput('');
-                    }
-                  }}
-                  disabled={!rawInput.trim()}
-                  className="rounded-lg bg-violet-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handlePauseToggle}
+                  className={`w-full rounded-lg px-6 py-3 text-lg font-bold transition-colors ${
+                    isPaused
+                      ? 'bg-green-500 text-white hover:bg-green-600 active:bg-green-700'
+                      : 'bg-red-500 text-white hover:bg-red-600 active:bg-red-700'
+                  }`}
                 >
-                  Send
+                  {isPaused ? 'START' : 'STOP'}
+                </button>
+              </div>
+
+              {/* Speed control */}
+              <div className="mb-6 p-4 rounded-lg bg-zinc-50 dark:bg-zinc-800/50">
+                <Slider
+                  label="Speed"
+                  value={speed}
+                  onRelease={handleSpeedRelease}
+                  color="violet"
+                />
+              </div>
+
+              {/* Other controls */}
+              <div className="mb-6 space-y-4">
+                <Slider
+                  label="Depth"
+                  value={depth}
+                  onRelease={handleDepthRelease}
+                  color="red"
+                />
+                <Slider
+                  label="Stroke"
+                  value={stroke}
+                  onRelease={handleStrokeRelease}
+                  color="green"
+                />
+                <Slider
+                  label="Sensation"
+                  value={sensation}
+                  onRelease={handleSensationRelease}
+                  color="blue"
+                />
+              </div>
+
+              {/* Pattern selection */}
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  Pattern
+                </label>
+                <select
+                  value={pattern}
+                  onChange={(e) => handlePatternChange(parseInt(e.target.value, 10))}
+                  className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                >
+                  {patterns.map((p) => (
+                    <option key={p.idx} value={p.idx}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+                {patterns.find((p) => p.idx === pattern)?.description && (
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    {patterns.find((p) => p.idx === pattern)?.description}
+                  </p>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* WiFi Settings Tab */}
+          {activeTab === 'wifi' && (
+            <div className="space-y-4">
+              {/* WiFi Status Display */}
+              {wifiStatus && (
+                <div className={`rounded-lg p-3 ${wifiStatus.connected ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700' : 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700'}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`text-sm font-medium ${wifiStatus.connected ? 'text-green-800 dark:text-green-300' : 'text-amber-800 dark:text-amber-300'}`}>
+                      {wifiStatus.connected ? '✓ Connected' : '○ Not Connected'}
+                    </span>
+                    <button
+                      onClick={handleWifiRefresh}
+                      className="text-xs text-zinc-600 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+                    >
+                      Refresh
+                    </button>
+                  </div>
+                  {wifiStatus.ssid && (
+                    <div className="text-xs space-y-1">
+                      <div className="text-zinc-700 dark:text-zinc-300">
+                        <span className="font-medium">SSID:</span> {wifiStatus.ssid}
+                      </div>
+                      {wifiStatus.ip && (
+                        <div className="text-zinc-700 dark:text-zinc-300">
+                          <span className="font-medium">IP:</span> {wifiStatus.ip}
+                        </div>
+                      )}
+                      {wifiStatus.connected && wifiStatus.rssi && (
+                        <div className="text-zinc-700 dark:text-zinc-300">
+                          <span className="font-medium">Signal:</span> {wifiStatus.rssi} dBm
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* WiFi Configuration Form */}
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                    Network Name (SSID)
+                  </label>
+                  <input
+                    type="text"
+                    value={wifiSSID}
+                    onChange={(e) => setWifiSSID(e.target.value)}
+                    placeholder="Enter WiFi SSID"
+                    maxLength={32}
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    value={wifiPassword}
+                    onChange={(e) => setWifiPassword(e.target.value)}
+                    placeholder="Enter WiFi password"
+                    maxLength={63}
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+                  />
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    Password must be 8-63 characters
+                  </p>
+                </div>
+
+                <button
+                  onClick={handleWifiSave}
+                  disabled={!wifiSSID || wifiPassword.length < 8 || isWifiSaving}
+                  className="w-full rounded-lg bg-violet-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isWifiSaving ? 'Connecting...' : 'Save & Connect'}
                 </button>
               </div>
             </div>
+          )}
 
-            {/* Collapsible Raw Logs */}
-            <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-              <button
-                onClick={() => setLogsExpanded(!logsExpanded)}
-                className="w-full flex items-center justify-between px-3 py-2 bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-              >
-                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Raw Logs ({logs.length})
-                </span>
-                <svg
-                  className={`h-4 w-4 text-zinc-500 transition-transform ${logsExpanded ? 'rotate-180' : ''}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+          {/* Raw Logs Tab */}
+          {activeTab === 'logs' && (
+            <div className="space-y-4">
+              {/* Raw Text Input */}
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                  Raw Command
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={rawInput}
+                    onChange={(e) => setRawInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && rawInput.trim()) {
+                        sendCommand(rawInput.trim());
+                        setRawInput('');
+                      }
+                    }}
+                    placeholder="e.g., set:speed:50"
+                    className="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-mono text-zinc-900 placeholder-zinc-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+                  />
+                  <button
+                    onClick={() => {
+                      if (rawInput.trim()) {
+                        sendCommand(rawInput.trim());
+                        setRawInput('');
+                      }
+                    }}
+                    disabled={!rawInput.trim()}
+                    className="rounded-lg bg-violet-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Send
+                  </button>
+                </div>
+              </div>
 
-              {logsExpanded && (
-                <div ref={logsContainerRef} className="max-h-48 overflow-y-auto bg-zinc-900 p-2">
+              {/* Logs Display */}
+              <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                <div className="flex items-center justify-between px-3 py-2 bg-zinc-50 dark:bg-zinc-800">
+                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Log Output
+                  </span>
+                  {logs.length > 0 && (
+                    <button
+                      onClick={() => setLogs([])}
+                      className="text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <div ref={logsContainerRef} className="h-64 overflow-y-auto bg-zinc-900 p-2">
                   {logs.length === 0 ? (
                     <p className="text-xs text-zinc-500 font-mono">No logs yet...</p>
                   ) : (
@@ -624,18 +765,9 @@ export const OssmBleController = () => {
                     </div>
                   )}
                 </div>
-              )}
-
-              {logsExpanded && logs.length > 0 && (
-                <button
-                  onClick={() => setLogs([])}
-                  className="w-full px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 bg-zinc-50 dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700"
-                >
-                  Clear Logs
-                </button>
-              )}
+              </div>
             </div>
-          </div>
+          )}
         </>
       )}
     </div>

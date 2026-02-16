@@ -1,0 +1,185 @@
+---
+title: "WiFi Setup"
+description: "Configure your OSSM's WiFi connection for over-the-air updates and remote features"
+---
+
+Connecting your OSSM to WiFi enables over-the-air firmware updates and other network-based features. This guide covers two methods for configuring your WiFi credentials.
+
+<Note>
+Your OSSM only supports 2.4GHz WiFi networks. This is a hardware limitation of the ESP32 microcontroller. 5GHz networks will not appear in the network list.
+</Note>
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- Your WiFi network name (SSID)
+- Your WiFi password
+- A 2.4GHz WiFi network (5GHz is not supported)
+
+## Choose your setup method
+
+<CardGroup cols={2}>
+<Card title="Option 1: Web BLE Controller" icon="wifi" href="#option-1-web-ble-controller">
+Configure wirelessly using a web browser—no wired remote required.
+</Card>
+<Card title="Option 2: Wired Remote" icon="display" href="#option-2-wired-remote-captive-portal">
+Use the OSSM's built-in display and encoder to set up WiFi.
+</Card>
+</CardGroup>
+
+## Option 1: Web BLE Controller
+
+The Web BLE Controller provides a browser-based interface for configuring your OSSM wirelessly. This method works best for users without a wired remote or who prefer a graphical interface.
+
+<Note>
+The Web BLE Controller requires a browser with Web Bluetooth support, such as Google Chrome or Microsoft Edge. Safari does not currently support Web Bluetooth.
+</Note>
+
+<Steps>
+<Step title="Open the Web Controller">
+Navigate to the [Web BLE Controller](https://docs.researchanddesire.com/ossm/tools/web-controller) in a compatible browser (Chrome or Edge).
+</Step>
+
+<Step title="Connect to your OSSM">
+Click the **Connect** button and select your OSSM from the Bluetooth pairing dialog. Your OSSM will appear in the list with its Bluetooth name.
+
+<Tip>
+If your OSSM doesn't appear, ensure it's powered on and within Bluetooth range (typically 10 meters).
+</Tip>
+</Step>
+
+<Step title="Navigate to WiFi Settings">
+Once connected, click the **WiFi Settings** tab at the top of the controller interface.
+</Step>
+
+<Step title="Enter your WiFi credentials">
+Fill in the WiFi configuration form:
+
+- **Network Name (SSID)**: Enter your WiFi network name (maximum 32 characters)
+- **Password**: Enter your WiFi password (8-63 characters required)
+
+<Warning>
+The password must be between 8 and 63 characters. Passwords shorter than 8 characters will not be accepted.
+</Warning>
+</Step>
+
+<Step title="Save and connect">
+Click the **Save & Connect** button. The OSSM will attempt to connect to your WiFi network.
+
+The status indicator will display:
+- **✓ Connected** — Successfully connected to WiFi
+- **○ Not Connected** — Connection failed or still attempting
+
+If connected, you'll see your network SSID, IP address, and signal strength (RSSI).
+</Step>
+</Steps>
+
+<Frame>
+  <img src="./_images/wifi-ble-setup.webp" alt="WiFi setup using Web BLE Controller" />
+</Frame>
+
+## Option 2: Wired Remote (Captive Portal)
+
+If you have the wired remote with the OLED display, you can configure WiFi directly from the device using the built-in captive portal system.
+
+<Steps>
+<Step title="Access WiFi Setup from the menu">
+From the main menu on your OSSM's display:
+
+1. Use the encoder to scroll to **WiFi Setup**
+2. Press the encoder button to select it
+
+The display will show WiFi setup information and a QR code for easy connection.
+</Step>
+
+<Step title="Connect to OSSM Setup network">
+On your phone or computer, open your WiFi settings and connect to the network named:
+
+**OSSM Setup**
+
+<Info>
+This network has no password. The QR code displayed on the OSSM's screen can be scanned to connect automatically on supported devices.
+</Info>
+</Step>
+
+<Step title="Configure via captive portal">
+After connecting to the OSSM Setup network, a configuration page should open automatically. If it doesn't, manually navigate to:
+
+```
+http://192.168.4.1
+```
+
+On the configuration page:
+1. Select your home WiFi network from the list (only 2.4GHz networks appear)
+2. Enter your WiFi password
+3. Click **Save** or **Submit**
+</Step>
+
+<Step title="Verify connection">
+The OSSM will save your credentials and attempt to connect. If successful, the display will show:
+
+- Your network SSID
+- Your OSSM's IP address on the network
+
+The captive portal will automatically close, and you'll be disconnected from the OSSM Setup network.
+</Step>
+</Steps>
+
+### Resetting WiFi credentials
+
+If you need to clear saved WiFi credentials or connect to a different network:
+
+1. Navigate to **WiFi Setup** in the main menu
+2. **Long press** the encoder button (hold for 3 seconds)
+3. The stored credentials will be erased
+4. The OSSM will restart, allowing you to configure WiFi again
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="My 5GHz network doesn't appear">
+The ESP32 microcontroller only supports 2.4GHz WiFi networks. 5GHz networks will not appear in the network list. Ensure your router broadcasts a 2.4GHz network, or use a dual-band network name that supports both frequencies.
+</Accordion>
+
+<Accordion title="Captive portal doesn't open automatically">
+If the captive portal configuration page doesn't open after connecting to the OSSM Setup network, manually open a web browser and navigate to:
+
+```
+http://192.168.4.1
+```
+
+This is the direct IP address of the OSSM's configuration server.
+</Accordion>
+
+<Accordion title="Connection keeps failing">
+If your OSSM repeatedly fails to connect:
+
+- Verify your WiFi password is correct (passwords are case-sensitive)
+- Ensure your router supports 2.4GHz
+- Check that your router allows new device connections (some routers have device limits)
+- Try moving your OSSM closer to your router to improve signal strength
+- Reset WiFi credentials (long press on WiFi Setup) and try again
+</Accordion>
+
+<Accordion title="How do I check if WiFi is working?">
+If your OSSM successfully connects to WiFi, you can verify by:
+
+1. Using the Web BLE Controller's WiFi Settings tab—click **Refresh** to see current connection status
+2. Checking the wired remote display when entering WiFi Setup—it will show "Connected to: [your network]" if online
+3. Testing the **Update** feature from the main menu—firmware updates require WiFi connectivity
+</Accordion>
+</AccordionGroup>
+
+## Next steps
+
+Once your OSSM is connected to WiFi, you can:
+
+<CardGroup cols={2}>
+<Card title="Update firmware" icon="download" href="/ossm/guides/getting-started/user-guide/introduction#update">
+Check for and install the latest firmware updates over-the-air.
+</Card>
+<Card title="Use web features" icon="globe" href="/ossm/tools/web-controller">
+Control your OSSM remotely using the Web BLE Controller.
+</Card>
+</CardGroup>

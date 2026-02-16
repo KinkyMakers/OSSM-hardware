@@ -15,6 +15,7 @@
 #include "patterns.hpp"
 #include "services/led.h"
 #include "state.hpp"
+#include "wifi.hpp"
 
 // Define the global variables
 NimBLEServer* pServer = nullptr;
@@ -293,6 +294,9 @@ void initNimble() {
 
     pSpeedKnobConfigCharacteristic = initSpeedKnobConfigCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_SPEED_KNOB_CONFIG_UUID));
+
+    initWiFiConfigCharacteristic(pService,
+                                 NimBLEUUID(CHARACTERISTIC_WIFI_CONFIG_UUID));
 
     pStateCharacteristic = initStateCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_STATE_UUID));

@@ -27,6 +27,7 @@ enum class Commands {
     setPattern,
     setSpeed,
     setStroke,
+    setWifi,
 
     // STREAMING
     streamPosition,
@@ -38,6 +39,11 @@ struct CommandValue {
     Commands command;
     int value;
     int time;  // Used for streaming commands (time in ms)
+};
+
+struct WiFiCredentials {
+    String ssid;
+    String password;
 };
 
 inline CommandValue setCommandValue(const String& str) {
@@ -106,6 +112,25 @@ inline CommandValue streamCommandValue(const String& str) {
 
 static const char ignore_str[] PROGMEM = "ignore";
 
+inline WiFiCredentials parseWiFiCommand(const String& str) {
+    // Expected format: set:wifi:<ssid>|<password>
+    if (!str.startsWith("set:wifi:")) {
+        return {"", ""};
+    }
+
+    String credentials = str.substring(9);  // Skip "set:wifi:"
+    int pipeIndex = credentials.indexOf('|');
+
+    if (pipeIndex == -1) {
+        return {"", ""};
+    }
+
+    String ssid = credentials.substring(0, pipeIndex);
+    String password = credentials.substring(pipeIndex + 1);
+
+    return {ssid, password};
+}
+
 inline CommandValue commandFromString(const String& str) {
     if (str.startsWith("go:")) {
         if (str == "go:strokeEngine") return {Commands::goToStrokeEngine, 0, 0};
@@ -114,6 +139,10 @@ inline CommandValue commandFromString(const String& str) {
         if (str == "go:streaming") return {Commands::goToStreaming, 0, 0};
         if (str == "go:menu") return {Commands::goToMenu, 0, 0};
         return {Commands::goToMenu, 0, 0};  // Default
+    }
+
+    if (str.startsWith("set:wifi:")) {
+        return {Commands::setWifi, 0, 0};
     }
 
     if (str.startsWith("set:")) {

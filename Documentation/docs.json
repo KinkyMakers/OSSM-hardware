@@ -1,13 +1,13 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "mint",
+  "theme": "maple",
+  "name": "Research And Desire Docs",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#007B8A",
+    "light": "#7EDFEF",
+    "dark": "#036D7F"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/images/favicon.ico",
   "navigation": {
     "products": [
       {
@@ -22,6 +22,7 @@
                 "pages": [
                   "ossm/guides/getting-started/introduction",
                   "ossm/guides/getting-started/quickstart",
+                  "ossm/guides/getting-started/wifi-setup",
                   "ossm/guides/getting-started/web-flasher",
                   {
                     "group": "Ready to Play",
@@ -333,6 +334,12 @@
                 ]
               },
               {
+                "group": "Architecture",
+                "pages": [
+                  "ossm/Software/architecture/state-machine"
+                ]
+              },
+              {
                 "group": "Communication",
                 "pages": [
                   "ossm/Software/communication/ble",
@@ -344,6 +351,12 @@
                 "pages": [
                   "ossm/Software/motion/stroke-engine/introduction",
                   "ossm/Software/motion/stroke-engine/Pattern"
+                ]
+              },
+              {
+                "group": "Contributing",
+                "pages": [
+                  "ossm/Software/contributing/documentation"
                 ]
               }
             ]
@@ -381,8 +394,8 @@
     }
   },
   "logo": {
-    "light": "/images/logo/light.svg",
-    "dark": "/images/logo/dark.svg"
+    "light": "/images/Standard-Colour.webp",
+    "dark": "/images/Inverted-Colour.webp"
   },
   "navbar": {
     "links": [
