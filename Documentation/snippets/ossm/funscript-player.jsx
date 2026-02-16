@@ -99,7 +99,7 @@ export const OssmFunscriptPlayer = () => {
 
     try {
       const encoder = new TextEncoder();
-      await commandCharacteristicRef.current.writeValue(encoder.encode(command));
+      await commandCharacteristicRef.current.writeValueWithoutResponse(encoder.encode(command));
       addLog('TX', command);
       return true;
     } catch (err) {
@@ -151,20 +151,6 @@ export const OssmFunscriptPlayer = () => {
 
       commandCharacteristicRef.current = await service.getCharacteristic(OSSM_COMMAND_CHARACTERISTIC_UUID);
       addLog('INFO', 'Got command characteristic');
-
-      // Try to subscribe to state notifications
-      try {
-        const stateChar = await service.getCharacteristic(OSSM_STATE_CHARACTERISTIC_UUID);
-        await stateChar.startNotifications();
-        stateChar.addEventListener('characteristicvaluechanged', (event) => {
-          const decoder = new TextDecoder();
-          const value = decoder.decode(event.target.value);
-          addLog('RX', `State: ${value}`);
-        });
-        addLog('INFO', 'Subscribed to state notifications');
-      } catch (e) {
-        addLog('INFO', 'State notifications not available');
-      }
 
       // Enter streaming mode
       addLog('INFO', 'Entering streaming mode...');
@@ -267,11 +253,11 @@ export const OssmFunscriptPlayer = () => {
       if (currentActionIndexRef.current < funscriptActions.length - 1) {
         const nextAction = funscriptActions[currentActionIndexRef.current + 1];
         timeToNext = nextAction.at - action.at;      
+      }
 
         if (action.at > lastSentTimeRef.current) {
-          sendStreamPosition(nextAction.pos, timeToNext);
+        sendStreamPosition(action.pos, timeToNext);
           lastSentTimeRef.current = action.at;
-        }
       }
 
       currentActionIndexRef.current++;
