@@ -1,3 +1,7 @@
+import { useState, useEffect, useRef } from 'react';
+
+
+
 export const DeviceFlasher = ({ device = 'ossm' }) => {
   const DEVICE_CONFIGS = {
     ossm: {
