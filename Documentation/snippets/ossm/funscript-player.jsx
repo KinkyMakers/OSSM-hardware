@@ -201,6 +201,10 @@ export const OssmFunscriptPlayer = () => {
       commandCharacteristicRef.current = await service.getCharacteristic(OSSM_COMMAND_CHARACTERISTIC_UUID);
       addLog('INFO', 'Got command characteristic');
 
+      // Enter streaming mode
+      addLog('INFO', 'Entering streaming mode...');
+      await sendCommand('go:streaming');
+
       speedKnobCharacteristicRef.current = await service.getCharacteristic(OSSM_SPEED_KNOB_CHARACTERISTIC_UUID);
       addLog('INFO','Got speed knob characteristic');
 
