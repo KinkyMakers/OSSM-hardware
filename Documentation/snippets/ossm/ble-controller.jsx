@@ -1,5 +1,3 @@
-import { useState, useEffect, useCallback, useRef, useTransition } from 'react';
-
 export const OssmBleController = () => {
   // OSSM BLE UUIDs
   const OSSM_SERVICE_UUID = '522b443a-4f53-534d-0001-420badbabe69';

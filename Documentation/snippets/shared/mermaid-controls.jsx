@@ -1,5 +1,3 @@
-import { useEffect, useCallback } from "react";
-
 export const MermaidControls = () => {
   const attachInteractionBehavior = useCallback((container) => {
     // Find the .mermaid wrapper that has the CSS transform
