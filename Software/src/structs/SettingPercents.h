@@ -1,6 +1,8 @@
 #ifndef SOFTWARE_SETTINGPERCENTS_H
 #define SOFTWARE_SETTINGPERCENTS_H
 
+#include <optional>
+
 enum class StrokePatterns {
     SimpleStroke,
     TeasingPounding,

@@ -1,146 +1,126 @@
 #include "OSSM.h"
 
-#include "constants/Images.h"
-#include "constants/UserConfig.h"
-#include "extensions/u8g2Extensions.h"
+#include "command/commands.hpp"
+#include "ossm/state/ble.h"
+#include "ossm/state/calibration.h"
+#include "ossm/state/menu.h"
+#include "ossm/state/session.h"
+#include "ossm/state/settings.h"
+#include "ossm/state/state.h"
+#include "services/communication/queue.h"
 #include "services/encoder.h"
 
 namespace sml = boost::sml;
 using namespace sml;
 
+// Global OSSM pointer (kept for backward compatibility during migration)
 OSSM *ossm = nullptr;
 
-// Static member definition
+// Static member definition - now forwards to global settings
 SettingPercents OSSM::setting = {.speed = 0,
                                  .stroke = 50,
                                  .sensation = 50,
                                  .depth = 10,
                                  .pattern = StrokePatterns::SimpleStroke};
 
-// Now we can define the OSSM constructor since OSSMStateMachine::operator() is
-// fully defined
-OSSM::OSSM(U8G2_SSD1306_128X64_NONAME_F_HW_I2C &display,
-           AiEsp32RotaryEncoder &encoder, FastAccelStepper *stepper)
-    : display(display),
-      encoder(encoder),
-      stepper(stepper),
-      sm(std::make_unique<
-          sml::sm<OSSMStateMachine, sml::thread_safe<ESP32RecursiveMutex>,
-                  sml::logger<StateLogger>>>(logger, *this)) {
-    // All initializations are done, so start the state machine.
-    sm->process_event(Done{});
+OSSM::OSSM() {
+    // Initialize global state from OSSM::setting
+    settings = OSSM::setting;
 }
 
-/**
- * This task will write the word "OSSM" to the screen
- * then briefly show the RD logo.
- * and then end on the Kinky Makers logo.
- *
- * The Kinky Makers logo will stay on the screen until the next state is ready
- * :).
- * @param pvParameters
- */
-void OSSM::drawHelloTask(void *pvParameters) {
-    // parse ossm from the parameters
-    OSSM *ossm = (OSSM *)pvParameters;
+void OSSM::ble_click(String commandString) {
+    ESP_LOGD("OSSM", "PROCESSING CLICK");
+    CommandValue command = commandFromString(commandString);
+    ESP_LOGD("OSSM", "COMMAND: %d", command.command);
 
-    int frameIdx = 0;
-    const int nFrames = 8;
-
-    int startX = 24;
-    int offsetY = 12;
-
-    // Bounce the Y position from 0 to 32, up to 24 and down to 32
-    std::array<int, 8> framesY = {6, 12, 24, 48, 44, 42, 44, 48};
-    std::array<int, 4> heights = {0, 0, 0, 0};
-    int letterSpacing = 20;
-
-    while (frameIdx < nFrames + 9) {
-        if (frameIdx < nFrames) {
-            heights[0] = framesY[frameIdx] - offsetY;
-        }
-        if (frameIdx - 3 > 0 && frameIdx - 3 < nFrames) {
-            heights[1] = framesY[frameIdx - 3] - offsetY;
-        }
-        if (frameIdx - 6 > 0 && frameIdx - 6 < nFrames) {
-            heights[2] = framesY[frameIdx - 6] - offsetY;
-        }
-        if (frameIdx - 9 > 0 && frameIdx - 9 < nFrames) {
-            heights[3] = framesY[frameIdx - 9] - offsetY;
-        }
-        // increment the frame index
-        frameIdx++;
-
-        if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-            clearPage(true, true);
-            ossm->display.setFont(u8g2_font_maniac_tf);
-            ossm->display.drawUTF8(startX, heights[0], "O");
-            ossm->display.drawUTF8(startX + letterSpacing, heights[1], "S");
-            ossm->display.drawUTF8(startX + letterSpacing * 2, heights[2], "S");
-            ossm->display.drawUTF8(startX + letterSpacing * 3, heights[3], "M");
-            refreshPage(true, true);
-            xSemaphoreGive(displayMutex);
-        }
-        // Saying hi to the watchdog :).
-        vTaskDelay(1);
-    };
-
-    // Delay for a second, then show the RDLogo.
-    vTaskDelay(1500);
-
-    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearPage(true, true);
-        drawStr::title("Research & Desire         ");   // Padding to offset from BLE icons
-        ossm->display.drawXBMP(35, 14, 57, 50, Images::RDLogo);
-        refreshPage(true, true);
-        xSemaphoreGive(displayMutex);
+    String currentState;
+    if (stateMachine != nullptr) {
+        stateMachine->visit_current_states(
+            [&currentState](auto state) { currentState = state.c_str(); });
     }
 
-    vTaskDelay(1000);
-
-    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearPage(true, true);
-        drawStr::title("Kinky Makers       ");   // Padding to offset from BLE icons
-        ossm->display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
-        refreshPage(true, true);
-        xSemaphoreGive(displayMutex);
+    switch (command.command) {
+        case Commands::goToStrokeEngine:
+            menuState.currentOption = Menu::StrokeEngine;
+            if (stateMachine != nullptr) {
+                stateMachine->process_event(ButtonPress{});
+            }
+            break;
+        case Commands::goToSimplePenetration:
+            menuState.currentOption = Menu::SimplePenetration;
+            if (stateMachine != nullptr) {
+                stateMachine->process_event(ButtonPress{});
+            }
+            break;
+        case Commands::goToStreaming:
+            menuState.currentOption = Menu::Streaming;
+            if (stateMachine != nullptr) {
+                stateMachine->process_event(ButtonPress{});
+            }
+            break;
+        case Commands::goToMenu:
+            if (stateMachine != nullptr) {
+                stateMachine->process_event(LongPress{});
+            }
+            break;
+        case Commands::setSpeed:
+            // BLE devices can be trusted to send true value
+            // and can bypass potentiomer smoothing logic
+            bleState.lastSpeedCommandWasFromBLE = true;
+            // Use speed knob config to determine how to handle BLE speed
+            // command
+            settings.speedBLE = command.value;
+            break;
+        case Commands::setStroke:
+            session.playControl = PlayControls::STROKE;
+            encoder.setEncoderValue(command.value);
+            settings.stroke = command.value;
+            break;
+        case Commands::setDepth:
+            session.playControl = PlayControls::DEPTH;
+            encoder.setEncoderValue(command.value);
+            settings.depth = command.value;
+            break;
+        case Commands::setSensation:
+            session.playControl = PlayControls::SENSATION;
+            encoder.setEncoderValue(command.value);
+            settings.sensation = command.value;
+            break;
+        case Commands::setPattern:
+            settings.pattern = static_cast<StrokePatterns>(command.value % 7);
+            break;
+        case Commands::streamPosition:
+            // Scale position from 0-100 to 0-180 (internal format)
+            // and update streaming target
+            lastPositionTime = targetPositionTime;
+            targetPositionTime = {
+                static_cast<uint8_t>((command.value * 180) / 100),
+                static_cast<uint16_t>(command.time)};
+            markTargetUpdated();
+            ESP_LOGD("OSSM", "Stream: pos=%d, time=%d", command.value,
+                     command.time);
+            break;
+        case Commands::ignore:
+            break;
     }
-
-    vTaskDelay(1000);
-
-    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearPage(true, true);
-        std::string measuringStrokeTitle = std::string(UserConfig::language.MeasuringStroke) + "         ";   // Padding to offset from BLE icons
-        drawStr::title(measuringStrokeTitle.c_str());
-        ossm->display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
-        refreshPage(true, true);
-        xSemaphoreGive(displayMutex);
-    }
-
-    // delete the task
-    vTaskDelete(nullptr);
 }
 
-void OSSM::drawHello() {
-    // 3 x minimum stack
-    int stackSize = 3 * configMINIMAL_STACK_SIZE;
-    xTaskCreate(drawHelloTask, "drawHello", stackSize, this, 1,
-                &Tasks::drawHelloTaskH);
-}
-
-void OSSM::drawError() {
-    // Throw the e-break on the stepper
-    try {
-        stepper->forceStop();
-    } catch (const std::exception &e) {
-        ESP_LOGD("OSSM::drawError", "Caught exception: %s", e.what());
+String OSSM::getCurrentState() {
+    String currentState;
+    if (stateMachine != nullptr) {
+        stateMachine->visit_current_states(
+            [&currentState](auto state) { currentState = state.c_str(); });
     }
 
-    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearPage(true, true);
-        drawStr::title(UserConfig::language.Error);
-        drawStr::multiLine(0, 20, errorMessage);
-        refreshPage(true, true);
-        xSemaphoreGive(displayMutex);
-    }
+    String json = "{";
+    json += "\"state\":\"" + currentState + "\",";
+    json += "\"speed\":" + String((int)settings.speed) + ",";
+    json += "\"stroke\":" + String((int)settings.stroke) + ",";
+    json += "\"sensation\":" + String((int)settings.sensation) + ",";
+    json += "\"depth\":" + String((int)settings.depth) + ",";
+    json += "\"pattern\":" + String(static_cast<int>(settings.pattern));
+    json += "}";
+    currentState = json;
+
+    return currentState;
 }
