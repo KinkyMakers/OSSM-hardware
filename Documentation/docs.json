@@ -334,6 +334,12 @@
                 ]
               },
               {
+                "group": "Architecture",
+                "pages": [
+                  "ossm/Software/architecture/state-machine"
+                ]
+              },
+              {
                 "group": "Communication",
                 "pages": [
                   "ossm/Software/communication/ble",
