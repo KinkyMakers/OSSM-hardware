@@ -157,24 +157,28 @@ jobs:
           # Upload version.json
           supabase storage cp ./version.json "ss:///ossm-firmware/master/version.json" --content-type "application/json" --cache-control "no-cache" --experimental
 
-      - name: Merge origin/main with -X ours strategy
-        if: ${{ steps.bot_check.outputs.is_bot != 'true' && steps.check_changes.outputs.skip != 'true' }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git merge origin/main -X ours --no-edit
-
-      - name: Commit, tag, and push to main
+      - name: Commit local changes
         if: ${{ steps.bot_check.outputs.is_bot != 'true' && steps.check_changes.outputs.skip != 'true' }}
         env:
           NEXT_VERSION: ${{ steps.get_next_version.outputs.NEXT_VERSION }}
-          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "AUTO: Version bump ${NEXT_VERSION}" || echo "No changes to commit"
+
+      - name: Merge origin/main with -X ours strategy
+        if: ${{ steps.bot_check.outputs.is_bot != 'true' && steps.check_changes.outputs.skip != 'true' }}
+        run: |
+          git fetch origin main
+          git merge origin/main -X ours --no-edit || echo "Already up to date"
+
+      - name: Tag and push to main
+        if: ${{ steps.bot_check.outputs.is_bot != 'true' && steps.check_changes.outputs.skip != 'true' }}
+        env:
+          NEXT_VERSION: ${{ steps.get_next_version.outputs.NEXT_VERSION }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+        run: |
           git tag "$NEXT_VERSION"
           git push origin main
           git push origin "$NEXT_VERSION"
