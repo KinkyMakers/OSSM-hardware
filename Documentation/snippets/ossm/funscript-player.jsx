@@ -5,6 +5,8 @@ export const OssmFunscriptPlayer = () => {
   const OSSM_SERVICE_UUID = '522b443a-4f53-534d-0001-420badbabe69';
   const OSSM_COMMAND_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1000-420badbabe69';
   const OSSM_SPEED_KNOB_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1010-420badbabe69';
+  const OSSM_STATE_CHARACTERISTIC_UUID = '522b443a-4f53-534d-2000-420badbabe69';
+
   // Check if Web Bluetooth is supported
   const isWebBluetoothSupported = () => {
     return typeof navigator !== 'undefined' && 'bluetooth' in navigator;
@@ -30,11 +32,11 @@ export const OssmFunscriptPlayer = () => {
 
   // Settings
   const [timeOffset, setTimeOffset] = useState(5);
-  const [buffer, setBuffer] = useState(70);
+  const [buffer, setBuffer] = useState(0);
   const [speed, setSpeed] = useState(0);
-  const [stroke, setStroke] = useState(50);
-  const [depth, setDepth] = useState(50);
-  const [sensation, setSensation] = useState(100);
+  const [stroke, setStroke] = useState(0);
+  const [depth, setDepth] = useState(0);
+  const [sensation, setSensation] = useState(0);
 
   // Logs
   const [logs, setLogs] = useState([]);
@@ -149,6 +151,29 @@ export const OssmFunscriptPlayer = () => {
     sendCommand(`set:depth:${value}`);
   }, [sendCommand]);
 
+  const handleStateChange = useCallback((value) => {
+    const stateRaw = new TextDecoder().decode(value);
+    addLog('RX', `state: ${stateRaw}`);
+    const state = JSON.parse(stateRaw);
+
+    // Update UI with device state
+    if (state.speed !== undefined) {
+      setSpeed(state.speed);
+    }
+    if (state.depth !== undefined) {
+      setDepth(state.depth);
+    }
+    if (state.stroke !== undefined) {
+      setStroke(state.stroke);
+    }
+    if (state.sensation !== undefined) {
+      setSensation(state.sensation);
+    }
+    if (state.buffer !== undefined) {
+      setBuffer(state.buffer);
+    }
+  });
+
   // Connect to OSSM
   const handleConnect = async () => {
     setError(null);
@@ -178,6 +203,20 @@ export const OssmFunscriptPlayer = () => {
 
       speedKnobCharacteristicRef.current = await service.getCharacteristic(OSSM_SPEED_KNOB_CHARACTERISTIC_UUID);
       addLog('INFO','Got speed knob characteristic');
+
+      // Try to subscribe to state notifications
+      try {
+        const stateChar = await service.getCharacteristic(OSSM_STATE_CHARACTERISTIC_UUID);
+        const stateValue = await stateChar.readValue();
+        handleStateChange(stateValue);
+        await stateChar.startNotifications();
+        stateChar.addEventListener('characteristicvaluechanged', (event) => {
+          handleStateChange(event.target.value);
+        });
+        addLog('INFO', 'Subscribed to state notifications');
+      } catch (e) {
+        addLog('INFO', 'State notifications not available');
+      }  
 
       const encoder = new TextEncoder();
       await speedKnobCharacteristicRef.current.writeValue(encoder.encode('false'));
