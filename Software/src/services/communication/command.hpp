@@ -49,7 +49,7 @@ NimBLECharacteristic* initCommandCharacteristic(NimBLEService* pService,
                                                 NimBLEUUID uuid) {
     // Command characteristic (writable, readable)
     NimBLECharacteristic* pChar = pService->createCharacteristic(
-        uuid, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ);
+        uuid, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE_NR);
 
     // Store the characteristic pointer globally
 

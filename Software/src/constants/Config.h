@@ -13,32 +13,26 @@ namespace Config {
             Motion System Config
     */
     namespace Driver {
-
-        // Top linear speed of the device.
-        constexpr float maxSpeedMmPerSecond = 900.0f;
-
-        // Top acceleration of the device.
-        constexpr float maxAcceleration = 10000.0f;
-
-        // This should match the step/rev of your stepper or servo.
-        // N.b. the iHSV57 has a table on the side for setting the DIP switches
-        // to your preference.
-        constexpr float motorStepPerRevolution = 800.0f;
-
-        // Number of teeth the pulley that is attached to the servo/stepper
-        // shaft has.
+        // Max speed of the device
+        constexpr float maxRPM = 1500.0f;
+        // Number of teeth the pulley that is attached to the servo/stepper shaft has.
         constexpr float pulleyToothCount = 20.0f;
-
         // Set to your belt pitch (Distance between two teeth on the belt) (E.g.
         // GT2 belt has 2mm tooth pitch)
         constexpr float beltPitchMm = 2.0f;
-
+        // Top linear speed of the device.
+        constexpr float motorStepPerRevolution = 800.0f;
+        // Top acceleration of the device in mm/s/s
+        constexpr float maxAcceleration = 100000.0f;
+        // Number of steps to move the arm 1mm
+        constexpr float maxSpeedMmPerSecond = maxRPM / 60.0 * pulleyToothCount * beltPitchMm;
+        // This should match the step/rev of your stepper or servo.
+        // N.b. the iHSV57 has a table on the side for setting the DIP switches
+        // to your preference.
+        constexpr float stepsPerMM = motorStepPerRevolution / (pulleyToothCount * beltPitchMm);
         // This is the measured current that use to infer when the device has
         // reached the end of its stroke. during "Homing".
         constexpr float sensorlessCurrentLimit = 1.5f;
-
-        constexpr float stepsPerMM =
-            motorStepPerRevolution / (pulleyToothCount * beltPitchMm);
 
         namespace Operator {
             // Define user-defined literal for unsigned integer values

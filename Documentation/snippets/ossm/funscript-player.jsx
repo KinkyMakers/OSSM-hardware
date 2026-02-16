@@ -88,7 +88,7 @@ export const OssmFunscriptPlayer = () => {
       direction,
       data,
     };
-    setLogs((prev) => [...prev.slice(-99), entry]);
+    setLogs((prev) => [...prev.slice(-999), entry]);
   }, []);
 
   // Send BLE command
@@ -99,7 +99,7 @@ export const OssmFunscriptPlayer = () => {
 
     try {
       const encoder = new TextEncoder();
-      await commandCharacteristicRef.current.writeValue(encoder.encode(command));
+      await commandCharacteristicRef.current.writeValueWithoutResponse(encoder.encode(command));
       addLog('TX', command);
       return true;
     } catch (err) {
@@ -247,12 +247,12 @@ export const OssmFunscriptPlayer = () => {
       let timeToNext = 100;
       if (currentActionIndexRef.current < funscriptActions.length - 1) {
         const nextAction = funscriptActions[currentActionIndexRef.current + 1];
-        timeToNext = nextAction.at - action.at;
+        timeToNext = nextAction.at - action.at;      
       }
 
-      if (action.at > lastSentTimeRef.current) {
+        if (action.at > lastSentTimeRef.current) {
         sendStreamPosition(action.pos, timeToNext);
-        lastSentTimeRef.current = action.at;
+          lastSentTimeRef.current = action.at;
       }
 
       currentActionIndexRef.current++;
@@ -263,7 +263,7 @@ export const OssmFunscriptPlayer = () => {
   const startSync = useCallback(() => {
     if (syncIntervalRef.current) return;
     setIsPlaying(true);
-    syncIntervalRef.current = setInterval(syncFunscript, 10);
+    syncIntervalRef.current = setInterval(syncFunscript, 2);
     addLog('INFO', 'Started sync');
   }, [syncFunscript, addLog]);
 
