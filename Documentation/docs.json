@@ -345,6 +345,12 @@
                   "ossm/Software/motion/stroke-engine/introduction",
                   "ossm/Software/motion/stroke-engine/Pattern"
                 ]
+              },
+              {
+                "group": "Contributing",
+                "pages": [
+                  "ossm/Software/contributing/documentation"
+                ]
               }
             ]
           },

@@ -118,6 +118,76 @@ In independent mode, BLE commands can override the physical knob. Ensure your ap
 | `true` or `false` | Current configuration value |
 | `error:invalid_value` | Invalid input provided |
 
+#### WiFi configuration characteristic
+
+| Property | Value |
+| -------- | ----- |
+| UUID | `522b443a-4f53-534d-1020-420badbabe69` |
+| Properties | READ, WRITE |
+| Purpose | Configure WiFi credentials and check connection status |
+
+**Write format**
+
+```
+set:wifi:<ssid>|<password>
+```
+
+The pipe character (`|`) is used as a delimiter between SSID and password. This allows both SSID and password to contain colons.
+
+**Read format** (JSON)
+
+```json
+{
+  "connected": true,
+  "ssid": "NetworkName",
+  "ip": "192.168.1.100",
+  "rssi": -45
+}
+```
+
+When not connected, the `ssid` field will contain the last saved SSID (if any), `ip` will be empty, and `rssi` will be 0.
+
+**Response format**
+
+| Response | Meaning |
+| -------- | ------- |
+| `ok:wifi:connected` | Connected successfully |
+| `ok:wifi:saved` | Credentials saved, attempting connection |
+| `fail:wifi:invalid_format` | Command format incorrect (missing pipe delimiter) |
+| `fail:wifi:invalid_ssid` | SSID length invalid (must be 1-32 characters) |
+| `fail:wifi:invalid_password` | Password length invalid (must be 8-63 characters) |
+| `fail:wifi:connection_failed` | Could not connect to network |
+| `fail:wifi:save_failed` | Failed to save credentials to NVS |
+
+<Tip>
+WiFi credentials are persisted to non-volatile storage (NVS) and will be retained across device reboots. The device will attempt to auto-connect using saved credentials on startup.
+</Tip>
+
+<Warning>
+WiFi credentials are transmitted in plain text over BLE. Ensure you trust the connection and are in a secure environment when configuring WiFi settings.
+</Warning>
+
+**Example usage**
+
+```javascript
+// Configure WiFi
+const wifiCommand = "set:wifi:MyNetwork|MyPassword123";
+await commandChar.writeValue(new TextEncoder().encode(wifiCommand));
+
+// Read the response
+const response = await commandChar.readValue();
+console.log(new TextDecoder().decode(response)); // "ok:wifi:connected"
+
+// Check WiFi status
+const wifiConfigChar = await service.getCharacteristic(
+  "522b443a-4f53-534d-1020-420badbabe69"
+);
+const statusValue = await wifiConfigChar.readValue();
+const status = JSON.parse(new TextDecoder().decode(statusValue));
+console.log(status);
+// { "connected": true, "ssid": "MyNetwork", "ip": "192.168.1.100", "rssi": -45 }
+```
+
 ### State characteristics (read-only)
 
 Subscribe to these characteristics to monitor the OSSM's current state.
@@ -410,6 +480,7 @@ The OSSM uses a structured UUID namespace for organized expansion.
 ```
 522b443a-4f53-534d-1000-420badbabe69  # Primary command
 522b443a-4f53-534d-1010-420badbabe69  # Speed knob configuration
+522b443a-4f53-534d-1020-420badbabe69  # WiFi configuration
 ```
 </Tab>
 
@@ -561,6 +632,9 @@ const stateChar = await service.getCharacteristic(
 const speedKnobConfigChar = await service.getCharacteristic(
   "522b443a-4f53-534d-1010-420badbabe69"
 );
+const wifiConfigChar = await service.getCharacteristic(
+  "522b443a-4f53-534d-1020-420badbabe69"
+);
 const patternsChar = await service.getCharacteristic(
   "522b443a-4f53-534d-3000-420badbabe69"
 );
@@ -574,6 +648,13 @@ stateChar.addEventListener("characteristicvaluechanged", (event) => {
 
 // Configure speed knob behavior (true = knob as limit, false = independent)
 await speedKnobConfigChar.writeValue(new TextEncoder().encode("true"));
+
+// Configure WiFi
+await wifiConfigChar.writeValue(new TextEncoder().encode("set:wifi:MyNetwork|MyPassword123"));
+
+// Check WiFi status
+const wifiStatus = await wifiConfigChar.readValue();
+console.log("WiFi:", JSON.parse(new TextDecoder().decode(wifiStatus)));
 
 // Send a command
 const command = "set:speed:75";
@@ -594,6 +675,7 @@ SERVICE_UUID = "522b443a-4f53-534d-0001-420badbabe69"
 COMMAND_UUID = "522b443a-4f53-534d-1000-420badbabe69"
 STATE_UUID = "522b443a-4f53-534d-2000-420badbabe69"
 SPEED_KNOB_UUID = "522b443a-4f53-534d-1010-420badbabe69"
+WIFI_CONFIG_UUID = "522b443a-4f53-534d-1020-420badbabe69"
 
 def state_callback(sender, data):
     """Handle state update notifications."""
@@ -610,6 +692,16 @@ async def connect_to_ossm():
             SPEED_KNOB_UUID,
             "true".encode()  # Knob acts as upper limit
         )
+
+        # Configure WiFi
+        await client.write_gatt_char(
+            WIFI_CONFIG_UUID,
+            "set:wifi:MyNetwork|MyPassword123".encode()
+        )
+
+        # Check WiFi status
+        wifi_status = await client.read_gatt_char(WIFI_CONFIG_UUID)
+        print(f"WiFi status: {json.loads(wifi_status.decode())}")
 
         # Send a command
         command = "set:speed:75"
