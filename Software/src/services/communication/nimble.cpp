@@ -261,9 +261,9 @@ void nimbleLoop(void* pvParameters) {
 
         if (stateChanged) {
             ESP_LOGD(NIMBLE_TAG, "State changed to: %s", currentState.c_str());
+            pChr->setValue(currentState);
+            pChr->notify();
         }
-        pChr->setValue(currentState);
-        pChr->notify();
 
         // Trigger LED communication pulse for state update
         pulseForCommunication();
