@@ -1,6 +1,8 @@
 #ifndef OSSM_SOFTWARE_CONFIG_H
 #define OSSM_SOFTWARE_CONFIG_H
 
+#include <U8g2lib.h>
+
 /**
     Default Config for OSSM - Reference board users should tweak UserConfig to
    match their personal build.

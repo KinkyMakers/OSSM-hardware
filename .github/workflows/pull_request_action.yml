@@ -265,22 +265,30 @@ jobs:
 
       - name: Upload firmware to Supabase Storage
         run: |
-          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-          supabase storage cp ./firmware/bootloader.bin "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/bootloader.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          BRANCH_PATH="${{ steps.encode_branch.outputs.encoded_branch }}"
+          # Delete existing files first (ignore errors if they don't exist)
+          supabase storage rm "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" --experimental --yes || true
+          supabase storage rm "ss:///ossm-firmware/$BRANCH_PATH/partitions.bin" --experimental --yes || true
+          supabase storage rm "ss:///ossm-firmware/$BRANCH_PATH/bootloader.bin" --experimental --yes || true
+          # Upload new files
+          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/$BRANCH_PATH/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          supabase storage cp ./firmware/bootloader.bin "ss:///ossm-firmware/$BRANCH_PATH/bootloader.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
 
       - name: Create and upload manifest.json
         run: |
+          BRANCH_PATH="${{ steps.encode_branch.outputs.encoded_branch }}"
           # Create a temporary manifest file with the branch name replaced
-          cat .github/artifacts/manifest.json | sed "s/{{ branchName }}/${{ steps.encode_branch.outputs.encoded_branch }}/g" > ./manifest.json
-
+          cat .github/artifacts/manifest.json | sed "s/{{ branchName }}/$BRANCH_PATH/g" > ./manifest.json
+          # Delete existing manifest if it exists
+          supabase storage rm "ss:///ossm-firmware/$BRANCH_PATH/manifest.json" --experimental --yes || true
           # Upload the manifest file to Supabase Storage
-          supabase storage cp ./manifest.json "ss:///ossm-firmware/${{ steps.encode_branch.outputs.encoded_branch }}/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
+          supabase storage cp ./manifest.json "ss:///ossm-firmware/$BRANCH_PATH/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
 
       - name: Upload updated registry.json
         run: |
           # Delete existing registry.json if it exists, then upload the updated one
-          supabase storage rm "ss:///ossm-firmware/registry.json" --experimental --yes 
+          supabase storage rm "ss:///ossm-firmware/registry.json" --experimental --yes || true
           supabase storage cp ./registry.json "ss:///ossm-firmware/registry.json" --content-type "application/json" --cache-control "no-cache" --experimental
 
       - name: Create GitHub Deployment

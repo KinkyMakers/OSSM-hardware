@@ -155,13 +155,17 @@ Events trigger state transitions. They are simple structs defined in `Events.h` 
 
 ### Dispatching Events
 
-Events are dispatched using the `process_event` method:
+Events are dispatched using the global `stateMachine` instance:
 
 ```cpp
-// From anywhere with access to the OSSM instance
-ossm->sm->process_event(ButtonPress{});
-ossm->sm->process_event(Done{});
+#include "ossm/state/state.h"
+
+// From anywhere in the codebase
+stateMachine->process_event(ButtonPress{});
+stateMachine->process_event(Done{});
 ```
+
+The state machine is initialized at startup in [`state.cpp`](https://github.com/KinkyMakers/OSSM-hardware/blob/main/Software/src/ossm/state/state.cpp) and exposed as a global pointer.
 
 <Tip>
 Events are defined as empty structs. The type itself carries the meaning - no data payload is needed.
@@ -183,14 +187,26 @@ Guards are conditional checks that determine whether a transition should occur. 
 
 ### Guard Implementation
 
-Guards are defined as lambda functions that receive the OSSM instance:
+Guards are defined as `constexpr` lambdas in the [`guards`](https://github.com/KinkyMakers/OSSM-hardware/blob/main/Software/src/ossm/state/guards.h) namespace. They call forward-declared implementation functions to keep the header lightweight:
 
 ```cpp
-auto isPreflightSafe = [](OSSM &o) {
-    return getAnalogAveragePercent({Pins::Remote::speedPotPin, 50}) <
-           Config::Advanced::commandDeadZonePercentage;
-};
+// In guards.h - forward declaration
+bool ossmIsPreflightSafe();
+
+namespace guards {
+    // Constexpr lambda wraps the implementation
+    constexpr auto isPreflightSafe = []() { 
+        return ossmIsPreflightSafe(); 
+    };
+    
+    // Parameterized guard using nested lambda
+    constexpr auto isOption = [](Menu option) {
+        return [option]() { return ossmGetMenuOption() == option; };
+    };
+}
 ```
+
+The actual logic lives in `guards.cpp`, keeping compile times fast and allowing implementation changes without recompiling the transition table.
 
 <Info>
 For more on guard patterns, see the [Boost.SML Guards documentation](https://boost-ext.github.io/sml/user-guide.html#guards).
@@ -247,14 +263,34 @@ Actions are functions executed during state transitions. They perform side effec
 
 ### Action Implementation
 
-Actions are lambda functions that receive the OSSM instance and perform side effects:
+Actions are defined as `constexpr` lambdas in the [`actions`](https://github.com/KinkyMakers/OSSM-hardware/blob/main/Software/src/ossm/state/actions.h) namespace. Like guards, they delegate to forward-declared implementation functions:
 
 ```cpp
-auto emergencyStop = [](OSSM &o) {
-    o.stepper->forceStop();
-    o.stepper->disableOutputs();
-};
+// In actions.h - forward declarations
+void ossmDrawHello();
+void ossmEmergencyStop();
+
+namespace actions {
+    constexpr auto drawHello = []() { ossmDrawHello(); };
+    constexpr auto emergencyStop = []() { ossmEmergencyStop(); };
+}
 ```
+
+The implementation functions in `actions.cpp` call into the appropriate feature modules:
+
+```cpp
+// In actions.cpp
+void ossmEmergencyStop() {
+    stepper->forceStop();
+    stepper->disableOutputs();
+}
+
+void ossmDrawHello() {
+    pages::drawHello();  // Delegates to pages namespace
+}
+```
+
+This pattern keeps the state machine decoupled from specific implementations and allows feature modules to be developed independently.
 
 <Warning>
 Actions must not block the main thread. Long-running operations should spawn FreeRTOS tasks instead.
@@ -279,6 +315,18 @@ This uses a recursive mutex to protect state transitions, allowing safe event di
 - BLE command handlers
 - Background tasks
 
+The state machine is initialized in [`state.cpp`](https://github.com/KinkyMakers/OSSM-hardware/blob/main/Software/src/ossm/state/state.cpp):
+
+```cpp
+// Global state machine instance
+StateMachine* stateMachine = nullptr;
+
+void initStateMachine() {
+    stateMachine = new StateMachine{};
+    stateMachine->process_event(Done{});  // Trigger initial transition
+}
+```
+
 <Info>
 For more on thread safety policies, see the [Boost.SML Policies documentation](https://boost-ext.github.io/sml/user-guide.html#policies).
 </Info>
@@ -293,9 +341,28 @@ sml::logger<StateLogger>
 
 This outputs transition information via ESP-IDF logging, making it easy to trace state machine behavior during development.
 
+## Architecture Notes
+
+The state machine follows a **decoupled modular architecture**:
+
+- **State machine definition** ([`machine.h`](https://github.com/KinkyMakers/OSSM-hardware/blob/main/Software/src/ossm/state/machine.h)) contains only the transition table
+- **Actions and guards** are `constexpr` lambdas that delegate to implementation functions
+- **Feature modules** (like `pages::`, `simple_penetration::`, `stroke_engine::`) contain the actual logic
+- **Global state structs** manage application state instead of class members
+
+<Note>
+The `OSSM` class in `ossm/OSSM.h` is retained for backward compatibility with BLE command handling. New features should use stateless namespace functions that operate on global state.
+</Note>
+
+For a complete overview of the source code organization, see [Folder Structure](/ossm/Software/architecture/folder-structure).
+
 ## Further Reading
 
 <CardGroup cols={2}>
+<Card title="Folder Structure" icon="folder-tree" href="/ossm/Software/architecture/folder-structure">
+  Understand the source code organization and design philosophy.
+</Card>
+
 <Card title="Boost.SML Tutorial" icon="graduation-cap" href="https://boost-ext.github.io/sml/tutorial.html">
   Step-by-step guide to building state machines with Boost.SML.
 </Card>
@@ -306,9 +373,5 @@ This outputs transition information via ESP-IDF logging, making it easy to trace
 
 <Card title="Operating Modes" icon="play" href="/ossm/Software/getting-started/operating-modes">
   Learn about Simple Penetration, Stroke Engine, and Streaming modes.
-</Card>
-
-<Card title="Safety Features" icon="shield" href="/ossm/Software/getting-started/safety-features">
-  Understand preflight checks, disconnect safety, and emergency stop.
 </Card>
 </CardGroup>
