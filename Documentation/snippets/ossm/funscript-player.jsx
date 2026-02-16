@@ -186,7 +186,6 @@ export const OssmFunscriptPlayer = () => {
 
     try {
       await sendCommand('set:speed:0');
-      await sendCommand('go:menu');
     } catch (e) {
       // Ignore errors during disconnect
     }
@@ -252,12 +251,12 @@ export const OssmFunscriptPlayer = () => {
       let timeToNext = 100;
       if (currentActionIndexRef.current < funscriptActions.length - 1) {
         const nextAction = funscriptActions[currentActionIndexRef.current + 1];
-        timeToNext = nextAction.at - action.at;
-      }
+        timeToNext = nextAction.at - action.at;      
 
-      if (action.at > lastSentTimeRef.current) {
-        sendStreamPosition(action.pos, timeToNext);
-        lastSentTimeRef.current = action.at;
+        if (action.at > lastSentTimeRef.current) {
+          sendStreamPosition(nextAction.pos, timeToNext);
+          lastSentTimeRef.current = action.at;
+        }
       }
 
       currentActionIndexRef.current++;
