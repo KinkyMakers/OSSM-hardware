@@ -172,18 +172,18 @@ class SimpleStroke : public Pattern {
     void setSpeed(float speed = 0) {
         _speed = speed;
         // time of a trapezoidal motion maximizing at speed
-        _timeOfStroke = max(1.5 * _stroke / _speed, 0.1);
+        _timeOfStroke = std::max(1.5 * _stroke / _speed, 0.1);
     }
     void setStroke(int stroke) {
         _stroke = stroke;
         // time of a trapezoidal motion maximizing at speed
-        _timeOfStroke = max(1.5 * _stroke / _speed, 0.1);
+        _timeOfStroke = std::max(1.5 * _stroke / _speed, 0.1);
     }
     motionParameter nextTarget(unsigned int index) {
         _nextMove.speed = int(_speed);
         // acceleration to meet the profile
         _nextMove.acceleration = int(3.0 * _nextMove.speed / _timeOfStroke);
-        float maxRange = min(_depth,_stroke) / 2 * abs(_sensation/100.0);
+        float maxRange = std::min(_depth,_stroke) / 2 * abs(_sensation/100.0);
         float randStroke = maxRange * ((float)rand()/(float)(RAND_MAX));
         // odd stroke is moving out
         if (index % 2) {
@@ -299,12 +299,12 @@ class RoboStroke : public Pattern {
     void setSpeed(float speed = 0) {
         _speed = speed;
         // time of a trapezoidal motion maximizing at speed
-        _timeOfStroke = max(1.5 * _stroke / _speed, 0.1);
+        _timeOfStroke = std::max(1.5 * _stroke / _speed, 0.1);
     }
     void setStroke(int stroke) {
         _stroke = stroke;
         // time of a trapezoidal motion maximizing at speed
-        _timeOfStroke = max(1.5 * _stroke / _speed, 0.1);
+        _timeOfStroke = std::max(1.5 * _stroke / _speed, 0.1);
     }
     motionParameter nextTarget(unsigned int index) {
         // maximum speed of the trapezoidal motion
@@ -433,12 +433,12 @@ class Deeper : public Pattern {
     void setSpeed(float speed = 0) {
         _speed = speed;
         // time of a trapezoidal motion maximizing at speed
-        _timeOfStroke = max(1.5 * _stroke / _speed, 0.1);
+        _timeOfStroke = std::max(1.5 * _stroke / _speed, 0.1);
     }
     void setStroke(int stroke) {
         _stroke = stroke;
         // time of a trapezoidal motion maximizing at speed
-        _timeOfStroke = max(1.5 * _stroke / _speed, 0.1);
+        _timeOfStroke = std::max(1.5 * _stroke / _speed, 0.1);
     }
     motionParameter nextTarget(unsigned int index) {
         _nextMove.speed = int(_speed);
@@ -450,7 +450,7 @@ class Deeper : public Pattern {
         // even stroke is moving in
         } else {
             // How many steps is each stroke advancing
-            int slope = min(_stroke,_depth) / (_countStrokesForRamp);
+            int slope = std::min(_stroke,_depth) / (_countStrokesForRamp);
             // The pattern recycles so we use modulo to get a cycling index.
             // Factor 2 because index increments with each full stroke twice
             // add 1 because modulo = 0 is index = 1
@@ -463,7 +463,7 @@ class Deeper : public Pattern {
             Serial.println("amplitude: " + String(amplitude) +
                         " cycleIndex: " + String(cycleIndex));
 #endif
-            _nextMove.stroke = (_depth - min(_depth,_stroke)) + amplitude;
+            _nextMove.stroke = (_depth - std::min(_depth,_stroke)) + amplitude;
         }
         _index = index;
         return _nextMove;
@@ -489,12 +489,12 @@ class StopNGo : public Pattern {
     void setSpeed(float speed = 0) {
         _speed = speed;
         // time of a trapezoidal motion maximizing at speed
-        _timeOfStroke = max(1.5 * _stroke / _speed, 0.1);
+        _timeOfStroke = std::max(1.5 * _stroke / _speed, 0.1);
     }
     void setStroke(int stroke) {
         _stroke = stroke;
         // time of a trapezoidal motion maximizing at speed
-        _timeOfStroke = max(1.5 * _stroke / _speed, 0.1);
+        _timeOfStroke = std::max(1.5 * _stroke / _speed, 0.1);
     }
     motionParameter nextTarget(unsigned int index) {
         // maximum speed of the trapezoidal motion
@@ -574,12 +574,12 @@ class Insist : public Pattern {
     void setSpeed(float speed = 0) {
         _speed = speed;
         // time of a trapezoidal motion maximizing at speed
-        _timeOfStroke = max(1.5 * _stroke / _speed, 0.1);
+        _timeOfStroke = std::max(1.5 * _stroke / _speed, 0.1);
     }
     void setStroke(int stroke) {
         _stroke = stroke;
         // time of a trapezoidal motion maximizing at speed
-        _timeOfStroke = max(1.5 * _stroke / _speed, 0.1);
+        _timeOfStroke = std::max(1.5 * _stroke / _speed, 0.1);
     }
     motionParameter nextTarget(unsigned int index) {
         _nextMove.speed = int(_speed);
@@ -591,7 +591,7 @@ class Insist : public Pattern {
         // even stroke is moving in
         } else {
             // How many steps is each stroke advancing
-            int slope = min(_stroke,_depth) / (_countStrokesForRamp);
+            int slope = std::min(_stroke,_depth) / (_countStrokesForRamp);
             // The pattern recycles so we use modulo to get a cycling index.
             // Factor 2 because index increments with each full stroke twice
             // add 1 because modulo = 0 is index = 1
@@ -637,7 +637,7 @@ class ProgressiveStroke : public Pattern {
         _nextMove.speed = int(_speed);
         _nextMove.acceleration = int(3.0 * _nextMove.speed / _timeOfStroke);
         // calculate a segement length from the shorter of the stroke or depth
-        int segmentLength = min(_stroke,_depth) / _countStrokesForRamp;
+        int segmentLength = std::min(_stroke,_depth) / _countStrokesForRamp;
         // calcylate the position in the cycle
         int fullCycleIndex = (index/2) % (_countStrokesForRamp * 2 - 1);
         int position = fullCycleIndex % _countStrokesForRamp;
@@ -673,7 +673,7 @@ class RandomStroke : public Pattern {
     }
     motionParameter nextTarget(unsigned int index) {
         _nextMove.speed = int(_speed);
-        float maxRange = min(_depth,_stroke);
+        float maxRange = std::min(_depth,_stroke);
         float maxStroke = maxRange * _sensation;
         float dist = maxRange;
         int i = 0;
@@ -687,7 +687,7 @@ class RandomStroke : public Pattern {
 #ifdef DEBUG_PATTERN
         Serial.println("Target: " + String(_nextMove.stroke));
 #endif
-        _timeOfStroke = max(1.5 * dist / _speed, 0.1);
+        _timeOfStroke = std::max(1.5 * dist / _speed, 0.1);
         _nextMove.acceleration = int(3.0 * _nextMove.speed / _timeOfStroke);
         _index = index;
         return _nextMove;
