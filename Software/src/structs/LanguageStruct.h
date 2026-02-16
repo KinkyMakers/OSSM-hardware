@@ -2,7 +2,6 @@
 #define OSSM_SOFTWARE_LANGUAGESTRUCT_H
 
 #include <Arduino.h>
-#include "Pattern.h"
 
 struct LanguageStruct {
     const char* DeepThroatTrainerSync;
