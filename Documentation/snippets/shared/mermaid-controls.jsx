@@ -213,6 +213,90 @@ export const MermaidControls = () => {
       zoomAtPoint(e.clientX, e.clientY, zoomFactor, false);
     };
 
+    // Button control handlers
+    const BASE_PAN_AMOUNT = 50;
+    const ZOOM_FACTOR = 1.25;
+
+    // Pan amount scales with zoom - when zoomed in, pan more to reveal same amount of content
+    const getPanAmount = () => BASE_PAN_AMOUNT * scale;
+
+    const handlePanUp = () => {
+      parseTransform();
+      translateY += getPanAmount();
+      applyTransform(true);
+    };
+
+    const handlePanDown = () => {
+      parseTransform();
+      translateY -= getPanAmount();
+      applyTransform(true);
+    };
+
+    const handlePanLeft = () => {
+      parseTransform();
+      translateX += getPanAmount();
+      applyTransform(true);
+    };
+
+    const handlePanRight = () => {
+      parseTransform();
+      translateX -= getPanAmount();
+      applyTransform(true);
+    };
+
+    const handleZoomIn = () => {
+      parseTransform();
+      scale = Math.min(5, scale * ZOOM_FACTOR);
+      applyTransform(true);
+    };
+
+    const handleZoomOut = () => {
+      parseTransform();
+      scale = Math.max(0.5, scale / ZOOM_FACTOR);
+      applyTransform(true);
+    };
+
+    const handleReset = () => {
+      translateX = 0;
+      translateY = 0;
+      scale = 1;
+      applyTransform(true);
+    };
+
+    // Map button labels to handlers
+    const buttonHandlers = {
+      "Pan up": handlePanUp,
+      "Pan down": handlePanDown,
+      "Pan left": handlePanLeft,
+      "Pan right": handlePanRight,
+      "Zoom in": handleZoomIn,
+      "Zoom out": handleZoomOut,
+      "Reset view": handleReset,
+    };
+
+    // Use event delegation on controls wrapper for button clicks
+    const controlsWrapper = container.querySelector(
+      '[data-component-name="mermaid-controls-wrapper"]'
+    );
+
+    const handleControlClick = (e) => {
+      // Find the button that was clicked (might be the SVG inside)
+      const button = e.target.closest("button[aria-label]");
+      if (!button) return;
+
+      const label = button.getAttribute("aria-label");
+      const handler = buttonHandlers[label];
+      if (handler) {
+        e.preventDefault();
+        e.stopPropagation();
+        handler();
+      }
+    };
+
+    if (controlsWrapper) {
+      controlsWrapper.addEventListener("click", handleControlClick);
+    }
+
     // Initialize
     parseTransform();
     container.style.cursor = "grab";
@@ -242,6 +326,11 @@ export const MermaidControls = () => {
       container.removeEventListener("touchmove", handleTouchMove);
       container.removeEventListener("touchend", handleTouchEnd);
 
+      // Remove controls wrapper click handler
+      if (controlsWrapper) {
+        controlsWrapper.removeEventListener("click", handleControlClick);
+      }
+
       container.style.cursor = "";
     };
   }, []);
@@ -249,16 +338,26 @@ export const MermaidControls = () => {
   useEffect(() => {
     const cleanupFunctions = new Map();
 
-    // Attach behavior to a container once its .mermaid wrapper has an SVG
+    // Attach behavior to a container once all required elements are present
     const setupContainer = (container) => {
       // Skip if already set up
       if (cleanupFunctions.has(container)) return;
 
+      // Wait for .mermaid wrapper with SVG
       const mermaidWrapper = container.querySelector(".mermaid");
       if (!mermaidWrapper) return;
 
       const svg = mermaidWrapper.querySelector("svg");
       if (!svg) return;
+
+      // Wait for controls wrapper with buttons
+      const controlsWrapper = container.querySelector(
+        '[data-component-name="mermaid-controls-wrapper"]'
+      );
+      if (!controlsWrapper) return;
+
+      const buttons = controlsWrapper.querySelectorAll("button[aria-label]");
+      if (buttons.length === 0) return;
 
       const cleanup = attachInteractionBehavior(container);
       cleanupFunctions.set(container, cleanup);
