@@ -13,25 +13,37 @@ Browse the source code on GitHub: [Software/src/](https://github.com/KinkyMakers
 
 ## Overview
 
-```
-Software/
-├── include/                    # Header-only libraries
-│   └── boost/
-│       └── sml.hpp            # Boost.SML state machine library
-├── lib/                       # Project-specific libraries
-│   └── StrokeEngine/          # Motion pattern library (modified)
-├── src/                       # Main source code
-│   ├── main.cpp               # Entry point
-│   ├── ossm/                  # Core application logic
-│   ├── services/              # Hardware abstraction
-│   ├── components/            # UI components
-│   ├── constants/             # Configuration constants
-│   ├── structs/               # Data structures
-│   ├── utils/                 # Utility functions
-│   └── extensions/            # Library extensions
-├── test/                      # Unit tests
-└── platformio.ini             # Build configuration
-```
+<Tree>
+  <Tree.Folder name="Software" defaultOpen>
+    <Tree.Folder name="include">
+      <Tree.Folder name="boost">
+        <Tree.File name="sml.hpp" />
+      </Tree.Folder>
+    </Tree.Folder>
+    <Tree.Folder name="lib">
+      <Tree.Folder name="StrokeEngine" />
+    </Tree.Folder>
+    <Tree.Folder name="src" defaultOpen>
+      <Tree.File name="main.cpp" />
+      <Tree.Folder name="ossm" />
+      <Tree.Folder name="services" />
+      <Tree.Folder name="components" />
+      <Tree.Folder name="constants" />
+      <Tree.Folder name="structs" />
+      <Tree.Folder name="utils" />
+      <Tree.Folder name="extensions" />
+    </Tree.Folder>
+    <Tree.Folder name="test" />
+    <Tree.File name="platformio.ini" />
+  </Tree.Folder>
+</Tree>
+
+| Folder | Purpose |
+|--------|---------|
+| `include/boost/` | Header-only libraries (Boost.SML state machine) |
+| `lib/StrokeEngine/` | Motion pattern library (modified) |
+| `src/` | Main source code |
+| `test/` | Unit tests |
 
 ## Design Philosophy
 
@@ -50,20 +62,32 @@ The `OSSM` class in `ossm/OSSM.h` is retained for backward compatibility with BL
 
 The `ossm/` folder contains the core application logic, organized by feature.
 
-```
-ossm/
-├── Events.h                   # State machine event definitions
-├── OSSM.h                     # Legacy class (backward compatibility)
-├── OSSM.cpp
-├── state/                     # State machine architecture
-├── pages/                     # UI screens
-├── homing/                    # Homing sequence
-├── menu/                      # Menu navigation
-├── simple_penetration/        # Simple Penetration mode
-├── stroke_engine/             # Stroke Engine mode
-├── pattern_controls/          # Pattern selection UI
-└── play_controls/             # Play/pause/speed controls
-```
+<Tree>
+  <Tree.Folder name="ossm" defaultOpen>
+    <Tree.File name="Events.h" />
+    <Tree.File name="OSSM.h" />
+    <Tree.File name="OSSM.cpp" />
+    <Tree.Folder name="state" />
+    <Tree.Folder name="pages" />
+    <Tree.Folder name="homing" />
+    <Tree.Folder name="menu" />
+    <Tree.Folder name="simple_penetration" />
+    <Tree.Folder name="stroke_engine" />
+    <Tree.Folder name="pattern_controls" />
+    <Tree.Folder name="play_controls" />
+  </Tree.Folder>
+</Tree>
+
+| Folder | Purpose |
+|--------|---------|
+| `state/` | State machine architecture |
+| `pages/` | UI screens |
+| `homing/` | Homing sequence |
+| `menu/` | Menu navigation |
+| `simple_penetration/` | Simple Penetration mode |
+| `stroke_engine/` | Stroke Engine mode |
+| `pattern_controls/` | Pattern selection UI |
+| `play_controls/` | Play/pause/speed controls |
 
 ### State Machine (`ossm/state/`)
 
@@ -132,25 +156,47 @@ Each operating mode is a self-contained module with its motion control logic.
 
 The `services/` folder provides hardware abstraction layers.
 
-```
-services/
-├── stepper.h / stepper.cpp    # Motor control (FastAccelStepper)
-├── display.h / display.cpp    # OLED display (U8g2)
-├── encoder.h / encoder.cpp    # Rotary encoder input
-├── led.h / led.cpp            # RGB LED status indication
-├── board.h / board.cpp        # Board initialization
-├── tasks.h / tasks.cpp        # FreeRTOS task management
-├── wm.h / wm.cpp              # WiFi Manager
-└── communication/             # BLE and WiFi communication
-    ├── nimble.h / nimble.cpp  # NimBLE BLE server
-    ├── queue.h / queue.cpp    # Command queue
-    ├── command.hpp            # Command definitions
-    ├── state.hpp              # BLE state notifications
-    ├── patterns.hpp           # Pattern data transfer
-    ├── gpio.hpp               # GPIO control via BLE
-    ├── wifi.hpp               # WiFi configuration
-    └── config.hpp             # Configuration sync
-```
+<Tree>
+  <Tree.Folder name="services" defaultOpen>
+    <Tree.File name="stepper.h" />
+    <Tree.File name="stepper.cpp" />
+    <Tree.File name="display.h" />
+    <Tree.File name="display.cpp" />
+    <Tree.File name="encoder.h" />
+    <Tree.File name="encoder.cpp" />
+    <Tree.File name="led.h" />
+    <Tree.File name="led.cpp" />
+    <Tree.File name="board.h" />
+    <Tree.File name="board.cpp" />
+    <Tree.File name="tasks.h" />
+    <Tree.File name="tasks.cpp" />
+    <Tree.File name="wm.h" />
+    <Tree.File name="wm.cpp" />
+    <Tree.Folder name="communication" defaultOpen>
+      <Tree.File name="nimble.h" />
+      <Tree.File name="nimble.cpp" />
+      <Tree.File name="queue.h" />
+      <Tree.File name="queue.cpp" />
+      <Tree.File name="command.hpp" />
+      <Tree.File name="state.hpp" />
+      <Tree.File name="patterns.hpp" />
+      <Tree.File name="gpio.hpp" />
+      <Tree.File name="wifi.hpp" />
+      <Tree.File name="config.hpp" />
+    </Tree.Folder>
+  </Tree.Folder>
+</Tree>
+
+| File | Purpose |
+|------|---------|
+| `stepper.h/.cpp` | Motor control (FastAccelStepper) |
+| `display.h/.cpp` | OLED display (U8g2) |
+| `encoder.h/.cpp` | Rotary encoder input |
+| `led.h/.cpp` | RGB LED status indication |
+| `board.h/.cpp` | Board initialization |
+| `tasks.h/.cpp` | FreeRTOS task management |
+| `wm.h/.cpp` | WiFi Manager |
+| `communication/` | BLE and WiFi communication |
 
 <Info>
 For BLE protocol details, see [BLE Communication](/ossm/Software/communication/ble).
@@ -159,6 +205,22 @@ For BLE protocol details, see [BLE Communication](/ossm/Software/communication/b
 ## Constants (`src/constants/`)
 
 Configuration values and enums are centralized in the `constants/` folder.
+
+<Tree>
+  <Tree.Folder name="constants" defaultOpen>
+    <Tree.File name="Config.h" />
+    <Tree.File name="Pins.h" />
+    <Tree.File name="Menu.h" />
+    <Tree.File name="Version.h" />
+    <Tree.File name="UserConfig.h" />
+    <Tree.File name="Images.h" />
+    <Tree.File name="LogTags.h" />
+    <Tree.Folder name="copy">
+      <Tree.File name="en-us.h" />
+      <Tree.File name="fr.h" />
+    </Tree.Folder>
+  </Tree.Folder>
+</Tree>
 
 | File | Purpose |
 |------|---------|
@@ -169,7 +231,7 @@ Configuration values and enums are centralized in the `constants/` folder.
 | `UserConfig.h` | User-configurable settings |
 | `Images.h` | Display bitmap assets |
 | `LogTags.h` | ESP-IDF logging tags |
-| `copy/en-us.h`, `copy/fr.h` | Localized strings |
+| `copy/` | Localized strings |
 
 <Tip>
 For configuration options, see [Configuration](/ossm/Software/getting-started/configuration).
@@ -178,6 +240,18 @@ For configuration options, see [Configuration](/ossm/Software/getting-started/co
 ## Utilities (`src/utils/`)
 
 Helper functions and classes used throughout the codebase.
+
+<Tree>
+  <Tree.Folder name="utils" defaultOpen>
+    <Tree.File name="StateLogger.h" />
+    <Tree.File name="RecursiveMutex.h" />
+    <Tree.File name="StrokeEngineHelper.h" />
+    <Tree.File name="format.h" />
+    <Tree.File name="analog.h" />
+    <Tree.File name="update.h" />
+    <Tree.File name="ble.h" />
+  </Tree.Folder>
+</Tree>
 
 | File | Purpose |
 |------|---------|
@@ -192,6 +266,14 @@ Helper functions and classes used throughout the codebase.
 ## Data Structures (`src/structs/`)
 
 Shared data types used across modules.
+
+<Tree>
+  <Tree.Folder name="structs" defaultOpen>
+    <Tree.File name="SettingPercents.h" />
+    <Tree.File name="LanguageStruct.h" />
+    <Tree.File name="Points.h" />
+  </Tree.Folder>
+</Tree>
 
 | File | Purpose |
 |------|---------|
