@@ -2,7 +2,6 @@
 #define STROKE_ENGINE_HELPER_H
 #include <config.h>
 
-#include "../../lib/StrokeEngine/src/StrokeEngine.h"
 #include "constants/Config.h"
 #include "constants/Pins.h"
 
