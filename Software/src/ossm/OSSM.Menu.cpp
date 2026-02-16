@@ -121,9 +121,8 @@ void OSSM::drawMenuTask(void *pvParameters) {
 
     // Clear header icons when exiting menu
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearIcons(); // Clear the header icons
-        ossm->display.setMaxClipWindow(); // Reset clipping 
-        ossm->display.sendBuffer(); // Send the cleared buffer to display
+        clearIcons();
+        refreshIcons();
         xSemaphoreGive(displayMutex);
     }
 

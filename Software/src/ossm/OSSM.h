@@ -15,6 +15,7 @@
 #include "OSSMI.h"
 #include "U8g2lib.h"
 #include "WiFiManager.h"
+#include "services/wm.h"
 #include "boost/sml.hpp"
 #include "constants/Config.h"
 #include "constants/Menu.h"
@@ -81,6 +82,7 @@ class OSSM : public OSSMInterface {
             // for more tailored UX
             auto resetSettingsStrokeEngine = [](OSSM &o) {
                 OSSM::setting.speed = 0;
+                OSSM::setting.speedBLE = std::nullopt;
                 OSSM::setting.stroke = 50;
                 OSSM::setting.depth = 10;
                 OSSM::setting.sensation = 50;
@@ -94,6 +96,7 @@ class OSSM : public OSSMInterface {
 
             auto resetSettingsSimplePen = [](OSSM &o) {
                 OSSM::setting.speed = 0;
+                OSSM::setting.speedBLE = std::nullopt;
                 OSSM::setting.stroke = 0;
                 OSSM::setting.depth = 50;
                 OSSM::setting.sensation = 50;
@@ -142,6 +145,7 @@ class OSSM : public OSSMInterface {
             auto drawNoUpdate = [](OSSM &o) { o.drawNoUpdate(); };
             auto drawUpdating = [](OSSM &o) { o.drawUpdating(); };
             auto stopWifiPortal = [](OSSM &o) {};
+            auto resetWiFi = [](OSSM &o) { wm.resetSettings(); };
             auto drawError = [](OSSM &o) { o.drawError(); };
 
             // Guard definitions to make the table easier to read.
@@ -238,6 +242,7 @@ class OSSM : public OSSMInterface {
                 "wifi"_s / drawWiFi = "wifi.idle"_s,
                 "wifi.idle"_s + done / stopWifiPortal = "menu"_s,
                 "wifi.idle"_s + buttonPress / stopWifiPortal = "menu"_s,
+                "wifi.idle"_s + longPress / resetWiFi = "restart"_s,
 
                 "help"_s / drawHelp = "help.idle"_s,
                 "help.idle"_s + buttonPress = "menu"_s,
