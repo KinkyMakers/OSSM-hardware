@@ -147,8 +147,10 @@ class OSSM : public OSSMInterface {
             auto stopWifiPortal = [](OSSM &o) {};
             auto resetWiFi = [](OSSM &o) { wm.resetSettings(); };
             auto drawError = [](OSSM &o) { o.drawError(); };
-            auto checkPairing = [](OSSM &o) { o.checkPairing(); };
-            auto isPaired = [](OSSM &o) { return o.isPairedToOwner; };
+            auto checkPairing = [](OSSM &o) {
+                ESP_LOGI("PAIRING", "checkPairing action triggered");
+                o.checkPairing();
+            };
 
             // Guard definitions to make the table easier to read.
             auto isStrokeTooShort = [](OSSM &o) {
@@ -194,28 +196,34 @@ class OSSM : public OSSMInterface {
                 "homing.forward"_s + done / startHoming = "homing.backward"_s,
                 "homing.backward"_s + error = "error"_s,
                 "homing.backward"_s + done[(isStrokeTooShort)] = "error"_s,
-                "homing.backward"_s + done[isFirstHomed] / setHomed = "pairing"_s,
+                "homing.backward"_s + done[isFirstHomed] / setHomed = "menu"_s,
                 "homing.backward"_s + done[(isOption(Menu::SimplePenetration))] / setHomed = "simplePenetration"_s,
                 "homing.backward"_s + done[(isOption(Menu::StrokeEngine))] / setHomed = "strokeEngine"_s,
                 "homing.backward"_s + done[(isOption(Menu::Streaming))] / setHomed = "streaming"_s,
 
-                // Pairing — check if needed, show code, poll for pairing
-                "pairing"_s [!isOnline] = "menu"_s,
-                "pairing"_s [isPaired] = "menu"_s,
+                "menu"_s / (drawMenu) = "menu.idle"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::Streaming))] = "streaming"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::Pairing)) && isOnline] = "pairing"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::Pairing)) && !isOnline] = "pairing.wifi"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
+                "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
+                "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
+
+                // Pairing — fetch code from server and display QR
                 "pairing"_s / checkPairing = "pairing.idle"_s,
                 "pairing.idle"_s + done = "menu"_s,
                 "pairing.idle"_s + buttonPress = "menu"_s,
                 "pairing.idle"_s + longPress = "menu"_s,
                 "pairing.idle"_s + error = "menu"_s,
 
-                "menu"_s / (drawMenu) = "menu.idle"_s,
-                "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
-                "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
-                "menu.idle"_s + buttonPress[(isOption(Menu::Streaming))] = "streaming"_s,
-                "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
-                "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
-                "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
-                "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
+                // Pairing when offline — redirect to WiFi setup
+                "pairing.wifi"_s / drawWiFi = "pairing.wifi.idle"_s,
+                "pairing.wifi.idle"_s + done = "pairing"_s,
+                "pairing.wifi.idle"_s + buttonPress = "menu"_s,
+                "pairing.wifi.idle"_s + longPress = "menu"_s,
 
                 "simplePenetration"_s [isNotHomed] = "homing"_s,
                 "simplePenetration"_s [isPreflightSafe] / (resetSettingsSimplePen, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
@@ -291,7 +299,6 @@ class OSSM : public OSSMInterface {
     bool hasActiveBLEConnection = false;
 
     // Pairing state
-    bool isPairedToOwner = false;
     String pairingCode = "";
     String macAddress = "";
 
@@ -351,8 +358,6 @@ class OSSM : public OSSMInterface {
     // Pairing
     void checkPairing();
     void drawPairing();
-    void loadPairingState();
-    void savePairingState();
     static void pairingTask(void *pvParameters);
 
     void drawPreflight();
