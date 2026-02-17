@@ -101,7 +101,7 @@ class OSSM : public OSSMInterface {
                 OSSM::setting.speedBLE = std::nullopt;
                 OSSM::setting.stroke = 50;
                 OSSM::setting.depth = 50;
-                OSSM::setting.sensation = 100;
+                OSSM::setting.sensation = 50;
                 OSSM::setting.buffer = 70;
                 o.playControl = PlayControls::DEPTH;
 
