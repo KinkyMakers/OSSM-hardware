@@ -36,11 +36,14 @@ static void drawPlayControlsTask(void *pvParameters) {
         case PlayControls::DEPTH:
             encoder.setEncoderValue(settings.depth);
             break;
+        case PlayControls::BUFFER:
+            encoder.setEncoderValue(settings.buffer);
+            break;
     }
 
     auto menuString = menuStrings[menuState.currentOption];
 
-    SettingPercents next = {0, 0, 0, 0};
+    SettingPercents next = {0, 0, 0, 0, 0};
     unsigned long displayLastUpdated = 0;
 
     /**
@@ -69,6 +72,9 @@ static void drawPlayControlsTask(void *pvParameters) {
 
     bool isStrokeEngine = stateMachine->is("strokeEngine"_s) ||
                           stateMachine->is("strokeEngine.idle"_s);
+    
+    bool isStreaming = stateMachine->is("streaming"_s) ||
+                       stateMachine->is("streaming.idle"_s);
 
     bool shouldUpdateDisplay = false;
 
@@ -91,8 +97,7 @@ static void drawPlayControlsTask(void *pvParameters) {
         encoderValue = encoder.readEncoder();
 
         if (USE_SPEED_KNOB_AS_LIMIT || !settings.speedBLE.has_value()) {
-            next.speed =
-                next.speedKnob * (settings.speedBLE.value_or(100)) / 100;
+            next.speed = next.speedKnob * (settings.speedBLE.value_or(100)) / 100;
         } else {
             next.speedKnob = settings.speedBLE.value_or(100);
             next.speed = settings.speedBLE.value_or(100);
@@ -112,8 +117,8 @@ static void drawPlayControlsTask(void *pvParameters) {
                 break;
             case PlayControls::SENSATION:
                 next.sensation = encoderValue;
-                shouldUpdateDisplay = shouldUpdateDisplay ||
-                                      next.sensation - settings.sensation >= 1;
+                shouldUpdateDisplay =
+                    shouldUpdateDisplay || next.sensation - settings.sensation >= 1;
                 settings.sensation = next.sensation;
                 break;
             case PlayControls::DEPTH:
@@ -121,6 +126,12 @@ static void drawPlayControlsTask(void *pvParameters) {
                 shouldUpdateDisplay =
                     shouldUpdateDisplay || next.depth - settings.depth >= 1;
                 settings.depth = next.depth;
+                break;
+            case PlayControls::BUFFER:
+                next.buffer = encoderValue;
+                shouldUpdateDisplay = 
+                    shouldUpdateDisplay || next.buffer - settings.buffer >=1;
+                settings.buffer = next.buffer;
                 break;
         }
 
@@ -141,9 +152,9 @@ static void drawPlayControlsTask(void *pvParameters) {
             // Check and update the header text... don't worry if this is the
             // same as last time, nothing happens.
             if (isStrokeEngine) {
-                headerText =
-                    UserConfig::language.StrokeEngineNames[(int)settings
-                                                               .pattern];
+                headerText = UserConfig::language.StrokeEngineNames[(int)settings.pattern];
+            } else if (isStreaming){
+                headerText = UserConfig::language.Streaming;
             } else {
                 headerText = UserConfig::language.SimplePenetration;
             }
@@ -153,7 +164,13 @@ static void drawPlayControlsTask(void *pvParameters) {
             clearPage(true);
             display.setFont(Config::Font::base);
 
-            drawShape::settingBar(UserConfig::language.Speed, next.speedKnob);
+            if (!isStreaming){
+                drawShape::settingBar(UserConfig::language.Speed, next.speedKnob);
+            } else {
+                drawShape::settingBar("Max", next.speedKnob);
+                display.setFont(Config::Font::bold);
+                display.drawUTF8(14, 36, UserConfig::language.Speed);
+            }
 
             if (isStrokeEngine) {
                 switch (session.playControl) {
@@ -168,14 +185,50 @@ static void drawPlayControlsTask(void *pvParameters) {
                                               128, 0, RIGHT_ALIGNED, 10);
                         drawShape::settingBarSmall(settings.depth, 113);
                         drawShape::settingBarSmall(settings.stroke, 108);
-
                         break;
                     case PlayControls::DEPTH:
                         drawShape::settingBarSmall(settings.sensation, 125);
                         drawShape::settingBar(F("Depth"), settings.depth, 123,
                                               0, RIGHT_ALIGNED, 5);
                         drawShape::settingBarSmall(settings.stroke, 108);
-
+                        break;
+                }
+            } else if (isStreaming) {
+                switch (session.playControl) {
+                    case PlayControls::BUFFER:
+                        drawShape::settingBar(F("Buffer"),
+                                              settings.buffer, 128, 0,
+                                              RIGHT_ALIGNED, 15);
+                        drawShape::settingBarSmall(settings.sensation, 113);
+                        drawShape::settingBarSmall(settings.depth, 108);
+                        drawShape::settingBarSmall(settings.stroke, 103);
+                        break;
+                    case PlayControls::STROKE:
+                        drawShape::settingBarSmall(settings.buffer, 125);
+                        drawShape::settingBarSmall(settings.sensation, 120);
+                        drawShape::settingBarSmall(settings.depth, 115);
+                        drawShape::settingBar(strokeString,
+                                              settings.stroke, 113, 0,
+                                              RIGHT_ALIGNED);
+                        break;
+                    case PlayControls::SENSATION:
+                        drawShape::settingBarSmall(settings.buffer, 125);
+                        drawShape::settingBar(F("Max"),
+                                              settings.sensation, 123, 0,
+                                              RIGHT_ALIGNED, 10);
+                        display.setFont(Config::Font::bold);
+                        strokeString = String("Accel");
+                        stringWidth = display.getUTF8Width(strokeString.c_str());
+                        display.drawUTF8(99 - stringWidth, 36, strokeString.c_str());
+                        drawShape::settingBarSmall(settings.depth, 108);
+                        drawShape::settingBarSmall(settings.stroke, 103);
+                        break;
+                    case PlayControls::DEPTH:
+                        drawShape::settingBarSmall(settings.buffer, 125);
+                        drawShape::settingBarSmall(settings.sensation, 120);
+                        drawShape::settingBar(F("Depth"), settings.depth,
+                                              118, 0, RIGHT_ALIGNED, 5);
+                        drawShape::settingBarSmall(settings.stroke, 103);
                         break;
                 }
             } else {
@@ -190,10 +243,11 @@ static void drawPlayControlsTask(void *pvParameters) {
              *
              * These controls are associated with stroke and distance
              */
-            display.setFont(Config::Font::small);
-            strokeString = "# " + String(session.strokeCount);
-            display.drawUTF8(14, lh4, strokeString.c_str());
-
+            if (!isStrokeEngine && !isStreaming) {
+                display.setFont(Config::Font::small);
+                strokeString = "# " + String(session.strokeCount);
+                display.drawUTF8(14, lh4, strokeString.c_str());
+            }
             /**
              * /////////////////////////////////////////////
              * /////////// Play Controls Right  ////////////
@@ -202,16 +256,17 @@ static void drawPlayControlsTask(void *pvParameters) {
              * These controls are associated with stroke and distance
              */
 
-            if (!isStrokeEngine) {
+            if (!isStrokeEngine && !isStreaming) {
                 strokeString = formatDistance(session.distanceMeters);
                 stringWidth = display.getUTF8Width(strokeString.c_str());
                 display.drawUTF8(104 - stringWidth, lh3, strokeString.c_str());
             }
-
-            strokeString =
-                formatTime(displayLastUpdated - session.startTime).c_str();
-            stringWidth = display.getUTF8Width(strokeString.c_str());
-            display.drawUTF8(104 - stringWidth, lh4, strokeString.c_str());
+            if (!isStreaming){
+                strokeString =
+                    formatTime(displayLastUpdated - session.startTime).c_str();
+                stringWidth = display.getUTF8Width(strokeString.c_str());
+                display.drawUTF8(104 - stringWidth, lh4, strokeString.c_str());
+            }
 
             refreshPage(true);
             xSemaphoreGive(displayMutex);

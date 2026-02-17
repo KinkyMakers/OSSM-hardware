@@ -11,7 +11,9 @@ void ossmDrawPatternControls();
 void ossmDrawPreflight();
 void ossmResetSettingsStrokeEngine();
 void ossmResetSettingsSimplePen();
-void ossmIncrementControl();
+void ossmResetSettingsStreaming();
+void ossmIncrementControlStrokeEngine();
+void ossmIncrementControlStreaming();
 void ossmStartSimplePenetration();
 void ossmStartStrokeEngine();
 void ossmEmergencyStop();
@@ -46,7 +48,11 @@ namespace actions {
 
     constexpr auto resetSettingsSimplePen = []() { ossmResetSettingsSimplePen(); };
 
-    constexpr auto incrementControl = []() { ossmIncrementControl(); };
+    constexpr auto resetSettingsStreaming = []() { ossmResetSettingsStreaming(); };
+
+    constexpr auto incrementControlStrokeEngine = []() { ossmIncrementControlStrokeEngine(); };
+
+    constexpr auto incrementControlStreaming = []() { ossmIncrementControlStreaming(); };
 
     constexpr auto startSimplePenetration = []() { ossmStartSimplePenetration(); };
 

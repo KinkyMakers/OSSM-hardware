@@ -21,7 +21,8 @@ SettingPercents OSSM::setting = {.speed = 0,
                                  .stroke = 50,
                                  .sensation = 50,
                                  .depth = 10,
-                                 .pattern = StrokePatterns::SimpleStroke};
+                                 .buffer = 70,
+                                 .pattern = StrokePatterns(0)};
 
 OSSM::OSSM() {
     // Initialize global state from OSSM::setting
@@ -29,7 +30,6 @@ OSSM::OSSM() {
 }
 
 void OSSM::ble_click(String commandString) {
-    ESP_LOGD("OSSM", "PROCESSING CLICK");
     CommandValue command = commandFromString(commandString);
     ESP_LOGD("OSSM", "COMMAND: %d", command.command);
 
@@ -86,19 +86,20 @@ void OSSM::ble_click(String commandString) {
             encoder.setEncoderValue(command.value);
             settings.sensation = command.value;
             break;
+        case Commands::setBuffer:
+            session.playControl = PlayControls::BUFFER;
+            encoder.setEncoderValue(command.value);
+            settings.buffer = command.value;
+            break;
         case Commands::setPattern:
-            settings.pattern = static_cast<StrokePatterns>(command.value % 7);
+            settings.pattern = static_cast<StrokePatterns>(command.value % (int)StrokePatterns::Count);
             break;
         case Commands::streamPosition:
-            // Scale position from 0-100 to 0-180 (internal format)
-            // and update streaming target
-            lastPositionTime = targetPositionTime;
-            targetPositionTime = {
-                static_cast<uint8_t>((command.value * 180) / 100),
-                static_cast<uint16_t>(command.time)};
-            markTargetUpdated();
-            ESP_LOGD("OSSM", "Stream: pos=%d, time=%d", command.value,
-                     command.time);
+            // Position (0-100)
+            targetQueue.push({
+                static_cast<uint8_t>(command.value),
+                static_cast<uint16_t>(command.time),
+                std::chrono::steady_clock::now()});
             break;
         case Commands::ignore:
             break;
@@ -117,6 +118,7 @@ String OSSM::getCurrentState() {
     json += "\"speed\":" + String((int)settings.speed) + ",";
     json += "\"stroke\":" + String((int)settings.stroke) + ",";
     json += "\"sensation\":" + String((int)settings.sensation) + ",";
+    json += "\"buffer\":" + String((int)settings.buffer) + ",";
     json += "\"depth\":" + String((int)settings.depth) + ",";
     json += "\"pattern\":" + String(static_cast<int>(settings.pattern));
     json += "}";
