@@ -7,8 +7,10 @@
 #include "ossm/state/session.h"
 #include "ossm/state/settings.h"
 #include "ossm/state/state.h"
+#include "services/communication/mqtt.h"
 #include "services/communication/queue.h"
 #include "services/encoder.h"
+#include "services/stepper.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -100,6 +102,7 @@ void OSSM::ble_click(String commandString) {
             ESP_LOGD("OSSM", "Stream: pos=%d, time=%d", command.value,
                      command.time);
             break;
+        case Commands::setWifi:
         case Commands::ignore:
             break;
     }
@@ -113,14 +116,16 @@ String OSSM::getCurrentState() {
     }
 
     String json = "{";
+    json += "\"timestamp\":" + String(millis()) + ",";
     json += "\"state\":\"" + currentState + "\",";
     json += "\"speed\":" + String((int)settings.speed) + ",";
     json += "\"stroke\":" + String((int)settings.stroke) + ",";
     json += "\"sensation\":" + String((int)settings.sensation) + ",";
     json += "\"depth\":" + String((int)settings.depth) + ",";
-    json += "\"pattern\":" + String(static_cast<int>(settings.pattern));
+    json += "\"pattern\":" + String(static_cast<int>(settings.pattern)) + ",";
+    json += "\"position\":" + String(float(-stepper->getCurrentPosition()) / float(1_mm)) + ",";
+    json += "\"sessionId\":\"" + sessionId + "\"";
     json += "}";
-    currentState = json;
 
-    return currentState;
+    return json;
 }

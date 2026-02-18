@@ -1,13 +1,18 @@
 #include "stroke_engine.h"
 
+#include <mqtt_client.h>
+
+#include "ossm/OSSM.h"
 #include "ossm/state/ble.h"
 #include "ossm/state/calibration.h"
 #include "ossm/state/settings.h"
 #include "ossm/state/state.h"
+#include "services/communication/mqtt.h"
 #include "services/stepper.h"
 #include "services/tasks.h"
 #include "structs/SettingPercents.h"
 #include "utils/StrokeEngineHelper.h"
+#include "utils/getEfuseMac.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -122,12 +127,48 @@ static void startStrokeEngineTask(void *pvParameters) {
     vTaskDelete(nullptr);
 }
 
+static void publishStateTask(void *pvParameters) {
+    auto isInCorrectState = []() {
+        return stateMachine->is("strokeEngine"_s) ||
+               stateMachine->is("strokeEngine.idle"_s) ||
+               stateMachine->is("strokeEngine.pattern"_s);
+    };
+
+    while (isInCorrectState()) {
+        if (!mqttConnected) {
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            continue;
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(100));
+
+        String payload = ossm->getCurrentState();
+        String topic = "ossm/" + getMacAddress();
+
+        int result = esp_mqtt_client_publish(
+            mqttClient, topic.c_str(), payload.c_str(), payload.length(), 0,
+            false);
+
+        if (result < 0) {
+            ESP_LOGD("MQTT", "Publish failed: %d", result);
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        }
+    }
+
+    vTaskDelete(nullptr);
+}
+
 void startStrokeEngine() {
     int stackSize = 12 * configMINIMAL_STACK_SIZE;
 
     xTaskCreatePinnedToCore(startStrokeEngineTask, "startStrokeEngineTask",
                             stackSize, nullptr, configMAX_PRIORITIES - 1,
                             &Tasks::runStrokeEngineTaskH,
+                            Tasks::operationTaskCore);
+
+    xTaskCreatePinnedToCore(publishStateTask, "publishStateTask",
+                            5 * configMINIMAL_STACK_SIZE, nullptr,
+                            tskIDLE_PRIORITY + 1, nullptr,
                             Tasks::operationTaskCore);
 }
 
