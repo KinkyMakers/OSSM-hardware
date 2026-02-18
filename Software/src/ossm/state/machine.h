@@ -38,6 +38,8 @@ struct OSSMStateMachine {
             "menu.idle"_s + buttonPress[(isOption(Menu::SimplePenetration))] = "simplePenetration"_s,
             "menu.idle"_s + buttonPress[(isOption(Menu::StrokeEngine))] = "strokeEngine"_s,
             "menu.idle"_s + buttonPress[(isOption(Menu::Streaming))] = "streaming"_s,
+            "menu.idle"_s + buttonPress[(isOption(Menu::Pairing)) && isOnline] = "pairing"_s,
+            "menu.idle"_s + buttonPress[(isOption(Menu::Pairing)) && !isOnline] = "pairing.wifi"_s,
             "menu.idle"_s + buttonPress[(isOption(Menu::UpdateOSSM))] = "update"_s,
             "menu.idle"_s + buttonPress[(isOption(Menu::WiFiSetup))] = "wifi"_s,
             "menu.idle"_s + buttonPress[isOption(Menu::Help)] = "help"_s,
@@ -68,6 +70,17 @@ struct OSSMStateMachine {
             "streaming.preflight"_s + done / ( drawPlayControls, startStreaming) = "streaming.idle"_s,
             "streaming.preflight"_s + longPress = "menu"_s,
             "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+
+            "pairing"_s / checkPairing = "pairing.idle"_s,
+            "pairing.idle"_s + done = "menu"_s,
+            "pairing.idle"_s + buttonPress = "menu"_s,
+            "pairing.idle"_s + longPress = "menu"_s,
+            "pairing.idle"_s + error = "menu"_s,
+
+            "pairing.wifi"_s / drawWiFi = "pairing.wifi.idle"_s,
+            "pairing.wifi.idle"_s + done = "pairing"_s,
+            "pairing.wifi.idle"_s + buttonPress = "menu"_s,
+            "pairing.wifi.idle"_s + longPress = "menu"_s,
 
             "update"_s [isOnline] / drawUpdate = "update.checking"_s,
             "update"_s = "wifi"_s,
