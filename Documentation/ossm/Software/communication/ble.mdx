@@ -61,8 +61,9 @@ go:<state>
 | `set:pattern:<value>` | pattern | 0-6 | Set stroke pattern (see [patterns](#pattern-information-characteristics)) |
 | `go:simplePenetration` | - | - | Switch to simple penetration mode from the menu |
 | `go:strokeEngine` | - | - | Switch to stroke engine mode from the menu |
-| `go:streaming` | - | - | Switch to streaming mode (beta) from the menu |
+| `go:streaming` | - | - | Switch to streaming mode (experimental) from the menu |
 | `go:menu` | - | - | Return to main menu from any mode |
+| `stream:<pos>:<time>` | pos, time | pos: 0-100, time: ms | Send a position command in streaming mode (experimental) |
 
 **Response format**
 
@@ -117,6 +118,76 @@ In independent mode, BLE commands can override the physical knob. Ensure your ap
 | `true` or `false` | Current configuration value |
 | `error:invalid_value` | Invalid input provided |
 
+#### WiFi configuration characteristic
+
+| Property | Value |
+| -------- | ----- |
+| UUID | `522b443a-4f53-534d-1020-420badbabe69` |
+| Properties | READ, WRITE |
+| Purpose | Configure WiFi credentials and check connection status |
+
+**Write format**
+
+```
+set:wifi:<ssid>|<password>
+```
+
+The pipe character (`|`) is used as a delimiter between SSID and password. This allows both SSID and password to contain colons.
+
+**Read format** (JSON)
+
+```json
+{
+  "connected": true,
+  "ssid": "NetworkName",
+  "ip": "192.168.1.100",
+  "rssi": -45
+}
+```
+
+When not connected, the `ssid` field will contain the last saved SSID (if any), `ip` will be empty, and `rssi` will be 0.
+
+**Response format**
+
+| Response | Meaning |
+| -------- | ------- |
+| `ok:wifi:connected` | Connected successfully |
+| `ok:wifi:saved` | Credentials saved, attempting connection |
+| `fail:wifi:invalid_format` | Command format incorrect (missing pipe delimiter) |
+| `fail:wifi:invalid_ssid` | SSID length invalid (must be 1-32 characters) |
+| `fail:wifi:invalid_password` | Password length invalid (must be 8-63 characters) |
+| `fail:wifi:connection_failed` | Could not connect to network |
+| `fail:wifi:save_failed` | Failed to save credentials to NVS |
+
+<Tip>
+WiFi credentials are persisted to non-volatile storage (NVS) and will be retained across device reboots. The device will attempt to auto-connect using saved credentials on startup.
+</Tip>
+
+<Warning>
+WiFi credentials are transmitted in plain text over BLE. Ensure you trust the connection and are in a secure environment when configuring WiFi settings.
+</Warning>
+
+**Example usage**
+
+```javascript
+// Configure WiFi
+const wifiCommand = "set:wifi:MyNetwork|MyPassword123";
+await commandChar.writeValue(new TextEncoder().encode(wifiCommand));
+
+// Read the response
+const response = await commandChar.readValue();
+console.log(new TextDecoder().decode(response)); // "ok:wifi:connected"
+
+// Check WiFi status
+const wifiConfigChar = await service.getCharacteristic(
+  "522b443a-4f53-534d-1020-420badbabe69"
+);
+const statusValue = await wifiConfigChar.readValue();
+const status = JSON.parse(new TextDecoder().decode(statusValue));
+console.log(status);
+// { "connected": true, "ssid": "MyNetwork", "ip": "192.168.1.100", "rssi": -45 }
+```
+
 ### State characteristics (read-only)
 
 Subscribe to these characteristics to monitor the OSSM's current state.
@@ -159,7 +230,7 @@ Subscribe to these characteristics to monitor the OSSM's current state.
 | `strokeEngine.idle` | Stroke engine idle |
 | `strokeEngine.preflight` | Pre-flight checks |
 | `strokeEngine.pattern` | Pattern selection |
-| `streaming` | Streaming mode (beta) |
+| `streaming` | Streaming mode (experimental) |
 | `update` | Update mode |
 | `update.checking` | Checking for updates |
 | `update.updating` | Update in progress |
@@ -239,6 +310,52 @@ Read the characteristic to receive the pattern description string.
 | Stop'n'Go | 5 | Pauses between strokes; sensation adjusts length |
 | Insist | 6 | Modifies length, maintains speed; sensation influences direction |
 
+### Streaming commands (experimental)
+
+<Warning>
+Position streaming is experimental and not recommended for general use. The protocol and behavior may change in future firmware updates.
+</Warning>
+
+When in streaming mode (`go:streaming`), the OSSM accepts real-time position commands that enable synchronized playback with external content such as funscripts.
+
+#### Stream position command
+
+| Property | Value |
+| -------- | ----- |
+| Format | `stream:<position>:<time>` |
+| Position | 0-100 (percentage of stroke) |
+| Time | Milliseconds to reach the target position |
+
+**Example commands**
+
+```
+stream:0:200      # Move to 0% (retracted) in 200ms
+stream:100:150    # Move to 100% (extended) in 150ms
+stream:50:300     # Move to 50% (mid-stroke) in 300ms
+```
+
+**How it works**
+
+1. Enter streaming mode with `go:streaming`
+2. The OSSM homes to position 0 (fully retracted)
+3. Send `stream:<pos>:<time>` commands to control motion
+4. The firmware calculates the required speed to reach the target position within the specified time
+5. Motion uses maximum acceleration for responsive feel
+
+<Note>
+Position 0 represents fully retracted (home), and position 100 represents fully extended. The time parameter indicates how long the motion should take, allowing the OSSM to calculate appropriate speed for smooth playback.
+</Note>
+
+**Requirements**
+
+- Firmware version 3.0 or later
+- OSSM must be in streaming mode (state: `streaming` or `streaming.idle`)
+- Commands sent via the primary command characteristic
+
+<Tip>
+For funscript playback, see the [Funscript Player](/ossm/tools/funscript-player) tool which handles timing and command generation automatically.
+</Tip>
+
 ### GPIO characteristics
 
 #### GPIO control characteristic
@@ -271,6 +388,57 @@ Write commands in the format `<pin>:<state>` where pin is 1-4 and state is `high
 <Info>
 For detailed GPIO documentation including hardware integration examples, see [GPIO Control](/ossm/Software/communication/gpio).
 </Info>
+
+## Fleshy Thrust Sync emulation (testing only)
+
+<Warning>
+This feature is for development testing only and is **not recommended for use**. It requires a special firmware build and may be removed in future versions.
+</Warning>
+
+The OSSM firmware can optionally emulate the Fleshy Thrust Sync (FTS) BLE protocol for compatibility testing with applications like faptap.net. This feature is disabled by default and requires compiling firmware with the `PRETEND_TO_BE_FLESHY_THRUST_SYNC` flag.
+
+### FTS service
+
+| Property | Value |
+| -------- | ----- |
+| Service UUID | `0000ffe0-0000-1000-8000-00805f9b34fb` |
+| Characteristic UUID | `0000ffe1-0000-1000-8000-00805f9b34fb` |
+| Properties | READ, WRITE, NOTIFY, INDICATE |
+
+### Binary protocol format
+
+FTS uses a compact binary format rather than text commands:
+
+| Byte | Description | Range |
+| ---- | ----------- | ----- |
+| 0 | Position | 0-180 (uint8) |
+| 1 | Time high byte | MSB of time in ms |
+| 2 | Time low byte | LSB of time in ms |
+
+**Position mapping**: 0 = fully retracted, 180 = fully extended
+
+**Time format**: 16-bit unsigned integer in big-endian (network byte order)
+
+### Example
+
+To move to position 90 (50% extended) in 250ms:
+
+```
+Byte 0: 0x5A (90 decimal - position)
+Byte 1: 0x00 (250 >> 8 = 0)
+Byte 2: 0xFA (250 & 0xFF = 250)
+```
+
+<Note>
+The FTS emulation uses the same underlying streaming mechanism as the native `stream:pos:time` command. The OSSM must be in streaming mode for commands to take effect.
+</Note>
+
+### Why not recommended
+
+- The FTS protocol is a third-party specification not controlled by the OSSM project
+- Protocol changes in FTS-compatible applications may break compatibility
+- The native OSSM streaming protocol (`stream:pos:time`) is preferred for new integrations
+- This feature exists primarily for testing compatibility with existing FTS ecosystems
 
 ## Device information service
 
@@ -312,6 +480,7 @@ The OSSM uses a structured UUID namespace for organized expansion.
 ```
 522b443a-4f53-534d-1000-420badbabe69  # Primary command
 522b443a-4f53-534d-1010-420badbabe69  # Speed knob configuration
+522b443a-4f53-534d-1020-420badbabe69  # WiFi configuration
 ```
 </Tab>
 
@@ -463,6 +632,9 @@ const stateChar = await service.getCharacteristic(
 const speedKnobConfigChar = await service.getCharacteristic(
   "522b443a-4f53-534d-1010-420badbabe69"
 );
+const wifiConfigChar = await service.getCharacteristic(
+  "522b443a-4f53-534d-1020-420badbabe69"
+);
 const patternsChar = await service.getCharacteristic(
   "522b443a-4f53-534d-3000-420badbabe69"
 );
@@ -476,6 +648,13 @@ stateChar.addEventListener("characteristicvaluechanged", (event) => {
 
 // Configure speed knob behavior (true = knob as limit, false = independent)
 await speedKnobConfigChar.writeValue(new TextEncoder().encode("true"));
+
+// Configure WiFi
+await wifiConfigChar.writeValue(new TextEncoder().encode("set:wifi:MyNetwork|MyPassword123"));
+
+// Check WiFi status
+const wifiStatus = await wifiConfigChar.readValue();
+console.log("WiFi:", JSON.parse(new TextDecoder().decode(wifiStatus)));
 
 // Send a command
 const command = "set:speed:75";
@@ -496,6 +675,7 @@ SERVICE_UUID = "522b443a-4f53-534d-0001-420badbabe69"
 COMMAND_UUID = "522b443a-4f53-534d-1000-420badbabe69"
 STATE_UUID = "522b443a-4f53-534d-2000-420badbabe69"
 SPEED_KNOB_UUID = "522b443a-4f53-534d-1010-420badbabe69"
+WIFI_CONFIG_UUID = "522b443a-4f53-534d-1020-420badbabe69"
 
 def state_callback(sender, data):
     """Handle state update notifications."""
@@ -512,6 +692,16 @@ async def connect_to_ossm():
             SPEED_KNOB_UUID,
             "true".encode()  # Knob acts as upper limit
         )
+
+        # Configure WiFi
+        await client.write_gatt_char(
+            WIFI_CONFIG_UUID,
+            "set:wifi:MyNetwork|MyPassword123".encode()
+        )
+
+        # Check WiFi status
+        wifi_status = await client.read_gatt_char(WIFI_CONFIG_UUID)
+        print(f"WiFi status: {json.loads(wifi_status.decode())}")
 
         # Send a command
         command = "set:speed:75"

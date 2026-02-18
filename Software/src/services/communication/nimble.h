@@ -5,8 +5,6 @@
 #include <NimBLEServer.h>
 #include <esp_log.h>
 
-#include "ossm/OSSMI.h"
-
 #define SERVICE_UUID "522b443a-4f53-534d-0001-420badbabe69"
 
 // **********************************************************
@@ -23,6 +21,8 @@
 #define CHARACTERISTIC_UUID "522b443a-4f53-534d-1000-420badbabe69"
 #define CHARACTERISTIC_SPEED_KNOB_CONFIG_UUID \
     "522b443a-4f53-534d-1010-420badbabe69"
+#define CHARACTERISTIC_WIFI_CONFIG_UUID \
+    "522b443a-4f53-534d-1020-420badbabe69"
 
 // **********************************************************
 // State Characteristics

@@ -1,27 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
 
-const DEVICE_CONFIGS = {
-  ossm: {
-    name: 'OSSM',
-    fullName: 'Open Source Sex Machine',
-    storageBucket: 'ossm-firmware',
-    productionManifestPath: '/espOSSM/manifest.json',
-    description: 'Flash your Open Source Sex Machine with the latest firmware. Connect via USB-C to get started.',
-    connectInstructions: 'Connect your OSSM to your computer via USB-C',
-  },
-  radr: {
-    name: 'RADR',
-    fullName: 'RAD Wireless Remote',
-    storageBucket: 'radr-firmware',
-    productionManifestPath: '/espRADR/manifest.json',
-    description: 'Flash your RADR wireless remote with the latest firmware. Connect via USB-C to get started.',
-    connectInstructions: 'Connect your RADR to your computer via USB-C',
-  },
-};
 
-const STORAGE_BASE_URL = 'https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public';
 
 export const DeviceFlasher = ({ device = 'ossm' }) => {
+  const DEVICE_CONFIGS = {
+    ossm: {
+      name: 'OSSM',
+      fullName: 'Open Source Sex Machine',
+      storageBucket: 'ossm-firmware',
+      productionManifestPath: 'master/manifest.json',
+      description: 'Flash your Open Source Sex Machine with the latest firmware. Connect via USB-C to get started.',
+      connectInstructions: 'Connect your OSSM to your computer via USB-C',
+    },
+    radr: {
+      name: 'RADR',
+      fullName: 'RAD Wireless Remote',
+      storageBucket: 'radr-firmware',
+      productionManifestPath: 'master/manifest.json',
+      description: 'Flash your RADR wireless remote with the latest firmware. Connect via USB-C to get started.',
+      connectInstructions: 'Connect your RADR to your computer via USB-C',
+    },
+  };
+
+  const STORAGE_BASE_URL = 'https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public';
   const config = DEVICE_CONFIGS[device] || DEVICE_CONFIGS.ossm;
   const STORAGE_URL = `${STORAGE_BASE_URL}/${config.storageBucket}`;
 
@@ -37,6 +38,7 @@ export const DeviceFlasher = ({ device = 'ossm' }) => {
   const [manifestError, setManifestError] = useState(null);
 
   const espToolsLoaded = useRef(false);
+  const branchSetFromUrl = useRef(false);
 
   // Load ESP Web Tools from CDN
   useEffect(() => {
@@ -54,7 +56,7 @@ export const DeviceFlasher = ({ device = 'ossm' }) => {
     };
   }, []);
 
-  // Fetch branches from registry
+  // Fetch branches from registry and check URL params
   useEffect(() => {
     const fetchBranches = async () => {
       setIsLoadingBranches(true);
@@ -72,6 +74,28 @@ export const DeviceFlasher = ({ device = 'ossm' }) => {
         branchList.sort((a, b) => a.path.localeCompare(b.path));
         setBranches(branchList);
 
+        // Check URL params for branch selection
+        const urlParams = new URLSearchParams(window.location.search);
+        const branchParam = urlParams.get('branch');
+
+        if (branchParam && branchList.length > 0) {
+          // Find matching branch (check both encoded and decoded paths)
+          const matchingBranch = branchList.find(
+            (b) =>
+              b.path === branchParam ||
+              decodeURIComponent(b.path) === branchParam ||
+              b.path === encodeURIComponent(branchParam)
+          );
+
+          if (matchingBranch) {
+            branchSetFromUrl.current = true;
+            setSelectedBranch(matchingBranch.path);
+            setMode('development');
+            return;
+          }
+        }
+
+        // Default to first branch if no URL param match
         if (branchList.length > 0) {
           setSelectedBranch(branchList[0].path);
         }
@@ -92,7 +116,8 @@ export const DeviceFlasher = ({ device = 'ossm' }) => {
     if (mode === 'production') {
       setSelectedBranch('');
       setSelectedCommit('head');
-    } else if (branches.length > 0 && !selectedBranch) {
+      branchSetFromUrl.current = false;
+    } else if (branches.length > 0 && !selectedBranch && !branchSetFromUrl.current) {
       setSelectedBranch(branches[0].path);
     }
   }, [mode, branches]);
@@ -109,30 +134,31 @@ export const DeviceFlasher = ({ device = 'ossm' }) => {
 
     const checkManifest = async () => {
       try {
+        let manifestPath;
+
         if (mode === 'production') {
-          setManifestUrl(config.productionManifestPath);
-          setIsLoadingManifest(false);
-          return;
-        }
+          manifestPath = config.productionManifestPath;
+        } else {
+          if (!selectedBranch) {
+            setManifestError('Please select a branch');
+            setIsLoadingManifest(false);
+            return;
+          }
 
-        if (!selectedBranch) {
-          setManifestError('Please select a branch');
-          setIsLoadingManifest(false);
-          return;
+          manifestPath = selectedCommit === 'head'
+            ? `${selectedBranch}/manifest.json`
+            : `${selectedBranch}/${selectedCommit}/manifest.json`;
         }
-
-        const manifestPath = selectedCommit === 'head'
-          ? `${selectedBranch}/manifest.json`
-          : `${selectedBranch}/${selectedCommit}/manifest.json`;
 
         const manifestFullUrl = `${STORAGE_URL}/${manifestPath}`;
 
         const manifestResponse = await fetch(manifestFullUrl, { method: 'HEAD' });
 
         if (!manifestResponse.ok) {
-          setManifestError(
-            `Manifest not found for ${decodeURIComponent(selectedBranch)}${selectedCommit !== 'head' ? ` (${selectedCommit})` : ''}`
-          );
+          const errorContext = mode === 'production'
+            ? 'production firmware'
+            : `${decodeURIComponent(selectedBranch)}${selectedCommit !== 'head' ? ` (${selectedCommit})` : ''}`;
+          setManifestError(`Manifest not found for ${errorContext}`);
           setIsLoadingManifest(false);
           return;
         }
@@ -294,7 +320,3 @@ export const DeviceFlasher = ({ device = 'ossm' }) => {
     </div>
   );
 };
-
-// Convenience exports for specific devices
-export const OssmFlasher = () => <DeviceFlasher device="ossm" />;
-export const RadrFlasher = () => <DeviceFlasher device="radr" />;

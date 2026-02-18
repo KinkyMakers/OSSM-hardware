@@ -4,7 +4,7 @@
 #include "esp_log.h"
 #include "ossm/Events.h"
 #include "ossm/OSSM.h"
-#include "ossm/OSSMI.h"
+#include "ossm/state/state.h"
 #include "services/board.h"
 #include "services/communication/mqtt.h"
 #include "services/communication/nimble.h"
@@ -13,6 +13,9 @@
 #include "services/led.h"
 #include "services/stepper.h"
 #include "services/wm.h"
+
+namespace sml = boost::sml;
+using namespace sml;
 
 /*
  *  ██████╗ ███████╗███████╗███╗   ███╗
@@ -48,17 +51,20 @@ void setup() {
     // Initialize header bar task
     initHeaderBar();
 
-    ossm = new OSSM(display, encoder, stepper);
-    ossmInterface = ossm;
+    // Create OSSM instance for backward compatibility (BLE command handling)
+    ossm = new OSSM();
+
+    // Initialize state machine after global state is set up
+    initStateMachine();
 
     // ialize LED for BLE and machine status indication
     ESP_LOGI("MAIN", "LED initialized for BLE and machine status indication");
     updateLEDForMachineStatus();  // Set initial LED state
 
     // // link functions to be called on events.
-    button.attachClick([]() { ossm->sm->process_event(ButtonPress{}); });
-    button.attachDoubleClick([]() { ossm->sm->process_event(DoublePress{}); });
-    button.attachLongPressStart([]() { ossm->sm->process_event(LongPress{}); });
+    button.attachClick([]() { stateMachine->process_event(ButtonPress{}); });
+    button.attachDoubleClick([]() { stateMachine->process_event(DoublePress{}); });
+    button.attachLongPressStart([]() { stateMachine->process_event(LongPress{}); });
 
     xTaskCreatePinnedToCore(
         [](void *pvParameters) {
@@ -75,8 +81,8 @@ void setup() {
         [](void *pvParameters) {
             bool initialized = false;
             while (true) {
-                if ((ossm->sm->is("menu.idle"_s) ||
-                     ossm->sm->is("error.idle"_s)) &&
+                if ((stateMachine->is("menu.idle"_s) ||
+                     stateMachine->is("error.idle"_s)) &&
                     !initialized) {
                     ESP_LOGD("MAIN", "Initializing communication services");
                     initNimble();

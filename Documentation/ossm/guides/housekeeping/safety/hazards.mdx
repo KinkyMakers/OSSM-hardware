@@ -194,6 +194,21 @@ GPIO or software-only limits are not sufficient to prevent over‑penetration in
     - **Designer:** Default to remote lockout when local controls are active; require explicit re‑enablement after each restart; provide clear UI for control state.
     - **User/Builder:** Prefer local‑only sessions for manual operation; require authentication for any network control; verify control source before play; power‑cycle the device to reset control state before switching modes.
   </Accordion>
+
+  <Accordion title="Untrusted or malicious streaming data" icon="broadcast-tower">
+    **Vulnerability:** In streaming mode, external applications send real-time position commands. A malicious or buggy application could send rapid, extreme position changes.
+
+    **Likely consequences:** Unexpected rapid motion; potential tissue trauma or internal injury.
+
+    <Note>
+    Streaming mode is experimental. By streaming, we mean live data streams in from trusted sources—not internet-based remote control by untrusted parties.
+    </Note>
+
+    **Mitigations**
+    - **Designer:** Implement maximum speed limits regardless of commanded timing; validate position changes are within safe ranges; provide clear disconnect behavior (ramp-down).
+    - **User/Builder:** Only use streaming with trusted applications from known sources; test at low intensity before full engagement; keep physical stop controls accessible; verify the application's disconnect behavior before use.
+    - **Developer:** When building streaming applications, implement reasonable rate limiting; clamp position changes to safe ranges; handle connection loss gracefully.
+  </Accordion>
 </AccordionGroup>
 
 ## Related resources

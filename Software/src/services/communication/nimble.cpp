@@ -12,9 +12,11 @@
 #include "command/commands.hpp"
 #include "config.hpp"
 #include "gpio.hpp"
+#include "ossm/OSSM.h"
 #include "patterns.hpp"
 #include "services/led.h"
 #include "state.hpp"
+#include "wifi.hpp"
 
 // Define the global variables
 NimBLEServer* pServer = nullptr;
@@ -43,8 +45,8 @@ class ServerCallbacks : public NimBLEServerCallbacks {
                  pServer->getConnectedCount());
 
         // Set BLE connection status to true
-        if (ossmInterface) {
-            ossmInterface->setBLEConnectionStatus(true);
+        if (ossm) {
+            ossm->setBLEConnectionStatus(true);
         }
 
         lostConnectionTime = 0;
@@ -58,12 +60,13 @@ class ServerCallbacks : public NimBLEServerCallbacks {
                  pServer->getConnectedCount());
 
         // Set BLE connection status to false when no connections remain
-        if (ossmInterface && pServer->getConnectedCount() == 0) {
-            ossmInterface->setBLEConnectionStatus(false);
+        if (ossm && pServer->getConnectedCount() == 0) {
+            ossm->setBLEConnectionStatus(false);
+            ossm->ble_click("go:menu");
         }
 
         // Capture current speed when connection is lost
-        speedOnLostConnection = ossmInterface->getSpeed();
+        speedOnLostConnection = ossm->getSpeed();
         ESP_LOGI(NIMBLE_TAG, "Speed on disconnect: %d", speedOnLostConnection);
 
         // Restart advertising when client disconnects
@@ -81,6 +84,68 @@ class ServerCallbacks : public NimBLEServerCallbacks {
                  connInfo.getAddress().toString().c_str());
     }
 } serverCallbacks;
+
+#ifdef PRETEND_TO_BE_FLESHY_THRUST_SYNC
+class FTSCallbacks : public NimBLECharacteristicCallbacks {
+    void onWrite(NimBLECharacteristic* pCharacteristic,
+                 NimBLEConnInfo& connInfo) override {
+        std::string value = pCharacteristic->getValue();
+
+        // Expected format: [position, timeHigh, timeLow]
+        // position: uint8 (0-180)
+        // time: uint16 big-endian (MSB first)
+        if (value.length() >= 3) {
+            uint8_t position = static_cast<uint8_t>(value[0]);
+            uint16_t time = (static_cast<uint8_t>(value[1]) << 8) |
+                            static_cast<uint8_t>(value[2]);
+
+            ESP_LOGI("NIMBLE", "FTS Command - Position: %d, Time: %d ms",
+                     position, time);
+
+            lastPositionTime = targetPositionTime;
+            targetPositionTime = {position, time};
+            markTargetUpdated();  // Signal that new data arrived
+
+        } else {
+            ESP_LOGW("NIMBLE", "FTS write - Invalid data length: %d bytes",
+                     value.length());
+        }
+    }
+
+    void onRead(NimBLECharacteristic* pCharacteristic,
+                NimBLEConnInfo& connInfo) override {
+        Serial.println("FTS read callback");
+        std::string value = pCharacteristic->getValue();
+        String ftsValue = String(value.c_str());
+        pCharacteristic->setValue(ftsValue);
+        // Print everything that comes to this
+        Serial.print("FTS read: ");
+        Serial.println(ftsValue);
+        ESP_LOGD(NIMBLE_TAG, "FTS read: %s", ftsValue.c_str());
+    }
+
+    /** Peer subscribed to notifications/indications */
+    void onSubscribe(NimBLECharacteristic* pCharacteristic,
+                     NimBLEConnInfo& connInfo, uint16_t subValue) override {
+        std::string str = "Client ID: ";
+        str += connInfo.getConnHandle();
+        str += " Address: ";
+        str += connInfo.getAddress().toString();
+        if (subValue == 0) {
+            str += " Unsubscribed to ";
+        } else if (subValue == 1) {
+            str += " Subscribed to notifications for ";
+        } else if (subValue == 2) {
+            str += " Subscribed to indications for ";
+        } else if (subValue == 3) {
+            str += " Subscribed to notifications and indications for ";
+        }
+        str += std::string(pCharacteristic->getUUID());
+        ESP_LOGV("NIMBLE", "%s", str.c_str());
+    }
+
+} ftsCallbacks;
+#endif
 
 void nimbleLoop(void* pvParameters) {
     NimBLEServer* pServer = (NimBLEServer*)pvParameters;
@@ -122,7 +187,7 @@ void nimbleLoop(void* pvParameters) {
                         "Speed ramp duration exceeded, setting speed to 0");
                     lostConnectionTime = 0;
                     speedOnLostConnection = 0;
-                    ossmInterface->ble_click("set:speed:0");
+                    ossm->ble_click("set:speed:0");
                     continue;
                 }
 
@@ -137,7 +202,7 @@ void nimbleLoop(void* pvParameters) {
                          "Target speed: %d (from %d, progress: %.2f)",
                          targetSpeed, speedOnLostConnection, progress);
 
-                ossmInterface->ble_click("set:speed:" + String(targetSpeed));
+                ossm->ble_click("set:speed:" + String(targetSpeed));
 
                 // Stop processing when easing is complete
                 if (t >= 1) {
@@ -153,7 +218,7 @@ void nimbleLoop(void* pvParameters) {
             continue;
         }
 
-        String currentState = ossmInterface->getCurrentState();
+        String currentState = ossm->getCurrentState();
         int currentConnCount = pServer->getConnectedCount();
 
         // Clear last state when connection count changes
@@ -181,17 +246,14 @@ void nimbleLoop(void* pvParameters) {
         while (!messageQueue.empty()) {
             String cmd = messageQueue.front();
             messageQueue.pop();
-            ossmInterface->ble_click(cmd);
-            // pChr->setValue("ok:" + cmd);
+            ossm->ble_click(cmd);
+            pChr->setValue("ok:" + cmd);
 
-            // // Trigger LED communication pulse for command processing
-            // pulseForCommunication();
+            // Trigger LED communication pulse for command processing
+            pulseForCommunication();
 
-            vTaskDelay(pdMS_TO_TICKS(50));
+            vTaskDelay(1);
         }
-
-        vTaskDelay(1);
-        continue;
 
         int currentTime = millis();
         bool stateChanged = currentState != lastState;
@@ -234,6 +296,9 @@ void initNimble() {
     pSpeedKnobConfigCharacteristic = initSpeedKnobConfigCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_SPEED_KNOB_CONFIG_UUID));
 
+    initWiFiConfigCharacteristic(pService,
+                                 NimBLEUUID(CHARACTERISTIC_WIFI_CONFIG_UUID));
+
     pStateCharacteristic = initStateCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_STATE_UUID));
 
@@ -268,16 +333,32 @@ void initNimble() {
     // Start the device info service
     pDeviceInfoService->start();
 
+#ifdef PRETEND_TO_BE_FLESHY_THRUST_SYNC
+    // if this is true, then we'll start a service for the FTS
+    NimBLEService* pFTS = pServer->createService(
+        NimBLEUUID("0000ffe0-0000-1000-8000-00805f9b34fb"));
+    NimBLECharacteristic* pFTSCharacteristic = pFTS->createCharacteristic(
+        NimBLEUUID("0000ffe1-0000-1000-8000-00805f9b34fb"),
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE |
+            NIMBLE_PROPERTY::NOTIFY | NIMBLE_PROPERTY::INDICATE |
+            NIMBLE_PROPERTY::WRITE_NR);
+    pFTSCharacteristic->setCallbacks(&ftsCallbacks);
+    pFTS->start();
+#endif
+
     // Update advertising to include new services
     NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
     pAdvertising->setName("OSSM");
     pAdvertising->addServiceUUID(pService->getUUID());
     pAdvertising->addServiceUUID(pDeviceInfoService->getUUID());
+#ifdef PRETEND_TO_BE_FLESHY_THRUST_SYNC
+    pAdvertising->addServiceUUID(pFTS->getUUID());
+#endif
     pAdvertising->enableScanResponse(true);
 
-    // Configure advertising parameters for better reliability
-    pAdvertising->setMinInterval(0x20);  // 20ms minimum interval
-    pAdvertising->setMaxInterval(0x40);  // 40ms maximum interval
+    // // Configure advertising parameters for better reliability
+    // pAdvertising->setMinInterval(0x20);  // 20ms minimum interval
+    // pAdvertising->setMaxInterval(0x40);  // 40ms maximum interval
 
     pAdvertising->start();
 

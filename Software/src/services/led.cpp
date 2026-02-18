@@ -8,8 +8,7 @@ CRGB leds[NUM_LEDS];
 static auto TAG = "LED";
 
 void initLED() {
-    // ESP_LOGI(TAG, "Initializing RGB LED on pin %d...",
-    // Pins::Display::ledPin);
+    ESP_LOGI(TAG, "Initializing RGB LED on pin %d...", Pins::Display::ledPin);
 
     FastLED.addLeds<LED_TYPE, Pins::Display::ledPin, COLOR_ORDER>(leds,
                                                                   NUM_LEDS);
@@ -393,7 +392,6 @@ void pulseForCommunication() {
     if (connectedDimmed) {
         commPulseActive = true;
         commPulseStartTime = millis();
-        ESP_LOGV(TAG, "Communication pulse triggered");
     }
 }
 

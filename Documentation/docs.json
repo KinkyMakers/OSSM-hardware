@@ -1,13 +1,13 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "mint",
+  "theme": "maple",
+  "name": "Research And Desire Docs",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#007B8A",
+    "light": "#7EDFEF",
+    "dark": "#036D7F"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/images/favicon.ico",
   "navigation": {
     "products": [
       {
@@ -22,6 +22,7 @@
                 "pages": [
                   "ossm/guides/getting-started/introduction",
                   "ossm/guides/getting-started/quickstart",
+                  "ossm/guides/getting-started/wifi-setup",
                   "ossm/guides/getting-started/web-flasher",
                   {
                     "group": "Ready to Play",
@@ -108,6 +109,13 @@
                       "ossm/guides/housekeeping/safety/guidance"
                     ]
                   }
+                ]
+              },
+              {
+                "group": "Changelog",
+                "pages": [
+                  "ossm/guides/changelog/overview",
+                  "ossm/guides/changelog/v0.0.0"
                 ]
               }
             ]
@@ -289,6 +297,15 @@
                       "ossm/Hardware/ossm-mods/salad-dressing/weight-plate",
                       "ossm/Hardware/ossm-mods/salad-dressing/quick-change-toy-mount"
                     ]
+                  },
+                  {
+                    "group": "Basic Mount (Legacy)",
+                    "pages": [
+                      "ossm/Hardware/ossm-mods/basic-mount/introduction",
+                      "ossm/Hardware/ossm-mods/basic-mount/side-1",
+                      "ossm/Hardware/ossm-mods/basic-mount/side-2",
+                      "ossm/Hardware/ossm-mods/basic-mount/spacer"
+                    ]
                   }
                 ]
               },
@@ -317,6 +334,13 @@
                 ]
               },
               {
+                "group": "Architecture",
+                "pages": [
+                  "ossm/Software/architecture/folder-structure",
+                  "ossm/Software/architecture/state-machine"
+                ]
+              },
+              {
                 "group": "Communication",
                 "pages": [
                   "ossm/Software/communication/ble",
@@ -329,6 +353,12 @@
                   "ossm/Software/motion/stroke-engine/introduction",
                   "ossm/Software/motion/stroke-engine/Pattern"
                 ]
+              },
+              {
+                "group": "Contributing",
+                "pages": [
+                  "ossm/Software/contributing/documentation"
+                ]
               }
             ]
           },
@@ -339,7 +369,14 @@
                 "group": "Flashers",
                 "pages": [
                   "ossm/tools/web-flasher",
+                  "ossm/tools/web-controller",
                   "ossm/tools/gold-motor-programming"
+                ]
+              },
+              {
+                "group": "Players",
+                "pages": [
+                  "ossm/tools/funscript-player"
                 ]
               }
             ]
@@ -358,8 +395,8 @@
     }
   },
   "logo": {
-    "light": "/images/logo/light.svg",
-    "dark": "/images/logo/dark.svg"
+    "light": "/images/Standard-Colour.webp",
+    "dark": "/images/Inverted-Colour.webp"
   },
   "navbar": {
     "links": [

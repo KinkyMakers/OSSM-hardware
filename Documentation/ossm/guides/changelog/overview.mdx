@@ -1,0 +1,47 @@
+---
+title: "Overview"
+description: "Track the latest updates, new features, and improvements to the Open Source Sex Machine"
+rss: true
+---
+
+Stay up to date with the latest changes to the Open Source Sex Machine. This changelog documents all releases, including new features, improvements, and bug fixes.
+
+<Update label="Version 0.0.0" description="Placeholder Release">
+
+## Placeholder Release
+
+This is a placeholder entry for future OSSM updates. See the [detailed release notes](/ossm/guides/changelog/v0.0.0) for more information.
+
+### v1.0.1 Patch Notes
+
+- **CI Authentication Fix** — Simplified version bump workflow by replacing GitHub App token generation with Personal Access Token authentication
+
+### v1.0.2 Patch Notes
+
+- **Funscript Position Fix** — Fixed funscript player to send correct next position instead of current position for smoother motion
+- **Improved Sync Timing** — Reduced sync interval from 10ms to 2ms for more accurate funscript playback
+- **Expanded Log History** — Increased log buffer from 100 to 1000 entries for better debugging
+
+### v1.0.4 Patch Notes
+
+- **Version Bump Workflow Fix** — Fixed CI workflow to commit local changes before merging from origin, preventing potential merge conflicts during automated releases
+
+### v1.0.5 Patch Notes
+
+- **BLE Disconnect Menu Return** — OSSM now automatically returns to menu when Bluetooth connection is lost, ensuring consistent behavior on unexpected disconnects
+- **Funscript Player Fix** — Fixed position command logic to only send when a valid next action exists, preventing errors at end of scripts
+
+### v1.0.6 Patch Notes
+
+- **Device Flasher Fix** — Added missing React imports to resolve component initialization errors in the web flasher
+
+### v1.0.7 Patch Notes
+
+- **Firmware Upload Fix** — CI workflow now deletes existing firmware files before uploading to prevent storage conflicts during automated builds
+- **Codebase Refactor** — Reorganized firmware into modular, namespace-based architecture for improved maintainability
+
+### v1.0.8 Patch Notes
+
+- **Documentation Enhancement** — Improved folder structure documentation with interactive Tree components and descriptive tables for better navigation
+
+</Update>

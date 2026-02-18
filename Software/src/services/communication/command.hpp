@@ -12,7 +12,7 @@
 #include "services/led.h"
 
 static const std::regex commandRegex(
-    R"(go:(simplePenetration|strokeEngine|menu)|set:(speed|stroke|depth|sensation|pattern):\d+)");
+    R"(go:(simplePenetration|strokeEngine|streaming|menu)|set:(speed|stroke|depth|sensation|pattern):\d+|set:wifi:[^|]+\|.+|stream:\d+:\d+)");
 
 /** Handler class for characteristic actions */
 class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
@@ -49,7 +49,7 @@ NimBLECharacteristic* initCommandCharacteristic(NimBLEService* pService,
                                                 NimBLEUUID uuid) {
     // Command characteristic (writable, readable)
     NimBLECharacteristic* pChar = pService->createCharacteristic(
-        uuid, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ);
+        uuid, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE_NR);
 
     // Store the characteristic pointer globally
 

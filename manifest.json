@@ -1,0 +1,27 @@
+{
+    "name": "OSSM (master branch)",
+    "builds": [
+        {
+            "chipFamily": "ESP32",
+            "improv": false,
+            "parts": [
+                {
+                    "path": "https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public/ossm-firmware/master/bootloader.bin",
+                    "offset": 4096
+                },
+                {
+                    "path": "https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public/ossm-firmware/master/partitions.bin",
+                    "offset": 32768
+                },
+                {
+                    "path": "https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public/ossm-firmware/boot_app0.bin",
+                    "offset": 57344
+                },
+                {
+                    "path": "https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public/ossm-firmware/master/firmware.bin",
+                    "offset": 65536
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,131 @@
+---
+title: "Funscript Player"
+description: "Play funscript files synced with video directly to your OSSM via Bluetooth"
+---
+
+import { OssmFunscriptPlayer } from "/snippets/ossm/funscript-player.jsx"
+
+<Warning>
+**Experimental Feature**: The Funscript Player uses streaming mode, which is experimental and not recommended for general play. The protocol and behavior may change in future firmware updates. Use at your own risk and always test at low intensity first.
+</Warning>
+
+Sync your OSSM with funscript files for video-synchronized playback. Load a video and matching `.funscript` file, connect via Bluetooth, and enjoy automated motion control.
+
+<OssmFunscriptPlayer />
+
+## Requirements
+
+- **OSSM firmware**: Version 3.0 or later (with BLE streaming support)
+- **Compatible browser**: Chrome, Edge, or Opera on desktop/Android
+- **Bluetooth**: Enabled on your device
+- **Funscript file**: A `.funscript` file matching your video
+
+<Note>
+Web Bluetooth is **not supported** on iOS devices (iPhone/iPad) or in Safari/Firefox browsers. For these platforms, consider using third-party funscript players with [Buttplug.io](https://buttplug.io) integration.
+</Note>
+
+## How to Use
+
+<Steps>
+  <Step title="Load your media files">
+    Click the file pickers to select your video file and matching `.funscript` file. The funscript filename should match the video filename (e.g., `my-video.mp4` and `my-video.funscript`).
+  </Step>
+  
+  <Step title="Connect to your OSSM">
+    Click **Connect to OSSM** and select your device from the Bluetooth list. The OSSM will automatically enter streaming mode.
+  </Step>
+  
+  <Step title="Play the video">
+    Press play on the video player. Position commands are sent in real-time as the video plays, keeping your OSSM synchronized with the content.
+  </Step>
+</Steps>
+
+## What is Funscript?
+
+Funscript is a JSON-based file format used to synchronize toy movements with video content. Each funscript contains a series of position/time pairs that define where the device should move at specific moments during playback.
+
+```json Example funscript structure
+{
+  "version": "1.0",
+  "actions": [
+    { "pos": 0, "at": 1000 },
+    { "pos": 99, "at": 2000 },
+    { "pos": 0, "at": 3000 }
+  ]
+}
+```
+
+- **pos**: Position from 0 (fully retracted) to 99 (fully extended)
+- **at**: Timestamp in milliseconds
+
+<Info>
+Funscripts can be created using tools like [OpenFunscripter](https://github.com/OpenFunscripter/OpenFunscripter) or purchased from marketplaces like [RealSync](https://realsync.us/).
+</Info>
+
+## Playback Settings
+
+| Setting | Description |
+|---------|-------------|
+| **Time Offset** | Adjust sync timing (-500ms to +500ms). Use positive values if the OSSM is behind the video, negative if ahead. |
+| **Look-ahead** | How far ahead to send commands (0-500ms). Higher values help compensate for BLE latency but may reduce responsiveness. |
+
+## Safety Features
+
+- **Auto-stop on disconnect**: If Bluetooth connection is lost, the OSSM ramps down safely
+- **Return to menu on disconnect**: When you disconnect, the OSSM returns to the main menu
+- **Manual control**: You can pause the video at any time to stop motion
+
+<Warning>
+Always ensure you have easy access to pause the video or disconnect from the OSSM. Start with slower content to verify sync timing before using faster scripts.
+</Warning>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="OSSM not responding to commands">
+    - Ensure the OSSM shows "streaming" mode on its display after connecting
+    - Check the debug logs for any error messages
+    - Try disconnecting and reconnecting
+    - Verify your OSSM firmware supports streaming mode (v3.0+)
+  </Accordion>
+  
+  <Accordion title="Motion is out of sync with video">
+    - Adjust the **Time Offset** slider to compensate for delays
+    - Increase the **Look-ahead** value if motion seems late
+    - Ensure your device isn't experiencing Bluetooth interference
+  </Accordion>
+  
+  <Accordion title="Funscript file not loading">
+    - Verify the file has a `.funscript` or `.json` extension
+    - Check that the file contains valid JSON with an `actions` array
+    - Look for parsing errors in the debug logs
+  </Accordion>
+  
+  <Accordion title="Choppy or stuttering motion">
+    - Close other Bluetooth-connected devices to reduce interference
+    - Stay within 10 meters of your OSSM
+    - Try reducing video quality if your device is struggling
+  </Accordion>
+</AccordionGroup>
+
+## Technical Details
+
+The funscript player uses the OSSM's native streaming protocol via BLE:
+
+- **Command format**: `stream:position:time` where position is 0-100 and time is milliseconds to reach the target
+- **Update rate**: Commands are sent every 10ms when new actions are due
+- **BLE characteristic**: Uses the primary OSSM command characteristic (`522b443a-4f53-534d-1000-420badbabe69`)
+
+<Info>
+Position streaming is experimental. The firmware calculates the required speed to reach each target position within the specified time, using maximum acceleration for responsive motion. If the BLE connection is lost, the OSSM automatically ramps down and stops over 2 seconds.
+</Info>
+
+<CardGroup cols={2}>
+<Card title="BLE Protocol Documentation" icon="bluetooth" href="/ossm/Software/communication/ble">
+  Full streaming command reference and protocol details.
+</Card>
+
+<Card title="Operating Modes" icon="sliders" href="/ossm/Software/getting-started/operating-modes#streaming-mode-experimental">
+  Learn about streaming mode and other operating modes.
+</Card>
+</CardGroup>

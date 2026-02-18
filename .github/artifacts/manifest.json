@@ -6,7 +6,7 @@
             "improv": false,
             "parts": [
                 {
-                    "path": "https://dashboard.researchanddesire.com/espOSSM/bootloader.bin",
+                    "path": "https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public/ossm-firmware/{{ branchName }}/bootloader.bin",
                     "offset": 4096
                 },
                 {
@@ -14,7 +14,7 @@
                     "offset": 32768
                 },
                 {
-                    "path": "https://dashboard.researchanddesire.com/espOSSM/boot_app0.bin",
+                    "path": "https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public/ossm-firmware/boot_app0.bin",
                     "offset": 57344
                 },
                 {
