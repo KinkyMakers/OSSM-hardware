@@ -131,7 +131,7 @@ export const OssmFunscriptPlayer = () => {
   }, [sendCommand]);
 
   const handleBufferChange = useCallback((value) => {
-    sendCommand(`set:buffer:${value}`);
+    sendCommand(`set:buffer:${value/2}`);
   }, [sendCommand]);
 
   const handleSpeedChange = useCallback((value) => {
@@ -169,7 +169,7 @@ export const OssmFunscriptPlayer = () => {
       setSensation(state.sensation);
     }
     if (state.buffer !== undefined) {
-      setBuffer(state.buffer);
+      setBuffer(state.buffer*2);
     }
   });
 
@@ -686,7 +686,7 @@ export const OssmFunscriptPlayer = () => {
             <input
               type="range"
               min="0"
-              max="100"
+              max="200"
               value={buffer}
               onChange={(e) => setBuffer(parseInt(e.target.value))}
               onMouseUp={(e) => handleBufferChange(parseInt(e.target.value))}

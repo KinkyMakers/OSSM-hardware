@@ -88,7 +88,7 @@ void ossmResetSettingsStreaming() {
     settings.stroke = 50;
     settings.depth = 50;
     settings.sensation = 50;
-    settings.buffer = 70;
+    settings.buffer = 50;
     session.playControl = PlayControls::DEPTH;
 
     // Prepare the encoder

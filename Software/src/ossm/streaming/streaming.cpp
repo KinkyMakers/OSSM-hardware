@@ -65,10 +65,10 @@ static void startStreamingTask(void *pvParameters) {
         
         // settime is when the message was received. If we trust the source we can reduce perceived lag by creating a buffer.
         if (targetPositionTime.setTime){
-            uint8_t mincomp =  min(int(settings.buffer),int(lastPositionTime.inTime));
+            int16_t mincomp =  min(int(settings.buffer * 2),int(lastPositionTime.inTime));
             int16_t offset = mincomp - currentBuffer;
             int16_t lag = std::chrono::duration_cast<std::chrono::milliseconds>(targetPositionTime.setTime.value() - best).count();
-            if (lag < 0 || lag > settings.buffer * 10){
+            if (lag < 0 || lag > mincomp * 10){
                 best = targetPositionTime.setTime.value();
                 lag = 0;
                 offset = 0;
