@@ -36,6 +36,5 @@ static auto longPress = sml::event<LongPress>;
 static auto doublePress = sml::event<DoublePress>;
 static auto done = sml::event<Done>;
 static auto error = sml::event<Error>;
-static auto emergencyStop = sml::event<EmergencyStop>;
 static auto home = sml::event<Home>;
 #endif  // OSSM_SOFTWARE_EVENTS_H
