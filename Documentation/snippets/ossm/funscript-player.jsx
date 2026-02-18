@@ -21,6 +21,7 @@ export const OssmFunscriptPlayer = () => {
   const [videoUrl, setVideoUrl] = useState(null);
   const [funscriptFile, setFunscriptFile] = useState(null);
   const [funscriptActions, setFunscriptActions] = useState([]);
+  const [funscriptSimple, setFunscriptSimple] = useState(1);
 
   // Playback state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -272,16 +273,27 @@ export const OssmFunscriptPlayer = () => {
       if (!data.actions || !Array.isArray(data.actions)) {
         throw new Error('Invalid funscript: missing actions array');
       }
+      
+      if (funscriptSimple > 0){
+        var lastDirection = 0;
+        data.simpleActions = [];
+        data.actions.forEach(
+          function(value,index){
+            var nextValue = data.actions[index+1];
+            if (nextValue){
+              var direction = (value.pos-nextValue.pos)/Math.abs(value.pos-nextValue.pos);
+              if (direction != lastDirection){
+                data.simpleActions.push(data.actions[index]);
+              }
+              lastDirection = direction;
+            }
+          }
+        )
+        data.actions = data.simpleActions;
+      }
 
-      const actions = data.actions
-        .map(action => ({
-          pos: action.pos,
-          at: action.at
-        }))
-        .sort((a, b) => a.at - b.at);
-
-      setFunscriptActions(actions);
-      addLog('INFO', `Loaded ${actions.length} actions`);
+      setFunscriptActions(data.actions);
+      addLog('INFO', `Loaded ${data.actions.length} actions`);
 
       if (data.version) addLog('INFO', `Funscript version: ${data.version}`);
       if (data.inverted) addLog('INFO', 'Script is inverted');
@@ -293,7 +305,7 @@ export const OssmFunscriptPlayer = () => {
       setError(`Failed to parse funscript: ${err.message}`);
       return false;
     }
-  }, [addLog]);
+  }, [addLog,funscriptSimple]);
 
   // Format time for display
   const formatTime = (seconds) => {
@@ -517,7 +529,16 @@ export const OssmFunscriptPlayer = () => {
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Funscript File
+              Funscript File --- Simplify
+            <input
+              style={{width:'2rem',marginLeft:'3rem'}}
+              type="range"
+              min="0"
+              max="1"
+              value={funscriptSimple}
+              onClick={(e) => setFunscriptSimple(parseInt(funscriptSimple + 1)%2)}
+              className="h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
+            />
             </label>
             <label className="block cursor-pointer">
               <input
