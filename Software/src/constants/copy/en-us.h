@@ -32,6 +32,7 @@ static const char enUs_Stroke[] PROGMEM = "Stroke";
 static const char enUs_StrokeEngine[] PROGMEM = "Stroke Engine";
 static const char enUs_StrokeTooShort[] PROGMEM =
     "Stroke too short. Please check you drive belt.";
+static const char enUs_Pairing[] PROGMEM = "Pairing";
 static const char enUs_Update[] PROGMEM = "Update";
 static const char enUs_UpdateMessage[] PROGMEM =
     "Update is in progress. This may take up to 60s.";
@@ -93,6 +94,7 @@ static const LanguageStruct enUs = {
     .Stroke = enUs_Stroke,
     .StrokeEngine = enUs_StrokeEngine,
     .StrokeTooShort = enUs_StrokeTooShort,
+    .Pairing = enUs_Pairing,
     .Update = enUs_Update,
     .UpdateMessage = enUs_UpdateMessage,
     .WiFi = enUs_WiFi,

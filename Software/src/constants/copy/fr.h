@@ -33,6 +33,7 @@ static const char fr_Stroke[] PROGMEM = "Coup";
 static const char fr_StrokeEngine[] PROGMEM = "Stroke Engine";
 static const char fr_StrokeTooShort[] PROGMEM =
     "Course trop courte. Veuillez vérifier votre courroie d'entraînement.";
+static const char fr_Pairing[] PROGMEM = "Appairage";
 static const char fr_Update[] PROGMEM = "Mettre à jour";
 static const char fr_UpdateMessage[] PROGMEM =
     "La mise à jour est en cours. Ça peut prendre jusqu'à 60 secondes.";
@@ -97,6 +98,7 @@ static const LanguageStruct fr = {
     .Stroke = fr_Stroke,
     .StrokeEngine = fr_StrokeEngine,
     .StrokeTooShort = fr_StrokeTooShort,
+    .Pairing = fr_Pairing,
     .Update = fr_Update,
     .UpdateMessage = fr_UpdateMessage,
     .WiFi = fr_WiFi,

@@ -70,6 +70,8 @@ typedef struct {
 class Pattern {
   public:
     static Pattern* Create(StrokePatterns pattern);
+    //! Virtual destructor for proper polymorphic cleanup
+    virtual ~Pattern() = default;
 
     //! Set percentage based speed
     /*!

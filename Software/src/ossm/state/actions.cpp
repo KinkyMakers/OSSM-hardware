@@ -3,6 +3,7 @@
 #include "ossm/homing/homing.h"
 #include "ossm/menu/menu.h"
 #include "ossm/pages/error.h"
+#include "ossm/pages/pairing.h"
 #include "ossm/pages/hello.h"
 #include "ossm/pages/help.h"
 #include "ossm/pages/preflight.h"
@@ -165,6 +166,10 @@ void ossmDrawUpdating() {
 
 void ossmDrawError() {
     pages::drawError();
+}
+
+void ossmCheckPairing() {
+    pages::checkPairing();
 }
 
 void ossmSetHomed() {

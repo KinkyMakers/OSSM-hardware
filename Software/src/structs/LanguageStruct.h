@@ -27,6 +27,7 @@ struct LanguageStruct {
     const char* Stroke;
     const char* StrokeEngine;
     const char* StrokeTooShort;
+    const char* Pairing;
     const char* Update;
     const char* UpdateMessage;
     const char* WiFi;

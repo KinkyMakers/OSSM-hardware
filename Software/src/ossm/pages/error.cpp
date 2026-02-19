@@ -9,12 +9,7 @@
 namespace pages {
 
 void drawError() {
-    // Throw the e-break on the stepper
-    try {
-        stepper->forceStop();
-    } catch (const std::exception &e) {
-        ESP_LOGD("pages::drawError", "Caught exception: %s", e.what());
-    }
+    stepper->forceStop();
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
         clearPage(true, true);
