@@ -140,6 +140,10 @@ export const OssmFunscriptPlayer = () => {
 
   const handleStrokeChange = useCallback((value) => {
     sendCommand(`set:stroke:${value}`);
+    console.log(!isPlaying);
+    if(!isPlaying){
+      sendStreamPosition(100,1000);
+    }
   }, [sendCommand]);
 
   const handleSensationChange = useCallback((value) => {
@@ -148,6 +152,9 @@ export const OssmFunscriptPlayer = () => {
 
   const handleDepthChange = useCallback((value) => {
     sendCommand(`set:depth:${value}`);
+    if(!isPlaying){
+      sendStreamPosition(0,1000);
+    }
   }, [sendCommand]);
 
   const handleStateChange = useCallback((value) => {

@@ -192,6 +192,8 @@ static void drawPlayControlsTask(void *pvParameters) {
                                               0, RIGHT_ALIGNED, 5);
                         drawShape::settingBarSmall(settings.stroke, 108);
                         break;
+                    default:
+                        break;
                 }
             } else if (isStreaming) {
                 switch (session.playControl) {

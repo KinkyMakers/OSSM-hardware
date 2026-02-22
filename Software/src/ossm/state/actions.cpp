@@ -110,6 +110,8 @@ void ossmIncrementControlStrokeEngine() {
         case PlayControls::SENSATION:
             encoder.setEncoderValue(settings.sensation);
             break;
+        default:
+            break;
     }
 }
 
