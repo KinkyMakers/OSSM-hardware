@@ -117,7 +117,6 @@ String OSSM::getCurrentState() {
     }
 
     String json = "{";
-    json += "\"timestamp\":" + String(millis()) + ",";
     json += "\"state\":\"" + currentState + "\",";
     json += "\"speed\":" + String((int)settings.speed) + ",";
     json += "\"stroke\":" + String((int)settings.stroke) + ",";
