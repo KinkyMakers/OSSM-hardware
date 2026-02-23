@@ -6,6 +6,7 @@
 #include "constants/Pins.h"
 #include "constants/UserConfig.h"
 #include "extensions/u8g2Extensions.h"
+#include "ossm/state/ble.h"
 #include "ossm/state/menu.h"
 #include "ossm/state/session.h"
 #include "ossm/state/settings.h"
@@ -93,20 +94,28 @@ static void drawPlayControlsTask(void *pvParameters) {
         next.speedKnob =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
 #endif
-        settings.speedKnob = next.speedKnob;
-        encoderValue = encoder.readEncoder();
-
-        if (USE_SPEED_KNOB_AS_LIMIT || !settings.speedBLE.has_value()) {
-            next.speed = next.speedKnob * (settings.speedBLE.value_or(100)) / 100;
-        } else {
-            next.speedKnob = settings.speedBLE.value_or(100);
-            next.speed = settings.speedBLE.value_or(100);
+        // if the knob has changed significantly, and is turned down (for safety), turn off the BLE flag.
+        if (abs(next.speedKnob - settings.speedKnob) > 2 && next.speedKnob < settings.speed) {
+            ::resetLastSpeedCommandWasFromBLE();
+        }
+        // Set default speed as speedknob
+        next.speed = next.speedKnob;
+        if (settings.speedBLE.has_value()) {
+            // Use percentage in limited mode, else use BLE value
+            if (USE_SPEED_KNOB_AS_LIMIT) {
+                next.speed = next.speedKnob * settings.speedBLE.value() / 100;
+            } else if (::wasLastSpeedCommandFromBLE()){
+                next.speed = settings.speedBLE.value();
+            }
         }
 
         if (next.speed != settings.speed) {
             shouldUpdateDisplay = true;
             settings.speed = next.speed;
         }
+        
+        settings.speedKnob = next.speedKnob;
+        encoderValue = encoder.readEncoder();
 
         switch (session.playControl) {
             case PlayControls::STROKE:
@@ -165,9 +174,9 @@ static void drawPlayControlsTask(void *pvParameters) {
             display.setFont(Config::Font::base);
 
             if (!isStreaming){
-                drawShape::settingBar(UserConfig::language.Speed, next.speedKnob);
+                drawShape::settingBar(UserConfig::language.Speed, next.speed);
             } else {
-                drawShape::settingBar("Max", next.speedKnob);
+                drawShape::settingBar("Max", next.speed);
                 display.setFont(Config::Font::bold);
                 display.drawUTF8(14, 36, UserConfig::language.Speed);
             }
