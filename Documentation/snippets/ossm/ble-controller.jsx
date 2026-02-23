@@ -86,6 +86,7 @@ export const OssmBleController = () => {
   const [error, setError] = useState(null);
 
   const [speed, setSpeed] = useState(0);
+  const [pausedSpeed, setPausedSpeed] = useState(0);
   const [depth, setDepth] = useState(50);
   const [stroke, setStroke] = useState(50);
   const [sensation, setSensation] = useState(50);
@@ -188,11 +189,12 @@ export const OssmBleController = () => {
 
   const handlePauseToggle = useCallback(async () => {
     if (isPaused) {
-      const resumeSpeed = speed > 0 ? speed : 50;
+      const resumeSpeed = speed > 0 ? speed : pausedSpeed;
       setSpeed(resumeSpeed);
       setIsPaused(false);
       await sendCommand(`set:speed:${resumeSpeed}`);
     } else {
+      setPausedSpeed(speed);
       setSpeed(0);
       setIsPaused(true);
       await sendCommand('set:speed:0');
