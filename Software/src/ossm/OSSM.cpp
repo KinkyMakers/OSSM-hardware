@@ -123,7 +123,6 @@ String OSSM::getCurrentState() {
     json += "\"sensation\":" + String((int)settings.sensation) + ",";
     json += "\"depth\":" + String((int)settings.depth) + ",";
     json += "\"pattern\":" + String(static_cast<int>(settings.pattern)) + ",";
-    json += "\"position\":" + String(float(-stepper->getCurrentPosition()) / float(1_mm)) + ",";
     json += "\"sessionId\":\"" + sessionId + "\"";
     json += "}";
 
