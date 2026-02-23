@@ -21,7 +21,9 @@ export const OssmFunscriptPlayer = () => {
   const [videoUrl, setVideoUrl] = useState(null);
   const [funscriptFile, setFunscriptFile] = useState(null);
   const [funscriptActions, setFunscriptActions] = useState([]);
-  const [funscriptSimple, setFunscriptSimple] = useState(1);
+  const [funscriptSimpleActions, setFunscriptSimpleActions] = useState([]);
+  const [isSimple, setIsSimple] = useState(true);
+  const [isReverse, setIsReverse] = useState(false);
 
   // Playback state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -180,6 +182,23 @@ export const OssmFunscriptPlayer = () => {
     }
   });
 
+  const handleSimpleToggle = useCallback(async () => {
+    setIsSimple(!isSimple);
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+    stopSync();
+  }, [isSimple]);
+
+  const handleReverseToggle = useCallback(async () => {
+    setIsReverse(!isReverse);
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+    stopSync();
+  }, [isReverse]);
+
+
   // Connect to OSSM
   const handleConnect = async () => {
     setError(null);
@@ -281,25 +300,25 @@ export const OssmFunscriptPlayer = () => {
         throw new Error('Invalid funscript: missing actions array');
       }
       
-      if (funscriptSimple > 0){
-        var lastDirection = 0;
-        data.simpleActions = [];
-        data.actions.forEach(
-          function(value,index){
-            var nextValue = data.actions[index+1];
-            if (nextValue){
-              var direction = (value.pos-nextValue.pos)/Math.abs(value.pos-nextValue.pos);
-              if (direction != lastDirection){
-                data.simpleActions.push(data.actions[index]);
-              }
-              lastDirection = direction;
+      var lastDirection = 0;
+      data.simpleActions = [];
+      data.actions.forEach(
+        function(value,index){
+          var nextValue = data.actions[index+1];
+          if (nextValue){
+            var direction = (value.pos-nextValue.pos)/Math.abs(value.pos-nextValue.pos);
+            if (direction != lastDirection){
+              data.simpleActions.push(data.actions[index]);
             }
+            lastDirection = direction;
           }
-        )
-        data.actions = data.simpleActions;
-      }
+        }
+      )
+      data.simpleActions;
 
       setFunscriptActions(data.actions);
+      setFunscriptSimpleActions(data.simpleActions);
+
       addLog('INFO', `Loaded ${data.actions.length} actions`);
 
       if (data.version) addLog('INFO', `Funscript version: ${data.version}`);
@@ -312,7 +331,7 @@ export const OssmFunscriptPlayer = () => {
       setError(`Failed to parse funscript: ${err.message}`);
       return false;
     }
-  }, [addLog,funscriptSimple]);
+  }, [addLog]);
 
   // Format time for display
   const formatTime = (seconds) => {
@@ -323,22 +342,31 @@ export const OssmFunscriptPlayer = () => {
 
   // Sync funscript with video
   const syncFunscript = useCallback(() => {
-    if (!videoRef.current || funscriptActions.length === 0) return;
+    var actions = funscriptActions;
+    if (isSimple){
+      actions = funscriptSimpleActions;
+    }
+
+    if (!videoRef.current || actions.length === 0) return;
 
     const currentTimeMs = (videoRef.current.currentTime * 1000) + timeOffset + buffer;
     setCurrentTime(videoRef.current.currentTime);
 
-    while (currentActionIndexRef.current < funscriptActions.length) {
-      const action = funscriptActions[currentActionIndexRef.current];
+    while (currentActionIndexRef.current < actions.length) {
+      const action = actions[currentActionIndexRef.current];
 
       if (action.at > currentTimeMs) {
         break;
       }
 
       let timeToNext = 100;
-      if (currentActionIndexRef.current < funscriptActions.length - 1) {
-        const nextAction = funscriptActions[currentActionIndexRef.current + 1];
-        timeToNext = nextAction.at - action.at;      
+      if (currentActionIndexRef.current < actions.length - 1) {
+        const nextAction = actions[currentActionIndexRef.current + 1];
+        timeToNext = nextAction.at - action.at;
+
+        if(isReverse){
+          nextAction.pos = 100 - nextAction.pos;
+        }
 
         if (action.at > lastSentTimeRef.current) {
           sendStreamPosition(nextAction.pos, timeToNext);
@@ -348,7 +376,7 @@ export const OssmFunscriptPlayer = () => {
 
       currentActionIndexRef.current++;
     }
-  }, [funscriptActions, timeOffset, buffer, sendStreamPosition]);
+  }, [funscriptActions, funscriptSimpleActions, timeOffset, buffer, sendStreamPosition, isReverse, isSimple]);
 
   // Start sync loop
   const startSync = useCallback(() => {
@@ -414,8 +442,12 @@ export const OssmFunscriptPlayer = () => {
   const handleVideoSeeked = () => {
     if (!videoRef.current) return;
     const currentTimeMs = videoRef.current.currentTime * 1000;
-    currentActionIndexRef.current = funscriptActions.findIndex(a => a.at > currentTimeMs);
-    if (currentActionIndexRef.current === -1) currentActionIndexRef.current = funscriptActions.length;
+    var actions = funscriptActions;
+    if (isSimple) {
+      actions = funscriptSimpleActions;
+    }
+    currentActionIndexRef.current = actions.findIndex(a => a.at > currentTimeMs);
+    if (currentActionIndexRef.current === -1) currentActionIndexRef.current = actions.length;
     lastSentTimeRef.current = currentTimeMs - 1;
     addLog('INFO', `Seeked to ${formatTime(videoRef.current.currentTime)}`);
   };
@@ -536,16 +568,7 @@ export const OssmFunscriptPlayer = () => {
 
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Funscript File --- Simplify
-            <input
-              style={{width:'2rem',marginLeft:'3rem'}}
-              type="range"
-              min="0"
-              max="1"
-              value={funscriptSimple}
-              onClick={(e) => setFunscriptSimple(parseInt(funscriptSimple + 1)%2)}
-              className="h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
-            />
+              Funscript File
             </label>
             <label className="block cursor-pointer">
               <input
@@ -596,7 +619,7 @@ export const OssmFunscriptPlayer = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
           <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-3 text-center">
             <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{formatTime(currentTime)}</div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">Time</div>
@@ -606,13 +629,31 @@ export const OssmFunscriptPlayer = () => {
             <div className="text-xs text-zinc-500 dark:text-zinc-400">Position</div>
           </div>
           <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-3 text-center">
-            <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{funscriptActions.length}</div>
+            <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{isSimple ? funscriptSimpleActions.length : funscriptActions.length}</div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">Actions</div>
           </div>
           <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-3 text-center">
             <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{commandsSent}</div>
             <div className="text-xs text-zinc-500 dark:text-zinc-400">Sent</div>
           </div>
+          <button
+            onClick={handleReverseToggle}
+            className={`w-full rounded-lg text-lg font-bold transition-colors bg-zinc-50 dark:bg-zinc-800 rounded-lg p-3 text-center`}
+          >
+            <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+              {isReverse ? 'ON' : 'OFF'}
+            </div>
+            <div className="text-xs text-zinc-500 dark:text-zinc-400">Reverse</div>
+          </button>
+          <button
+            onClick={handleSimpleToggle}
+            className={`w-full rounded-lg text-lg font-bold transition-colors bg-zinc-50 dark:bg-zinc-800 rounded-lg p-3 text-center`}
+          >
+            <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+              {isSimple ? 'ON' : 'OFF'}
+            </div>
+            <div className="text-xs text-zinc-500 dark:text-zinc-400">Simplified</div>
+          </button>
         </div>
       </div>
 
