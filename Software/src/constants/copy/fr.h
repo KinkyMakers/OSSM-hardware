@@ -64,6 +64,8 @@ static const char fr_StrokeEngineDescriptions_7[] PROGMEM =
     "";
 static const char fr_StrokeEngineDescriptions_8[] PROGMEM =
     "";
+static const char fr_StrokeEngineDescriptions_9[] PROGMEM =
+    "";
 
 static const char fr_StrokeEngineNames_0[] PROGMEM = "Simple Stroke";
 static const char fr_StrokeEngineNames_1[] PROGMEM = "Teasing Pounding";
@@ -74,6 +76,7 @@ static const char fr_StrokeEngineNames_5[] PROGMEM = "Stop'n'Go";
 static const char fr_StrokeEngineNames_6[] PROGMEM = "Insist";
 static const char fr_StrokeEngineNames_7[] PROGMEM = "Progressive Stroke";
 static const char fr_StrokeEngineNames_8[] PROGMEM = "Random Stroke";
+static const char fr_StrokeEngineNames_9[] PROGMEM = "Go to Point";
 
 static const LanguageStruct fr = {
     .DeepThroatTrainerSync = fr_DeepThroatTrainerSync,
@@ -114,7 +117,8 @@ static const LanguageStruct fr = {
                                  fr_StrokeEngineDescriptions_5,
                                  fr_StrokeEngineDescriptions_6,
                                  fr_StrokeEngineDescriptions_7,
-                                 fr_StrokeEngineDescriptions_8
+                                 fr_StrokeEngineDescriptions_8,
+                                 fr_StrokeEngineDescriptions_9
     },
     .StrokeEngineNames = {fr_StrokeEngineNames_0,
                           fr_StrokeEngineNames_1,
@@ -124,7 +128,8 @@ static const LanguageStruct fr = {
                           fr_StrokeEngineNames_5,
                           fr_StrokeEngineNames_6,
                           fr_StrokeEngineNames_7,
-                          fr_StrokeEngineNames_8
+                          fr_StrokeEngineNames_8,
+                          fr_StrokeEngineNames_9
     }
 };
 

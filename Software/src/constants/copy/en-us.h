@@ -60,6 +60,8 @@ static const char enUs_StrokeEngineDescriptions_7[] PROGMEM =
     "Strokes are made of substrokes controlled by sensation.";
 static const char enUs_StrokeEngineDescriptions_8[] PROGMEM =
     "Random Stroke. Sensation controls maximum randomness from current location.";
+static const char enUs_StrokeEngineDescriptions_9[] PROGMEM =
+    "Moves to a point between depth and stroke based on sensation.";
 
 static const char enUs_StrokeEngineNames_0[] PROGMEM = "Simple Stroke";
 static const char enUs_StrokeEngineNames_1[] PROGMEM = "Teasing Pounding";
@@ -70,6 +72,7 @@ static const char enUs_StrokeEngineNames_5[] PROGMEM = "Stop'n'Go";
 static const char enUs_StrokeEngineNames_6[] PROGMEM = "Insist";
 static const char enUs_StrokeEngineNames_7[] PROGMEM = "Progressive Stroke";
 static const char enUs_StrokeEngineNames_8[] PROGMEM = "Random Stroke";
+static const char enUs_StrokeEngineNames_9[] PROGMEM = "Go to Point";
 
 static const LanguageStruct enUs = {
     .DeepThroatTrainerSync = enUs_DeepThroatTrainerSync,
@@ -110,7 +113,8 @@ static const LanguageStruct enUs = {
                                  enUs_StrokeEngineDescriptions_5,
                                  enUs_StrokeEngineDescriptions_6,
                                  enUs_StrokeEngineDescriptions_7,
-                                 enUs_StrokeEngineDescriptions_8
+                                 enUs_StrokeEngineDescriptions_8,
+                                 enUs_StrokeEngineDescriptions_9
     },
     .StrokeEngineNames = {enUs_StrokeEngineNames_0,
                           enUs_StrokeEngineNames_1,
@@ -120,7 +124,8 @@ static const LanguageStruct enUs = {
                           enUs_StrokeEngineNames_5,
                           enUs_StrokeEngineNames_6,
                           enUs_StrokeEngineNames_7,
-                          enUs_StrokeEngineNames_8
+                          enUs_StrokeEngineNames_8,
+                          enUs_StrokeEngineNames_9
     }
 };
 

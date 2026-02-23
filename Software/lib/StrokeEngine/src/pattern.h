@@ -34,6 +34,7 @@ enum class StrokePatterns {
     Insist,
     ProgressiveStroke,
     RandomStroke,
+    PoinStroke,
     //Add additional strokes here
     Count
 };
@@ -698,6 +699,38 @@ class RandomStroke : public Pattern {
     float _lastTarget = 0;
 };
 
+/**************************************************************************/
+/*!
+  @brief  Simple Stroke Pattern. It creates a trapezoidal stroke profile
+  with 1/3 acceleration, 1/3 coasting, 1/3 deceleration. Sensation creates
+  randomness to either the depth or the stroke while respecting bounds.
+*/
+/**************************************************************************/
+class PointStroke : public Pattern {
+  public:
+    void setSpeed(float speed = 0) {
+        _speed = speed;
+        // time of a trapezoidal motion maximizing at speed
+        _timeOfStroke = std::max(1.5 * _stroke / _speed, 0.1);
+    }
+    void setStroke(int stroke) {
+        _stroke = stroke;
+        // time of a trapezoidal motion maximizing at speed
+        _timeOfStroke = std::max(1.5 * _stroke / _speed, 0.1);
+    }
+    motionParameter nextTarget(unsigned int index) {
+        _nextMove.speed = int(_speed);
+        // acceleration to meet the profile
+        _nextMove.acceleration = int(3.0 * _nextMove.speed / _timeOfStroke);
+
+        float offset = _stroke * (1-((_sensation + 100)/200.0));
+
+        _nextMove.stroke = _depth - offset;
+        _index = index;
+        return _nextMove;
+    }
+};
+
 inline Pattern* Pattern::Create(StrokePatterns pattern){
     switch(pattern){
         case StrokePatterns::TeasingPounding:
@@ -716,6 +749,8 @@ inline Pattern* Pattern::Create(StrokePatterns pattern){
             return new ProgressiveStroke();
         case StrokePatterns::RandomStroke:
             return new RandomStroke();
+        case StrokePatterns::PoinStroke:
+            return new PointStroke();
         default:
             return new SimpleStroke();
     }
