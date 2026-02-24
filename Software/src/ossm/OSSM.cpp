@@ -108,7 +108,7 @@ void OSSM::ble_click(String commandString) {
     }
 }
 
-String OSSM::getCurrentState() {
+String OSSM::getCurrentState(bool detailed) {
     String currentState;
     if (stateMachine != nullptr) {
         stateMachine->visit_current_states(
@@ -116,6 +116,10 @@ String OSSM::getCurrentState() {
     }
 
     String json = "{";
+    if (detailed) {
+        json += "\"timestamp\":" + String(millis()) + ",";
+        json += "\"position\":" + String(float(-stepper->getCurrentPosition()) / float(1_mm)) + ",";
+    }
     json += "\"state\":\"" + currentState + "\",";
     json += "\"speed\":" + String((int)settings.speed) + ",";
     json += "\"stroke\":" + String((int)settings.stroke) + ",";
