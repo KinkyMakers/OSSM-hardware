@@ -41,6 +41,7 @@ static void drawPreflightTask(void *pvParameters) {
     auto isInPreflight = []() {
         // Add your preflight checks states here.
         return stateMachine->is("simplePenetration.preflight"_s) ||
+               stateMachine->is("streaming.preflight"_s) ||
                stateMachine->is("strokeEngine.preflight"_s);
     };
 

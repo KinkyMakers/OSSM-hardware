@@ -57,7 +57,7 @@ struct OSSMStateMachine {
             "strokeEngine"_s / drawPreflight = "strokeEngine.preflight"_s,
             "strokeEngine.preflight"_s + done / (resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
             "strokeEngine.preflight"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
-            "strokeEngine.idle"_s + buttonPress / incrementControl = "strokeEngine.idle"_s,
+            "strokeEngine.idle"_s + buttonPress / incrementControlStrokeEngine = "strokeEngine.idle"_s,
             "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
             "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
             "strokeEngine.pattern"_s + doublePress / drawPlayControls = "strokeEngine.idle"_s,
@@ -65,11 +65,12 @@ struct OSSMStateMachine {
             "strokeEngine.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
 
             "streaming"_s [isNotHomed] = "homing"_s,
-            "streaming"_s [isPreflightSafe] / ( drawPlayControls, startStreaming) = "streaming.idle"_s,
+            "streaming"_s [isPreflightSafe] / (resetSettingsStreaming, drawPlayControls, startStreaming) = "streaming.idle"_s,
             "streaming"_s / drawPreflight = "streaming.preflight"_s,
-            "streaming.preflight"_s + done / ( drawPlayControls, startStreaming) = "streaming.idle"_s,
+            "streaming.preflight"_s + done / (resetSettingsStreaming, drawPlayControls, startStreaming) = "streaming.idle"_s,
             "streaming.preflight"_s + longPress = "menu"_s,
             "streaming.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
+            "streaming.idle"_s + buttonPress / incrementControlStreaming = "streaming.idle"_s,
 
             "pairing"_s / checkPairing = "pairing.idle"_s,
             "pairing.idle"_s + done = "menu"_s,
