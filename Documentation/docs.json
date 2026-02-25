@@ -139,6 +139,31 @@
                     "pages": [
                       "ossm/Hardware/standard-printed-parts/actuator/introduction",
                       {
+                        "group": "PitClamp",
+                        "pages": [
+                          "ossm/Hardware/standard-printed-parts/pitclamp/ASSEMBLY_GUIDES",
+                          "ossm/Hardware/standard-printed-parts/pitclamp/BOM",
+                          "ossm/Hardware/standard-printed-parts/pitclamp/README-2",
+                          "ossm/Hardware/standard-printed-parts/pitclamp/README",
+                          "ossm/Hardware/standard-printed-parts/pitclamp/UPDATES",
+                          {
+                            "group": "Part by Part",
+                            "pages": [
+                              "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/mounting-ring-pitclamp-mini-57aim",
+                              "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pitclamp-mini-dogbone-bolts",
+                              "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pitclamp-mini-dogbone-nuts",
+                              "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pitclamp-mini-lower",
+                              {
+                                "group": "Non-Standard",
+                                "pages": [
+                                  "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/non-standard/pitclamp-mini-upper-handle-print-in-place"
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
                         "group": "Part by Part",
                         "pages": [
                           "ossm/Hardware/standard-printed-parts/actuator/part-by-part/24mm-clamping-thread-belt-clamp",
@@ -197,33 +222,8 @@
                           "ossm/Hardware/standard-printed-parts/stand/part-by-part/extrusion-foot",
                           "ossm/Hardware/standard-printed-parts/stand/part-by-part/handle-spacer",
                           "ossm/Hardware/standard-printed-parts/stand/part-by-part/pivot-plate-left",
-                          "ossm/Hardware/standard-printed-parts/stand/part-by-part/pivot-plate-right"
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "group": "PitClamp",
-                    "pages": [
-                      "ossm/Hardware/standard-printed-parts/pitclamp/ASSEMBLY_GUIDES",
-                      "ossm/Hardware/standard-printed-parts/pitclamp/BOM",
-                      "ossm/Hardware/standard-printed-parts/pitclamp/README-2",
-                      "ossm/Hardware/standard-printed-parts/pitclamp/README",
-                      "ossm/Hardware/standard-printed-parts/pitclamp/UPDATES",
-                      {
-                        "group": "Part by Part",
-                        "pages": [
-                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/mounting-ring-pitclamp-mini-57aim",
-                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pcb-lid",
-                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pitclamp-mini-dogbone-bolts",
-                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pitclamp-mini-dogbone-nuts",
-                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pitclamp-mini-lower",
-                          {
-                            "group": "Non-Standard",
-                            "pages": [
-                              "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/non-standard/pitclamp-mini-upper-handle-print-in-place"
-                            ]
-                          }
+                          "ossm/Hardware/standard-printed-parts/stand/part-by-part/pivot-plate-right",
+                          "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pcb-lid"
                         ]
                       }
                     ]
