@@ -29,7 +29,7 @@ void StrokeEngine::begin(machineGeometry *physics, motorProperties *motor,
     _previousDepth = _maxStep;
     _stroke = _maxStep / 3;
     _previousStroke = _maxStep / 3;
-    _timeOfStroke = 1.0;
+    _speed = 0;
     _sensation = 0.0;
 
     if (_servo) {
@@ -49,14 +49,13 @@ void StrokeEngine::setSpeed(float speed, bool applyNow = false) {
     // Update pattern with new speed, will be used with the next stroke or on
     // update request
     if (xSemaphoreTake(_patternMutex, portMAX_DELAY) == pdTRUE) {
-        // Convert FPM into seconds to complete a full stroke
-        // Constrain stroke time between 10ms and 120 seconds
-        _timeOfStroke = constrain(60.0 / speed, 0.01, 120.0);
+        //Convert percentage speed to steps per second
+        _speed = (speed/100.0) * (_motor->maxSpeed * _motor->stepsPerMillimeter);
+        pattern->setSpeed(_speed);
 
-        pattern->setTimeOfStroke(_timeOfStroke);
 
 #ifdef DEBUG_TALKATIVE
-        Serial.println("setTimeOfStroke: " + String(_timeOfStroke, 2));
+        Serial.println("Speed: " + String(_speed,2));
 #endif
 
         // When running a pattern and immediate update requested:
@@ -72,11 +71,6 @@ void StrokeEngine::setSpeed(float speed, bool applyNow = false) {
         // give back mutex
         xSemaphoreGive(_patternMutex);
     }
-}
-
-float StrokeEngine::getSpeed() {
-    // Convert speed into FPMs
-    return 60.0 / _timeOfStroke;
 }
 
 void StrokeEngine::setDepth(float depth, bool applyNow = false) {
@@ -191,21 +185,20 @@ void StrokeEngine::setSensation(float sensation, bool applyNow = false) {
 
 float StrokeEngine::getSensation() { return _sensation; }
 
-bool StrokeEngine::setPattern(Pattern *NextPattern,
+bool StrokeEngine::setPattern(StrokePatterns NextPattern,
                               bool applyNow = false) {
     // Free up memory from previous pattern
-
     delete pattern;
-    pattern = NextPattern;
+    pattern = Pattern::Create(NextPattern);
 
     // Inject current motion parameters into new pattern
     if (xSemaphoreTake(_patternMutex, portMAX_DELAY) == pdTRUE) {
         pattern->setSpeedLimit(_maxStepPerSecond, _maxStepAcceleration,
                               _motor->stepsPerMillimeter);
-        pattern->setTimeOfStroke(_timeOfStroke);
         pattern->setStroke(_stroke);
         pattern->setDepth(_depth);
         pattern->setSensation(_sensation);
+        pattern->setSpeed(_speed);
 
         // When running a pattern and immediate update requested:
         if ((_state == PATTERN) && (applyNow == true)) {
@@ -225,8 +218,8 @@ bool StrokeEngine::setPattern(Pattern *NextPattern,
     }
 
 #ifdef DEBUG_TALKATIVE
-    Serial.println("setPattern: " + String(pattern->getName()));
-    Serial.println("setTimeOfStroke: " + String(_timeOfStroke, 2));
+    Serial.println("setPattern: " + String((int)NextPattern));
+    Serial.println("setSpeed: " + String(_speed, 2));
     Serial.println("setDepth: " + String(_depth));
     Serial.println("setStroke: " + String(_stroke));
     Serial.println("setSensation: " + String(_sensation));
@@ -255,15 +248,15 @@ bool StrokeEngine::startPattern() {
         if (xSemaphoreTake(_patternMutex, portMAX_DELAY) == pdTRUE) {
             pattern->setSpeedLimit(_maxStepPerSecond, _maxStepAcceleration,
                                   _motor->stepsPerMillimeter);
-            pattern->setTimeOfStroke(_timeOfStroke);
             pattern->setStroke(_stroke);
             pattern->setDepth(_depth);
             pattern->setSensation(_sensation);
+            pattern->setSpeed(_speed);
             xSemaphoreGive(_patternMutex);
         }
 
 #ifdef DEBUG_TALKATIVE
-        Serial.print(" _timeOfStroke: " + String(_timeOfStroke));
+        Serial.print(" _speed: " + String(_speed));
         Serial.print(" | _depth: " + String(_depth));
         Serial.print(" | _stroke: " + String(_stroke));
         Serial.println(" | _sensation: " + String(_sensation));

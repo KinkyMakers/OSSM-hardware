@@ -18,12 +18,12 @@ using namespace sml;
 // Global OSSM pointer (kept for backward compatibility during migration)
 OSSM *ossm = nullptr;
 
-// Static member definition - now forwards to global settings
+// Static member definition, with first pattern.
 SettingPercents OSSM::setting = {.speed = 0,
                                  .stroke = 50,
                                  .sensation = 50,
                                  .depth = 10,
-                                 .pattern = StrokePatterns::SimpleStroke};
+                                 .pattern = StrokePatterns(0)};
 
 OSSM::OSSM() {
     // Initialize global state from OSSM::setting
@@ -108,7 +108,7 @@ void OSSM::ble_click(String commandString) {
     }
 }
 
-String OSSM::getCurrentState() {
+String OSSM::getCurrentState(bool detailed) {
     String currentState;
     if (stateMachine != nullptr) {
         stateMachine->visit_current_states(
@@ -116,14 +116,16 @@ String OSSM::getCurrentState() {
     }
 
     String json = "{";
-    json += "\"timestamp\":" + String(millis()) + ",";
+    if (detailed) {
+        json += "\"timestamp\":" + String(millis()) + ",";
+        json += "\"position\":" + String(float(-stepper->getCurrentPosition()) / float(1_mm)) + ",";
+    }
     json += "\"state\":\"" + currentState + "\",";
     json += "\"speed\":" + String((int)settings.speed) + ",";
     json += "\"stroke\":" + String((int)settings.stroke) + ",";
     json += "\"sensation\":" + String((int)settings.sensation) + ",";
     json += "\"depth\":" + String((int)settings.depth) + ",";
     json += "\"pattern\":" + String(static_cast<int>(settings.pattern)) + ",";
-    json += "\"position\":" + String(float(-stepper->getCurrentPosition()) / float(1_mm)) + ",";
     json += "\"sessionId\":\"" + sessionId + "\"";
     json += "}";
 

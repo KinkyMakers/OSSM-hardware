@@ -16,10 +16,8 @@ NimBLECharacteristic* initPatternsCharacteristic(NimBLEService* pService,
     JsonDocument doc;
     JsonArray arr = doc.to<JsonArray>();
 
-    for (int i = 0; i < sizeof(UserConfig::language.StrokeEngineNames) /
-                            sizeof(UserConfig::language.StrokeEngineNames[0]);
-         i++) {
-        JsonObject pattern = arr.createNestedObject();
+    for (int i = 0; i < static_cast<int>(StrokePatterns::Count); i++) {
+        JsonObject pattern = arr.add<JsonObject>();
         pattern["name"] = UserConfig::language.StrokeEngineNames[i];
         pattern["idx"] = i;
     }
