@@ -23,7 +23,7 @@ SettingPercents OSSM::setting = {.speed = 0,
                                  .stroke = 50,
                                  .sensation = 50,
                                  .depth = 10,
-                                 .buffer = 50,
+                                 .buffer = 100,
                                  .pattern = StrokePatterns::SimpleStroke};
 
 OSSM::OSSM() {
