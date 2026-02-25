@@ -18,12 +18,12 @@ using namespace sml;
 // Global OSSM pointer (kept for backward compatibility during migration)
 OSSM *ossm = nullptr;
 
-// Static member definition - now forwards to global settings
+// Static member definition, with first pattern.
 SettingPercents OSSM::setting = {.speed = 0,
                                  .stroke = 50,
                                  .sensation = 50,
                                  .depth = 10,
-                                 .pattern = StrokePatterns::SimpleStroke};
+                                 .pattern = StrokePatterns(0)};
 
 OSSM::OSSM() {
     // Initialize global state from OSSM::setting

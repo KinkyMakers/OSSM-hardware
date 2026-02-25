@@ -2,6 +2,7 @@
 #define OSSM_SOFTWARE_LANGUAGESTRUCT_H
 
 #include <Arduino.h>
+#include "Pattern.h"
 
 struct LanguageStruct {
     const char* DeepThroatTrainerSync;
@@ -34,8 +35,8 @@ struct LanguageStruct {
     const char* WiFiSetupLine1;
     const char* WiFiSetupLine2;
     const char* YouShouldNotBeHere;
-    const char* StrokeEngineDescriptions[7];
-    const char* StrokeEngineNames[7];
+    const char* StrokeEngineDescriptions[int(StrokePatterns::Count)];
+    const char* StrokeEngineNames[int(StrokePatterns::Count)];
 };
 
 #endif  // OSSM_SOFTWARE_LANGUAGESTRUCT_H
