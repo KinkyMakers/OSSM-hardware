@@ -153,12 +153,7 @@
                               "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pitclamp-mini-dogbone-bolts",
                               "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pitclamp-mini-dogbone-nuts",
                               "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/pitclamp-mini-lower",
-                              {
-                                "group": "Non-Standard",
-                                "pages": [
-                                  "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/non-standard/pitclamp-mini-upper-handle-print-in-place"
-                                ]
-                              }
+                              "ossm/Hardware/standard-printed-parts/pitclamp/part-by-part/non-standard/pitclamp-mini-upper-handle-print-in-place"
                             ]
                           }
                         ]
