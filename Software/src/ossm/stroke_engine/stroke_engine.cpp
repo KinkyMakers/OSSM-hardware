@@ -119,7 +119,7 @@ static void publishStateTask(void *pvParameters) {
 
         vTaskDelay(pdMS_TO_TICKS(100));
 
-        String payload = ossm->getCurrentState();
+        String payload = ossm->getCurrentState(true);
         String topic = "ossm/" + getMacAddress();
 
         int result = esp_mqtt_client_publish(
