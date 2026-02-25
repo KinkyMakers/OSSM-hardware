@@ -34,7 +34,7 @@ class OSSM {
     void ble_click(String commandString);
 
     // Get current state as JSON string
-    String getCurrentState();
+    String getCurrentState(bool detailed = false);
 
     // Backward compatibility accessors (deprecated - use globals directly)
     int getSpeed() { return settings.speed; }
