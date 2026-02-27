@@ -29,11 +29,13 @@ static void startStreamingTask(void *pvParameters) {
 
     auto best = std::chrono::steady_clock::now();
     PositionTime lastPositionTime;
-
+    
+    // Reset the queue to clear any existing commands
+    targetQueue = {};
+    
     // Motion state
     int16_t currentPosition = 0;
     int16_t targetPosition = 0;
-    bool finished = true; //for debugging when strokes finish early.
 
     uint16_t maxSpeed = Config::Driver::maxSpeedMmPerSecond * (1_mm);
     uint32_t maxAccel = Config::Driver::maxAcceleration * (1_mm);
