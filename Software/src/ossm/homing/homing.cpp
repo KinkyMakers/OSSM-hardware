@@ -105,6 +105,7 @@ static void startHomingTask(void *pvParameters) {
         ESP_LOGD("Homing", "Current over limit: %f", current);
         stepper->stopMove();
 
+        stepper->setSpeedInHz(250_mm);
         // step away from the hard stop, with your hands in the air!
         int32_t currentPosition = stepper->getCurrentPosition();
         stepper->moveTo(currentPosition - sign * Config::Driver::homingOffsetMn,
@@ -117,6 +118,13 @@ static void startHomingTask(void *pvParameters) {
 
         stepper->setCurrentPosition(0);
         stepper->forceStopAndNewPosition(0);
+
+        int32_t goToPosition = -sign * calibration.measuredStrokeSteps;
+        if (goToPosition < 0){
+            goToPosition = goToPosition * UserConfig::afterHomingPosition;
+        }
+
+        stepper->moveTo(goToPosition,true);
 
         // Clear homing active flag for LED indication
         setHomingActive(false);

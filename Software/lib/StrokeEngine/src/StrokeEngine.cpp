@@ -384,16 +384,10 @@ void StrokeEngine::thisIsHome(float speed) {
         // Enable _servo
         _servo->enableOutputs();
 
-        // Stet current position as home
-        _servo->setCurrentPosition(-_motor->stepsPerMillimeter *
-                                   _physics->keepoutBoundary);
-
-        // Set feedrate for homing
-        _servo->setSpeedInHz(_homeingSpeed);
-        _servo->setAcceleration(_maxStepAcceleration / 10);
-
-        // drive free of switch and set axis to 0
-        _servo->moveTo(_minStep);
+        // Translate current position
+        _servo->setCurrentPosition(abs(_servo->getCurrentPosition())-
+                                       _motor->stepsPerMillimeter *
+                                       _physics->keepoutBoundary);
 
         // Change state
         _isHomed = true;
