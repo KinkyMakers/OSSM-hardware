@@ -90,7 +90,7 @@ static void startHomingTask(void *pvParameters) {
 
         // measure the current analog value.
         float current = getAnalogAveragePercent(
-                            SampleOnPin{Pins::Driver::currentSensorPin, 200}) -
+                            SampleOnPin{Pins::Driver::currentSensorPin, 50}) -
                         calibration.currentSensorOffset;
 
         ESP_LOGV("Homing", "Current: %f", current);
