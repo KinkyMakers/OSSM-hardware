@@ -218,7 +218,7 @@ void nimbleLoop(void* pvParameters) {
             continue;
         }
 
-        String currentState = ossm->getCurrentState();
+        String fingerprint = ossm->getStateFingerprint();
         int currentConnCount = pServer->getConnectedCount();
 
         // Clear last state when connection count changes
@@ -256,7 +256,7 @@ void nimbleLoop(void* pvParameters) {
         }
 
         int currentTime = millis();
-        bool stateChanged = currentState != lastState;
+        bool stateChanged = fingerprint != lastState;
         bool timeElapsed = (currentTime - lastMessageTime) > 1000;
 
         if (!stateChanged && !timeElapsed) {
@@ -265,6 +265,7 @@ void nimbleLoop(void* pvParameters) {
         }
         lastMessageTime = currentTime;
 
+        String currentState = ossm->getCurrentState();
         if (stateChanged) {
             ESP_LOGD(NIMBLE_TAG, "State changed to: %s", currentState.c_str());
         }
@@ -274,7 +275,7 @@ void nimbleLoop(void* pvParameters) {
         // Trigger LED communication pulse for state update
         pulseForCommunication();
 
-        lastState = currentState;
+        lastState = fingerprint;
         vTaskDelay(1);
     }
 }

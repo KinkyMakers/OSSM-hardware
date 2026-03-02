@@ -108,6 +108,26 @@ void OSSM::ble_click(String commandString) {
     }
 }
 
+String OSSM::getStateFingerprint() {
+    String currentState;
+    if (stateMachine != nullptr) {
+        stateMachine->visit_current_states(
+            [&currentState](auto state) { currentState = state.c_str(); });
+    }
+
+    String json = "{";
+    json += "\"state\":\"" + currentState + "\",";
+    json += "\"speed\":" + String((int)settings.speed) + ",";
+    json += "\"stroke\":" + String((int)settings.stroke) + ",";
+    json += "\"sensation\":" + String((int)settings.sensation) + ",";
+    json += "\"depth\":" + String((int)settings.depth) + ",";
+    json += "\"pattern\":" + String(static_cast<int>(settings.pattern)) + ",";
+    json += "\"sessionId\":\"" + sessionId + "\"";
+    json += "}";
+
+    return json;
+}
+
 String OSSM::getCurrentState() {
     String currentState;
     if (stateMachine != nullptr) {
@@ -123,7 +143,8 @@ String OSSM::getCurrentState() {
     json += "\"sensation\":" + String((int)settings.sensation) + ",";
     json += "\"depth\":" + String((int)settings.depth) + ",";
     json += "\"pattern\":" + String(static_cast<int>(settings.pattern)) + ",";
-    json += "\"position\":" + String(float(-stepper->getCurrentPosition()) / float(1_mm)) + ",";
+    json += "\"position\":" +
+            String(float(stepper->getCurrentPosition()) / float(1_mm)) + ",";
     json += "\"sessionId\":\"" + sessionId + "\"";
     json += "}";
 
