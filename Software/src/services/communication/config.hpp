@@ -73,4 +73,70 @@ NimBLECharacteristic* initSpeedKnobConfigCharacteristic(NimBLEService* pService,
     return pSpeedKnobConfigChar;
 }
 
+/** Handler class for latency compensation config characteristic */
+class LatencyCompensationConfigCallbacks : public NimBLECharacteristicCallbacks {
+    void onWrite(NimBLECharacteristic* pCharacteristic,
+                 NimBLEConnInfo& connInfo) override {
+        std::string value = pCharacteristic->getValue();
+        String configValue = String(value.c_str());
+        configValue.toLowerCase();
+
+        ESP_LOGD(NIMBLE_TAG, "Latency compensation config write: %s",
+                 configValue.c_str());
+
+        // Store config strings in PROGMEM
+        static const char true_str[] PROGMEM = "true";
+        static const char false_str[] PROGMEM = "false";
+        static const char error_invalid[] PROGMEM = "error:invalid_value";
+
+        if (configValue == "true" || configValue == "1" || configValue == "t") {
+            USE_LATENCY_COMPENSATION = true;
+            pCharacteristic->setValue(String(FPSTR(true_str)));
+        } else if (configValue == "false" || configValue == "0" ||
+                   configValue == "f") {
+            USE_LATENCY_COMPENSATION = false;
+            pCharacteristic->setValue(String(FPSTR(false_str)));
+        } else {
+            ESP_LOGW(NIMBLE_TAG, "Invalid latency compensation config value: %s",
+                     configValue.c_str());
+            pCharacteristic->setValue(String(FPSTR(error_invalid)));
+        }
+    }
+
+    void onRead(NimBLECharacteristic* pCharacteristic,
+                NimBLEConnInfo& connInfo) override {
+        // Use PROGMEM strings for read values
+        static const char true_str[] PROGMEM = "true";
+        static const char false_str[] PROGMEM = "false";
+
+        String value = USE_LATENCY_COMPENSATION ? String(FPSTR(true_str))
+                                               : String(FPSTR(false_str));
+        ESP_LOGD(NIMBLE_TAG, "Latency compensation config read: %s", value.c_str());
+        pCharacteristic->setValue(value);
+    }
+
+    void onStatus(NimBLECharacteristic* pCharacteristic, int code) override {
+        ESP_LOGV(
+            NIMBLE_TAG,
+            "Latency compensation config notification/indication return code: %d, %s",
+            code, NimBLEUtils::returnCodeToString(code));
+    }
+} latencyCompensationConfigCallbacks;
+
+NimBLECharacteristic* initLatencyCompensationConfigCharacteristic(NimBLEService* pService,
+                                                        NimBLEUUID uuid) {
+    NimBLECharacteristic* pLatencyCompensationConfigChar = pService->createCharacteristic(
+        uuid, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ);
+
+    pLatencyCompensationConfigChar->setCallbacks(&latencyCompensationConfigCallbacks);
+    // Use PROGMEM strings for initial value
+    static const char true_str[] PROGMEM = "true";
+    static const char false_str[] PROGMEM = "false";
+    pLatencyCompensationConfigChar->setValue(USE_LATENCY_COMPENSATION
+                                       ? String(FPSTR(true_str))
+                                       : String(FPSTR(false_str)));
+
+    return pLatencyCompensationConfigChar;
+}
+
 #endif  // OSSM_CONFIG_HPP

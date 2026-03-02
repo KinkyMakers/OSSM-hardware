@@ -1,5 +1,6 @@
 #include "board.h"
 
+bool USE_LATENCY_COMPENSATION = false;
 bool USE_SPEED_KNOB_AS_LIMIT = true;
 
 void initBoard() {
