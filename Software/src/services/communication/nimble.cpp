@@ -212,7 +212,6 @@ void nimbleLoop(void* pvParameters) {
             continue;
         }
 
-        String fingerprint = ossm->getStateFingerprint();
         int currentConnCount = pServer->getConnectedCount();
 
         // Clear last state when connection count changes
@@ -250,6 +249,7 @@ void nimbleLoop(void* pvParameters) {
         }
 
         int currentTime = millis();
+        String fingerprint = ossm->getStateFingerprint();
         bool stateChanged = fingerprint != lastState;
         bool timeElapsed = (currentTime - lastMessageTime) > 1000;
 
@@ -258,11 +258,10 @@ void nimbleLoop(void* pvParameters) {
             continue;
         }
         lastMessageTime = currentTime;
-        lastState = currentState;
+        lastState = fingerprint;
 
         String currentState = ossm->getCurrentState();
         if (stateChanged) {
-            currentState = ossm->getCurrentState(true);
             ESP_LOGD(NIMBLE_TAG, "State changed to: %s", currentState.c_str());
             pChr->setValue(currentState);
             pChr->notify();
