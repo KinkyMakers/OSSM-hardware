@@ -53,5 +53,6 @@
         "unordered_set": "cpp",
         "variant": "cpp",
         "vector": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "/Users/aj/RAD/ossm/Software"
 }
