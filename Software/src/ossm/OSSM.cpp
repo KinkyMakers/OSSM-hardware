@@ -116,17 +116,14 @@ String OSSM::getStateFingerprint() {
             [&currentState](auto state) { currentState = state.c_str(); });
     }
 
-    String json = "{";
-    json += "\"state\":\"" + currentState + "\",";
-    json += "\"speed\":" + String((int)settings.speed) + ",";
-    json += "\"stroke\":" + String((int)settings.stroke) + ",";
-    json += "\"sensation\":" + String((int)settings.sensation) + ",";
-    json += "\"depth\":" + String((int)settings.depth) + ",";
-    json += "\"pattern\":" + String(static_cast<int>(settings.pattern)) + ",";
-    json += "\"sessionId\":\"" + sessionId + "\"";
-    json += "}";
-
-    return json;
+    String output = currentState + ":";
+    output += String((int)settings.speed) + ":";
+    output += String((int)settings.stroke) + ":";
+    output += String((int)settings.sensation) + ":";
+    output += String((int)settings.depth) + ":";
+    output += String(static_cast<int>(settings.pattern)) + ":";
+    output += sessionId;
+    return output;
 }
 
 String OSSM::getCurrentState() {
