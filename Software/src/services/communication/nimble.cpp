@@ -259,9 +259,11 @@ void nimbleLoop(void* pvParameters) {
             continue;
         }
         lastMessageTime = currentTime;
+        lastState = currentState;
 
         String currentState = ossm->getCurrentState();
         if (stateChanged) {
+            currentState = ossm->getCurrentState(true);
             ESP_LOGD(NIMBLE_TAG, "State changed to: %s", currentState.c_str());
             pChr->setValue(currentState);
             pChr->notify();
