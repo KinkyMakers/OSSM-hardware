@@ -16,73 +16,89 @@ import { BOMTable, ExtrusionTable } from '/snippets/ossm/bom/bom-table.jsx';
 The 3030 Extrusion Stand is the default mounting solution for your OSSM. This design uses aluminum extrusion for a sturdy, adjustable base with a single pivot arm that allows angle adjustment during use.
 
 <CardGroup cols={2}>
-  <Card title="Bill of Materials" icon="list-check" href="/ossm/Hardware/getting-started/bom">
+  <Card icon="list-check" href="/ossm/Hardware/getting-started/bom" title="Bill of Materials">
     Complete parts list for ordering components
   </Card>
-  <Card title="Assembly Guide Videos" icon="video" href="https://www.youtube.com/playlist?list=PLzSK7OAu3KNS-aOQfpv3f_BJH9GNdLJ7Q">
+  <Card icon="video" href="https://www.youtube.com/playlist?list=PLzSK7OAu3KNS-aOQfpv3f_BJH9GNdLJ7Q" title="Assembly Guide Videos">
     Step-by-step video walkthrough
   </Card>
 </CardGroup>
 
 ## 3D printing the parts
 
-Print all stand components using the settings below for optimal strength and durability.
+Print all stand components using the settings below for optimal strength and durability. You can find the relevant print files under the Stand's "Part by Part" tab.
 
 ### Print settings
 
-| Setting | Value |
-|---------|-------|
-| Walls | 6 |
-| Infill type | Cross Hatch or Gyroid |
-| Infill percentage | 25% |
-| Supports | None |
-| Filament estimate | 246g |
-| Recommended filament | PLA+ |
+| Setting              | Value                 |
+| -------------------- | --------------------- |
+| Walls                | 6                     |
+| Infill type          | Cross Hatch or Gyroid |
+| Infill percentage    | 25%                   |
+| Supports             | None                  |
+| Filament estimate    | 246g                  |
+| Recommended filament | PLA+                  |
 
 <Tip>
-All parts are oriented correctly in the provided STL files. Print them in their default orientation without rotation.
+  All parts are oriented correctly in the provided STL files. Print them in their default orientation without rotation.
 </Tip>
-
-### Required printed parts
 
 <BOMTable items={standPrintedParts} />
 
-## Bill of materials
+## Bill of materials - V1.1
 
-### Aluminum extrusion
+| **Aluminum Extrusion**       | **QTY** |
+| :--------------------------- | :------ |
+| 12" 30x30mm T-slot extrusion | 2       |
+| 18" 30x30mm T-slot extrusion | 1       |
+| 19" 30x30mm T-slot extrusion | 1       |
 
-<ExtrusionTable items={standExtrusions} />
+| **Printed Parts** | **QTY** |
+| :---------------- | :------ |
+| Pivot plate 1     | 1       |
+| Pivot plate 2     | 1       |
+| Handle spacer     | 8       |
+| Foot              | 4       |
+| T-Nut support     | 2       |
 
-### Hardware - Bag 1
+| **Hardware Bag 1 - Fasteners**        | **QTY** |
+| :------------------------------------ | :------ |
+| M6x12mm socket cap screw              | 14      |
+| M6x25mm socket cap screw              | 6       |
+| M6 washer                             | 16      |
+| M6 T-Nut for 30x30mm T-slot extrusion | 24      |
 
-<BOMTable items={standHardwareBag1} />
+| **Hardware Bag 2 - Handles** | **QTY** |
+| :--------------------------- | :------ |
+| M6x25mm handle               | 2       |
 
-### Hardware - Bag 2
+| **Hardware Bag 3 - Misc.** | **QTY** |
+| :------------------------- | :------ |
+| 30x30mm base brackets      | 4       |
+| Rubber washer              | 2       |
+| Grippy feet                | 4       |
+| End caps (printed)         | 6       |
 
-<BOMTable items={standHardwareBag2} />
-
-### Hardware - Bag 3
-
-<BOMTable items={standHardwareBag3} />
-
-### Accessories
+| **Accessory**      | **QTY** |
+| :----------------- | :------ |
+| Sandbag (unfilled) | 1       |
 
 <BOMTable items={standAccessories} />
 
 <Note>
-A sandbag is recommended to add weight and stability to the stand during operation.
+  A sandbag is recommended to add weight and stability to the stand during operation.
 </Note>
 
 ## Additional resources
 
-<Card title="View 3D Model" icon="cube" href="https://cad.onshape.com/documents/d520ea9a8cadb4ae8681f59b/w/00b211a6fa3b76c59ef28f4e/e/5f2c80d9d9c2433a7be7f789">
+<Card icon="cube" href="https://cad.onshape.com/documents/d520ea9a8cadb4ae8681f59b/w/00b211a6fa3b76c59ef28f4e/e/5f2c80d9d9c2433a7be7f789" title="View 3D Model">
   Explore the complete 3D model on OnShape
 </Card>
 
 <Info>
-This BOM covers the stand assembly only. For actuator and PCB mounting hardware, see the [Actuator documentation](/ossm/Hardware/standard-printed-parts/actuator/introduction).
+  This BOM covers the stand assembly only. For actuator and PCB mounting hardware, see the [Actuator documentation](/ossm/Hardware/standard-printed-parts/actuator/introduction).
 </Info>
 
 <Warning>
-This documentation is being updated for the 57AIM30 Gold Motor and PitClamp Mini default build configuration. Some details may change.
+  This documentation is being updated for the 57AIM30 Gold Motor and PitClamp Mini default build configuration. Some details may change.
 </Warning>
