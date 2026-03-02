@@ -55,7 +55,7 @@ Funscript is a JSON-based file format used to synchronize toy movements with vid
 }
 ```
 
-- **pos**: Position from 0 (fully retracted) to 99 (fully extended)
+- **pos**: Position from 0 (fully extended) to 100 (fully retracted). Yes, this seems backwards, but it's how funscripts are implemented.
 - **at**: Timestamp in milliseconds
 
 <Info>
@@ -66,14 +66,20 @@ Funscripts can be created using tools like [OpenFunscripter](https://github.com/
 
 | Setting | Description |
 |---------|-------------|
-| **Time Offset** | Adjust sync timing (-500ms to +500ms). Use positive values if the OSSM is behind the video, negative if ahead. |
-| **Look-ahead** | How far ahead to send commands (0-500ms). Higher values help compensate for BLE latency but may reduce responsiveness. |
+| **Max Speed** | Set the max speed of your device. If a move is unable to be completed in the alotted time it will be shortened automatically at the expense of accuracy. |
+| **Max Stroke Length** | Sets the length of the rail that will be used. If the depth is less then this value the entire depth will be used. |
+| **Max Depth** | Sets the maximum depth to be used by the funscript. |
+| **Max Acceleration** | Sets how quickly the OSSM is allowed to reach a particular speed. Reduce this value to limit jerkiness at the expense of accuracy on fast moves. |
+| **Device Buffer** | Attempts to smooth out latency by adding a small amount of buffer to all commands. Automatically included in time offset to keep video in sync. |
+| **Time Offset** | Adjust sync timing (-50ms to +50ms). Use positive values if the OSSM is behind the video, negative if ahead. |
 
 ## Safety Features
 
 - **Auto-stop on disconnect**: If Bluetooth connection is lost, the OSSM ramps down safely
 - **Return to menu on disconnect**: When you disconnect, the OSSM returns to the main menu
 - **Manual control**: You can pause the video at any time to stop motion
+- **Max Speed and Acceleration**: These settings will slow down the motion to reduce intensity. 
+- **Dynamic Stroke Length**: OSSM will reduce stroke length as necessary if a move is beyond the capabilities of the machine or user limits, at the expense of positional accuracy.
 
 <Warning>
 Always ensure you have easy access to pause the video or disconnect from the OSSM. Start with slower content to verify sync timing before using faster scripts.
@@ -91,7 +97,6 @@ Always ensure you have easy access to pause the video or disconnect from the OSS
   
   <Accordion title="Motion is out of sync with video">
     - Adjust the **Time Offset** slider to compensate for delays
-    - Increase the **Look-ahead** value if motion seems late
     - Ensure your device isn't experiencing Bluetooth interference
   </Accordion>
   
@@ -102,9 +107,11 @@ Always ensure you have easy access to pause the video or disconnect from the OSS
   </Accordion>
   
   <Accordion title="Choppy or stuttering motion">
+    - Increase buffer setting
     - Close other Bluetooth-connected devices to reduce interference
     - Stay within 10 meters of your OSSM
     - Try reducing video quality if your device is struggling
+    - Use a funscript with fewer per stroke. Funscripts with commands only when the machine changes directions are smoothest.
   </Accordion>
 </AccordionGroup>
 
@@ -113,7 +120,7 @@ Always ensure you have easy access to pause the video or disconnect from the OSS
 The funscript player uses the OSSM's native streaming protocol via BLE:
 
 - **Command format**: `stream:position:time` where position is 0-100 and time is milliseconds to reach the target
-- **Update rate**: Commands are sent every 10ms when new actions are due
+- **Update rate**: Commands are sent every 2ms when new actions are due
 - **BLE characteristic**: Uses the primary OSSM command characteristic (`522b443a-4f53-534d-1000-420badbabe69`)
 
 <Info>

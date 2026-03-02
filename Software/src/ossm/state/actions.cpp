@@ -12,6 +12,7 @@
 #include "ossm/pattern_controls/pattern_controls.h"
 #include "ossm/play_controls/play_controls.h"
 #include "ossm/simple_penetration/simple_penetration.h"
+#include "ossm/streaming/streaming.h"
 #include "ossm/state/calibration.h"
 #include "ossm/state/session.h"
 #include "ossm/state/settings.h"
@@ -38,7 +39,7 @@ void ossmDrawPlayControls() {
 }
 
 void ossmStartStreaming() {
-    simple_penetration::startStreaming();
+    streaming::startStreaming();
 }
 
 void ossmDrawPatternControls() {
@@ -82,10 +83,23 @@ void ossmResetSettingsSimplePen() {
     session.distanceMeters = 0;
 }
 
-void ossmIncrementControl() {
-    session.playControl =
-        static_cast<PlayControls>((session.playControl + 1) % 3);
+void ossmResetSettingsStreaming() {
+    settings.speed = 0;
+    settings.speedBLE = std::nullopt;
+    settings.stroke = 50;
+    settings.depth = 50;
+    settings.sensation = 50;
+    settings.buffer = 100;
+    session.playControl = PlayControls::DEPTH;
 
+    // Prepare the encoder
+    encoder.setBoundaries(0, 100, false);
+    encoder.setAcceleration(10);
+    encoder.setEncoderValue(settings.depth);
+}
+
+void ossmIncrementControlStrokeEngine() {
+    session.playControl = static_cast<PlayControls>((session.playControl + 1) % 3);
     switch (session.playControl) {
         case PlayControls::STROKE:
             encoder.setEncoderValue(settings.stroke);
@@ -96,8 +110,28 @@ void ossmIncrementControl() {
         case PlayControls::SENSATION:
             encoder.setEncoderValue(settings.sensation);
             break;
+        default:
+            break;
     }
 }
+
+void ossmIncrementControlStreaming() {
+    session.playControl = static_cast<PlayControls>((session.playControl + 1) % 4);
+    switch (session.playControl) {
+        case PlayControls::STROKE:
+            encoder.setEncoderValue(settings.stroke);
+            break;
+        case PlayControls::DEPTH:
+            encoder.setEncoderValue(settings.depth);
+            break;
+        case PlayControls::SENSATION:
+            encoder.setEncoderValue(settings.sensation);
+            break;
+        case PlayControls::BUFFER:
+            encoder.setEncoderValue(settings.buffer);
+            break;
+    }
+};
 
 void ossmStartSimplePenetration() {
     simple_penetration::startSimplePenetration();

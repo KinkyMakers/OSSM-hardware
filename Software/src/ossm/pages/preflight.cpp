@@ -23,11 +23,6 @@ static void drawPreflightTask(void *pvParameters) {
     auto menuString = menuStrings[menuState.currentOption];
     float speedPercentage;
 
-    // Set the stepper to the home position
-    stepper->setAcceleration(1000_mm);
-    stepper->setSpeedInHz(25_mm);
-    stepper->moveTo(0, false);
-
     /**
      * /////////////////////////////////////////////
      * //// Safely Block High Speeds on Startup ///
@@ -41,6 +36,7 @@ static void drawPreflightTask(void *pvParameters) {
     auto isInPreflight = []() {
         // Add your preflight checks states here.
         return stateMachine->is("simplePenetration.preflight"_s) ||
+               stateMachine->is("streaming.preflight"_s) ||
                stateMachine->is("strokeEngine.preflight"_s);
     };
 
