@@ -28,6 +28,7 @@ enum class Commands {
     setSpeed,
     setStroke,
     setWifi,
+    setBuffer,
 
     // STREAMING
     streamPosition,
@@ -75,6 +76,8 @@ inline CommandValue setCommandValue(const String& str) {
         return {Commands::setSpeed, value, 0};
     } else if (command == "stroke") {
         return {Commands::setStroke, value, 0};
+    } else if (command == "buffer") {
+        return {Commands::setBuffer, value, 0};
     } else {
         return {Commands::ignore, 0, 0};
     }

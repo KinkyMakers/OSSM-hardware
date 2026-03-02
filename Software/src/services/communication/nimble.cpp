@@ -2,7 +2,6 @@
 
 #include <ArduinoJson.h>
 #include <constants/LogTags.h>
-#include <constants/UserConfig.h>
 #include <services/board.h>
 #include <services/tasks.h>
 
@@ -92,19 +91,15 @@ class FTSCallbacks : public NimBLECharacteristicCallbacks {
         std::string value = pCharacteristic->getValue();
 
         // Expected format: [position, timeHigh, timeLow]
-        // position: uint8 (0-180)
+        // position: uint8 (0-180), convert to 100
         // time: uint16 big-endian (MSB first)
         if (value.length() >= 3) {
-            uint8_t position = static_cast<uint8_t>(value[0]);
+            uint8_t position = static_cast<uint8_t>(value[0]/1.8);
             uint16_t time = (static_cast<uint8_t>(value[1]) << 8) |
                             static_cast<uint8_t>(value[2]);
 
-            ESP_LOGI("NIMBLE", "FTS Command - Position: %d, Time: %d ms",
-                     position, time);
-
-            lastPositionTime = targetPositionTime;
-            targetPositionTime = {position, time};
-            markTargetUpdated();  // Signal that new data arrived
+            ESP_LOGI("NIMBLE", "FTS Command - Position: %d, Time: %d ms", position, time);
+            targetQueue.push({position, time});
 
         } else {
             ESP_LOGW("NIMBLE", "FTS write - Invalid data length: %d bytes",
@@ -218,6 +213,7 @@ void nimbleLoop(void* pvParameters) {
             continue;
         }
 
+        String fingerprint = ossm->getStateFingerprint();
         int currentConnCount = pServer->getConnectedCount();
 
         // Clear last state when connection count changes
@@ -255,8 +251,7 @@ void nimbleLoop(void* pvParameters) {
         }
 
         int currentTime = millis();
-        String currentState = ossm->getCurrentState();
-        bool stateChanged = currentState != lastState;
+        bool stateChanged = fingerprint != lastState;
         bool timeElapsed = (currentTime - lastMessageTime) > 1000;
 
         if (!stateChanged && !timeElapsed) {
@@ -266,15 +261,18 @@ void nimbleLoop(void* pvParameters) {
         lastMessageTime = currentTime;
         lastState = currentState;
 
+        String currentState = ossm->getCurrentState();
         if (stateChanged) {
             currentState = ossm->getCurrentState(true);
             ESP_LOGD(NIMBLE_TAG, "State changed to: %s", currentState.c_str());
+            pChr->setValue(currentState);
+            pChr->notify();
         }
-        pChr->setValue(currentState);
-        pChr->notify();
 
         // Trigger LED communication pulse for state update
         pulseForCommunication();
+
+        lastState = fingerprint;
         vTaskDelay(1);
     }
 }
