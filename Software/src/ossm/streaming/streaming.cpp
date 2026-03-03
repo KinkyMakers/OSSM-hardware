@@ -24,9 +24,6 @@ static void startStreamingTask(void *pvParameters) {
                stateMachine->is("streaming.preflight"_s) ||
                stateMachine->is("streaming.idle"_s);
     };
-    // Reset to home position
-    stepper->moveTo(0, true);
-    vTaskDelay(pdMS_TO_TICKS(1000));
 
     auto best = std::chrono::steady_clock::now();
     PositionTime lastPositionTime;
