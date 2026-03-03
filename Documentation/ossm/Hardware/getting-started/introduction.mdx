@@ -1,43 +1,101 @@
 ---
-title: "Introduction"
-description: "Technical reference for OSSM hardware components including 3D printed parts, CAD files, PCBs, motors, and mounting systems."
+title: "Building an OSSM"
+description: "A step-by-step guide to sourcing, printing, and assembling your OSSM from scratch."
 ---
 
-This section provides detailed technical documentation for building, modifying, or contributing to the OSSM hardware. You will find specifications, design files, and community notes for every component.
+import { DiscordInvite } from '/snippets/shared/discord-invite.jsx';
 
-## Official hardware categories
+So you've decided to build an OSSM. This is a rewarding project, suitable for beginner and intermediate makers. There's clear documentation here to get the hardware in your hands -- let's get started.
+
+## Step 1: Source Your Parts
+
+The OSSM is a combination of a servo motor, metric hardware, 3D-printed parts, and a custom PCB. Before you print anything, you'll need to purchase the non-printable components.
+
+**The easiest route:** order a kit directly from <a href="https://www.researchanddesire.com/ossm">Research and Desire</a> -- it includes the motor, hardware, PCB, and linear rail matched to the current build.
+
+**Sourcing yourself:** the community Discord is full of makers who've sourced parts from AliExpress, Amazon, and local hardware stores. Check the full bill of materials to see exactly what you need.
 
 <CardGroup cols={2}>
-  <Card title="3D Printed Parts" icon="cube" href="/ossm/Hardware/standard-printed-parts/actuator">
-    Print specifications, STL files, and assembly notes for all official printed components.
+  <Card title="Bill of Materials" icon="list-check" href="/ossm/Hardware/getting-started/bom">
+    Complete hardware list for the standard OSSM build.
   </Card>
-
-  <Card title="CAD Files" icon="compass-drafting" href="/ossm/Hardware/standard-printed-parts/contribution-guidelines">
-    Source design files for modifying or extending the official OSSM hardware.
+  <Card title="Motor Specs" icon="gear" href="/ossm/Hardware/motor/standard-build-motor">
+    The 57AIM30 "Gold Motor" and compatible alternatives.
   </Card>
-
   <Card title="PCB Files" icon="microchip" href="/ossm/Hardware/PCB/introduction">
-    Schematics and manufacturing files for ordering custom PCBs or modifying the electronics.
+    Schematics and board design for the OSSM controller.
   </Card>
-
-  <Card title="Motors" icon="gear" href="/ossm/Hardware/motor/standard-build-motor">
-    Specifications for the standard motor, compatible alternatives, and programming guides.
+  <Card title="CAD Files" icon="compass-drafting" href="/ossm/Hardware/standard-printed-parts/contribution-guidelines">
+    Source design files for modifying or extending hardware.
   </Card>
 </CardGroup>
 
-## Community modifications
+## Step 2: Print Your Parts
 
-The community has developed several widely-used modifications that extend OSSM functionality.
+Printed parts can also be purchased from <a href="https://www.researchanddesire.com/ossm">Research and Desire</a>, but if you've got a printer, go ahead and get started. Each section below has print settings, STL files, and quantities.
+
+<CardGroup cols={2}>
+  <Card title="Actuator" icon="arrow-right-arrow-left" href="/ossm/Hardware/standard-printed-parts/actuator/introduction">
+    The core linear motion assembly.
+  </Card>
+  <Card title="Stand" icon="table-columns" href="/ossm/Hardware/standard-printed-parts/stand/introduction">
+    3030 extrusion stand with pivot arm.
+  </Card>
+  <Card title="PitClamp Mini" icon="grip" href="/ossm/Hardware/standard-printed-parts/pitclamp/README">
+    Quick-release motor mount.
+  </Card>
+  <Card title="Remote" icon="sliders" href="/ossm/Hardware/standard-printed-parts/remote/introduction">
+    Wired remote control enclosure.
+  </Card>
+  <Card title="Toy Mounting" icon="link" href="/ossm/Hardware/standard-printed-parts/toy-mounting/introduction">
+    Adapters for attaching toys to the actuator.
+  </Card>
+  <Card title="PCB Enclosure" icon="box" href="/ossm/Hardware/standard-printed-parts/pcb-enclosure/pcb-box">
+    Protective housing for the OSSM control board.
+  </Card>
+</CardGroup>
+
+<Tip>
+All OSSM print files are also available on <a href="https://makerworld.com/en/models/2472952">MakerWorld</a>.
+</Tip>
+
+## Step 3: Assemble
+
+With parts sourced and printed, follow the build guide to put it all together. Wire the motor, flash the firmware, and you're ready to go.
+
+<CardGroup cols={2}>
+  <Card title="Build Guide" icon="book" href="/ossm/guides/getting-started/build-guide/step-1.0_required_tools_and_parts">
+    Step-by-step assembly instructions.
+  </Card>
+  <Card title="Wire Your Motor" icon="bolt" href="/ossm/Hardware/motor/wiring-gold-motor">
+    Connect the Gold Motor (57AIM30) correctly.
+  </Card>
+  <Card title="Flash Firmware" icon="cpu" href="/ossm/tools/web-flasher">
+    Install the latest firmware via the web flasher.
+  </Card>
+  <Card title="Motor Programming" icon="terminal" href="/ossm/Hardware/motor/programming">
+    Configure third-party motors before first use.
+  </Card>
+</CardGroup>
+
+## Community
+
+Need help or want to share your build? The Kinky Makers Discord is the best place to ask questions, find sourcing tips, and show off your work.
+
+<DiscordInvite community="kinky-makers" />
+
+### Community Modifications
+
+The community has developed several popular modifications that extend OSSM functionality.
 
 <Warning>
-Community mods are not officially supported and must be used at your own risk. Review the [safety guidelines](/ossm/guides/housekeeping/safety) before installing any modifications.
+Community mods are not officially supported. Review the <a href="/ossm/guides/housekeeping/safety">safety guidelines</a> before installing any modifications.
 </Warning>
 
 <CardGroup cols={2}>
   <Card title="PitClamp Reinforced" icon="clamp" href="/ossm/Hardware/ossm-mods/pitclamp-reinforced/standard-base">
     Strengthened mounting system with improved durability.
   </Card>
-
   <Card title="SaladDressing's Mods" icon="wrench" href="/ossm/Hardware/ossm-mods/salad-dressing/belt-clamp-v2">
     Belt clamps, capstan drive, quick-change mounts, and bracket accessories.
   </Card>
