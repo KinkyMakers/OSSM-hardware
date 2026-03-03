@@ -19,25 +19,9 @@ import { BOMTable } from '/snippets/ossm/bom/bom-table.jsx';
   ![OSSM Actuator overview showing the assembled linear actuator](<../_images/Overview - Actuator Default.webp>)
 </Frame>
 
-## What you’ll build
+The OSSM linear actuator converts rotary motor motion into linear thrust via a GT2 belt drive on an MGN12H linear rail. This page covers printing, hardware, and assembly.
 
-This page guides you through preparing printed parts, gathering hardware, and assembling the OSSM linear actuator. By the end, you’ll have a complete actuator ready for belt routing and integration with your mount and electronics.
-
-<Info>
-  If you’re assembling a full OSSM, you’ll connect this actuator to your stand and electronics later. For firmware flashing and remote pairing, see <a href="/open-source-sex-machine/flashing-your-ossm">
-Flashing your OSSM/RADR</a>
-
-  . For motor wiring, see <a href="/open-source-sex-machine/ossm-electronics/wiring-your-gold-motor">
-Wiring your Gold Motor</a>
-
-  .
-</Info>
-
-## Printing
-
-Follow these print settings for optimal strength and durability.
-
-### Print settings
+## Print Settings
 
 | Setting              | Value                 |
 | -------------------- | --------------------- |
@@ -56,9 +40,17 @@ Follow these print settings for optimal strength and durability.
   For the 24mm Clamping Thread, use 2 raft layers to improve bed adhesion.
 </Tip>
 
+<Tip>
+  All OSSM print files are also available on <a href="https://makerworld.com/en/models/2472952">MakerWorld</a>.
+</Tip>
+
+## Printed Parts
+
+<BOMTable items={actuatorPrintedParts} />
+
 <AccordionGroup>
   <Accordion title="Troubleshooting: 24mm Clamping Thread">
-    If you have issues printing the 24mm Clamping Thread, use the Non-standard 24mm Thread and Belt Clamp files instead (available in the source repository). These require additional hardware:
+    If you have issues printing the 24mm Clamping Thread, use the Non-standard 24mm Thread and Belt Clamp files instead. These require additional hardware:
 
     - (Qty 2) M3x8
     - (Qty 1) M3x16
@@ -66,18 +58,23 @@ Follow these print settings for optimal strength and durability.
   </Accordion>
 </AccordionGroup>
 
-<BOMTable items={actuatorPrintedParts} />
+## Bill of Materials
 
-<Note>
-  For mounting options and a stable base, see the <a href="/ossm/Hardware/standard-printed-parts/stand">
-3030 Extrusion Stand guide</a>
+### Motor and Linear Rail
 
-  .
-</Note>
+<BOMTable items={actuatorMotor} />
 
-## Bill of materials - V1.1
+<BOMTable items={actuatorLinearMotion} />
 
-| Hardware                              | QTY  |
+<Info>
+  Calculate your rail length: **desired maximum stroke + 180mm**.
+
+  You must use an MGN**12H** rail. The "H" designates a longer bearing block than "C" for greater stability. The "12" indicates a 12mm rail width.
+</Info>
+
+### Hardware
+
+| Part                                  | Qty  |
 | ------------------------------------- | ---- |
 | M3x8mm socket cap screw               | 18   |
 | M3x20mm socket cap screw              | 3    |
@@ -93,41 +90,7 @@ Follow these print settings for optimal strength and durability.
 | 8mm bore 20T pulley                   | 1    |
 | 10mm GT2 belt                         | 50cm |
 
-| Motor + Rail             | QTY |
-| ------------------------ | --- |
-| 57AIM30 100W servo motor | 1   |
-| 350mm linear rail        | 1   |
-
-| Printed Parts                  | QTY |
-| ------------------------------ | --- |
-| Middle body                    | 1   |
-| Lower body                     | 1   |
-| Belt clamp - tensioner         | 1   |
-| Belt clamp - top               | 1   |
-| Belt clamp - bottom            | 1   |
-| Body cover                     | 1   |
-| 24mm jam nut                   | 1   |
-| PCB mount - base               | 1   |
-| PCB mount - lid                | 1   |
-| 57AIM ring v1.1                | 1   |
-| PitClamp v1.1 lower standard   | 1   |
-| PitClamp v1.1 upper + handle   | 1   |
-| PitClamp v1.1 dogbones - hex   | 1   |
-| PitClamp v1.1 dogbones - round | 1   |
-
-<BOMTable items={actuatorMotor} />
-
-<BOMTable items={actuatorLinearMotion} />
-
-<Info>
-  Calculate your rail length using this formula: <b>
-desired maximum stroke + 180mm</b>
-
-  .
-
-  You must use an MGN<strong>12H</strong>
-   rail. The “H” designates a longer bearing block than “C” for greater stability. The “12” indicates a 12mm rail width.
-</Info>
+## Assembly
 
 <Frame caption="Animated exploded view of actuator assembly">
   ![Animated exploded view showing how actuator components fit together](<../_images/Exploded ALT - Actuator Default.gif>)
@@ -144,17 +107,17 @@ desired maximum stroke + 180mm</b>
   </Card>
 </CardGroup>
 
-### Before you begin
+### Before You Begin
 
 - Ensure all printed threads are clean and free of stringing. Test-fit the 24mm threaded parts by hand only.
 - Lightly deburr belt paths and bearing seats on printed parts as needed.
 - Gather metric hex keys and a small flathead screwdriver for set screws and terminal blocks.
 
 <Warning>
-  Do not power the actuator until you complete belt routing and verify smooth motion. Avoid forcing the rail carriage—binding indicates misalignment.
+  Do not power the actuator until you complete belt routing and verify smooth motion. Avoid forcing the rail carriage — binding indicates misalignment.
 </Warning>
 
-### Build steps
+### Build Steps
 
 <Steps>
   <Step title="Prepare the linear rail">
@@ -208,7 +171,7 @@ desired maximum stroke + 180mm</b>
   </Step>
 </Steps>
 
-### Belt routing
+### Belt Routing
 
 Route the GT2 timing belt through the actuator body following these reference images:
 
@@ -230,7 +193,7 @@ Route the GT2 timing belt through the actuator body following these reference im
   </Card>
 </CardGroup>
 
-## Next steps
+## Next Steps
 
 <CardGroup cols={2}>
   <Card icon="cpu" href="/ossm/tools/web-flasher" title="Flash firmware">
@@ -243,5 +206,3 @@ Route the GT2 timing belt through the actuator body following these reference im
     Configure third-party motors before first use.
   </Card>
 </CardGroup>
-
-:)
