@@ -13,7 +13,7 @@ import {
 } from '/snippets/ossm/bom/stand-bom.mdx';
 import { BOMTable, ExtrusionTable } from '/snippets/ossm/bom/bom-table.jsx';
 
-The 3030 Extrusion Stand is the default mounting solution for your OSSM. This design uses aluminum extrusion for a sturdy, adjustable base with a single pivot arm that allows angle adjustment during use.
+The 3030 Extrusion Stand is the default mounting solution for your OSSM. Aluminum extrusion provides a sturdy, adjustable base with a single pivot arm for angle adjustment during use.
 
 <CardGroup cols={2}>
   <Card icon="list-check" href="/ossm/Hardware/getting-started/bom" title="Bill of Materials">
@@ -24,80 +24,84 @@ The 3030 Extrusion Stand is the default mounting solution for your OSSM. This de
   </Card>
 </CardGroup>
 
-## 3D printing the parts
-
-Print all stand components using the settings below for optimal strength and durability. You can find the relevant print files under the Stand's "Part by Part" tab.
-
-### Print settings
+## Print Settings
 
 | Setting              | Value                 |
 | -------------------- | --------------------- |
 | Walls                | 6                     |
-| Infill type          | Cross Hatch or Gyroid |
-| Infill percentage    | 25%                   |
+| Infill Type          | Cross Hatch or Gyroid |
+| Infill Percentage    | 25%                   |
 | Supports             | None                  |
-| Filament estimate    | 246g                  |
-| Recommended filament | PLA+                  |
+| Filament Estimate    | 246g                  |
+| Recommended Filament | PLA+                  |
 
 <Tip>
   All parts are oriented correctly in the provided STL files. Print them in their default orientation without rotation.
 </Tip>
 
+<Tip>
+  All OSSM print files are also available on <a href="https://makerworld.com/en/models/2472952">MakerWorld</a>.
+</Tip>
+
+## Printed Parts
+
 <BOMTable items={standPrintedParts} />
 
-## Bill of materials - V1.1
+## Bill of Materials
 
-| **Aluminum Extrusion**       | **QTY** |
-| :--------------------------- | :------ |
-| 12" 30x30mm T-slot extrusion | 2       |
-| 18" 30x30mm T-slot extrusion | 1       |
-| 19" 30x30mm T-slot extrusion | 1       |
+### Aluminum Extrusion
 
-| **Printed Parts** | **QTY** |
-| :---------------- | :------ |
-| Pivot plate 1     | 1       |
-| Pivot plate 2     | 1       |
-| Handle spacer     | 8       |
-| Foot              | 4       |
-| T-Nut support     | 2       |
+| Part                        | Qty |
+| --------------------------- | --- |
+| 12" 30x30mm T-slot extrusion | 2   |
+| 18" 30x30mm T-slot extrusion | 1   |
+| 19" 30x30mm T-slot extrusion | 1   |
 
-| **Hardware Bag 1 - Fasteners**        | **QTY** |
-| :------------------------------------ | :------ |
-| M6x12mm socket cap screw              | 14      |
-| M6x25mm socket cap screw              | 6       |
-| M6 washer                             | 16      |
-| M6 T-Nut for 30x30mm T-slot extrusion | 24      |
+### Fasteners
 
-| **Hardware Bag 2 - Handles** | **QTY** |
-| :--------------------------- | :------ |
-| M6x25mm handle               | 2       |
+| Part                                  | Qty |
+| ------------------------------------- | --- |
+| M6x12mm socket cap screw              | 14  |
+| M6x25mm socket cap screw              | 6   |
+| M6 washer                             | 16  |
+| M6 T-Nut for 30x30mm T-slot extrusion | 24  |
 
-| **Hardware Bag 3 - Misc.** | **QTY** |
-| :------------------------- | :------ |
-| 30x30mm base brackets      | 4       |
-| Rubber washer              | 2       |
-| Grippy feet                | 4       |
-| End caps (printed)         | 6       |
+### Handles
 
-| **Accessory**      | **QTY** |
-| :----------------- | :------ |
-| Sandbag (unfilled) | 1       |
+| Part           | Qty |
+| -------------- | --- |
+| M6x25mm handle | 2   |
 
-<BOMTable items={standAccessories} />
+### Misc
+
+| Part                  | Qty |
+| --------------------- | --- |
+| 30x30mm base brackets | 4   |
+| Rubber washer         | 2   |
+| Grippy feet           | 4   |
+| End caps (printed)    | 6   |
+
+### Accessories
+
+| Part               | Qty |
+| ------------------ | --- |
+| Sandbag (unfilled) | 1   |
 
 <Note>
   A sandbag is recommended to add weight and stability to the stand during operation.
 </Note>
 
-## Additional resources
+## Additional Resources
 
+<CardGroup cols={2}>
 <Card icon="cube" href="https://cad.onshape.com/documents/d520ea9a8cadb4ae8681f59b/w/00b211a6fa3b76c59ef28f4e/e/5f2c80d9d9c2433a7be7f789" title="View 3D Model">
   Explore the complete 3D model on OnShape
 </Card>
 
-<Info>
-  This BOM covers the stand assembly only. For actuator and PCB mounting hardware, see the [Actuator documentation](/ossm/Hardware/standard-printed-parts/actuator/introduction).
-</Info>
+<Card icon="wrench" href="/ossm/Hardware/standard-printed-parts/actuator/introduction" title="Actuator Documentation">
+  Actuator and PCB mounting hardware
+</Card>
+</CardGroup>
 
 <Warning>
   This documentation is being updated for the 57AIM30 Gold Motor and PitClamp Mini default build configuration. Some details may change.
