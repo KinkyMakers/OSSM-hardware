@@ -44,7 +44,7 @@ static void startStrokeEngineTask(void *pvParameters) {
 
     while (isInCorrectState()) {
         if (isChangeSignificant(lastSetting.speed, settings.speed) ||
-            wasLastSpeedCommandFromBLE(true)) {
+            wasLastSpeedCommandFromBLE()) {
             // Speed is float, so give a little wiggle room here to assume 0
             if (settings.speed < 0.1f) {
                 Stroker.stopMotion();

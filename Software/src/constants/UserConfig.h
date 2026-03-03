@@ -13,6 +13,7 @@ namespace UserConfig {
     //  or any other language.
     static LanguageStruct language = enUs;
     static bool displayMetric = true;
+    static float afterHomingPosition = 0.0;
 
     // Speed knob configuration
     // When true: BLE speed commands (0-100) are treated as a percentage of the

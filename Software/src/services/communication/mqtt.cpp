@@ -10,15 +10,6 @@ bool mqttConnected = false;
 esp_mqtt_client_handle_t mqttClient = nullptr;
 String sessionId = "";
 
-// MQTT server configuration
-#if defined(VERSIONDEV) && defined(MQTT_SERVER)
-const char* mqtt_server = MQTT_SERVER;
-const int mqtt_port = 1883;
-#else
-const char* mqtt_server = "mqtts://te9acc16.ala.us-east-1.emqxsl.com";
-const int mqtt_port = 8883;
-#endif
-
 // certificate
 #ifdef VERSIONDEV
 static const char* root_ca = nullptr;
@@ -76,11 +67,11 @@ void initMQTT() {
 
     // Create new config with updated credentials
     esp_mqtt_client_config_t mqtt_cfg = {
-        .uri = mqtt_server,
-        .port = mqtt_port,
+        .uri = MQTT_SERVER,
+        .port = MQTT_PORT,
         .client_id = macAddress.c_str(),
-        .username = "5k0vjgg9hCwZGAFnmFJg7nTU6sDElr43",
-        .password = "tJDV2u8eGdMBPzHlGKQBnirCrrA9zg5w",
+        .username = MQTT_USERNAME,
+        .password = MQTT_PASSWORD,
         .lwt_topic = String("ossm/" + macAddress).c_str(),
         .lwt_msg = lwt.c_str(),
         .lwt_qos = 2,

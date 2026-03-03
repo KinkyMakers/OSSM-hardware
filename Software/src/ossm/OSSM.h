@@ -33,8 +33,11 @@ class OSSM {
     // BLE command handler
     void ble_click(String commandString);
 
-    // Get current state as JSON string
+    // Get current state as JSON string (includes timestamp)
     String getCurrentState();
+
+    // Get state fingerprint without timestamp (for change detection)
+    String getStateFingerprint();
 
     // Backward compatibility accessors (deprecated - use globals directly)
     int getSpeed() { return settings.speed; }
