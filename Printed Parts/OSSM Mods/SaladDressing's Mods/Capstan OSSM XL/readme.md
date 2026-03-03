@@ -3,7 +3,8 @@
 
 
 # Capstan OSSM XL
-![IMG20251109164233](Pictures/HG20/IMG20251109164233.jpg)
+
+> **Full documentation**: [Capstan OSSM XL on the R+D Docs](https://docs.researchanddesire.com/ossm/Hardware/ossm-mods/salad-dressing/capstan)
 Revamp of the OSSM drive mechanism to use a capstan based version, enabling higher load use with a more powerful motor, namely the 60AIM40F.
 
 A Capstan Drive is based on rope and a pulley. For a nice video explaining the mechanism, check this awesome video by Aaed Musa: [https://www.youtube.com/watch?v=MwIBTbumd1Q](https://www.youtube.com/watch?v=MwIBTbumd1Q "https://www.youtube.com/watch?v=MwIBTbumd1Q")
