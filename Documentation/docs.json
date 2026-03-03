@@ -288,6 +288,8 @@
                     "pages": [
                       "ossm/Hardware/ossm-mods/salad-dressing/belt-clamp-v2",
                       "ossm/Hardware/ossm-mods/salad-dressing/capstan",
+                      "ossm/Hardware/ossm-mods/salad-dressing/motor-cover",
+                      "ossm/Hardware/ossm-mods/salad-dressing/dp-attachment",
                       "ossm/Hardware/ossm-mods/salad-dressing/suction-cup-bracket",
                       "ossm/Hardware/ossm-mods/salad-dressing/weight-plate",
                       "ossm/Hardware/ossm-mods/salad-dressing/quick-change-toy-mount"
