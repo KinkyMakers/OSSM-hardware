@@ -9,7 +9,7 @@ import { OssmFunscriptPlayer } from "/snippets/ossm/funscript-player.jsx"
 **Experimental Feature**: The Funscript Player uses streaming mode, which is experimental and not recommended for general play. The protocol and behavior may change in future firmware updates. Use at your own risk and always test at low intensity first.
 </Warning>
 
-Sync your OSSM with funscript files for video-synchronized playback. Load a video and matching `.funscript` file, connect via Bluetooth, and enjoy automated motion control.
+Sync your OSSM with funscript files for video-synchronized playback. Load a video and matching `.funscript` or `.csv` file, connect via Bluetooth, and enjoy automated motion control.
 
 <OssmFunscriptPlayer />
 
@@ -18,7 +18,7 @@ Sync your OSSM with funscript files for video-synchronized playback. Load a vide
 - **OSSM firmware**: Version 3.0 or later (with BLE streaming support)
 - **Compatible browser**: Chrome, Edge, or Opera on desktop/Android
 - **Bluetooth**: Enabled on your device
-- **Funscript file**: A `.funscript` file matching your video
+- **Funscript file**: A `.funscript` or `.csv` file matching your video
 
 <Note>
 Web Bluetooth is **not supported** on iOS devices (iPhone/iPad) or in Safari/Firefox browsers. For these platforms, consider using third-party funscript players with [Buttplug.io](https://buttplug.io) integration.
@@ -28,7 +28,7 @@ Web Bluetooth is **not supported** on iOS devices (iPhone/iPad) or in Safari/Fir
 
 <Steps>
   <Step title="Load your media files">
-    Click the file pickers to select your video file and matching `.funscript` file. The funscript filename should match the video filename (e.g., `my-video.mp4` and `my-video.funscript`).
+    Click the file pickers to select your video file and matching `.funscript` or `.csv` file. The funscript filename should match the video filename (e.g., `my-video.mp4` and `my-video.funscript`).
   </Step>
   
   <Step title="Connect to your OSSM">
@@ -61,6 +61,23 @@ Funscript is a JSON-based file format used to synchronize toy movements with vid
 <Info>
 Funscripts can be created using tools like [OpenFunscripter](https://github.com/OpenFunscripter/OpenFunscripter) or purchased from marketplaces like [RealSync](https://realsync.us/).
 </Info>
+
+## Alternative CSV format?
+
+A CSV file can be used in place of a funscript. The player expects a pair of values. The time value first and the position value second. Each new line of the file defines where the device should move at specific moments during playback.
+
+```csv Example CSV structure
+0,100
+25294,100
+27567,100
+28167,50
+29067,90
+29667,40
+31100,100
+```
+
+- Timestamp in milliseconds
+- Position from 0 (fully extended) to 100 (fully retracted). Yes, this seems backwards, but it's how funscripts are implemented.
 
 ## Playback Settings
 
