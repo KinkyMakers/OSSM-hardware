@@ -316,32 +316,32 @@ export const OssmFunscriptPlayer = () => {
       setError(`Failed to parse funscript`);
       return false;
     }
-      var lastDirection = 0;
-      data.simpleActions = [];
-      data.actions.forEach(
-        function(value,index){
-          var nextValue = data.actions[index+1];
-          if (nextValue){
-            var direction = (value.pos-nextValue.pos)/Math.abs(value.pos-nextValue.pos);
-            if (direction != lastDirection){
-              data.simpleActions.push(data.actions[index]);
-            }
-            lastDirection = direction;
+    var lastDirection = 0;
+    data.simpleActions = [];
+    data.actions.forEach(
+      function(value,index){
+        var nextValue = data.actions[index+1];
+        if (nextValue){
+          var direction = (value.pos-nextValue.pos)/Math.abs(value.pos-nextValue.pos);
+          if (direction != lastDirection){
+            data.simpleActions.push(data.actions[index]);
           }
+          lastDirection = direction;
         }
-      )
-      data.simpleActions;
+      }
+    )
+    data.simpleActions;
 
-      setFunscriptActions(data.actions);
-      setFunscriptSimpleActions(data.simpleActions);
+    setFunscriptActions(data.actions);
+    setFunscriptSimpleActions(data.simpleActions);
 
-      addLog('INFO', `Loaded ${data.actions.length} actions`);
+    addLog('INFO', `Loaded ${data.actions.length} actions`);
 
-      if (data.version) addLog('INFO', `Funscript version: ${data.version}`);
-      if (data.inverted) addLog('INFO', 'Script is inverted');
-      if (data.range) addLog('INFO', `Range: ${data.range}`);
+    if (data.version) addLog('INFO', `Funscript version: ${data.version}`);
+    if (data.inverted) addLog('INFO', 'Script is inverted');
+    if (data.range) addLog('INFO', `Range: ${data.range}`);
 
-      return true;
+    return true;
   }, [addLog]);
 
   // Format time for display
