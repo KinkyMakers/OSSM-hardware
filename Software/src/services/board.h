@@ -9,6 +9,7 @@
 #include "services/led.h"
 #include "services/stepper.h"
 
+extern bool USE_LATENCY_COMPENSATION;
 extern bool USE_SPEED_KNOB_AS_LIMIT;
 void initBoard();
 

@@ -1,17 +1,7 @@
 #ifndef SOFTWARE_SETTINGPERCENTS_H
 #define SOFTWARE_SETTINGPERCENTS_H
 
-#include <optional>
-
-enum class StrokePatterns {
-    SimpleStroke,
-    TeasingPounding,
-    RoboStroke,
-    HalfnHalf,
-    Deeper,
-    StopNGo,
-    Insist,
-};
+#include "../lib/StrokeEngine/src/StrokeEngine.h"
 
 struct SettingPercents {
     float speed;

@@ -18,11 +18,6 @@ using namespace sml;
 
 namespace pattern_controls {
 
-static size_t numberOfDescriptions =
-    sizeof(UserConfig::language.StrokeEngineDescriptions) /
-    sizeof(UserConfig::language.StrokeEngineDescriptions[0]);
-static size_t numberOfPatterns = 7;
-
 static void drawPatternControlsTask(void *pvParameters) {
     SettingPercents savedSettings = settings;
 
@@ -31,16 +26,15 @@ static void drawPatternControlsTask(void *pvParameters) {
         return stateMachine->is("strokeEngine.pattern"_s);
     };
 
-    int nextPattern = (int)settings.pattern;
+    StrokePatterns nextPattern = settings.pattern;
     bool shouldUpdateDisplay = true;
-    const char *patternName = "nextPattern";
-    const char *patternDescription =
-        UserConfig::language.StrokeEngineDescriptions[nextPattern];
+    String patternName;
+    String patternDescription;
 
     // Change encode
     encoder.setAcceleration(10);
-    encoder.setBoundaries(0, numberOfPatterns * 3 - 1, true);
-    encoder.setEncoderValue(nextPattern * 3);
+    encoder.setBoundaries(0, static_cast<int>(StrokePatterns::Count) * 3 - 1, true);
+    encoder.setEncoderValue((int)nextPattern * 3);
 
     while (isInCorrectState()) {
         float speed;
@@ -59,24 +53,16 @@ static void drawPatternControlsTask(void *pvParameters) {
             settings.speed = speed;
         }
 
-        nextPattern = encoder.readEncoder() / 3;
-        shouldUpdateDisplay =
-            shouldUpdateDisplay || (int)settings.pattern != nextPattern;
+        nextPattern = StrokePatterns(encoder.readEncoder() / 3);
+        shouldUpdateDisplay = shouldUpdateDisplay || settings.pattern != nextPattern;
         if (!shouldUpdateDisplay) {
             vTaskDelay(100);
             continue;
         }
 
-        patternName = UserConfig::language.StrokeEngineNames[nextPattern];
-
-        if (nextPattern < numberOfDescriptions) {
-            patternDescription =
-                UserConfig::language.StrokeEngineDescriptions[nextPattern];
-        } else {
-            patternDescription = "No description available";
-        }
-
-        settings.pattern = (StrokePatterns)nextPattern;
+        patternName = UserConfig::language.StrokeEngineNames[(int)nextPattern];
+        patternDescription = UserConfig::language.StrokeEngineDescriptions[(int)nextPattern];
+        settings.pattern = nextPattern;
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
             clearPage(true, true);
@@ -84,7 +70,7 @@ static void drawPatternControlsTask(void *pvParameters) {
             // Draw the title
             drawStr::title(patternName);
             drawStr::multiLine(0, 20, patternDescription);
-            drawShape::scroll(100 * nextPattern / numberOfPatterns);
+            drawShape::scroll(100 * (int)nextPattern /(int)StrokePatterns::Count);
 
             refreshPage(true, true);
             xSemaphoreGive(displayMutex);

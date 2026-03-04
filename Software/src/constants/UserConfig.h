@@ -13,6 +13,7 @@ namespace UserConfig {
     //  or any other language.
     static LanguageStruct language = enUs;
     static bool displayMetric = true;
+    static float strokeEngineSpeedCurve = 0.8;
     static float afterHomingPosition = 0.0;
 
     // Speed knob configuration

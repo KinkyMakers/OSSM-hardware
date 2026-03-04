@@ -118,6 +118,48 @@ In independent mode, BLE commands can override the physical knob. Ensure your ap
 | `true` or `false` | Current configuration value |
 | `error:invalid_value` | Invalid input provided |
 
+
+#### Latency compensation configuration characteristic
+
+| Property | Value |
+| -------- | ----- |
+| UUID | `522b443a-4f53-534d-1030-420badbabe69` |
+| Properties | READ, WRITE |
+| Purpose | Configure whether the OSSM attempts to compensate for latency|
+
+**Configuration values**
+
+| Value | Description |
+| ----- | ----------- |
+| `true`, `1`, `t` | Latency compensation is active |
+| `false`, `0`, `f` | Latency compensation is inactive (default) |
+
+<Tabs>
+<Tab title="Enabled">
+When set to `true`, the OSSM expects to receive the exact commands and times from the funscript and that the commands are sent
+with the same delay between commands as the time value. By calculating the time between received commands and the time variable
+the OSSM is able to determine the latency introduced by BLE and correct for it with slight changes to the speed of the motion.
+If the time between commands does not match the intime variable this should not be enabled. The buffer setting is used to artificially
+add delay to all movements. This gives the OSSM time to receive the next command before the previous has been completed. This allows
+the removal of any delay introduced by late commands, as well as smoothing motion by combining movements travelling in the same direction.
+Funscript players should add this buffer value to their playback offset and include an additional setting for fine tuning playback offset
+to account for transmission time and any delay inherent to the funscript itself.
+</Tab>
+
+<Tab title="Disabled">
+When set to `false`, the OSSM will execute commands as they are received. Commands that arrive late will be executed late. Commands
+that arrive early will be executed when the prior command has finished.
+
+</Tab>
+</Tabs>
+
+**Response format**
+
+| Response | Meaning |
+| -------- | ------- |
+| `true` or `false` | Current configuration value |
+| `error:invalid_value` | Invalid input provided |
+
 #### WiFi configuration characteristic
 
 | Property | Value |

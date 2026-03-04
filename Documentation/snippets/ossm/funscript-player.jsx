@@ -3,6 +3,7 @@ export const OssmFunscriptPlayer = () => {
   const OSSM_SERVICE_UUID = '522b443a-4f53-534d-0001-420badbabe69';
   const OSSM_COMMAND_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1000-420badbabe69';
   const OSSM_SPEED_KNOB_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1010-420badbabe69';
+  const OSSM_LATENCY_COMPENSATION_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1030-420badbabe69';
   const OSSM_STATE_CHARACTERISTIC_UUID = '522b443a-4f53-534d-2000-420badbabe69';
 
   // Check if Web Bluetooth is supported
@@ -46,6 +47,7 @@ export const OssmFunscriptPlayer = () => {
   // Refs
   const commandCharacteristicRef = useRef(null);
   const speedKnobCharacteristicRef = useRef(null);
+  const latencyCompensationCharacteristicRef = useRef(null);
   const serverRef = useRef(null);
   const videoRef = useRef(null);
   const logsContainerRef = useRef(null);
@@ -233,6 +235,9 @@ export const OssmFunscriptPlayer = () => {
       speedKnobCharacteristicRef.current = await service.getCharacteristic(OSSM_SPEED_KNOB_CHARACTERISTIC_UUID);
       addLog('INFO','Got speed knob characteristic');
 
+      latencyCompensationCharacteristicRef.current = await service.getCharacteristic(OSSM_LATENCY_COMPENSATION_CHARACTERISTIC_UUID);
+      addLog('INFO','Got latency compensation characteristic');
+
       // Try to subscribe to state notifications
       try {
         const stateChar = await service.getCharacteristic(OSSM_STATE_CHARACTERISTIC_UUID);
@@ -250,6 +255,9 @@ export const OssmFunscriptPlayer = () => {
       const encoder = new TextEncoder();
       await speedKnobCharacteristicRef.current.writeValue(encoder.encode('false'));
       addLog('INFO','Disable speed knob as override');
+
+      await latencyCompensationCharacteristicRef.current.writeValue(encoder.encode('true'));
+      addLog('INFO','Enable latency compensation');
 
       setDevice(bleDevice);
       setConnectionStatus('connected');
