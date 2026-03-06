@@ -10,8 +10,10 @@
 // **********************************************************
 // SYSTEM CHARACTERISTICS
 // - Range: 0002-0FFF
-// - Description: Reserved. Not used yet.
 // **********************************************************
+// Pairing characteristic: read device info, write WiFi credentials.
+// Used by the dashboard BLE one-click pairing flow.
+#define CHARACTERISTIC_PAIRING_UUID "522b443a-4f53-534d-0010-420badbabe69"
 
 // **********************************************************
 // Command and Configuration Characteristics
