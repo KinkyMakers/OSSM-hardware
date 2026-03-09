@@ -3,11 +3,17 @@ title: "WiFi Setup"
 description: "Configure your OSSM's WiFi connection for over-the-air updates and remote features"
 ---
 
-Connecting your OSSM to WiFi enables over-the-air firmware updates and other network-based features. This guide covers two methods for configuring your WiFi credentials.
+Connecting your OSSM to WiFi enables over-the-air firmware updates and other network-based features.
 
 <Note>
 Your OSSM only supports 2.4GHz WiFi networks. This is a hardware limitation of the ESP32 microcontroller. 5GHz networks will not appear in the network list.
 </Note>
+
+<Tip>
+**Pairing your OSSM to the dashboard for the first time?** Use [Automatic Pairing via Bluetooth](/ossm/guides/getting-started/ble-pairing) instead — it pairs your account **and** provisions WiFi in one step, directly from the dashboard.
+</Tip>
+
+This guide covers standalone WiFi configuration — useful if you need to change networks, reset credentials, or set up WiFi outside of the pairing flow.
 
 ## Prerequisites
 

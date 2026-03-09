@@ -12,6 +12,7 @@
 #include "config.hpp"
 #include "gpio.hpp"
 #include "ossm/OSSM.h"
+#include "pairing.hpp"
 #include "patterns.hpp"
 #include "services/led.h"
 #include "state.hpp"
@@ -308,6 +309,10 @@ void initNimble() {
 
     // GPIO write/read characteristic
     initGPIOCharacteristic(pService, NimBLEUUID(CHARACTERISTIC_GPIO_UUID));
+
+    // Pairing characteristic — BLE one-click pairing from the dashboard
+    initPairingCharacteristic(pService,
+                              NimBLEUUID(CHARACTERISTIC_PAIRING_UUID));
 
     // Start the services
     pService->start();

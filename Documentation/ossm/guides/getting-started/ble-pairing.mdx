@@ -1,0 +1,133 @@
+---
+title: "Automatic Pairing via Bluetooth"
+description: "Pair your OSSM to the dashboard in one step using Web Bluetooth — no manual setup required"
+---
+
+Automatic pairing connects your OSSM to your dashboard account directly over Bluetooth. The dashboard reads your device, links your account, and provisions WiFi credentials — all in one flow, without any manual steps on the device itself.
+
+## Requirements
+
+| Requirement | Details |
+|---|---|
+| Browser | Google Chrome or Microsoft Edge (desktop) |
+| OSSM status | Powered on, **not** paired to any account |
+| WiFi (optional) | Only needed if your OSSM isn't already on WiFi |
+
+<Warning>
+Web Bluetooth is not supported in Firefox, Safari, or most mobile browsers. If you're on one of these, use [manual pairing with a pairing code](/ossm/guides/getting-started/ble-pairing#fallback-enter-code) instead.
+</Warning>
+
+---
+
+## How it works
+
+When your OSSM is unpaired, it broadcasts a Bluetooth signal. The dashboard connects over BLE, reads the device's MAC address, chip info, and firmware version, then registers your account as the owner — before any WiFi communication happens.
+
+From there, one of two things occurs:
+
+### Your OSSM is already on WiFi
+
+If the OSSM is already connected to your home network (e.g. you set up WiFi earlier), pairing completes immediately. No credentials needed — the dashboard claims the device and it authenticates on its own.
+
+### Your OSSM is not on WiFi
+
+The dashboard shows a WiFi selection form. You can pick a saved network or enter credentials manually. The dashboard sends the SSID and password directly to the OSSM over Bluetooth. The device connects to WiFi and authenticates with the server on its own.
+
+<Tip>
+You can save WiFi networks to your account so you don't have to re-enter them every time you pair a new device. Check **Save this network** when entering credentials manually, or manage saved networks in **Settings → WiFi Networks**.
+</Tip>
+
+<Note>
+Your OSSM only supports **2.4 GHz WiFi networks**. 5 GHz networks will not work. If your router broadcasts both frequencies under the same name, try selecting a 2.4 GHz-specific band.
+</Note>
+
+---
+
+## Step-by-step
+
+<Steps>
+<Step title="Open the pairing dialog">
+  In the dashboard, go to **Settings → Devices** and click **Pair OSSM**.
+
+  The dialog opens to the **Auto (Bluetooth)** tab by default.
+</Step>
+
+<Step title="Scan for your OSSM">
+  Click **Scan for OSSM**. Your browser displays a device picker — select **OSSM** from the list and click **Connect**.
+
+  <Note>
+  If **OSSM** doesn't appear in the picker:
+  - Make sure the OSSM is powered on
+  - Make sure it hasn't already been paired to an account — the device only advertises via Bluetooth when unpaired
+  - Try moving closer to the OSSM
+  </Note>
+</Step>
+
+<Step title="Wait while the dashboard reads your device">
+  After connecting, the dashboard automatically reads device info (MAC address, firmware version, WiFi status). This takes a few seconds.
+</Step>
+
+<Step title="Provide WiFi credentials (if prompted)">
+  If your OSSM is not yet on WiFi, a network selection form appears:
+
+  - **Select a saved network** from the dropdown (if you've saved one before), or
+  - **Enter manually** — type the network name and password
+
+  If your OSSM is already online, this step is skipped.
+</Step>
+
+<Step title="Confirm and continue">
+  The dashboard links your account to the device. If WiFi credentials were needed, they're sent to the OSSM over Bluetooth and the device connects on its own.
+
+  <Check>
+  Once you see the confirmation screen, your OSSM is paired. Click **Continue**.
+  </Check>
+</Step>
+</Steps>
+
+---
+
+## Saved WiFi networks
+
+You can store WiFi credentials in your account so they're ready for future pairings. Passwords are encrypted and never sent to the device in plaintext — the dashboard decrypts them server-side and sends them over the Bluetooth connection.
+
+To manage saved networks, go to **Settings → WiFi Networks** in the dashboard.
+
+---
+
+## Fallback: Enter Code
+
+If your browser doesn't support Web Bluetooth, switch to the **Enter Code** tab in the pairing dialog. Your OSSM displays a 6-character code and QR code on its screen. Enter the code manually in the dashboard to complete pairing.
+
+<Note>
+The Enter Code method still requires your OSSM to be connected to WiFi first. Use the [WiFi setup guide](/ossm/guides/getting-started/wifi-setup) to get the device online before pairing this way.
+</Note>
+
+---
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="My OSSM doesn't appear in the browser picker">
+  - Confirm you're using Chrome or Edge on a desktop — mobile browsers have limited Bluetooth support
+  - Make sure the OSSM is powered on
+  - The OSSM only advertises when **unpaired**. If it's already paired to an account, it won't appear. Contact support if you need to transfer ownership.
+  - Try moving your computer closer to the device
+  - Refresh the page and try scanning again
+</Accordion>
+
+<Accordion title="The connection drops before pairing completes">
+  The OSSM automatically restarts advertising when a Bluetooth connection drops, so you can retry without rebooting the device. Click **Scan for OSSM** again to reconnect.
+</Accordion>
+
+<Accordion title="WiFi credentials were sent but the OSSM didn't connect">
+  - Double-check that the network is 2.4 GHz — the OSSM does not support 5 GHz
+  - Verify the password is correct by connecting another device to the same network
+  - Make sure the OSSM is within range of your router during the connection attempt
+  - If the issue persists, try the [WiFi setup guide](/ossm/guides/getting-started/wifi-setup) to configure WiFi directly, then re-attempt pairing
+</Accordion>
+
+<Accordion title="I see 'Scan for OSSM' but clicking it does nothing">
+  Your browser may not support Web Bluetooth. Confirm you're using Chrome or Edge. In Chrome, you can check by visiting `chrome://flags` and searching for "bluetooth" to verify the feature is enabled.
+</Accordion>
+</AccordionGroup>
