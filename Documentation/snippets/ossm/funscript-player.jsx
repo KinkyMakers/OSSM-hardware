@@ -3,6 +3,7 @@ export const OssmFunscriptPlayer = () => {
   const OSSM_SERVICE_UUID = '522b443a-4f53-534d-0001-420badbabe69';
   const OSSM_COMMAND_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1000-420badbabe69';
   const OSSM_SPEED_KNOB_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1010-420badbabe69';
+  const OSSM_LATENCY_COMPENSATION_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1030-420badbabe69';
   const OSSM_STATE_CHARACTERISTIC_UUID = '522b443a-4f53-534d-2000-420badbabe69';
 
   // Check if Web Bluetooth is supported
@@ -46,6 +47,7 @@ export const OssmFunscriptPlayer = () => {
   // Refs
   const commandCharacteristicRef = useRef(null);
   const speedKnobCharacteristicRef = useRef(null);
+  const latencyCompensationCharacteristicRef = useRef(null);
   const serverRef = useRef(null);
   const videoRef = useRef(null);
   const logsContainerRef = useRef(null);
@@ -233,6 +235,9 @@ export const OssmFunscriptPlayer = () => {
       speedKnobCharacteristicRef.current = await service.getCharacteristic(OSSM_SPEED_KNOB_CHARACTERISTIC_UUID);
       addLog('INFO','Got speed knob characteristic');
 
+      latencyCompensationCharacteristicRef.current = await service.getCharacteristic(OSSM_LATENCY_COMPENSATION_CHARACTERISTIC_UUID);
+      addLog('INFO','Got latency compensation characteristic');
+
       // Try to subscribe to state notifications
       try {
         const stateChar = await service.getCharacteristic(OSSM_STATE_CHARACTERISTIC_UUID);
@@ -250,6 +255,9 @@ export const OssmFunscriptPlayer = () => {
       const encoder = new TextEncoder();
       await speedKnobCharacteristicRef.current.writeValue(encoder.encode('false'));
       addLog('INFO','Disable speed knob as override');
+
+      await latencyCompensationCharacteristicRef.current.writeValue(encoder.encode('true'));
+      addLog('INFO','Enable latency compensation');
 
       setDevice(bleDevice);
       setConnectionStatus('connected');
@@ -293,44 +301,55 @@ export const OssmFunscriptPlayer = () => {
 
   // Parse funscript file
   const parseFunscript = useCallback((content) => {
+    var data = {};
     try {
-      const data = JSON.parse(content);
-
-      if (!data.actions || !Array.isArray(data.actions)) {
-        throw new Error('Invalid funscript: missing actions array');
-      }
-      
-      var lastDirection = 0;
-      data.simpleActions = [];
-      data.actions.forEach(
-        function(value,index){
-          var nextValue = data.actions[index+1];
-          if (nextValue){
-            var direction = (value.pos-nextValue.pos)/Math.abs(value.pos-nextValue.pos);
-            if (direction != lastDirection){
-              data.simpleActions.push(data.actions[index]);
-            }
-            lastDirection = direction;
-          }
-        }
-      )
-      data.simpleActions;
-
-      setFunscriptActions(data.actions);
-      setFunscriptSimpleActions(data.simpleActions);
-
-      addLog('INFO', `Loaded ${data.actions.length} actions`);
-
-      if (data.version) addLog('INFO', `Funscript version: ${data.version}`);
-      if (data.inverted) addLog('INFO', 'Script is inverted');
-      if (data.range) addLog('INFO', `Range: ${data.range}`);
-
-      return true;
+      data = JSON.parse(content);
     } catch (err) {
-      addLog('ERR', `Failed to parse funscript: ${err.message}`);
-      setError(`Failed to parse funscript: ${err.message}`);
+      addLog('ERR', `Failed to parse funscript as JSON: ${err.message}`);
+    }
+    if (!data.actions) {
+      try{
+        var csv = content.split("\n");
+        if (csv.length > 0){
+          data.actions = csv.map(item => ({
+            pos: item.split(",")[1],
+            at: item.split(",")[0]
+          }))
+        }
+      } catch (err) {
+        addLog('ERR', `Failed to parse funscript as CSV: ${err.message}`);
+      }
+    }
+    if (!data.actions || !Array.isArray(data.actions)) {
+      setError(`Failed to parse funscript`);
       return false;
     }
+    var lastDirection = 0;
+    data.simpleActions = [];
+    data.actions.forEach(
+      function(value,index){
+        var nextValue = data.actions[index+1];
+        if (nextValue){
+          var direction = (value.pos-nextValue.pos)/Math.abs(value.pos-nextValue.pos);
+          if (direction != lastDirection){
+            data.simpleActions.push(data.actions[index]);
+          }
+          lastDirection = direction;
+        }
+      }
+    )
+    data.simpleActions;
+
+    setFunscriptActions(data.actions);
+    setFunscriptSimpleActions(data.simpleActions);
+
+    addLog('INFO', `Loaded ${data.actions.length} actions`);
+
+    if (data.version) addLog('INFO', `Funscript version: ${data.version}`);
+    if (data.inverted) addLog('INFO', 'Script is inverted');
+    if (data.range) addLog('INFO', `Range: ${data.range}`);
+
+    return true;
   }, [addLog]);
 
   // Format time for display
@@ -541,6 +560,7 @@ export const OssmFunscriptPlayer = () => {
       </div>
 
       {/* Video & Funscript Card */}
+
       <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
         <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Video & Funscript</h3>
 
@@ -573,7 +593,7 @@ export const OssmFunscriptPlayer = () => {
             <label className="block cursor-pointer">
               <input
                 type="file"
-                accept=".funscript,.json"
+                accept=".funscript,.json,.csv"
                 onChange={handleFunscriptSelect}
                 className="hidden"
               />
@@ -657,108 +677,111 @@ export const OssmFunscriptPlayer = () => {
         </div>
       </div>
 
-      {/* Settings Card */}
-      <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
-        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Playback Settings</h3>
+      {isConnected && (
+        <>
+          {/* Settings Card */}
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Playback Settings</h3>
 
-        <div className="space-y-4">
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Max Speed</label>
-              <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{speed}</span>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Max Speed</label>
+                  <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{speed}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={speed}
+                  onChange={(e) => setSpeed(parseInt(e.target.value))}
+                  onMouseUp={(e) => handleSpeedChange(parseInt(e.target.value))}
+                  onTouchEnd={(e) => handleSpeedChange(parseInt(e.target.value))}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
+                />
+              </div>
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Max Stroke Length</label>
+                  <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{stroke}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={stroke}
+                  onChange={(e) => setStroke(parseInt(e.target.value))}
+                  onMouseUp={(e) => handleStrokeChange(parseInt(e.target.value))}
+                  onTouchEnd={(e) => handleStrokeChange(parseInt(e.target.value))}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
+                />
+              </div>
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Max Depth</label>
+                  <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{depth}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={depth}
+                  onChange={(e) => setDepth(parseInt(e.target.value))}
+                  onMouseUp={(e) => handleDepthChange(parseInt(e.target.value))}
+                  onTouchEnd={(e) => handleDepthChange(parseInt(e.target.value))}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
+                />
+              </div>
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Max Accelration</label>
+                  <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{sensation}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={sensation}
+                  onChange={(e) => setSensation(parseInt(e.target.value))}
+                  onMouseUp={(e) => handleSensationChange(parseInt(e.target.value))}
+                  onTouchEnd={(e) => handleSensationChange(parseInt(e.target.value))}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
+                />
+              </div>
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Device Buffer</label>
+                  <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{buffer}ms</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="200"
+                  value={buffer}
+                  onChange={(e) => setBuffer(parseInt(e.target.value))}
+                  onMouseUp={(e) => handleBufferChange(parseInt(e.target.value))}
+                  onTouchEnd={(e) => handleBufferChange(parseInt(e.target.value))}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
+                />
+              </div>
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Time Offset</label>
+                  <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{timeOffset}ms</span>
+                </div>
+                <input
+                  type="range"
+                  min="-50"
+                  max="50"
+                  value={timeOffset}
+                  onChange={(e) => setTimeOffset(parseInt(e.target.value))}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
+                />
+              </div>
             </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={speed}
-              onChange={(e) => setSpeed(parseInt(e.target.value))}
-              onMouseUp={(e) => handleSpeedChange(parseInt(e.target.value))}
-              onTouchEnd={(e) => handleSpeedChange(parseInt(e.target.value))}
-              className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
-            />
           </div>
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Max Stroke Length</label>
-              <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{stroke}</span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={stroke}
-              onChange={(e) => setStroke(parseInt(e.target.value))}
-              onMouseUp={(e) => handleStrokeChange(parseInt(e.target.value))}
-              onTouchEnd={(e) => handleStrokeChange(parseInt(e.target.value))}
-              className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
-            />
-          </div>
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Max Depth</label>
-              <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{depth}</span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={depth}
-              onChange={(e) => setDepth(parseInt(e.target.value))}
-              onMouseUp={(e) => handleDepthChange(parseInt(e.target.value))}
-              onTouchEnd={(e) => handleDepthChange(parseInt(e.target.value))}
-              className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
-            />
-          </div>
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Max Accelration</label>
-              <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{sensation}</span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={sensation}
-              onChange={(e) => setSensation(parseInt(e.target.value))}
-              onMouseUp={(e) => handleSensationChange(parseInt(e.target.value))}
-              onTouchEnd={(e) => handleSensationChange(parseInt(e.target.value))}
-              className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
-            />
-          </div>
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Device Buffer</label>
-              <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{buffer}ms</span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="200"
-              value={buffer}
-              onChange={(e) => setBuffer(parseInt(e.target.value))}
-              onMouseUp={(e) => handleBufferChange(parseInt(e.target.value))}
-              onTouchEnd={(e) => handleBufferChange(parseInt(e.target.value))}
-              className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
-            />
-          </div>
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Time Offset</label>
-              <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400">{timeOffset}ms</span>
-            </div>
-            <input
-              type="range"
-              min="-50"
-              max="50"
-              value={timeOffset}
-              onChange={(e) => setTimeOffset(parseInt(e.target.value))}
-              className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-200 dark:bg-zinc-700 accent-violet-500"
-            />
-          </div>
-        </div>
-      </div>
-
+        </>
+      )}
       {/* Debug Logs Card */}
       <div className="rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900 overflow-hidden">
         <button

@@ -22,9 +22,8 @@
 NimBLEServer* pServer = nullptr;
 
 NimBLECharacteristic* pStateCharacteristic = nullptr;
-
 NimBLECharacteristic* pSpeedKnobConfigCharacteristic = nullptr;
-
+NimBLECharacteristic* pLatencyCompensationConfigCharacteristic = nullptr;
 NimBLECharacteristic* pCommandCharacteristic = nullptr;
 
 static long lostConnectionTime = 0;
@@ -100,7 +99,7 @@ class FTSCallbacks : public NimBLECharacteristicCallbacks {
                             static_cast<uint8_t>(value[2]);
 
             ESP_LOGI("NIMBLE", "FTS Command - Position: %d, Time: %d ms", position, time);
-            targetQueue.push({position, time});
+            targetQueue.push({position, time, std::chrono::steady_clock::now()});
 
         } else {
             ESP_LOGW("NIMBLE", "FTS write - Invalid data length: %d bytes",
@@ -293,6 +292,9 @@ void initNimble() {
 
     pSpeedKnobConfigCharacteristic = initSpeedKnobConfigCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_SPEED_KNOB_CONFIG_UUID));
+
+    pLatencyCompensationConfigCharacteristic = initLatencyCompensationConfigCharacteristic(
+        pService, NimBLEUUID(CHARACTERISTIC_LATENCY_COMPENSATION_CONFIG_UUID));
 
     initWiFiConfigCharacteristic(pService,
                                  NimBLEUUID(CHARACTERISTIC_WIFI_CONFIG_UUID));

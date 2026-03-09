@@ -8,7 +8,7 @@
 struct PositionTime {
     uint8_t position; // 0 - 100
     uint16_t inTime;     // in ms
-    std::optional<std::chrono::steady_clock::time_point> setTime; //received timestamp
+    std::chrono::steady_clock::time_point setTime; //received timestamp
     int direction; //0:uncalculated, 1:out, -1:in
 };
 

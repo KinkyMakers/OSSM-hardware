@@ -7,6 +7,7 @@
 #include "ossm/state/session.h"
 #include "ossm/state/settings.h"
 #include "ossm/state/state.h"
+#include "services/board.h"
 #include "services/communication/nimble.h"
 #include "services/communication/queue.h"
 #include "services/stepper.h"
@@ -63,17 +64,17 @@ static void startStreamingTask(void *pvParameters) {
         float timeSeconds = targetPositionTime.inTime / 1000.0f;
         
         // settime is when the message was received. If we trust the source we can reduce perceived lag by creating a buffer.
-        if (targetPositionTime.setTime){
+        if (USE_LATENCY_COMPENSATION){
             int16_t mincomp =  min(int(settings.buffer * 2),int(lastPositionTime.inTime));
             int16_t offset = mincomp - currentBuffer;
-            int16_t lag = std::chrono::duration_cast<std::chrono::milliseconds>(targetPositionTime.setTime.value() - best).count();
+            int16_t lag = std::chrono::duration_cast<std::chrono::milliseconds>(targetPositionTime.setTime - best).count();
             if (lag < 0 || lag > mincomp * 10){
-                best = targetPositionTime.setTime.value();
+                best = targetPositionTime.setTime;
                 lag = 0;
                 offset = 0;
             }
             best += std::chrono::milliseconds(targetPositionTime.inTime);
-            ESP_LOGI("Streaming", "Lag: %d, Buffer: %d/%d", lag, currentBuffer, mincomp);
+            ESP_LOGD("Streaming", "Lagency Compensation - Lag: %d, Buffer: %d/%d", lag, currentBuffer, mincomp);
             if (offset < 0){
                 // Shorten time up to 1/4 of the total time.
                 offset = max(int16_t(targetPositionTime.inTime/-4), offset);
