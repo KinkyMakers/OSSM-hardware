@@ -18,7 +18,30 @@
  *        wifiConnected: "1" = connected, "0" = not connected
  *
  * Write: "9;ssid;password"  — provisions WiFi credentials
+ *        Returns "ok:wifi:connecting" immediately; poll the read characteristic
+ *        for wifiConnected=1, or read back "ok:wifi:connected" /
+ *        "fail:wifi:connection_failed" once the task completes.
  */
+
+// Guard against a second write while a connect attempt is already in flight.
+static TaskHandle_t s_wifiConnectTask = nullptr;
+
+static void wifiConnectTask(void* pvParameters) {
+    NimBLECharacteristic* pChar =
+        static_cast<NimBLECharacteristic*>(pvParameters);
+
+    if (connectWiFi()) {
+        ESP_LOGI("PAIRING_CHAR", "WiFi connected");
+        pChar->setValue("ok:wifi:connected");
+    } else {
+        ESP_LOGW("PAIRING_CHAR", "WiFi connection failed");
+        pChar->setValue("fail:wifi:connection_failed");
+    }
+
+    s_wifiConnectTask = nullptr;
+    vTaskDelete(nullptr);
+}
+
 class PairingCallbacks : public NimBLECharacteristicCallbacks {
     void onRead(NimBLECharacteristic* pCharacteristic,
                 NimBLEConnInfo& connInfo) override {
@@ -34,7 +57,6 @@ class PairingCallbacks : public NimBLECharacteristicCallbacks {
                  NimBLEConnInfo& connInfo) override {
         std::string value = pCharacteristic->getValue();
         String cmd = String(value.c_str());
-        ESP_LOGI("PAIRING_CHAR", "Write: %s", cmd.c_str());
 
         // Expected format: "9;ssid;password"
         if (!cmd.startsWith("9;")) {
@@ -59,20 +81,25 @@ class PairingCallbacks : public NimBLECharacteristicCallbacks {
             return;
         }
 
+        ESP_LOGI("PAIRING_CHAR", "WiFi provisioning: ssid='%s'", ssid.c_str());
+
         if (!setWiFiCredentials(ssid, password)) {
             pCharacteristic->setValue("fail:wifi:save_failed");
             return;
         }
 
-        pCharacteristic->setValue("ok:wifi:saved");
-
-        if (connectWiFi()) {
-            ESP_LOGI("PAIRING_CHAR", "WiFi connected");
-            pCharacteristic->setValue("ok:wifi:connected");
-        } else {
-            ESP_LOGW("PAIRING_CHAR", "WiFi connection failed");
-            pCharacteristic->setValue("fail:wifi:connection_failed");
+        if (s_wifiConnectTask != nullptr) {
+            ESP_LOGW("PAIRING_CHAR", "WiFi connect already in progress");
+            pCharacteristic->setValue("fail:wifi:busy");
+            return;
         }
+
+        // Return immediately so the NimBLE host task is not blocked.
+        // wifiConnectTask will update the characteristic value when done.
+        pCharacteristic->setValue("ok:wifi:connecting");
+        xTaskCreate(wifiConnectTask, "wifiConnect",
+                    4 * configMINIMAL_STACK_SIZE, pCharacteristic, 1,
+                    &s_wifiConnectTask);
     }
 } pairingCallbacks;
 
