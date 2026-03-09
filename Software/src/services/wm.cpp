@@ -11,7 +11,7 @@ Preferences wifiPrefs;
 
 void initWM() {
     WiFi.useStaticBuffers(true);
-    esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
+    esp_wifi_set_ps(WIFI_PS_NONE);
 
     wm.setSaveConfigCallback([]() {
         ESP_LOGI("WM", "WiFi credentials saved to NVS");
