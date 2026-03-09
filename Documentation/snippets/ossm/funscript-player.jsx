@@ -312,8 +312,8 @@ export const OssmFunscriptPlayer = () => {
         var csv = content.split("\n");
         if (csv.length > 0){
           data.actions = csv.map(item => ({
-            pos: item.split(",")[1],
-            at: item.split(",")[0]
+            pos: Number(item.split(",")[1]),
+            at: Number(item.split(",")[0])
           }))
         }
       } catch (err) {
