@@ -174,6 +174,10 @@ void ossmCheckPairing() {
     pages::checkPairing();
 }
 
+void ossmDrawPairingSuccess() {
+    pages::drawPairingSuccess();
+}
+
 void ossmSetHomed() {
     calibration.isHomed = true;
 }

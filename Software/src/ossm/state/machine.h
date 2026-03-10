@@ -73,10 +73,14 @@ struct OSSMStateMachine {
             "streaming.idle"_s + buttonPress / incrementControlStreaming = "streaming.idle"_s,
 
             "pairing"_s / checkPairing = "pairing.idle"_s,
-            "pairing.idle"_s + done = "menu"_s,
+            "pairing.idle"_s + done = "pairing.success"_s,
             "pairing.idle"_s + buttonPress = "menu"_s,
             "pairing.idle"_s + longPress = "menu"_s,
             "pairing.idle"_s + error = "menu"_s,
+
+            "pairing.success"_s / drawPairingSuccess = "pairing.success.idle"_s,
+            "pairing.success.idle"_s + buttonPress = "menu"_s,
+            "pairing.success.idle"_s + longPress = "menu"_s,
 
             "pairing.wifi"_s / drawWiFi = "pairing.wifi.idle"_s,
             "pairing.wifi.idle"_s + done = "pairing"_s,

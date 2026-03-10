@@ -26,6 +26,7 @@ void ossmDrawError();
 void ossmSetHomed();
 void ossmSetNotHomed();
 void ossmCheckPairing();
+void ossmDrawPairingSuccess();
 void ossmResetWiFi();
 void ossmRestart();
 
@@ -78,6 +79,8 @@ namespace actions {
     constexpr auto drawError = []() { ossmDrawError(); };
     
     constexpr auto checkPairing = []() { ossmCheckPairing(); };
+
+    constexpr auto drawPairingSuccess = []() { ossmDrawPairingSuccess(); };
 
     constexpr auto setHomed = []() { ossmSetHomed(); };
     
