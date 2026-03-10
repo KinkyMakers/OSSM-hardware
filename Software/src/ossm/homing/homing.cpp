@@ -1,5 +1,6 @@
 #include "homing.h"
 
+#include "Strings.h"
 #include "constants/Config.h"
 #include "constants/Pins.h"
 #include "constants/UserConfig.h"
@@ -79,7 +80,7 @@ static void startHomingTask(void *pvParameters) {
 
         if (msPassed > 40000) {
             ESP_LOGE("Homing", "Homing took too long. Check power and restart");
-            errorState.message = UserConfig::language.HomingTookTooLong;
+            errorState.message = ui::strings::homingTookTooLong;
 
             // Clear homing active flag for LED indication
             setHomingActive(false);
@@ -147,7 +148,7 @@ bool isStrokeTooShort() {
     if (calibration.measuredStrokeSteps > Config::Driver::minStrokeLengthMm) {
         return false;
     }
-    errorState.message = UserConfig::language.StrokeTooShort;
+    errorState.message = ui::strings::strokeTooShort;
     return true;
 }
 

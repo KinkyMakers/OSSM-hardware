@@ -7,16 +7,14 @@
 
 #include "services/display.h"
 
-// BLE Status levels for 2-letter codes
 enum class BleStatus {
-    DISCONNECTED = 0,  // B0
-    CONNECTING = 1,    // B1
-    CONNECTED = 2,     // B2
-    ADVERTISING = 3,   // B3
-    ERROR = 4          // B4
+    DISCONNECTED = 0,
+    CONNECTING = 1,
+    CONNECTED = 2,
+    ADVERTISING = 3,
+    ERROR = 4
 };
 
-// WiFi Status levels
 enum class WifiStatus {
     DISCONNECTED = 0,
     CONNECTING = 1,
@@ -24,21 +22,24 @@ enum class WifiStatus {
     ERROR = 3
 };
 
-// Function declarations
+constexpr uint16_t GLYPH_WIFI_OFF = 0xe218;
+constexpr uint16_t GLYPH_WIFI_CONNECTING = 0xe219;
+constexpr uint16_t GLYPH_WIFI_CONNECTED = 0xe21a;
+constexpr uint16_t GLYPH_WIFI_ERROR = 0xe21b;
+constexpr uint16_t GLYPH_BLE_CONNECTED = 0xe00b;
+constexpr uint16_t GLYPH_BLE_SMALL = 0xe0b0;
+constexpr uint16_t GLYPH_EXCLAMATION = 0xe0b3;
+
 bool shouldDrawWifiIcon();
 bool shouldDrawBleIcon();
-bool shouldDrawSpeedKnobIcon();
 WifiStatus getWifiStatus();
 BleStatus getBleStatus();
-void drawWifiIcon(int16_t x, int16_t y);
-void drawBleIcon(int16_t x, int16_t y);
-void drawSpeedKnobIcon();
+void drawWifiIcon();
+void drawBleIcon();
 
-// Task functions
 [[noreturn]] void headerBarTask(void* pvParameters);
 void initHeaderBar();
 
-// Task handle
 extern TaskHandle_t headerBarTaskHandle;
 
 #endif  // OSSM_HEADERBAR_H

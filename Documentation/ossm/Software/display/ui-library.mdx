@@ -1,0 +1,285 @@
+---
+title: "UI Library"
+description: "Pure rendering library for OSSM display screens — TextPages, strings, icons, and visual testing"
+---
+
+## Overview
+
+The `lib/ui` library is a **pure rendering layer** that draws OSSM screens into a U8g2 buffer. It has no hardware dependencies, no FreeRTOS, no mutexes — it takes a `u8g2_t*` pointer and draws pixels. Thread safety and display I/O are handled by the [display service](/ossm/Software/display/display-service).
+
+This separation means the library can run on native (x86) for automated visual testing without an ESP32.
+
+**Dependencies:** U8g2, QRCode
+
+**Source:** `Software/lib/ui/src/`
+
+## TextPage
+
+`TextPage` is the primary struct for content-driven screens. It covers help pages, error screens, update status, WiFi setup, pairing — anything that's mostly text with optional QR codes.
+
+```cpp
+struct TextPage {
+    const char* title      = nullptr;
+    const char* subtitle   = nullptr;
+    const char* body       = nullptr;
+    const char* bottomText = nullptr;
+    const char* qrUrl      = nullptr;
+    uint8_t qrVersion      = 3;
+    int qrScale            = 2;
+    bool centerBody        = false;
+    int scrollPercent      = -1;
+};
+```
+
+All fields are optional. Set only what you need.
+
+| Field | Type | Purpose |
+|---|---|---|
+| `title` | `const char*` | Bold text at the top, with a separator line below |
+| `subtitle` | `const char*` | Medium or bold text below the title; auto-splits if too wide |
+| `body` | `const char*` | Word-wrapped text; supports `\n` line breaks |
+| `bottomText` | `const char*` | Pinned to the bottom of the screen (y=62) |
+| `qrUrl` | `const char*` | QR code rendered bottom-right; constrains text width |
+| `qrVersion` | `uint8_t` | QR version (default 3) |
+| `qrScale` | `int` | QR pixel scale (default 2) |
+| `centerBody` | `bool` | Center-align body text |
+| `scrollPercent` | `int` | Show scroll indicator (0–100); -1 to hide |
+
+### Rendering order
+
+`drawTextPage()` renders in this order:
+
+1. Clear the full screen (header + page + footer)
+2. **QR code** — bottom-right corner, reduces available text width
+3. **Title** — bold font, followed by a horizontal separator line
+4. **Subtitle** — tries medium font first; falls back to bold; splits across two lines if still too wide
+5. **Body** — word-wrapped with `drawWrappedText()` if a title is present; centered title-style (`drawStr::title`) if body is the only field
+6. **Bottom text** — fixed at y=62
+7. **Scroll indicator** — right-edge scrollbar if `scrollPercent >= 0`
+
+### Usage
+
+```cpp
+// Use a predefined page
+ui::drawTextPage(&u8g2, ui::pages::helpPage);
+
+// Or build one inline
+ui::TextPage page;
+page.title = "Custom Title";
+page.body = "Some content\nwith line breaks";
+page.scrollPercent = 50;
+ui::drawTextPage(&u8g2, page);
+```
+
+## Predefined pages
+
+`TextPages.h` defines static `TextPage` instances in the `ui::pages` namespace. These reference strings from `Strings.h`:
+
+| Page | Fields used |
+|---|---|
+| `helpPage` | title, body, bottomText, qrUrl |
+| `updateCheckingPage` | body |
+| `noUpdatePage` | body, bottomText |
+| `updatingPage` | title, body |
+| `errorPage` | title |
+| `wifiDisconnectedPage` | title, body, bottomText, qrUrl |
+| `wifiConnectedPage` | title, body, bottomText |
+| `pairingPage` | title, body |
+
+Example definition:
+
+```cpp
+static const TextPage helpPage = {
+    .title = helpTitle,
+    .body = helpBody,
+    .bottomText = helpBottom,
+    .qrUrl = helpQr,
+};
+```
+
+## Strings
+
+All UI strings live in `Strings.h` under the `ui::strings` namespace. They are stored in flash using `PROGMEM`:
+
+```cpp
+static const char helpTitle[] PROGMEM = "Get Help";
+static const char helpBody[] PROGMEM = "On Discord,\nor GitHub";
+```
+
+`Progmem.h` defines `PROGMEM` as a no-op on non-Arduino platforms, so strings compile on both ESP32 and native test builds.
+
+### Categories
+
+| Category | Examples |
+|---|---|
+| Branding | `researchAndDesire`, `kinkyMakers` |
+| General UI | `error`, `homing`, `idle`, `restart`, `settings`, `skip` |
+| Menu / modes | `simplePenetration`, `strokeEngine`, `streaming`, `pairing`, `update`, `wifi` |
+| Play controls | `speed`, `stroke`, `sensation`, `depth`, `buffer`, `accel`, `max` |
+| Warnings | `speedWarning`, `homingTookTooLong`, `strokeTooShort` |
+| Help | `helpTitle`, `helpBody`, `helpBottom`, `helpQr` |
+| Update | `updateChecking`, `noUpdateBody`, `updatingTitle`, `updatingBody` |
+| WiFi | `wifiSetup`, `wifiBody`, `wifiBottom`, `wifiQr`, `wifiConnected` |
+| Pairing | `pairingTitle`, `pairingBody` |
+| Patterns | `patternName0`–`patternName6`, `patternDesc0`–`patternDesc6` |
+
+### Pattern arrays
+
+Stroke engine pattern names and descriptions are indexed arrays:
+
+```cpp
+static const char* const strokeEngineNames[7] = {
+    patternName0, patternName1, patternName2,
+    patternName3, patternName4, patternName5,
+    patternName6,
+};
+
+static const char* const strokeEngineDescriptions[7] = {
+    patternDesc0, patternDesc1, patternDesc2,
+    patternDesc3, patternDesc4, patternDesc5,
+    patternDesc6,
+};
+```
+
+### Menu items
+
+`MenuItems.h` maps `Menu::` enum values to display strings:
+
+```cpp
+static const char* menuStrings[Menu::NUM_OPTIONS] = {
+    ui::strings::simplePenetration, ui::strings::strokeEngine,
+    ui::strings::streaming,         ui::strings::pairing,
+    ui::strings::update,            ui::strings::wifiSetup,
+    ui::strings::helpTitle,         ui::strings::restart,
+};
+```
+
+## Images and icons
+
+### Icons (font glyphs)
+
+Status icons use the **Siji** icon font. Glyphs are defined in `DisplayConstants.h`:
+
+```cpp
+namespace IconGlyph {
+    constexpr uint16_t WIFI_OFF        = 0xe218;
+    constexpr uint16_t WIFI_CONNECTING = 0xe219;
+    constexpr uint16_t WIFI_CONNECTED  = 0xe21a;
+    constexpr uint16_t WIFI_ERROR      = 0xe21b;
+    constexpr uint16_t BLE_CONNECTED   = 0xe00b;
+    constexpr uint16_t BLE_SMALL       = 0xe0b0;
+    constexpr uint16_t EXCLAMATION     = 0xe0b3;
+}
+```
+
+`drawHeaderIcons()` renders WiFi and BLE status in the top-right corner of the screen. Error states overlay additional pixels (exclamation marks) on the base glyph.
+
+### Logos (XBM bitmaps)
+
+Logos are `PROGMEM` XBM byte arrays in `Logos.h`:
+
+- `RDLogo` — Research & Desire, 57x50 pixels
+- `KMLogo` — Kinky Makers, 50x50 pixels
+
+They are drawn via the `LogoData` struct and `drawLogo()`:
+
+```cpp
+struct LogoData {
+    const char* title;
+    const uint8_t* bitmap;
+    int w, h, x, y;
+};
+```
+
+### Hello animation
+
+`HelloAnimation.h` contains precomputed Y-position frames for the "OSSM" boot animation. Each frame specifies per-letter Y offsets:
+
+```cpp
+struct HelloFrame {
+    int heights[4];  // Y position for O, S, S, M
+};
+```
+
+`drawHelloFrame()` renders a single frame. The test suite stitches all frames into a GIF.
+
+## Other draw functions
+
+The full rendering API (`ui.h`):
+
+| Function | Purpose |
+|---|---|
+| `drawTextPage()` | Render a `TextPage` struct |
+| `drawMenu()` | Scrollable menu with selection highlight |
+| `drawPlayControls()` | Speed/stroke/sensation bars for play modes |
+| `drawPreflight()` | Pre-play safety check (speed knob at zero) |
+| `drawHeaderIcons()` | WiFi + BLE status icons |
+| `drawQR()` | Standalone QR code |
+| `drawHelloFrame()` | Single boot animation frame |
+| `drawLogo()` | XBM logo with title |
+
+Helper namespaces in `DrawExtensions.h`:
+
+- `drawStr::centered()` — horizontally centered text
+- `drawStr::multiLine()` — word-wrapped multi-line text with UTF-8 support
+- `drawStr::title()` — bold centered text at fixed position
+- `drawShape::scroll()` — scrollbar indicator
+- `drawShape::settingBar()` — labeled vertical bar with fill level
+- `drawShape::settingBarSmall()` — compact vertical bar (no label)
+
+## Testing and visual output
+
+The display library has native tests that render every screen variant and export images for visual review.
+
+### Running tests
+
+```bash
+pio test -e test -f test_display
+```
+
+<Note>
+ImageMagick (`magick`) must be installed for PNG conversion. Without it, PBM files are still generated but PNGs are skipped.
+</Note>
+
+### How it works
+
+1. Tests create a software-only U8g2 SSD1306 128x64 display (no hardware, no-op I2C)
+2. Each test calls `ui::draw*()` functions to render into the buffer
+3. `savePBM()` writes the buffer as a PBM P4 bitmap
+4. After all tests complete, ImageMagick converts PBM to PNG (inverted colors, 400% scale)
+5. Hello animation frames are stitched into a GIF
+
+### Output structure
+
+```
+test/test_display/_output/
+├── pbm/                        # Raw bitmaps (generated by tests)
+│   ├── textpage/
+│   │   ├── combos/             # Field combinations (title+body, all fields, etc.)
+│   │   ├── scroll/             # Scroll positions (0%, 50%, 100%)
+│   │   ├── stress/             # Edge cases (UTF-8, long strings)
+│   │   ├── qr/                 # QR code variants
+│   │   ├── body/               # Body rendering with/without title
+│   │   ├── subtitle/           # Subtitle font sizing
+│   │   ├── pages/              # All predefined pages
+│   │   └── patterns/           # Stroke engine pattern descriptions
+│   ├── header_icons/           # WiFi × BLE status combinations
+│   ├── logos/                  # RD logo, KM logo
+│   ├── hello/                  # Animation frames
+│   ├── menu/                   # Menu rendering variants
+│   └── play_controls/          # Preflight, play modes
+└── png/                        # Same structure, converted to PNG
+```
+
+### Test coverage
+
+| Test file | What it covers |
+|---|---|
+| `test_textpage.cpp` | TextPage field combinations, stress tests, QR, subtitle overflow, body layout |
+| `test_pages.cpp` | All predefined pages, stroke engine pattern descriptions |
+| `test_scroll.cpp` | Scroll bar at boundary and edge-case values |
+| `test_header_icons.cpp` | All 20 WiFi × BLE status combinations |
+| `test_logos.cpp` | RD logo, KM logo |
+| `test_hello.cpp` | All hello animation frames, GIF generation |
+| `test_menu.cpp` | Menu with various item counts, long text, wrapping |
+| `test_play_controls.cpp` | Preflight, simple/stroke engine/streaming play controls |
