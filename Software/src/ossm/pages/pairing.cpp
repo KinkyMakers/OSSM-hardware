@@ -5,13 +5,11 @@
 
 #include <ArduinoJson.h>
 
-#include "constants/Config.h"
 #include "constants/Version.h"
-#include "extensions/u8g2Extensions.h"
 #include "ossm/Events.h"
 #include "ossm/state/state.h"
-#include "qrcode.h"
 #include "services/display.h"
+#include "ui.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -25,42 +23,13 @@ static void drawPairingScreen() {
         return;
     }
 
-    clearPage(true, true);
-
     String qrUrl = String(RAD_SERVER) + "/app/settings?ossm=" + pairingCode;
     ESP_LOGI("PAIRING", "QR URL: %s (len=%d)", qrUrl.c_str(), qrUrl.length());
 
-    static QRCode qrcode;
-
-    // NOLINTBEGIN(modernize-avoid-c-arrays)
-    uint8_t qrcodeData[qrcode_getBufferSize(5)];
-    // NOLINTEND(modernize-avoid-c-arrays)
-
-    qrcode_initText(&qrcode, qrcodeData, 5, 0, qrUrl.c_str());
-
-    int qrSize = qrcode.size;
-    int qrX = 128 - qrSize - 1;
-    int qrY = 64 - qrSize - 1;
-
-    for (uint8_t y = 0; y < qrcode.size; y++) {
-        for (uint8_t x = 0; x < qrcode.size; x++) {
-            if (qrcode_getModule(&qrcode, x, y)) {
-                display.drawPixel(qrX + x, qrY + y);
-            }
-        }
-    }
-
-    display.setFont(Config::Font::bold);
-    display.drawUTF8(0, 10, "Pair OSSM");
-    display.drawHLine(0, 12, qrX - 4);
-
-    display.setFont(u8g2_font_helvB14_tf);
-    display.drawUTF8(0, 32, pairingCode.c_str());
-
-    display.setFont(Config::Font::small);
-    display.drawUTF8(0, 46, "Enter code in");
-    display.drawUTF8(0, 56, "dashboard or");
-    display.drawUTF8(0, 64, "scan QR code");
+    ui::TextPage page = ui::pages::pairingPage;
+    page.subtitle = pairingCode.c_str();
+    page.qrUrl = qrUrl.c_str();
+    ui::drawTextPage(display.getU8g2(), page);
 
     refreshPage(true, true);
     xSemaphoreGive(displayMutex);

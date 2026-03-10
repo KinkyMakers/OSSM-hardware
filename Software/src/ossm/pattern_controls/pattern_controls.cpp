@@ -1,15 +1,15 @@
 #include "pattern_controls.h"
 
+#include "Strings.h"
 #include "constants/Pins.h"
 #include "services/board.h"
-#include "constants/UserConfig.h"
-#include "extensions/u8g2Extensions.h"
 #include "ossm/state/settings.h"
 #include "ossm/state/state.h"
 #include "services/display.h"
 #include "services/encoder.h"
 #include "services/tasks.h"
 #include "structs/SettingPercents.h"
+#include "ui.h"
 #include "utils/analog.h"
 #include "utils/format.h"
 
@@ -19,15 +19,14 @@ using namespace sml;
 namespace pattern_controls {
 
 static size_t numberOfDescriptions =
-    sizeof(UserConfig::language.StrokeEngineDescriptions) /
-    sizeof(UserConfig::language.StrokeEngineDescriptions[0]);
+    sizeof(ui::strings::strokeEngineDescriptions) /
+    sizeof(ui::strings::strokeEngineDescriptions[0]);
 static size_t numberOfPatterns = 7;
 
 static void drawPatternControlsTask(void *pvParameters) {
     SettingPercents savedSettings = settings;
 
     auto isInCorrectState = []() {
-        // Add any states that you want to support here.
         return stateMachine->is("strokeEngine.pattern"_s);
     };
 
@@ -35,9 +34,8 @@ static void drawPatternControlsTask(void *pvParameters) {
     bool shouldUpdateDisplay = true;
     const char *patternName = "nextPattern";
     const char *patternDescription =
-        UserConfig::language.StrokeEngineDescriptions[nextPattern];
+        ui::strings::strokeEngineDescriptions[nextPattern];
 
-    // Change encode
     encoder.setAcceleration(10);
     encoder.setBoundaries(0, numberOfPatterns * 3 - 1, true);
     encoder.setEncoderValue(nextPattern * 3);
@@ -67,25 +65,24 @@ static void drawPatternControlsTask(void *pvParameters) {
             continue;
         }
 
-        patternName = UserConfig::language.StrokeEngineNames[nextPattern];
+        patternName = ui::strings::strokeEngineNames[nextPattern];
 
-        if (nextPattern < numberOfDescriptions) {
+        if (nextPattern < (int)numberOfDescriptions) {
             patternDescription =
-                UserConfig::language.StrokeEngineDescriptions[nextPattern];
+                ui::strings::strokeEngineDescriptions[nextPattern];
         } else {
-            patternDescription = "No description available";
+            patternDescription = ui::strings::noDescription;
         }
 
         settings.pattern = (StrokePatterns)nextPattern;
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-            clearPage(true, true);
-
-            // Draw the title
-            drawStr::title(patternName);
-            drawStr::multiLine(0, 20, patternDescription);
-            drawShape::scroll(100 * nextPattern / numberOfPatterns);
-
+            ui::TextPage page;
+            page.title = patternName;
+            page.body = patternDescription;
+            page.scrollPercent =
+                ui::scrollPercent(nextPattern, numberOfPatterns);
+            ui::drawTextPage(display.getU8g2(), page);
             refreshPage(true, true);
             xSemaphoreGive(displayMutex);
         }

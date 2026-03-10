@@ -339,8 +339,7 @@
                   "ossm/Software/getting-started/configuration",
                   "ossm/Software/getting-started/wifi-and-updates",
                   "ossm/Software/getting-started/PlatformIO",
-                  "ossm/Software/getting-started/LED_Status",
-                  "ossm/Software/getting-started/display"
+                  "ossm/Software/getting-started/LED_Status"
                 ]
               },
               {
@@ -355,6 +354,13 @@
                 "pages": [
                   "ossm/Software/communication/ble",
                   "ossm/Software/communication/gpio"
+                ]
+              },
+              {
+                "group": "Display",
+                "pages": [
+                  "ossm/Software/display/display-service",
+                  "ossm/Software/display/ui-library"
                 ]
               },
               {

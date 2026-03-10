@@ -1,65 +1,32 @@
 #include "hello.h"
 
-#include <array>
+#include <string>
 
-#include "constants/Images.h"
-#include "constants/UserConfig.h"
-#include "extensions/u8g2Extensions.h"
+#include "HelloAnimation.h"
+#include "Logos.h"
+#include "Strings.h"
 #include "services/display.h"
 #include "services/tasks.h"
+#include "ui.h"
 
 namespace pages {
 
 static void drawHelloTask(void *pvParameters) {
-    int frameIdx = 0;
-    const int nFrames = 8;
-
-    int startX = 24;
-    int offsetY = 12;
-
-    // Bounce the Y position from 0 to 32, up to 24 and down to 32
-    std::array<int, 8> framesY = {6, 12, 24, 48, 44, 42, 44, 48};
-    std::array<int, 4> heights = {0, 0, 0, 0};
-    int letterSpacing = 20;
-
-    while (frameIdx < nFrames + 9) {
-        if (frameIdx < nFrames) {
-            heights[0] = framesY[frameIdx] - offsetY;
-        }
-        if (frameIdx - 3 > 0 && frameIdx - 3 < nFrames) {
-            heights[1] = framesY[frameIdx - 3] - offsetY;
-        }
-        if (frameIdx - 6 > 0 && frameIdx - 6 < nFrames) {
-            heights[2] = framesY[frameIdx - 6] - offsetY;
-        }
-        if (frameIdx - 9 > 0 && frameIdx - 9 < nFrames) {
-            heights[3] = framesY[frameIdx - 9] - offsetY;
-        }
-        // increment the frame index
-        frameIdx++;
-
+    for (int i = 0; i < ui::HELLO_FRAME_COUNT; i++) {
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-            clearPage(true, true);
-            display.setFont(u8g2_font_maniac_tf);
-            display.drawUTF8(startX, heights[0], "O");
-            display.drawUTF8(startX + letterSpacing, heights[1], "S");
-            display.drawUTF8(startX + letterSpacing * 2, heights[2], "S");
-            display.drawUTF8(startX + letterSpacing * 3, heights[3], "M");
+            ui::drawHelloFrame(display.getU8g2(), ui::HELLO_FRAMES[i]);
             refreshPage(true, true);
             xSemaphoreGive(displayMutex);
         }
-        // Saying hi to the watchdog :).
         vTaskDelay(1);
-    };
+    }
 
-    // Delay for a second, then show the RDLogo.
     vTaskDelay(1500);
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearPage(true, true);
-        drawStr::title(
-            "Research & Desire         ");  // Padding to offset from BLE icons
-        display.drawXBMP(35, 14, 57, 50, Images::RDLogo);
+        ui::LogoData rdLogo{ui::strings::researchAndDesire,
+                            ui::logos::RDLogo, 57, 50, 35, 14};
+        ui::drawLogo(display.getU8g2(), rdLogo);
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }
@@ -67,10 +34,9 @@ static void drawHelloTask(void *pvParameters) {
     vTaskDelay(1000);
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearPage(true, true);
-        drawStr::title(
-            "Kinky Makers       ");  // Padding to offset from BLE icons
-        display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
+        ui::LogoData kmLogo{ui::strings::kinkyMakers, ui::logos::KMLogo,
+                            50, 50, 40, 14};
+        ui::drawLogo(display.getU8g2(), kmLogo);
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }
@@ -78,22 +44,19 @@ static void drawHelloTask(void *pvParameters) {
     vTaskDelay(1000);
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearPage(true, true);
-        std::string measuringStrokeTitle =
-            std::string(UserConfig::language.MeasuringStroke) +
-            "         ";  // Padding to offset from BLE icons
-        drawStr::title(measuringStrokeTitle.c_str());
-        display.drawXBMP(40, 14, 50, 50, Images::KMLogo);
+        std::string measuringTitle =
+            std::string(ui::strings::measuringStroke) + "         ";
+        ui::LogoData measuring{measuringTitle.c_str(), ui::logos::KMLogo,
+                               50, 50, 40, 14};
+        ui::drawLogo(display.getU8g2(), measuring);
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }
 
-    // delete the task
     vTaskDelete(nullptr);
 }
 
 void drawHello() {
-    // 3 x minimum stack
     int stackSize = 3 * configMINIMAL_STACK_SIZE;
     xTaskCreate(drawHelloTask, "drawHello", stackSize, nullptr, 1,
                 &Tasks::drawHelloTaskH);

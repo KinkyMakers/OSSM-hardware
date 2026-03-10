@@ -3,8 +3,8 @@
 
 #include "ArduinoJson.h"
 #include "NimBLEService.h"
+#include "Strings.h"
 #include "constants/LogTags.h"
-#include "constants/UserConfig.h"
 #include "esp_log.h"
 
 NimBLECharacteristic* initPatternsCharacteristic(NimBLEService* pService,
@@ -16,11 +16,11 @@ NimBLECharacteristic* initPatternsCharacteristic(NimBLEService* pService,
     JsonDocument doc;
     JsonArray arr = doc.to<JsonArray>();
 
-    for (int i = 0; i < sizeof(UserConfig::language.StrokeEngineNames) /
-                            sizeof(UserConfig::language.StrokeEngineNames[0]);
+    for (int i = 0; i < sizeof(ui::strings::strokeEngineNames) /
+                            sizeof(ui::strings::strokeEngineNames[0]);
          i++) {
         JsonObject pattern = arr.createNestedObject();
-        pattern["name"] = UserConfig::language.StrokeEngineNames[i];
+        pattern["name"] = ui::strings::strokeEngineNames[i];
         pattern["idx"] = i;
     }
 
@@ -41,8 +41,8 @@ class PatternDataCallbacks : public NimBLECharacteristicCallbacks {
 
         // Get the size of the StrokeEngineDescriptions array
         int descriptionsCount =
-            sizeof(UserConfig::language.StrokeEngineDescriptions) /
-            sizeof(UserConfig::language.StrokeEngineDescriptions[0]);
+            sizeof(ui::strings::strokeEngineDescriptions) /
+            sizeof(ui::strings::strokeEngineDescriptions[0]);
 
         // Use modulo to ensure valid index
         int validIndex = patternIndex % descriptionsCount;
@@ -52,7 +52,7 @@ class PatternDataCallbacks : public NimBLECharacteristicCallbacks {
 
         // Get the pattern description from PROGMEM
         const char* description =
-            UserConfig::language.StrokeEngineDescriptions[validIndex];
+            ui::strings::strokeEngineDescriptions[validIndex];
 
         // Set the characteristic value to the description
         pCharacteristic->setValue(description);

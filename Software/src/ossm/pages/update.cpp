@@ -1,18 +1,13 @@
 #include "update.h"
 
-#include "Arduino.h"
-#include "constants/UserConfig.h"
-#include "extensions/u8g2Extensions.h"
 #include "services/display.h"
+#include "ui.h"
 
 namespace pages {
 
 void drawUpdate() {
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearPage(true, true);
-        drawStr::title(F("Checking for update..."));
-
-        // TODO - Add a spinner here
+        ui::drawTextPage(display.getU8g2(), ui::pages::updateCheckingPage);
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }
@@ -20,9 +15,7 @@ void drawUpdate() {
 
 void drawNoUpdate() {
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearPage(true, true);
-        drawStr::title(F("No Update Available"));
-        display.drawUTF8(0, 62, UserConfig::language.Skip);
+        ui::drawTextPage(display.getU8g2(), ui::pages::noUpdatePage);
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }
@@ -30,9 +23,7 @@ void drawNoUpdate() {
 
 void drawUpdating() {
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearPage(true, true);
-        drawStr::title(F("Updating OSSM..."));
-        drawStr::multiLine(0, 24, UserConfig::language.UpdateMessage);
+        ui::drawTextPage(display.getU8g2(), ui::pages::updatingPage);
         refreshPage(true, true);
         xSemaphoreGive(displayMutex);
     }

@@ -4,28 +4,19 @@
 #include <esp_log.h>
 #include <services/board.h>
 
-#include "constants/Images.h"
 #include "constants/LogTags.h"
-#include "constants/UserConfig.h"
 #include "services/communication/nimble.h"
 #include "services/led.h"
 
-// Task handle
 TaskHandle_t headerBarTaskHandle = nullptr;
 
-// Last known states for change detection
 static WifiStatus lastWifiStatus = WifiStatus::DISCONNECTED;
 static BleStatus lastBleStatus = BleStatus::DISCONNECTED;
-static bool lastSpeedKnobAsLimit = true;
 
-// Icon positions
-static const int16_t WIFI_ICON_X = 106;
-static const int16_t BLE_ICON_X = 116;
-static const int16_t SPEED_KNOB_ICON_X = 96;
-static const int16_t ICON_Y = 0;
-static const int16_t ICON_SIZE = 8;
+static const int16_t WIFI_ICON_X = 104;
+static const int16_t BLE_ICON_X = 118;
+static const int16_t ICON_Y = 8;
 
-// --- WiFi Status Functions ---
 WifiStatus getWifiStatus() {
     wl_status_t wifiStatus = WiFiClass::status();
 
@@ -52,43 +43,44 @@ bool shouldDrawWifiIcon() {
 }
 
 void drawWifiIcon() {
-    WifiStatus status = getWifiStatus();
+    display.setFont(u8g2_font_siji_t_6x10);
 
-    switch (status) {
+    switch (getWifiStatus()) {
         case WifiStatus::CONNECTED:
-            display.drawXBMP(WIFI_ICON_X, ICON_Y, WifiIcon::w, WifiIcon::h,
-                             WifiIcon::Connected);
+            display.drawGlyph(WIFI_ICON_X, ICON_Y, GLYPH_WIFI_CONNECTED);
             break;
         case WifiStatus::CONNECTING:
-            display.drawXBMP(WIFI_ICON_X, ICON_Y, WifiIcon::w, WifiIcon::h,
-                             WifiIcon::First);
+            display.drawGlyph(WIFI_ICON_X, ICON_Y, GLYPH_WIFI_CONNECTING);
             break;
+        case WifiStatus::ERROR: {
+            display.drawGlyph(WIFI_ICON_X, ICON_Y, GLYPH_WIFI_OFF);
+            constexpr int16_t ex = WIFI_ICON_X + 11;
+            display.drawPixel(ex, ICON_Y - 5);
+            display.drawPixel(ex, ICON_Y - 4);
+            display.drawPixel(ex, ICON_Y - 3);
+            display.drawPixel(ex, ICON_Y - 1);
+            break;
+        }
         case WifiStatus::DISCONNECTED:
-        case WifiStatus::ERROR:
         default:
-            display.drawXBMP(WIFI_ICON_X, ICON_Y, WifiIcon::w, WifiIcon::h,
-                             WifiIcon::Error);
+            display.drawGlyph(WIFI_ICON_X, ICON_Y, GLYPH_WIFI_OFF);
             break;
     }
 }
 
-// --- BLE Status Functions ---
 BleStatus getBleStatus() {
     if (pServer == nullptr) {
         return BleStatus::DISCONNECTED;
     }
 
-    // Check if BLE is advertising
     if (pServer->getAdvertising() && pServer->getConnectedCount() == 0) {
         return BleStatus::ADVERTISING;
     }
 
-    // Check if BLE has connections
     if (pServer->getConnectedCount() > 0) {
         return BleStatus::CONNECTED;
     }
 
-    // Check if BLE is in connecting state (advertising but no connections yet)
     if (pServer->getAdvertising()) {
         return BleStatus::CONNECTING;
     }
@@ -106,97 +98,70 @@ bool shouldDrawBleIcon() {
 }
 
 void drawBleIcon() {
+    display.setFont(u8g2_font_siji_t_6x10);
+
+    static constexpr int16_t BLE_SUB_X = BLE_ICON_X - 3;
+    static constexpr int16_t BLE_IND_X = BLE_SUB_X + 7;
+
     BleStatus status = getBleStatus();
-
-    // Set font for 2-letter codes
-    display.setFont(u8g2_font_spleen5x8_mu);
-
-    // Draw 2-letter status code
     switch (status) {
-        case BleStatus::DISCONNECTED:
-            display.drawStr(BLE_ICON_X, ICON_Y + 7, "B0");  // Disconnected
-            break;
-        case BleStatus::CONNECTING:
-            display.drawStr(BLE_ICON_X, ICON_Y + 7, "B1");  // Connecting
-            break;
         case BleStatus::CONNECTED:
-            display.drawStr(BLE_ICON_X, ICON_Y + 7, "B2");  // Connected
+            display.drawGlyph(BLE_ICON_X, ICON_Y, GLYPH_BLE_CONNECTED);
             break;
+        case BleStatus::DISCONNECTED: {
+            constexpr int16_t cx = BLE_ICON_X + 4;
+            constexpr int16_t cy = ICON_Y - 4;
+            display.drawCircle(cx, cy, 3);
+            break;
+        }
+        case BleStatus::CONNECTING:
         case BleStatus::ADVERTISING:
-            display.drawStr(BLE_ICON_X, ICON_Y + 7, "B3");  // Advertising
+            display.drawGlyph(BLE_SUB_X, ICON_Y, GLYPH_BLE_SMALL);
+            display.drawPixel(BLE_IND_X, ICON_Y);
+            display.drawPixel(BLE_IND_X + 2, ICON_Y);
+            display.drawPixel(BLE_IND_X + 4, ICON_Y);
             break;
-        case BleStatus::ERROR:
-        default:
-            display.drawStr(BLE_ICON_X, ICON_Y + 7, "B4");  // Error
+        case BleStatus::ERROR: {
+            display.drawGlyph(BLE_SUB_X, ICON_Y, GLYPH_BLE_SMALL);
+            constexpr int16_t ex = BLE_ICON_X + 7;
+            display.drawPixel(ex, ICON_Y - 5);
+            display.drawPixel(ex, ICON_Y - 4);
+            display.drawPixel(ex, ICON_Y - 3);
+            display.drawPixel(ex, ICON_Y - 1);
             break;
+        }
     }
 }
 
-// --- Speed Knob Status Functions ---
-bool shouldDrawSpeedKnobIcon() {
-    bool currentSpeedKnobAsLimit = USE_SPEED_KNOB_AS_LIMIT;
-    if (currentSpeedKnobAsLimit != lastSpeedKnobAsLimit) {
-        lastSpeedKnobAsLimit = currentSpeedKnobAsLimit;
-        return true;
-    }
-    return false;
-}
-
-void drawSpeedKnobIcon() {
-    // Set font for 2-letter codes
-    display.setFont(u8g2_font_spleen5x8_mu);
-
-    // Draw 2-letter status code
-    if (USE_SPEED_KNOB_AS_LIMIT) {
-        display.drawStr(SPEED_KNOB_ICON_X, ICON_Y + 7,
-                        "S1");  // Speed knob as limit enabled
-    } else {
-        display.drawStr(SPEED_KNOB_ICON_X, ICON_Y + 7,
-                        "S0");  // Speed knob as limit disabled
-    }
-}
-
-// --- Header Bar Task ---
 [[noreturn]] void headerBarTask(void* pvParameters) {
-    // Initial delay to let other systems initialize
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 
     ESP_LOGI(HEADERBAR_TAG, "Header bar task started");
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
         clearIcons();
-        drawSpeedKnobIcon();
-        drawBleIcon();
         drawWifiIcon();
-
+        drawBleIcon();
         refreshIcons();
         xSemaphoreGive(displayMutex);
     }
 
     while (true) {
-        bool shouldDrawWifi = shouldDrawWifiIcon();
-        bool shouldDrawBle = shouldDrawBleIcon();
-        bool shouldDrawSpeedKnob = shouldDrawSpeedKnobIcon();
+        bool wifiChanged = shouldDrawWifiIcon();
+        bool bleChanged = shouldDrawBleIcon();
 
-        // Update LED for machine status (checks homing first, then BLE status)
         updateLEDForMachineStatus();
 
-        // Only redraw if something changed
-        if (!shouldDrawWifi && !shouldDrawBle && !shouldDrawSpeedKnob) {
+        if (!wifiChanged && !bleChanged) {
             vTaskDelay(100 / portTICK_PERIOD_MS);
             continue;
         }
 
-        // Take display mutex
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-            // Clear icon area
             clearIcons();
-            drawSpeedKnobIcon();
-            drawBleIcon();
             drawWifiIcon();
+            drawBleIcon();
             refreshIcons();
-
-            // Release display mutex
             xSemaphoreGive(displayMutex);
         } else {
             ESP_LOGW(HEADERBAR_TAG, "Failed to acquire display mutex");
@@ -211,12 +176,11 @@ void initHeaderBar() {
 
     BaseType_t result =
         xTaskCreatePinnedToCore(headerBarTask, "headerBar",
-                                4 * configMINIMAL_STACK_SIZE,  // Stack size
+                                4 * configMINIMAL_STACK_SIZE,
                                 nullptr,
-                                tskIDLE_PRIORITY + 1,  // Priority
+                                tskIDLE_PRIORITY + 1,
                                 &headerBarTaskHandle,
-                                0  // Core 0
-        );
+                                0);
 
     if (result != pdPASS) {
         ESP_LOGE(HEADERBAR_TAG, "Failed to create header bar task");

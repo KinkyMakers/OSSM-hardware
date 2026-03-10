@@ -20,10 +20,6 @@
  * https://github.com/olikraus/u8g2/wiki/fntlistallplain
  */
 
-#define SCREEN_WIDTH 128  // OLED display width, in pixels
-#define SCREEN_HEIGHT 64  // OLED display height, in pixels
-#define OLED_RESET U8X8_PIN_NONE
-
 extern U8G2_SSD1306_128X64_NONAME_F_HW_I2C display;
 extern SemaphoreHandle_t displayMutex;
 
