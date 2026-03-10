@@ -58,7 +58,8 @@ void test_drawPlayControls_strokeEngine(void) {
     ui::drawPlayControls(&u8g2, data);
     u8g2_SetMaxClipWindow(&u8g2);
     TEST_ASSERT_TRUE(bufferHasContent(&u8g2));
-    TEST_ASSERT_TRUE(savePBMGrouped(&u8g2, "play_controls", "play_stroke_engine"));
+    TEST_ASSERT_TRUE(
+        savePBMGrouped(&u8g2, "play_controls", "play_stroke_engine"));
 }
 
 void test_drawPlayControls_streaming(void) {
@@ -95,7 +96,8 @@ void test_drawPatternControls(void) {
     ui::drawTextPage(&u8g2, page);
     u8g2_SetMaxClipWindow(&u8g2);
     TEST_ASSERT_TRUE(bufferHasContent(&u8g2));
-    TEST_ASSERT_TRUE(savePBMGrouped(&u8g2, "play_controls", "pattern_controls"));
+    TEST_ASSERT_TRUE(
+        savePBMGrouped(&u8g2, "play_controls", "pattern_controls"));
 }
 
 void register_play_controls_tests() {

@@ -1,8 +1,9 @@
 #ifndef TEST_DISPLAY_HELPERS_H
 #define TEST_DISPLAY_HELPERS_H
 
-#include <unity.h>
 #include <ui.h>
+#include <unity.h>
+
 #include "pbm.h"
 
 extern u8g2_t u8g2;

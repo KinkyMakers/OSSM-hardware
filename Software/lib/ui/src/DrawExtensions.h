@@ -95,7 +95,7 @@ static void multiLine(u8g2_t* u8g2, int x, int y, const char* string,
 
 static void title(u8g2_t* u8g2, const char* str) {
     u8g2_SetFont(u8g2, Font::bold);
-    centered(u8g2, 8, str);
+    u8g2_DrawUTF8(u8g2, 0, 8, str);
 }
 
 }  // namespace drawStr

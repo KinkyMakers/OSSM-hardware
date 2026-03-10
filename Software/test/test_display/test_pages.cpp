@@ -16,7 +16,8 @@ void test_page_updateChecking(void) {
     ui::drawTextPage(&u8g2, ui::pages::updateCheckingPage);
     u8g2_SetMaxClipWindow(&u8g2);
     TEST_ASSERT_TRUE(bufferHasContent(&u8g2));
-    TEST_ASSERT_TRUE(savePBMGrouped(&u8g2, "textpage/pages", "update_checking"));
+    TEST_ASSERT_TRUE(
+        savePBMGrouped(&u8g2, "textpage/pages", "update_checking"));
 }
 
 void test_page_noUpdate(void) {
@@ -35,8 +36,7 @@ void test_page_updating(void) {
 
 void test_page_error(void) {
     ui::TextPage page = ui::pages::errorPage;
-    page.body =
-        "Homing took too long. Please check your wiring and try again.";
+    page.body = "Homing took too long. Please check your wiring and try again.";
     ui::drawTextPage(&u8g2, page);
     u8g2_SetMaxClipWindow(&u8g2);
     TEST_ASSERT_TRUE(bufferHasContent(&u8g2));
@@ -55,15 +55,13 @@ void test_page_wifiConnected(void) {
     ui::drawTextPage(&u8g2, ui::pages::wifiConnectedPage);
     u8g2_SetMaxClipWindow(&u8g2);
     TEST_ASSERT_TRUE(bufferHasContent(&u8g2));
-    TEST_ASSERT_TRUE(
-        savePBMGrouped(&u8g2, "textpage/pages", "wifi_connected"));
+    TEST_ASSERT_TRUE(savePBMGrouped(&u8g2, "textpage/pages", "wifi_connected"));
 }
 
 void test_page_pairing(void) {
     ui::TextPage page = ui::pages::pairingPage;
     page.subtitle = "AABBCCDDEEFF";
-    page.qrUrl =
-        "HTTPS://DASHBOARD.RESEARCHANDDESIRE.COM?OSSM=AABBCCDDEEFF";
+    page.qrUrl = "HTTPS://DASHBOARD.RESEARCHANDDESIRE.COM?OSSM=AABBCCDDEEFF";
     ui::drawTextPage(&u8g2, page);
     u8g2_SetMaxClipWindow(&u8g2);
     TEST_ASSERT_TRUE(bufferHasContent(&u8g2));
@@ -108,8 +106,7 @@ static void test_page_pattern(void) {
     char snake[96];
     toSnakeCase(snake, sizeof(snake), ui::strings::strokeEngineNames[i]);
     snprintf(filename, sizeof(filename), "%zu_%s", i, snake);
-    TEST_ASSERT_TRUE(
-        savePBMGrouped(&u8g2, "textpage/patterns", filename));
+    TEST_ASSERT_TRUE(savePBMGrouped(&u8g2, "textpage/patterns", filename));
 }
 
 // ============================================================

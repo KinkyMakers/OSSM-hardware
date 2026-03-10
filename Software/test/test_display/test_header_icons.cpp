@@ -1,6 +1,6 @@
-#include "test_helpers.h"
-
 #include <cstdio>
+
+#include "test_helpers.h"
 
 struct BleEntry {
     ui::BleStatus status;
@@ -48,8 +48,7 @@ void test_drawHeaderIcons_allCombinations(void) {
             char name[128];
             snprintf(name, sizeof(name), "%02d_%s_%s", combo,
                      wifiStates[w].name, bleStates[b].name);
-            TEST_ASSERT_TRUE(
-                savePBMGrouped(&u8g2, "header_icons", name));
+            TEST_ASSERT_TRUE(savePBMGrouped(&u8g2, "header_icons", name));
             combo++;
         }
     }

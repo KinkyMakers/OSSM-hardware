@@ -1,9 +1,9 @@
-#include "test_helpers.h"
-
-#include <cstdio>
 #include <cctype>
+#include <cstdio>
 #include <cstring>
+
 #include "MenuItems.h"
+#include "test_helpers.h"
 
 static void toSnakeCase(const char* src, char* dst, int maxLen) {
     int j = 0;

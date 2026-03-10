@@ -479,7 +479,7 @@ void test_textpage_body_withTitle(void) {
 
 void test_textpage_body_withoutTitle(void) {
     ui::TextPage page;
-    page.body = "Body with no title uses drawStr::title (centered bold).";
+    page.body = "Body with no title uses drawStr::title (left-aligned bold).";
     ui::drawTextPage(&u8g2, page);
     u8g2_SetMaxClipWindow(&u8g2);
     TEST_ASSERT_TRUE(bufferHasContent(&u8g2));

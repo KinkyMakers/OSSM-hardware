@@ -51,8 +51,8 @@ static bool savePBM(u8g2_t* u8g2, const char* path) {
 
 static bool bufferHasContent(u8g2_t* u8g2) {
     uint8_t* buf = u8g2_GetBufferPtr(u8g2);
-    int bufSize = 8 * u8g2_GetBufferTileHeight(u8g2) *
-                  u8g2_GetBufferTileWidth(u8g2);
+    int bufSize =
+        8 * u8g2_GetBufferTileHeight(u8g2) * u8g2_GetBufferTileWidth(u8g2);
     for (int i = 0; i < bufSize; i++) {
         if (buf[i] != 0) return true;
     }
@@ -74,19 +74,19 @@ static void ensureDirRecursive(const char* dir) {
 
 // No-op callbacks for native u8g2 usage (buffer-only, no real hardware)
 static uint8_t u8x8_byte_noop(u8x8_t* /*u8x8*/, uint8_t /*msg*/,
-                               uint8_t /*arg_int*/, void* /*arg_ptr*/) {
+                              uint8_t /*arg_int*/, void* /*arg_ptr*/) {
     return 1;
 }
 
 static uint8_t u8x8_gpio_and_delay_noop(u8x8_t* /*u8x8*/, uint8_t /*msg*/,
-                                         uint8_t /*arg_int*/,
-                                         void* /*arg_ptr*/) {
+                                        uint8_t /*arg_int*/,
+                                        void* /*arg_ptr*/) {
     return 1;
 }
 
 static void initTestDisplay(u8g2_t* u8g2) {
     u8g2_Setup_ssd1306_128x64_noname_f(u8g2, U8G2_R0, u8x8_byte_noop,
-                                        u8x8_gpio_and_delay_noop);
+                                       u8x8_gpio_and_delay_noop);
     u8g2_InitDisplay(u8g2);
     u8g2_SetPowerSave(u8g2, 0);
     u8g2_ClearBuffer(u8g2);
