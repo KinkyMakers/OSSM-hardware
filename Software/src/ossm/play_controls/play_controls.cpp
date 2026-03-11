@@ -16,6 +16,7 @@
 #include "ui.h"
 #include "utils/analog.h"
 #include "utils/format.h"
+#include "components/HeaderBar.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -73,6 +74,7 @@ static void drawPlayControlsTask(void *pvParameters) {
 
     bool shouldUpdateDisplay = false;
 
+    showHeaderIcons = true;
     vTaskDelay(100);
 
     while (isInCorrectState()) {

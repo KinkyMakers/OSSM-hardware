@@ -8,6 +8,7 @@
 #include "constants/Version.h"
 #include "ossm/Events.h"
 #include "ossm/state/state.h"
+#include "components/HeaderBar.h"
 #include "services/display.h"
 #include "ui.h"
 
@@ -19,6 +20,8 @@ namespace pages {
 static String pairingCode = "";
 
 static void drawPairingScreen() {
+    showHeaderIcons = false;
+
     if (xSemaphoreTake(displayMutex, 200) != pdTRUE) {
         return;
     }
@@ -123,6 +126,8 @@ void checkPairing() {
 }
 
 void drawPairingSuccess() {
+    showHeaderIcons = true;
+
     if (xSemaphoreTake(displayMutex, 200) != pdTRUE) {
         return;
     }

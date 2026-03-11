@@ -9,6 +9,7 @@
 #include "services/led.h"
 
 TaskHandle_t headerBarTaskHandle = nullptr;
+bool showHeaderIcons = true;
 
 static WifiStatus lastWifiStatus = WifiStatus::DISCONNECTED;
 static BleStatus lastBleStatus = BleStatus::DISCONNECTED;
@@ -138,17 +139,37 @@ void drawBleIcon() {
 
     ESP_LOGI(HEADERBAR_TAG, "Header bar task started");
 
-    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearIcons();
-        drawWifiIcon();
-        drawBleIcon();
-        refreshIcons();
-        xSemaphoreGive(displayMutex);
+    if (showHeaderIcons) {
+        if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+            clearIcons();
+            drawWifiIcon();
+            drawBleIcon();
+            refreshIcons();
+            xSemaphoreGive(displayMutex);
+        }
     }
 
+    bool lastShowState = showHeaderIcons;
+
     while (true) {
-        bool wifiChanged = shouldDrawWifiIcon();
-        bool bleChanged = shouldDrawBleIcon();
+        bool stateChanged = (showHeaderIcons != lastShowState);
+        lastShowState = showHeaderIcons;
+
+        if (!showHeaderIcons) {
+            if (stateChanged) {
+                if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+                    clearIcons();
+                    refreshIcons();
+                    xSemaphoreGive(displayMutex);
+                }
+            }
+            updateLEDForMachineStatus();
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+            continue;
+        }
+
+        bool wifiChanged = shouldDrawWifiIcon() || stateChanged;
+        bool bleChanged = shouldDrawBleIcon() || stateChanged;
 
         updateLEDForMachineStatus();
 

@@ -5,6 +5,7 @@
 #include "HelloAnimation.h"
 #include "Logos.h"
 #include "Strings.h"
+#include "components/HeaderBar.h"
 #include "services/display.h"
 #include "services/tasks.h"
 #include "ui.h"
@@ -12,6 +13,8 @@
 namespace pages {
 
 static void drawHelloTask(void *pvParameters) {
+    showHeaderIcons = false;
+
     for (int i = 0; i < ui::HELLO_FRAME_COUNT; i++) {
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
             ui::drawHelloFrame(display.getU8g2(), ui::HELLO_FRAMES[i]);
