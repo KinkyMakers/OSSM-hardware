@@ -1,7 +1,5 @@
 #include "OSSM.h"
 
-#include <ArduinoJson.h>
-
 #include "command/commands.hpp"
 #include "ossm/state/ble.h"
 #include "ossm/state/calibration.h"
@@ -148,7 +146,7 @@ String OSSM::getStateFingerprint() {
 // │   depth      : integer  — cast from float                         │
 // │   pattern    : integer  — StrokePatterns enum ordinal             │
 // │   position   : number   — stepper position in mm (float)          │
-// │   sessionId  : UUID     — generated per MQTT connection            │
+// │   sessionId  : UUID     — regenerated each time a play mode starts  │
 // │                                                                    │
 // │ Optional fields:                                                   │
 // │   meta       : string   — JSON-encoded metadata (optional)         │
@@ -163,19 +161,16 @@ String OSSM::getCurrentState() {
             [&currentState](auto state) { currentState = state.c_str(); });
     }
 
-    JsonDocument doc;
-    doc["timestamp"] = (unsigned long)millis();
-    doc["state"] = currentState;
-    doc["speed"] = (int)settings.speed;
-    doc["stroke"] = (int)settings.stroke;
-    doc["sensation"] = (int)settings.sensation;
-    doc["depth"] = (int)settings.depth;
-    doc["pattern"] = static_cast<int>(settings.pattern);
-    doc["position"] =
-        float(stepper->getCurrentPosition()) / float(1_mm);
-    doc["sessionId"] = sessionId;
+    float positionMm = float(stepper->getCurrentPosition()) / float(1_mm);
+    if (isnan(positionMm)) positionMm = 0.0f;
 
-    String output;
-    serializeJson(doc, output);
-    return output;
+    return "{\"timestamp\":" + String((unsigned long)millis()) +
+           ",\"state\":\"" + currentState +
+           "\",\"speed\":" + String((int)settings.speed) +
+           ",\"stroke\":" + String((int)settings.stroke) +
+           ",\"sensation\":" + String((int)settings.sensation) +
+           ",\"depth\":" + String((int)settings.depth) +
+           ",\"pattern\":" + String(static_cast<int>(settings.pattern)) +
+           ",\"position\":" + String(positionMm, 2) +
+           ",\"sessionId\":\"" + sessionId + "\"}";
 }
