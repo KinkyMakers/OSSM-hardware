@@ -186,7 +186,7 @@ static void drawPlayControlsTask(void *pvParameters) {
             data.timeStr = !isStreaming ? timeStr.c_str() : nullptr;
 
             ui::drawPlayControls(display.getU8g2(), data);
-            refreshPage(true);
+            refreshPage(true, true);
             xSemaphoreGive(displayMutex);
         }
 

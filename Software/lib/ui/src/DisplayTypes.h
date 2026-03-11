@@ -59,6 +59,7 @@ struct LogoData {
     int h;
     int x;
     int y;
+    const char* version = nullptr;
 };
 
 struct TextPage {
