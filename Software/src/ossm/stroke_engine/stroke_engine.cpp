@@ -2,6 +2,7 @@
 
 #include <mqtt_client.h>
 
+#include "constants/UserConfig.h"
 #include "ossm/OSSM.h"
 #include "ossm/state/ble.h"
 #include "ossm/state/calibration.h"
@@ -51,8 +52,12 @@ static void startStrokeEngineTask(void *pvParameters) {
             } else if (Stroker.getState() == READY) {
                 Stroker.startPattern();
             }
-
-            Stroker.setSpeed(settings.speed * 3, true);
+            
+            //Curve the speed based on userconfig
+            float exp = UserConfig::strokeEngineSpeedCurve;
+            float speed = settings.speed/100;
+            speed = pow( 1 - pow( 1 - speed, exp), 1 / exp) * 100;
+            Stroker.setSpeed(speed, true);
             lastSetting.speed = settings.speed;
         }
 
@@ -82,40 +87,13 @@ static void startStrokeEngineTask(void *pvParameters) {
         if (lastSetting.pattern != settings.pattern) {
             ESP_LOGD("UTILS", "change pattern: %d", settings.pattern);
 
-            switch (settings.pattern) {
-                case StrokePatterns::SimpleStroke:
-                    Stroker.setPattern(new SimpleStroke("Simple Stroke"),
-                                       false);
-                    break;
-                case StrokePatterns::TeasingPounding:
-                    Stroker.setPattern(new TeasingPounding("Teasing Pounding"),
-                                       false);
-                    break;
-                case StrokePatterns::RoboStroke:
-                    Stroker.setPattern(new RoboStroke("Robo Stroke"), false);
-                    break;
-                case StrokePatterns::HalfnHalf:
-                    Stroker.setPattern(new HalfnHalf("Half'n'Half"), false);
-                    break;
-                case StrokePatterns::Deeper:
-                    Stroker.setPattern(new Deeper("Deeper"), false);
-                    break;
-                case StrokePatterns::StopNGo:
-                    Stroker.setPattern(new StopNGo("Stop'n'Go"), false);
-                    break;
-                case StrokePatterns::Insist:
-                    Stroker.setPattern(new Insist("Insist"), false);
-                    break;
-                default:
-                    break;
-            }
+            Stroker.setPattern(settings.pattern, false);
 
             lastSetting.pattern = settings.pattern;
         }
 
         if (bleState.hasActiveConnection) {
-            // When connected to BLE, update more frequently for improved
-            // responsiveness
+            // When connected to BLE, update more frequently for improved responsiveness
             vTaskDelay(100);
         } else {
             vTaskDelay(400);
