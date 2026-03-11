@@ -26,7 +26,7 @@ static void drawPairingScreen() {
         return;
     }
 
-    String qrUrl = String(RAD_SERVER) + "/app/settings?ossm=" + pairingCode;
+    String qrUrl = String(RAD_SERVER) + "?ossm=" + pairingCode;
     ESP_LOGI("PAIRING", "QR URL: %s (len=%d)", qrUrl.c_str(), qrUrl.length());
 
     ui::TextPage page = ui::pages::pairingPage;
