@@ -1,5 +1,7 @@
 #include "OSSM.h"
 
+#include <ArduinoJson.h>
+
 #include "command/commands.hpp"
 #include "ossm/state/ble.h"
 #include "ossm/state/calibration.h"
@@ -126,6 +128,34 @@ String OSSM::getStateFingerprint() {
     return output;
 }
 
+// ┌──────────────────────────────────────────────────────────────────────┐
+// │ MQTT TELEMETRY PAYLOAD — SHARED CONTRACT WITH RAD DASHBOARD        │
+// │                                                                    │
+// │ This payload is published via MQTT to `ossm/{macAddress}` and      │
+// │ received by the Dashboard at:                                      │
+// │   rad-app/src/app/api/lockbox/event/ossm/[mac]/route.ts            │
+// │                                                                    │
+// │ The Dashboard validates it with a Zod schema (payloadSchema).      │
+// │ ANY change here MUST be mirrored in that Zod schema, and vice      │
+// │ versa, or telemetry ingestion will silently fail (400 Bad Request). │
+// │                                                                    │
+// │ Required fields (all must be present):                             │
+// │   timestamp  : number   — millis() uptime                         │
+// │   state      : string   — Boost.SML state name                    │
+// │   speed      : integer  — cast from float                         │
+// │   stroke     : integer  — cast from float                         │
+// │   sensation  : integer  — cast from float                         │
+// │   depth      : integer  — cast from float                         │
+// │   pattern    : integer  — StrokePatterns enum ordinal             │
+// │   position   : number   — stepper position in mm (float)          │
+// │   sessionId  : UUID     — generated per MQTT connection            │
+// │                                                                    │
+// │ Optional fields:                                                   │
+// │   meta       : string   — JSON-encoded metadata (optional)         │
+// │                                                                    │
+// │ This is also sent over BLE via NimBLE notifications.               │
+// │ See: test/test_mqtt_payload/ for contract tests.                   │
+// └──────────────────────────────────────────────────────────────────────┘
 String OSSM::getCurrentState() {
     String currentState;
     if (stateMachine != nullptr) {
@@ -133,18 +163,19 @@ String OSSM::getCurrentState() {
             [&currentState](auto state) { currentState = state.c_str(); });
     }
 
-    String json = "{";
-    json += "\"state\":\"" + currentState + "\",";
-    json += "\"speed\":" + String((int)settings.speed) + ",";
-    json += "\"stroke\":" + String((int)settings.stroke) + ",";
-    json += "\"sensation\":" + String((int)settings.sensation) + ",";
-    json += "\"buffer\":" + String((int)settings.buffer) + ",";
-    json += "\"depth\":" + String((int)settings.depth) + ",";
-    json += "\"pattern\":" + String(static_cast<int>(settings.pattern)) + ",";
-    json += "\"position\":" +
-            String(float(stepper->getCurrentPosition()) / float(1_mm)) + ",";
-    json += "\"sessionId\":\"" + sessionId + "\"";
-    json += "}";
+    JsonDocument doc;
+    doc["timestamp"] = (unsigned long)millis();
+    doc["state"] = currentState;
+    doc["speed"] = (int)settings.speed;
+    doc["stroke"] = (int)settings.stroke;
+    doc["sensation"] = (int)settings.sensation;
+    doc["depth"] = (int)settings.depth;
+    doc["pattern"] = static_cast<int>(settings.pattern);
+    doc["position"] =
+        float(stepper->getCurrentPosition()) / float(1_mm);
+    doc["sessionId"] = sessionId;
 
-    return json;
+    String output;
+    serializeJson(doc, output);
+    return output;
 }
