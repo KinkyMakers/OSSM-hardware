@@ -39,6 +39,13 @@ static void drawPairingScreen() {
 }
 
 static void pairingTask(void *pvParameters) {
+    if (xSemaphoreTake(displayMutex, 200) == pdTRUE) {
+        showHeaderIcons = false;
+        ui::drawTextPage(display.getU8g2(), ui::pages::pairingConnectingPage);
+        refreshPage(true, true);
+        xSemaphoreGive(displayMutex);
+    }
+
     String macAddress = WiFi.macAddress();
 
     HTTPClient http;
@@ -132,11 +139,7 @@ void drawPairingSuccess() {
         return;
     }
 
-    ui::TextPage page = {
-        .title = "Paired!",
-        .body = "Your OSSM is now\nlinked to your\naccount.",
-    };
-    ui::drawTextPage(display.getU8g2(), page);
+    ui::drawTextPage(display.getU8g2(), ui::pages::pairingSuccessPage);
 
     refreshPage(true, true);
     xSemaphoreGive(displayMutex);
