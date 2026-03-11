@@ -241,6 +241,7 @@ Uses `min_spiffs.csv` (PlatformIO built-in minimal SPIFFS partition).
 ## Workflow
 
 - Never commit changes automatically. Let me review and commit manually.
+- Before making any code edit, explicitly state what the change does, what the side effects are, and what areas are affected. Wait for explicit approval before editing any file.
 - Be opinionated but explain reasoning.
 - If you learn something new about this project, add it to this file.
 - Always verify state machine transitions when modifying device behavior.
