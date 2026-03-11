@@ -39,6 +39,17 @@ static void drawPairingScreen() {
 }
 
 static void pairingTask(void *pvParameters) {
+    if (xSemaphoreTake(displayMutex, 200) == pdTRUE) {
+        showHeaderIcons = false;
+        ui::TextPage loading = {
+            .title = "Pairing",
+            .body = "Connecting...",
+        };
+        ui::drawTextPage(display.getU8g2(), loading);
+        refreshPage(true, true);
+        xSemaphoreGive(displayMutex);
+    }
+
     String macAddress = WiFi.macAddress();
 
     HTTPClient http;
