@@ -203,7 +203,8 @@ namespace ui {
         }
     }
 
-    void drawHelloFrame(u8g2_t* u8g2, const HelloFrame& frame) {
+    void drawHelloFrame(u8g2_t* u8g2, const HelloFrame& frame,
+                         const char* version) {
         clearPage(u8g2, true, true);
         u8g2_SetMaxClipWindow(u8g2);
         u8g2_SetFont(u8g2, Font::title);
@@ -213,6 +214,10 @@ namespace ui {
         u8g2_DrawUTF8(u8g2, startX + letterSpacing, frame.heights[1], "S");
         u8g2_DrawUTF8(u8g2, startX + letterSpacing * 2, frame.heights[2], "S");
         u8g2_DrawUTF8(u8g2, startX + letterSpacing * 3, frame.heights[3], "M");
+        if (version) {
+            u8g2_SetFont(u8g2, Font::small);
+            u8g2_DrawUTF8(u8g2, 1, SCREEN_HEIGHT - 1, version);
+        }
     }
 
     void drawLogo(u8g2_t* u8g2, const LogoData& data) {
@@ -220,6 +225,10 @@ namespace ui {
         u8g2_SetMaxClipWindow(u8g2);
         drawStr::title(u8g2, data.title);
         u8g2_DrawXBMP(u8g2, data.x, data.y, data.w, data.h, data.bitmap);
+        if (data.version) {
+            u8g2_SetFont(u8g2, Font::small);
+            u8g2_DrawUTF8(u8g2, 1, SCREEN_HEIGHT - 1, data.version);
+        }
     }
 
     void drawPreflight(u8g2_t* u8g2, const PreflightData& data) {

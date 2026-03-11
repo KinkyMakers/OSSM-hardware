@@ -24,7 +24,8 @@ void setFooter(u8g2_t* u8g2, const char* left, const char* right);
 int drawWrappedText(u8g2_t* u8g2, int x, int y, const char* text,
                     bool center = false, int maxWidth = 0);
 
-void drawHelloFrame(u8g2_t* u8g2, const HelloFrame& frame);
+void drawHelloFrame(u8g2_t* u8g2, const HelloFrame& frame,
+                    const char* version = nullptr);
 void drawLogo(u8g2_t* u8g2, const LogoData& data);
 void drawPreflight(u8g2_t* u8g2, const PreflightData& data);
 void drawPlayControls(u8g2_t* u8g2, const PlayControlsData& data);

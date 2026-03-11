@@ -5,6 +5,7 @@
 #include "Strings.h"
 #include "ossm/Events.h"
 #include "ossm/state/state.h"
+#include "components/HeaderBar.h"
 #include "services/display.h"
 #include "services/wm.h"
 #include "ui.h"
@@ -19,9 +20,11 @@ void drawWiFi() {
         bool isConnected = WiFiClass::status() == WL_CONNECTED;
 
         if (!isConnected) {
+            showHeaderIcons = false;
             ui::drawTextPage(display.getU8g2(),
                              ui::pages::wifiDisconnectedPage);
         } else {
+            showHeaderIcons = true;
             ui::drawTextPage(display.getU8g2(),
                              ui::pages::wifiConnectedPage);
         }

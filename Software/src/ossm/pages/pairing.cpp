@@ -8,6 +8,7 @@
 #include "constants/Version.h"
 #include "ossm/Events.h"
 #include "ossm/state/state.h"
+#include "components/HeaderBar.h"
 #include "services/display.h"
 #include "ui.h"
 
@@ -19,11 +20,13 @@ namespace pages {
 static String pairingCode = "";
 
 static void drawPairingScreen() {
+    showHeaderIcons = false;
+
     if (xSemaphoreTake(displayMutex, 200) != pdTRUE) {
         return;
     }
 
-    String qrUrl = String(RAD_SERVER) + "/app/settings?ossm=" + pairingCode;
+    String qrUrl = String(RAD_SERVER) + "?ossm=" + pairingCode;
     ESP_LOGI("PAIRING", "QR URL: %s (len=%d)", qrUrl.c_str(), qrUrl.length());
 
     ui::TextPage page = ui::pages::pairingPage;
@@ -36,6 +39,13 @@ static void drawPairingScreen() {
 }
 
 static void pairingTask(void *pvParameters) {
+    if (xSemaphoreTake(displayMutex, 200) == pdTRUE) {
+        showHeaderIcons = false;
+        ui::drawTextPage(display.getU8g2(), ui::pages::pairingConnectingPage);
+        refreshPage(true, true);
+        xSemaphoreGive(displayMutex);
+    }
+
     String macAddress = WiFi.macAddress();
 
     HTTPClient http;
@@ -81,36 +91,39 @@ static void pairingTask(void *pvParameters) {
 
     drawPairingScreen();
 
-    // Poll /api/ossm/is-paired once per second until paired or user navigates away
-    auto isInCorrectState = []() {
-        return stateMachine->is("pairing"_s) ||
-               stateMachine->is("pairing.idle"_s);
-    };
+    // TODO: replace with MQTT subscription to ossm/{macAddress}/paired
+    // Polling disabled — causes SSL memory exhaustion when BLE + MQTT TLS are active.
+    // User must press the button to exit after pairing on the website.
 
-    while (isInCorrectState()) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+    // auto isInCorrectState = []() {
+    //     return stateMachine->is("pairing"_s) ||
+    //            stateMachine->is("pairing.idle"_s);
+    // };
 
-        if (!isInCorrectState()) break;
+    // while (isInCorrectState()) {
+    //     vTaskDelay(pdMS_TO_TICKS(1000));
 
-        HTTPClient pollHttp;
-        pollHttp.begin(String(RAD_SERVER) + "/api/ossm/is-paired");
-        pollHttp.addHeader("Content-Type", "application/json");
+    //     if (!isInCorrectState()) break;
 
-        JsonDocument pollDoc;
-        pollDoc["macAddress"] = macAddress;
-        String pollBody;
-        serializeJson(pollDoc, pollBody);
+    //     HTTPClient pollHttp;
+    //     pollHttp.begin(String(RAD_SERVER) + "/api/ossm/is-paired");
+    //     pollHttp.addHeader("Content-Type", "application/json");
 
-        int pollCode = pollHttp.POST(pollBody);
-        pollHttp.end();
+    //     JsonDocument pollDoc;
+    //     pollDoc["macAddress"] = macAddress;
+    //     String pollBody;
+    //     serializeJson(pollDoc, pollBody);
 
-        ESP_LOGI("PAIRING", "is-paired poll: %d", pollCode);
+    //     int pollCode = pollHttp.POST(pollBody);
+    //     pollHttp.end();
 
-        if (pollCode == 200) {
-            stateMachine->process_event(Done{});
-            break;
-        }
-    }
+    //     ESP_LOGI("PAIRING", "is-paired poll: %d", pollCode);
+
+    //     if (pollCode == 200) {
+    //         stateMachine->process_event(Done{});
+    //         break;
+    //     }
+    // }
 
     vTaskDelete(nullptr);
 }
@@ -123,15 +136,13 @@ void checkPairing() {
 }
 
 void drawPairingSuccess() {
+    showHeaderIcons = true;
+
     if (xSemaphoreTake(displayMutex, 200) != pdTRUE) {
         return;
     }
 
-    ui::TextPage page = {
-        .title = "Paired!",
-        .body = "Your OSSM is now\nlinked to your\naccount.",
-    };
-    ui::drawTextPage(display.getU8g2(), page);
+    ui::drawTextPage(display.getU8g2(), ui::pages::pairingSuccessPage);
 
     refreshPage(true, true);
     xSemaphoreGive(displayMutex);

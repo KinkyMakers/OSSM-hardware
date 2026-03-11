@@ -9,6 +9,7 @@
 #include "services/led.h"
 
 TaskHandle_t headerBarTaskHandle = nullptr;
+bool showHeaderIcons = true;
 
 static WifiStatus lastWifiStatus = WifiStatus::DISCONNECTED;
 static BleStatus lastBleStatus = BleStatus::DISCONNECTED;
@@ -102,32 +103,34 @@ void drawBleIcon() {
 
     static constexpr int16_t BLE_SUB_X = BLE_ICON_X - 3;
     static constexpr int16_t BLE_IND_X = BLE_SUB_X + 7;
+    static constexpr int16_t BLE_Y = ICON_Y - 1;
+    static constexpr int16_t BLE_SUB_Y = ICON_Y - 1;
 
     BleStatus status = getBleStatus();
     switch (status) {
         case BleStatus::CONNECTED:
-            display.drawGlyph(BLE_ICON_X, ICON_Y, GLYPH_BLE_CONNECTED);
+            display.drawGlyph(BLE_ICON_X, BLE_Y, GLYPH_BLE_SMALL);
             break;
         case BleStatus::DISCONNECTED: {
             constexpr int16_t cx = BLE_ICON_X + 4;
-            constexpr int16_t cy = ICON_Y - 4;
+            constexpr int16_t cy = ICON_Y - 5;
             display.drawCircle(cx, cy, 3);
             break;
         }
         case BleStatus::CONNECTING:
         case BleStatus::ADVERTISING:
-            display.drawGlyph(BLE_SUB_X, ICON_Y, GLYPH_BLE_SMALL);
-            display.drawPixel(BLE_IND_X, ICON_Y);
-            display.drawPixel(BLE_IND_X + 2, ICON_Y);
-            display.drawPixel(BLE_IND_X + 4, ICON_Y);
+            display.drawGlyph(BLE_SUB_X, BLE_Y, GLYPH_BLE_SMALL);
+            display.drawPixel(BLE_IND_X, BLE_SUB_Y);
+            display.drawPixel(BLE_IND_X + 2, BLE_SUB_Y);
+            display.drawPixel(BLE_IND_X + 4, BLE_SUB_Y);
             break;
         case BleStatus::ERROR: {
-            display.drawGlyph(BLE_SUB_X, ICON_Y, GLYPH_BLE_SMALL);
+            display.drawGlyph(BLE_SUB_X, BLE_Y, GLYPH_BLE_SMALL);
             constexpr int16_t ex = BLE_ICON_X + 7;
+            display.drawPixel(ex, ICON_Y - 7);
+            display.drawPixel(ex, ICON_Y - 6);
             display.drawPixel(ex, ICON_Y - 5);
-            display.drawPixel(ex, ICON_Y - 4);
             display.drawPixel(ex, ICON_Y - 3);
-            display.drawPixel(ex, ICON_Y - 1);
             break;
         }
     }
@@ -138,17 +141,37 @@ void drawBleIcon() {
 
     ESP_LOGI(HEADERBAR_TAG, "Header bar task started");
 
-    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearIcons();
-        drawWifiIcon();
-        drawBleIcon();
-        refreshIcons();
-        xSemaphoreGive(displayMutex);
+    if (showHeaderIcons) {
+        if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+            clearIcons();
+            drawWifiIcon();
+            drawBleIcon();
+            refreshIcons();
+            xSemaphoreGive(displayMutex);
+        }
     }
 
+    bool lastShowState = showHeaderIcons;
+
     while (true) {
-        bool wifiChanged = shouldDrawWifiIcon();
-        bool bleChanged = shouldDrawBleIcon();
+        bool stateChanged = (showHeaderIcons != lastShowState);
+        lastShowState = showHeaderIcons;
+
+        if (!showHeaderIcons) {
+            if (stateChanged) {
+                if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
+                    clearIcons();
+                    refreshIcons();
+                    xSemaphoreGive(displayMutex);
+                }
+            }
+            updateLEDForMachineStatus();
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+            continue;
+        }
+
+        bool wifiChanged = shouldDrawWifiIcon() || stateChanged;
+        bool bleChanged = shouldDrawBleIcon() || stateChanged;
 
         updateLEDForMachineStatus();
 

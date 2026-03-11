@@ -13,6 +13,7 @@
 #include "ui.h"
 #include "utils/analog.h"
 #include "utils/format.h"
+#include "components/HeaderBar.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -28,6 +29,8 @@ static void drawPreflightTask(void *pvParameters) {
                stateMachine->is("streaming.preflight"_s) ||
                stateMachine->is("strokeEngine.preflight"_s);
     };
+
+    showHeaderIcons = true;
 
     do {
 #ifdef AJ_DEVELOPMENT_HARDWARE
