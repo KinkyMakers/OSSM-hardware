@@ -41,5 +41,6 @@ void drawBleIcon();
 void initHeaderBar();
 
 extern TaskHandle_t headerBarTaskHandle;
+extern bool showHeaderIcons;
 
 #endif  // OSSM_HEADERBAR_H

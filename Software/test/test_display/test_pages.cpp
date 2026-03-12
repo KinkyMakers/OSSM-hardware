@@ -61,7 +61,7 @@ void test_page_wifiConnected(void) {
 void test_page_pairing(void) {
     ui::TextPage page = ui::pages::pairingPage;
     page.subtitle = "AABBCCDDEEFF";
-    page.qrUrl = "HTTPS://DASHBOARD.RESEARCHANDDESIRE.COM/OSSM/AABBCCDDEEFF";
+    page.qrUrl = "HTTPS://DASHBOARD.RESEARCHANDDESIRE.COM?OSSM=AABBCCDDEEFF";
     ui::drawTextPage(&u8g2, page);
     u8g2_SetMaxClipWindow(&u8g2);
     TEST_ASSERT_TRUE(bufferHasContent(&u8g2));

@@ -1,6 +1,7 @@
 #include "error.h"
 
 #include "ossm/state/error.h"
+#include "components/HeaderBar.h"
 #include "services/display.h"
 #include "services/stepper.h"
 #include "ui.h"
@@ -9,6 +10,7 @@ namespace pages {
 
 void drawError() {
     stepper->forceStop();
+    showHeaderIcons = true;
 
     if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
         ui::TextPage page = ui::pages::errorPage;

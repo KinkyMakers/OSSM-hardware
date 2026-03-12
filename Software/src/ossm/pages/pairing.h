@@ -4,6 +4,7 @@
 namespace pages {
 
 void checkPairing();
+void drawPairingSuccess();
 
 }  // namespace pages
 

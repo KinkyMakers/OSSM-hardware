@@ -50,4 +50,19 @@ This is a placeholder entry for future OSSM updates. See the [detailed release n
 - **Native Display Tests** — Added visual test suite that renders all screen variants to PNG/GIF for automated UI verification without ESP32 hardware
 - **Display Documentation** — New dedicated Display section with comprehensive UI library documentation covering TextPages, strings, icons, and testing
 
+### v1.0.14 Patch Notes
+
+- **Auto-Pairing Detection** — OSSM now automatically detects existing pairing and skips the QR code screen
+- **Pairing Completion Polling** — Device automatically detects when pairing completes and transitions without user interaction
+- **Pairing Success Screen** — Added confirmation screen displaying "Paired!" when account linking succeeds
+
+### v1.0.15 Patch Notes
+
+- **Version Display on Startup** — Firmware version now shown on boot animation and logo screens for easy identification
+- **Improved Pairing Flow** — Added "Connecting..." screen during pairing initialization for better user feedback
+- **MQTT Telemetry Enhancements** — Added timestamp to telemetry payload and configurable publish rate (default 30 Hz) for smoother dashboard updates
+- **Header Icons Visibility** — Status icons now hide during startup and pairing screens for a cleaner UI
+- **Session Tracking** — New session ID generated each time a play mode starts for improved analytics
+- **TLS Certificate Update** — Updated root certificate to DigiCert Global Root G2 for continued cloud connectivity
+
 </Update>

@@ -10,6 +10,7 @@
 #include "services/tasks.h"
 #include "ui.h"
 #include "utils/analog.h"
+#include "components/HeaderBar.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -32,6 +33,8 @@ static void drawMenuTask(void *pvParameters) {
         (Menu)floor(encoder.readEncoder() / clicksPerRow);
 
     encoder.setAcceleration(0);
+
+    showHeaderIcons = true;
 
     auto isInCorrectState = []() {
         return stateMachine->is("menu"_s) || stateMachine->is("menu.idle"_s);
@@ -78,12 +81,6 @@ static void drawMenuTask(void *pvParameters) {
 
         vTaskDelay(1);
     };
-
-    if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
-        clearIcons();
-        refreshIcons();
-        xSemaphoreGive(displayMutex);
-    }
 
     vTaskDelete(nullptr);
 }

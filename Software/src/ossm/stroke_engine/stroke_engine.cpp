@@ -112,13 +112,19 @@ static void publishStateTask(void *pvParameters) {
                stateMachine->is("strokeEngine.pattern"_s);
     };
 
+    const TickType_t publishInterval = pdMS_TO_TICKS(
+        (int)(1000.0f / UserConfig::mqttPublishFrequencyHz));
+
+    TickType_t lastWakeTime = xTaskGetTickCount();
+
     while (isInCorrectState()) {
         if (!mqttConnected) {
             vTaskDelay(pdMS_TO_TICKS(1000));
+            lastWakeTime = xTaskGetTickCount();
             continue;
         }
 
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelayUntil(&lastWakeTime, publishInterval);
 
         String payload = ossm->getCurrentState();
         String topic = "ossm/" + getMacAddress();
@@ -130,6 +136,7 @@ static void publishStateTask(void *pvParameters) {
         if (result < 0) {
             ESP_LOGD("MQTT", "Publish failed: %d", result);
             vTaskDelay(pdMS_TO_TICKS(1000));
+            lastWakeTime = xTaskGetTickCount();
         }
     }
 

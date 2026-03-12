@@ -109,6 +109,10 @@ namespace ui {
         static const char pairingTitle[] PROGMEM = "Pair OSSM";
         static const char pairingBody[] PROGMEM =
             "Enter code\nor scan QR";
+        static const char pairingConnecting[] PROGMEM = "Connecting...";
+        static const char pairedTitle[] PROGMEM = "Paired!";
+        static const char pairedBody[] PROGMEM =
+            "Your OSSM is now\nlinked to your\naccount.";
 
         // ============================================================
         // Stroke Engine pattern names

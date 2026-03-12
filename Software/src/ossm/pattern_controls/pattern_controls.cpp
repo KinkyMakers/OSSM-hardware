@@ -12,6 +12,7 @@
 #include "ui.h"
 #include "utils/analog.h"
 #include "utils/format.h"
+#include "components/HeaderBar.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -41,6 +42,8 @@ static void drawPatternControlsTask(void *pvParameters) {
     encoder.setAcceleration(10);
     encoder.setBoundaries(0, numberOfPatterns * 3 - 1, true);
     encoder.setEncoderValue((int)nextPattern * 3);
+
+    showHeaderIcons = true;
 
     while (isInCorrectState()) {
         float speed;
