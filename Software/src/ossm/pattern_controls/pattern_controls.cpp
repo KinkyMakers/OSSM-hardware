@@ -19,25 +19,16 @@ using namespace sml;
 
 namespace pattern_controls {
 
-static size_t numberOfDescriptions =
-    sizeof(ui::strings::strokeEngineDescriptions) /
-    sizeof(ui::strings::strokeEngineDescriptions[0]);
-static size_t numberOfPatterns = 
-    sizeof(ui::strings::strokeEngineNames) /
-    sizeof(ui::strings::strokeEngineNames[0]);
+static size_t numberOfDescriptions = sizeof(ui::strings::strokeEngineDescriptions);
+static size_t numberOfPatterns = sizeof(ui::strings::strokeEngineNames);
 
 static void drawPatternControlsTask(void *pvParameters) {
-    SettingPercents savedSettings = settings;
-
     auto isInCorrectState = []() {
         return stateMachine->is("strokeEngine.pattern"_s);
     };
 
     StrokePatterns nextPattern = settings.pattern;
     bool shouldUpdateDisplay = true;
-    const char *patternName = "nextPattern";
-    const char *patternDescription =
-        ui::strings::strokeEngineDescriptions[(int)nextPattern];
 
     encoder.setAcceleration(10);
     encoder.setBoundaries(0, numberOfPatterns * 3 - 1, true);
@@ -69,13 +60,11 @@ static void drawPatternControlsTask(void *pvParameters) {
             continue;
         }
 
-        patternName = ui::strings::strokeEngineNames[(int)nextPattern];
+        const char *patternName = ui::strings::strokeEngineNames[(int)nextPattern];
+        const char *patternDescription = ui::strings::noDescription;
 
         if ((int)nextPattern < (int)numberOfDescriptions) {
-            patternDescription =
-                ui::strings::strokeEngineDescriptions[(int)nextPattern];
-        } else {
-            patternDescription = ui::strings::noDescription;
+            patternDescription = ui::strings::strokeEngineDescriptions[(int)nextPattern];
         }
 
         settings.pattern = nextPattern;
@@ -86,6 +75,7 @@ static void drawPatternControlsTask(void *pvParameters) {
             page.body = patternDescription;
             page.scrollPercent = ui::scrollPercent((int)nextPattern, numberOfPatterns);
             ui::drawTextPage(display.getU8g2(), page);
+            refreshPage(true, true);
             xSemaphoreGive(displayMutex);
         }
 
