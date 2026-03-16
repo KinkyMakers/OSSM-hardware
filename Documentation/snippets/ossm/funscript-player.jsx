@@ -474,7 +474,6 @@ export const OssmFunscriptPlayer = () => {
   const handleVideoEnded = () => {
     addLog('INFO', 'Video ended');
     stopSync();
-    sendStreamPosition(0, 500);
   };
 
   // Show unsupported message if Web Bluetooth is not available
@@ -610,7 +609,7 @@ export const OssmFunscriptPlayer = () => {
         {/* Video player */}
         <div className="rounded-lg overflow-hidden bg-black mb-4">
           {videoUrl ? (
-            <video
+            <video loop 
               ref={videoRef}
               src={videoUrl}
               controls
