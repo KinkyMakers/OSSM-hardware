@@ -101,9 +101,9 @@ class PairingCallbacks : public NimBLECharacteristicCallbacks {
                     4 * configMINIMAL_STACK_SIZE, pCharacteristic, 1,
                     &s_wifiConnectTask);
     }
-} pairingCallbacks;
+} inline pairingCallbacks;
 
-NimBLECharacteristic* initPairingCharacteristic(NimBLEService* pService,
+inline NimBLECharacteristic* initPairingCharacteristic(NimBLEService* pService,
                                                  NimBLEUUID uuid) {
     NimBLECharacteristic* pPairingChar = pService->createCharacteristic(
         uuid, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);

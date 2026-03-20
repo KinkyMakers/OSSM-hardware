@@ -1,5 +1,6 @@
 #include "guards.h"
 
+#include "guard_logic.h"
 #include "constants/Config.h"
 #include "constants/Pins.h"
 #include "ossm/homing/homing.h"
@@ -16,8 +17,10 @@ bool ossmIsNotHomed() {
 }
 
 bool ossmIsPreflightSafe() {
-    return getAnalogAveragePercent({Pins::Remote::speedPotPin, 50}) <
-           Config::Advanced::commandDeadZonePercentage;
+    float potReading =
+        getAnalogAveragePercent({Pins::Remote::speedPotPin, 50});
+    return guard_logic::isPreflightSafeLogic(
+        potReading, Config::Advanced::commandDeadZonePercentage);
 }
 
 Menu ossmGetMenuOption() {

@@ -6,7 +6,7 @@
 #include "NimBLEService.h"
 #include "NimBLEUUID.h"
 
-NimBLECharacteristic* initStateCharacteristic(NimBLEService* pService,
+inline NimBLECharacteristic* initStateCharacteristic(NimBLEService* pService,
                                               NimBLEUUID uuid) {
     // State characteristic (read/notify string payload for state)
     NimBLECharacteristic* pStateChar = pService->createCharacteristic(
