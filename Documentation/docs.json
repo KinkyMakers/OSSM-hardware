@@ -339,7 +339,8 @@
                   "ossm/Software/getting-started/configuration",
                   "ossm/Software/getting-started/wifi-and-updates",
                   "ossm/Software/getting-started/PlatformIO",
-                  "ossm/Software/getting-started/LED_Status"
+                  "ossm/Software/getting-started/LED_Status",
+                  "ossm/Software/getting-started/hardware-tests"
                 ]
               },
               {
