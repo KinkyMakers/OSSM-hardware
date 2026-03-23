@@ -16,6 +16,7 @@
 #include <unity.h>
 
 #include "constants/Config.h"
+#include "constants/Pins.h"
 #include "constants/Version.h"
 #include "services/communication/nimble.h"
 #include "services/communication/pairing.hpp"
@@ -199,6 +200,11 @@ void test_pairing_characteristic_uuid(void) {
 
 void setup() {
     delay(2000);  // give serial monitor time to connect
+
+    // Disable motor driver before enabling radios — without initBoard(),
+    // motor GPIOs float and the active-low enable pin can enable the driver.
+    pinMode(Pins::Driver::motorEnablePin, OUTPUT);
+    digitalWrite(Pins::Driver::motorEnablePin, HIGH);
 
     // Initialise WiFi (needed for MAC address in pairing read)
     WiFi.mode(WIFI_STA);

@@ -22,11 +22,14 @@
 #include "constants/Pins.h"
 #include "ossm/Events.h"
 #include "ossm/OSSM.h"
+#include "ossm/state/actions.h"
 #include "ossm/state/calibration.h"
 #include "ossm/state/error.h"
 #include "ossm/state/state.h"
 #include "services/board.h"
 #include "services/display.h"
+#include "services/stepper.h"
+#include "services/tasks.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -36,8 +39,7 @@ static constexpr uint32_t ERROR_WAIT_TIMEOUT_MS = 50000;
 
 void setUp(void) {}
 void tearDown(void) {
-    // Safety: keep motor disabled
-    digitalWrite(Pins::Driver::motorEnablePin, HIGH);
+    ossmEmergencyStop();
 }
 
 // ─── Helpers ───────────────────────────────────────────────
@@ -140,12 +142,17 @@ void setup() {
     // The homing task launches on core 0 and calls stepper->enableOutputs().
     initStateMachine();
 
-    // Let the homing task call enableOutputs() on core 0, then immediately
-    // force-disable the motor driver. 10 ms is enough for the task to start
-    // (~0.1 mm of travel). Without a working driver the motor cannot move or
-    // hit the endstop, so homing will timeout (40 s) → Error → error.idle.
+    // Let the homing task start on core 0, then kill it and disable the motor.
+    // 10 ms is enough for the task to start (~0.1 mm of travel).
+    // We must kill the task AND use forceStopAndNewPosition() to halt the
+    // hardware timer ISR immediately — forceStop() only soft-decelerates
+    // and leaves the ISR running with the original moveTo() target.
     vTaskDelay(pdMS_TO_TICKS(10));
-    digitalWrite(Pins::Driver::motorEnablePin, HIGH);
+    if (Tasks::runHomingTaskH != nullptr) {
+        vTaskDelete(Tasks::runHomingTaskH);
+        Tasks::runHomingTaskH = nullptr;
+    }
+    ossmEmergencyStop();
 
     UNITY_BEGIN();
 

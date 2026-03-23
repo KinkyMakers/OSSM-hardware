@@ -16,6 +16,7 @@
 #include "constants/Config.h"
 #include "ossm/Events.h"
 #include "ossm/OSSM.h"
+#include "ossm/state/actions.h"
 #include "ossm/state/calibration.h"
 #include "ossm/state/state.h"
 #include "services/board.h"
@@ -25,8 +26,9 @@ static constexpr uint32_t HOMING_TIMEOUT_MS = 30000;
 
 void setUp(void) {}
 void tearDown(void) {
-    // Safety: disable motor after each test (especially on failure/timeout)
-    digitalWrite(Pins::Driver::motorEnablePin, HIGH);
+    if (stepper != nullptr) {
+        ossmEmergencyStop();
+    }
 }
 
 // ─── Helpers ────────────────────────────────────────────────

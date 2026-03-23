@@ -20,12 +20,12 @@
 #include "constants/Pins.h"
 #include "ossm/Events.h"
 #include "ossm/OSSM.h"
+#include "ossm/state/actions.h"
 #include "ossm/state/calibration.h"
 #include "ossm/state/menu.h"
 #include "ossm/state/state.h"
 #include "services/board.h"
 #include "services/display.h"
-#include "services/stepper.h"
 #include "services/tasks.h"
 
 namespace sml = boost::sml;
@@ -33,8 +33,7 @@ using namespace sml;
 
 void setUp(void) {}
 void tearDown(void) {
-    // Safety: disable motor after each test
-    digitalWrite(Pins::Driver::motorEnablePin, HIGH);
+    ossmEmergencyStop();
 }
 
 // ─── Helpers ───────────────────────────────────────────────
@@ -49,8 +48,7 @@ static void killHomingTask() {
         vTaskDelete(Tasks::runHomingTaskH);
         Tasks::runHomingTaskH = nullptr;
     }
-    stepper->forceStop();
-    digitalWrite(Pins::Driver::motorEnablePin, HIGH);
+    ossmEmergencyStop();
 }
 
 /**

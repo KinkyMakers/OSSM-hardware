@@ -13,12 +13,14 @@
 
 #include "constants/Config.h"
 #include "constants/Pins.h"
+#include "ossm/state/actions.h"
 #include "services/board.h"
 
 void setUp(void) {}
 void tearDown(void) {
-    // Safety: always disable motor driver after each test
-    digitalWrite(Pins::Driver::motorEnablePin, HIGH);
+    if (stepper != nullptr) {
+        ossmEmergencyStop();
+    }
 }
 
 // ─── Stepper ────────────────────────────────────────────────

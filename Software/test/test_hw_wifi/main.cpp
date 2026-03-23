@@ -19,6 +19,7 @@
 #include <unity.h>
 
 #include "constants/Config.h"
+#include "constants/Pins.h"
 #include "services/communication/nimble.h"
 #include "services/communication/wifi.hpp"
 #include "services/wm.h"
@@ -256,6 +257,11 @@ void test_connect_wifi_bad_credentials_returns_false(void) {
 
 void setup() {
     delay(2000);  // give serial monitor time to connect
+
+    // Disable motor driver before enabling radios — without initBoard(),
+    // motor GPIOs float and the active-low enable pin can enable the driver.
+    pinMode(Pins::Driver::motorEnablePin, OUTPUT);
+    digitalWrite(Pins::Driver::motorEnablePin, HIGH);
 
     // Backup any existing WiFi credentials before tests
     backupCredentials();
