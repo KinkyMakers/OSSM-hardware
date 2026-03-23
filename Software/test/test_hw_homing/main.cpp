@@ -12,6 +12,7 @@
 
 #include <Arduino.h>
 #include <unity.h>
+#include "esp_log.h"
 
 #include "constants/Config.h"
 #include "ossm/Events.h"
@@ -65,6 +66,9 @@ void test_measured_stroke_reasonable(void) {
 
 void setup() {
     delay(2000);  // give serial monitor time to connect
+
+    // Suppress verbose GPIO/ADC logs that slow down the current-sensing loop
+    esp_log_level_set("gpio", ESP_LOG_WARN);
 
     // Full hardware init (same as normal boot minus BLE/WiFi/MQTT)
     initBoard();
