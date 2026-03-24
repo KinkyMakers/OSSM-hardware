@@ -1,23 +1,31 @@
 /**
- * Hardware State Machine Tests — require USB-connected OSSM
+ * Hardware State Machine Tests — require physically connected OSSM
  *
  * Run:  pio test -e hw_test -f test_hw_state_machine
  *
- * No motor movement — homing is bypassed by killing each spawned
- * homing task and manually advancing the state machine to menu.idle.
+ * WARNING: The motor WILL move during homing (~25 s).
+ *          Ensure the linear rail is clear and the device is powered.
+ *
+ * The test lets the full production homing sequence complete, then
+ * verifies menu navigation transitions work correctly.
  *
  * Tests verify:
- *  1. The state machine reaches menu.idle after bypassed homing
- *  2. Menu navigation transitions work correctly for each menu option
+ *  1. The state machine reaches menu.idle after real homing
+ *  2. Menu navigation transitions work correctly (help, wifi, update, pairing)
  *  3. Returning to menu from sub-states works correctly
+ *
+ * Note: Update and Pairing transitions trigger drawWiFi() when offline
+ *       (the device won't be connected to WiFi during tests).  A cleanup
+ *       delay between tests lets the WiFi portal task self-terminate
+ *       before the next test starts a new one.
  */
 
 #include <Arduino.h>
 #include <unity.h>
+#include "esp_log.h"
 
 #include "constants/Config.h"
 #include "constants/Menu.h"
-#include "constants/Pins.h"
 #include "ossm/Events.h"
 #include "ossm/OSSM.h"
 #include "ossm/state/actions.h"
@@ -26,7 +34,6 @@
 #include "ossm/state/state.h"
 #include "services/board.h"
 #include "services/display.h"
-#include "services/tasks.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -36,43 +43,23 @@ void tearDown(void) {
     ossmEmergencyStop();
 }
 
+static constexpr uint32_t HOMING_TIMEOUT_MS = 30000;
+
 // ─── Helpers ───────────────────────────────────────────────
 
 /**
- * Kill a freshly-spawned homing task and disable the motor.
- * Called after each state machine transition that triggers startHoming.
+ * Block until the state machine reaches menu.idle or timeout.
+ * This waits for the FULL transition chain: homing → menu → menu.idle.
  */
-static void killHomingTask() {
-    vTaskDelay(pdMS_TO_TICKS(10));  // let task start on core 0
-    if (Tasks::runHomingTaskH != nullptr) {
-        vTaskDelete(Tasks::runHomingTaskH);
-        Tasks::runHomingTaskH = nullptr;
+static bool waitForMenuIdle(uint32_t timeoutMs) {
+    uint32_t start = millis();
+    while (!stateMachine->is("menu.idle"_s)) {
+        if (millis() - start > timeoutMs) {
+            return false;
+        }
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
-    ossmEmergencyStop();
-}
-
-/**
- * Bypass homing entirely: advance the state machine from
- * homing.forward → homing.backward → menu.idle, killing each
- * homing task before the motor moves significantly (~0.1 mm).
- */
-static void skipHomingToMenu() {
-    // initStateMachine() fires Done{} → idle → homing → homing.forward
-    // which spawns a homing task on core 0.
-    initStateMachine();
-    killHomingTask();
-
-    // Fake calibration so the isStrokeTooShort guard passes.
-    calibration.measuredStrokeSteps = 5000;
-
-    // Advance: homing.forward → homing.backward (spawns another task).
-    stateMachine->process_event(Done{});
-    killHomingTask();
-
-    // Advance: homing.backward → menu → menu.idle
-    // (isFirstHomed guard returns true on first call)
-    stateMachine->process_event(Done{});
-    vTaskDelay(pdMS_TO_TICKS(10));  // let menu entry action settle
+    return true;
 }
 
 /**
@@ -102,15 +89,30 @@ static bool returnToMenu(uint32_t waitMs = 2000) {
     return true;
 }
 
+/**
+ * Return to menu and wait for any background tasks (e.g. WiFi portal)
+ * to self-terminate before the next test starts.
+ */
+static bool returnToMenuWithCleanup(uint32_t cleanupMs = 2000) {
+    if (!returnToMenu()) return false;
+    vTaskDelay(pdMS_TO_TICKS(cleanupMs));
+    return true;
+}
+
 // ─── Tests: State Machine Boot ─────────────────────────────
 
 /**
- * After bypassed homing, the state machine should be in menu.idle.
+ * After real homing completes, the state machine should be in menu.idle
+ * and calibration data should be valid.
  */
 void test_state_machine_reaches_menu(void) {
     TEST_ASSERT_TRUE_MESSAGE(
         stateMachine->is("menu.idle"_s),
-        "State machine should be in menu.idle after homing bypass");
+        "State machine should be in menu.idle after homing — "
+        "check motor, current sensor, and power supply");
+    TEST_ASSERT_TRUE_MESSAGE(
+        calibration.isHomed,
+        "calibration.isHomed should be true after reaching menu");
 }
 
 // ─── Tests: Menu Navigation ────────────────────────────────
@@ -136,6 +138,7 @@ void test_menu_navigate_to_help(void) {
 
 /**
  * Selecting WiFiSetup from menu.idle should transition to wifi.idle.
+ * Starts a WiFi config portal — cleanup delay lets the portal task exit.
  */
 void test_menu_navigate_to_wifi(void) {
     TEST_ASSERT_TRUE_MESSAGE(
@@ -149,13 +152,15 @@ void test_menu_navigate_to_wifi(void) {
         "Should transition to wifi.idle after selecting WiFiSetup");
 
     TEST_ASSERT_TRUE_MESSAGE(
-        returnToMenu(),
+        returnToMenuWithCleanup(),
         "Should return to menu.idle from wifi.idle via ButtonPress");
 }
 
 /**
  * Selecting Update from menu.idle should transition to an update state.
- * If offline, it falls through to wifi. If online, it goes to update.checking.
+ * When offline (typical in tests), falls through to wifi.idle.
+ * When online, would go to update.checking.
+ * Starts a WiFi portal when offline — cleanup delay lets it exit.
  */
 void test_menu_navigate_to_update(void) {
     TEST_ASSERT_TRUE_MESSAGE(
@@ -174,13 +179,15 @@ void test_menu_navigate_to_update(void) {
         "Should be in update or wifi state after selecting UpdateOSSM");
 
     TEST_ASSERT_TRUE_MESSAGE(
-        returnToMenu(),
+        returnToMenuWithCleanup(),
         "Should return to menu.idle from update/wifi via ButtonPress");
 }
 
 /**
  * Selecting Pairing when offline should go to pairing.wifi flow.
- * Selecting Pairing when online should go to pairing flow.
+ * Selecting Pairing when online should go to pairing flow (HTTP auth).
+ * When offline (typical in tests), enters pairing.wifi which starts a
+ * WiFi portal — cleanup delay lets it exit.
  */
 void test_menu_navigate_to_pairing(void) {
     TEST_ASSERT_TRUE_MESSAGE(
@@ -199,13 +206,14 @@ void test_menu_navigate_to_pairing(void) {
         "Should be in pairing or pairing.wifi state after selecting Pairing");
 
     TEST_ASSERT_TRUE_MESSAGE(
-        returnToMenu(),
+        returnToMenuWithCleanup(),
         "Should return to menu.idle from pairing via ButtonPress");
 }
 
 /**
  * After navigating through multiple menu items, we should still be able
  * to return to menu.idle each time (state machine is stable).
+ * Uses Help only — no side effects, no WiFi portal.
  */
 void test_menu_round_trip_stability(void) {
     TEST_ASSERT_TRUE_MESSAGE(
@@ -215,7 +223,7 @@ void test_menu_round_trip_stability(void) {
     selectMenuOption(Menu::Help);
     TEST_ASSERT_TRUE(returnToMenu());
 
-    selectMenuOption(Menu::WiFiSetup);
+    selectMenuOption(Menu::Help);
     TEST_ASSERT_TRUE(returnToMenu());
 
     selectMenuOption(Menu::Help);
@@ -231,11 +239,15 @@ void test_menu_round_trip_stability(void) {
 void setup() {
     delay(2000);  // give serial monitor time to connect
 
+    // Suppress verbose GPIO/ADC logs that slow down the current-sensing loop
+    esp_log_level_set("gpio", ESP_LOG_WARN);
+
     initBoard();
     initDisplay();
 
     ossm = new OSSM();
-    skipHomingToMenu();  // no motor movement
+    initStateMachine();  // fires Done{} → idle → homing (motor WILL move)
+    waitForMenuIdle(HOMING_TIMEOUT_MS);
 
     UNITY_BEGIN();
 

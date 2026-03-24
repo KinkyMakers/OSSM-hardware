@@ -1,22 +1,25 @@
 /**
  * Hardware Homing Error Tests — require USB-connected OSSM
  *
- * Run:  pio test -e development -f test_hw_homing_error
+ * Run:  pio test -e hw_test -f test_hw_homing_error
  *
- * No motor movement — the motor driver is disabled immediately after
- * the homing task starts, so homing times out (~40 s) and the state
- * machine enters the error state.
+ * No motor movement — a high-priority task continuously disables motor
+ * outputs, overriding any enableOutputs() call the homing task makes.
+ * The homing task keeps running but never detects a current spike,
+ * so it times out (~40 s) and fires Error{} naturally.
  *
  * Total runtime: ~50 seconds (40 s homing timeout + assertions).
  *
  * Tests verify:
  *  1. When homing fails (timeout), the state machine enters error state
  *  2. The error state contains an appropriate error message
- *  3. The error → error.idle → error.help → restart flow works
+ *  3. The device is NOT marked as homed after failure
+ *  4. The error.idle → error.help transition works
  */
 
 #include <Arduino.h>
 #include <unity.h>
+#include "esp_log.h"
 
 #include "constants/Config.h"
 #include "constants/Pins.h"
@@ -37,12 +40,31 @@ using namespace sml;
 // Homing timeout is 40 s in the firmware; wait a bit longer.
 static constexpr uint32_t ERROR_WAIT_TIMEOUT_MS = 50000;
 
+// Handle for the motor-disable task so we can clean it up.
+static TaskHandle_t disableMotorTaskH = nullptr;
+
 void setUp(void) {}
 void tearDown(void) {
     ossmEmergencyStop();
 }
 
 // ─── Helpers ───────────────────────────────────────────────
+
+/**
+ * High-priority task that continuously disables motor outputs AND stops
+ * step pulse generation.  Without forceStop(), FastAccelStepper's
+ * hardware timers keep generating pulses even with the driver disabled.
+ * When the homing task briefly re-enables outputs, the motor tries to
+ * catch up to the accumulated pulses, causing a stall current spike.
+ * Calling forceStop() prevents this by killing the pulse timer.
+ */
+static void keepMotorDisabledTask(void *pvParameters) {
+    while (true) {
+        stepper->forceStop();
+        stepper->disableOutputs();
+        vTaskDelay(pdMS_TO_TICKS(5));
+    }
+}
 
 /**
  * Block until the state machine reaches error.idle or timeout.
@@ -129,6 +151,9 @@ void test_error_idle_to_error_help(void) {
 void setup() {
     delay(2000);  // give serial monitor time to connect
 
+    // Suppress verbose GPIO/ADC logs that slow down the current-sensing loop
+    esp_log_level_set("gpio", ESP_LOG_WARN);
+
     // Full hardware init
     initBoard();
     initDisplay();
@@ -138,21 +163,19 @@ void setup() {
     // Clear any stale error state
     errorState.message = "";
 
-    // Init state machine — fires Done{} → idle → homing → homing.forward
-    // The homing task launches on core 0 and calls stepper->enableOutputs().
-    initStateMachine();
+    // Start a high-priority task that continuously disables motor outputs.
+    // This must run BEFORE initStateMachine so the homing task never gets
+    // a chance to move the motor — every enableOutputs() call it makes
+    // is immediately overridden.
+    xTaskCreatePinnedToCore(keepMotorDisabledTask, "keepMotorDisabled",
+                            2 * configMINIMAL_STACK_SIZE, nullptr,
+                            configMAX_PRIORITIES - 1, &disableMotorTaskH, 1);
 
-    // Let the homing task start on core 0, then kill it and disable the motor.
-    // 10 ms is enough for the task to start (~0.1 mm of travel).
-    // We must kill the task AND use forceStopAndNewPosition() to halt the
-    // hardware timer ISR immediately — forceStop() only soft-decelerates
-    // and leaves the ISR running with the original moveTo() target.
-    vTaskDelay(pdMS_TO_TICKS(10));
-    if (Tasks::runHomingTaskH != nullptr) {
-        vTaskDelete(Tasks::runHomingTaskH);
-        Tasks::runHomingTaskH = nullptr;
-    }
-    ossmEmergencyStop();
+    // Init state machine — fires Done{} → idle → homing → homing.forward
+    // The homing task runs on core 0, but can't move the motor because
+    // keepMotorDisabledTask overrides enableOutputs() every 10 ms.
+    // After 40 s the homing task times out and fires Error{} naturally.
+    initStateMachine();
 
     UNITY_BEGIN();
 
