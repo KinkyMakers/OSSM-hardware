@@ -1,9 +1,9 @@
 #ifndef OSSM_VERSION_H
 #define OSSM_VERSION_H
 
-#define VERSION "1.0.16"
+#define VERSION "1.0.17"
 #define MAJOR_VERSION 1
 #define MINOR_VERSION 0
-#define PATCH_VERSION 16
+#define PATCH_VERSION 17
 
 #endif  // OSSM_VERSION_H
