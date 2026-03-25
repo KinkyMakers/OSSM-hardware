@@ -37,7 +37,7 @@ static void startSimplePenetrationTask(void *pvParameters) {
                             Config::Advanced::accelerationScaling;
 
         bool isSpeedZero =
-            settings.speedKnob < Config::Advanced::commandDeadZonePercentage;
+            settings.speed < Config::Advanced::commandDeadZonePercentage;
         bool isSpeedChanged =
             !isSpeedZero && abs(speed - lastSpeed) >
                                 5 * Config::Advanced::commandDeadZonePercentage;
