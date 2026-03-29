@@ -67,12 +67,46 @@ Yes—OSSM is certified open-source hardware under the **CERN Open Hardware Lice
 All contributions to the GitHub repository are assumed to use the same license.
 </Accordion>
 
+<Accordion title="What's included in the DIY Kit?">
+The OSSM DIY Kit includes everything you need to build the actuator (the motorized mechanism), but **does not include 3D-printed parts or a stand**. You'll need to print the parts yourself or purchase them separately.
+
+**Included in the DIY Kit:**
+
+| Component | Description |
+|-----------|-------------|
+| **Gold Motor (57AIM30)** | Pre-programmed servo motor |
+| **350mm Linear Rail** | H-rail with carriage for ~8" stroke |
+| **Timing Belt** | GT2 belt for power transmission |
+| **OSSM Control Board (PCB)** | Main electronics with ESP32 |
+| **Remote** | Wired or wireless depending on your selection |
+| **Power Supply** | USB-C PD adapter |
+| **Fasteners** | All bolts, nuts, and hardware for assembly |
+| **Cables** | Motor power and data cables |
+
+**Not included (required to complete the build):**
+
+| Component | How to get it |
+|-----------|---------------|
+| **3D-printed parts** | Print yourself using [STL files from GitHub](https://github.com/KinkyMakers/OSSM-hardware/tree/main/Printed%20Parts), or purchase the [3D Printed Parts Kit](https://www.researchanddesire.com/products/ossm-3d-printed-part-kit) |
+| **Stand/mount** | Build your own, use furniture, or purchase the [Extrusion Mount Kit](https://www.researchanddesire.com/products/ossm-extrusion-kit) |
+
+<Warning>
+**The 3D-printed parts are essential for assembly.** Without them, you cannot complete the build. Make sure you have access to a 3D printer or order the printed parts kit before starting.
+</Warning>
+
+<Tip>
+If you don't have a 3D printer, you can also use local printing services, maker spaces, or online services like Craftcloud or JLC3DP to print the parts from the STL files.
+</Tip>
+</Accordion>
+
 <Accordion title="What's the difference between DIY Kit and Ready-to-Play?">
-The main differences between the DIY Kit and Ready-to-Play are the mounting system and assembly state:
+The main differences between the DIY Kit and Ready-to-Play are the mounting system, assembly state, and lead time:
 
 | Feature | DIY Kit | Ready-to-Play |
 |---------|---------|---------------|
+| **Lead time** | 3–10 business days | 4–5 weeks (custom-built and tested) |
 | **Assembly** | Requires assembly using the build guide | Fully assembled, ready to use |
+| **3D-printed parts** | Not included—print yourself or purchase separately | Included and assembled |
 | **Mounting system** | Middle pivot body (angle adjustment at the actuator) | PitClamp Mini (quick-release with integrated pivot for easier mobility) |
 | **Stand** | Not included—source your own or build a custom mount | Includes collapsible stand with sandbag counterweight |
 | **Remote** | Wired remote included | Wired or wireless remote (depending on configuration) |
@@ -252,6 +286,35 @@ Several mounting options are available:
 Your mounting solution is limited only by your imagination and use case.
 </Accordion>
 
+<Accordion title="Can I build a double-arm OSSM?">
+Yes, it's possible to build a double-arm OSSM configuration with two actuator arms mounted to a shared base. This is a custom build that requires additional parts beyond the standard kit.
+
+**Parts required for a double-arm build:**
+
+- 2× Base PitClamp with hardware
+- 2× Simple Pivot with hardware
+- Base hardware kit (includes hardware for the PitClamp pivots and simple pivots)
+- Additional 18" extrusion piece (if sourcing from R+D)
+
+<Note>
+The double-arm configuration requires **two versions of the PitClamp**—one for each arm. The PitClamps are essential for mounting both actuators to the shared base structure.
+</Note>
+
+**Sourcing options:**
+
+1. **Purchase from R+D**: Contact [support@researchanddesire.com](mailto:support@researchanddesire.com) for a custom quote. You can purchase the Extrusion Mount Kit as a base, then add the custom double-arm parts (approximately $100 USD for the additional 3D printed parts).
+
+2. **Self-source extrusion**: If you prefer longer extrusion pieces, you can source them yourself. The standard kit uses 18" pieces, but you can substitute longer lengths. R+D can provide the printed parts and hardware separately.
+
+3. **Custom colors**: Custom 3D print colors are available for an additional fee (approximately $50 USD).
+
+<Warning>
+There is no official assembly guide for the double-arm configuration. If you're building one, contact support for guidance or join the Kinky Makers Discord for community assistance.
+</Warning>
+
+<DiscordInvite community="kinky-makers" />
+</Accordion>
+
 <Accordion title="Can I use 4040 extrusion instead of 3030?">
 Yes, the OSSM actuator and PitClamp Mini mounting base are compatible with any slotted aluminum extrusion, including both 3030 and 4040. The T-nuts included with R+D kits fit both 3030 and 4040 extrusion slots.
 
@@ -338,7 +401,7 @@ Yes. If you have an existing OSSM with the wired remote, you can add wireless co
 
 That's it. No mainboard replacement, no soldering, no physical modifications. The same OSSM PCB that works with the wired remote also supports Bluetooth connectivity with the RADR after the firmware update.
 
-<Card title="RADR Quick Start" icon="rocket" href="/research-and-desire-remote/quick-start">
+<Card title="RADR Quick Start" icon="rocket" href="/radr/guides/getting-started/quick-start">
   Follow the setup guide to pair your RADR with your OSSM.
 </Card>
 </Accordion>
@@ -513,6 +576,35 @@ Print a test piece when creating a new end effector—you may need to upsize by 
 </Tip>
 </Accordion>
 </AccordionGroup>
+
+## Warranty and Support
+
+<AccordionGroup>
+<Accordion title="Does the OSSM come with a warranty?">
+OSSM does not include a traditional manufacturer warranty. As an open-source, community-driven project with both DIY and pre-assembled options, warranty coverage varies:
+
+**Ready-to-Play units:**
+
+Research & Desire will work with you to resolve defects in materials or workmanship that appear within a reasonable timeframe after purchase. Contact [support@researchanddesire.com](mailto:support@researchanddesire.com) with your order number and a description of the issue.
+
+**DIY Kits:**
+
+Individual components (PCBs, motors, etc.) are covered for defects on arrival. Assembly errors or damage during the build process are not covered, but support can help troubleshoot and provide replacement parts at cost.
+
+**What's not covered:**
+
+- Normal wear (belts, printed parts, tensioners)
+- Damage from improper use, modifications, or exceeding recommended specifications
+- Third-party components not purchased from Research & Desire
+
+<Tip>
+If something isn't working as expected, reach out to support before assuming a part needs replacement. Many issues can be resolved through troubleshooting.
+</Tip>
+</Accordion>
+
+</AccordionGroup>
+
+See [Maintenance and Replacement Parts](#maintenance-and-replacement-parts) for ordering replacement parts and printable STL files.
 
 ## Maintenance and Replacement Parts
 

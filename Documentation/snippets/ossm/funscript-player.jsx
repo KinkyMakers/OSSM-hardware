@@ -383,12 +383,12 @@ export const OssmFunscriptPlayer = () => {
         const nextAction = actions[currentActionIndexRef.current + 1];
         timeToNext = nextAction.at - action.at;
 
-        if(isReverse){
-          nextAction.pos = 100 - nextAction.pos;
-        }
-
         if (action.at > lastSentTimeRef.current) {
-          sendStreamPosition(nextAction.pos, timeToNext);
+          if(isReverse){
+            sendStreamPosition(100 - nextAction.pos, timeToNext);
+          } else {
+            sendStreamPosition(nextAction.pos, timeToNext);
+          }
           lastSentTimeRef.current = action.at;
         }
       }
