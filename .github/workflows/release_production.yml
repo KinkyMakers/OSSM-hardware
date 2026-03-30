@@ -1,0 +1,60 @@
+name: Release Alpha as Production
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-production:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Download files from alpha/
+        run: |
+          mkdir -p ./firmware
+          supabase storage cp "ss:///ossm-firmware/alpha/firmware.bin" ./firmware/firmware.bin --experimental
+          supabase storage cp "ss:///ossm-firmware/alpha/partitions.bin" ./firmware/partitions.bin --experimental
+          supabase storage cp "ss:///ossm-firmware/alpha/bootloader.bin" ./firmware/bootloader.bin --experimental
+          supabase storage cp "ss:///ossm-firmware/alpha/version.json" ./firmware/version.json --experimental
+
+      - name: Get Version
+        id: get_version
+        run: |
+          VERSION=$(jq -r .version ./firmware/version.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Releasing version $VERSION to production"
+
+      - name: Upload files to production/
+        run: |
+          # Delete existing files in production/
+          supabase storage rm "ss:///ossm-firmware/production/firmware.bin" "ss:///ossm-firmware/production/partitions.bin" "ss:///ossm-firmware/production/bootloader.bin" "ss:///ossm-firmware/production/manifest.json" "ss:///ossm-firmware/production/version.json" --experimental --yes || true
+          
+          # Upload firmware binaries
+          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/production/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/production/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          supabase storage cp ./firmware/bootloader.bin "ss:///ossm-firmware/production/bootloader.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          
+          # Create and upload manifest.json for production
+          cat .github/artifacts/manifest.json | sed "s/{{ branchName }}/production/g" > ./manifest.json
+          supabase storage cp ./manifest.json "ss:///ossm-firmware/production/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
+          
+          # Upload version.json
+          supabase storage cp ./firmware/version.json "ss:///ossm-firmware/production/version.json" --content-type "application/json" --cache-control "no-cache" --experimental
+
+      - name: Summary
+        run: |
+          echo "✅ Released v${{ steps.get_version.outputs.version }} to production channel"
+          echo ""
+          echo "Firmware URL: https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public/ossm-firmware/production/"
