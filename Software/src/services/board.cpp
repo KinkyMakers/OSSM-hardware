@@ -1,5 +1,7 @@
 #include "board.h"
 
+#include "memory.h"
+
 bool USE_LATENCY_COMPENSATION = false;
 bool USE_SPEED_KNOB_AS_LIMIT = true;
 
@@ -21,6 +23,7 @@ void initBoard() {
 
     analogReadResolution(12);
     analogSetAttenuation(ADC_11db);  // allows us to read almost full 3.3V range
+    initLittleFS();
     initStepper();
     initEncoder();
     initLED();

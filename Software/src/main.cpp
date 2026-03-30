@@ -95,6 +95,7 @@ void setup() {
                 }
                 vTaskDelay(pdMS_TO_TICKS(100));
             }
+            vTaskDelete(nullptr);
         },
         "initNimbleTask", 32 * configMINIMAL_STACK_SIZE, nullptr,
         configMAX_PRIORITIES - 1, nullptr, 0);

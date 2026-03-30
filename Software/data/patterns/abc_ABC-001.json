@@ -1,0 +1,43 @@
+{
+    "name": "Test Pattern",
+    "description": "A test pattern for the OSSM",
+    "ver": "0.0.0",
+    "cubicSpline": [
+        {
+            "x": 0,
+            "y": 0,
+            "handleIn": {
+                "x": 0,
+                "y": 0
+            },
+            "handleOut": {
+                "x": 0,
+                "y": 0
+            }
+        },
+        {
+            "x": 0.5,
+            "y": 1,
+            "handleIn": {
+                "x": 0,
+                "y": 0
+            },
+            "handleOut": {
+                "x": 0,
+                "y": 0
+            }
+        },
+        {
+            "x": 1,
+            "y": 0,
+            "handleIn": {
+                "x": 0,
+                "y": 0
+            },
+            "handleOut": {
+                "x": 0,
+                "y": 0
+            }
+        }
+    ]
+}

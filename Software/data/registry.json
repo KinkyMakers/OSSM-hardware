@@ -1,0 +1,12 @@
+{
+    "abc_ABC-000": {
+        "name": "Test Pattern",
+        "description": "A test pattern for the OSSM",
+        "ver": "0.0.0"
+    },
+    "abc_ABC-001": {
+        "name": "Test Pattern 2",
+        "description": "Also a test pattern for the OSSM",
+        "ver": "0.0.0"
+    }
+}
