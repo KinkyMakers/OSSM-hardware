@@ -1,0 +1,60 @@
+name: Release Master as Alpha
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-alpha:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Download files from master/
+        run: |
+          mkdir -p ./firmware
+          supabase storage cp "ss:///ossm-firmware/master/firmware.bin" ./firmware/firmware.bin --experimental
+          supabase storage cp "ss:///ossm-firmware/master/partitions.bin" ./firmware/partitions.bin --experimental
+          supabase storage cp "ss:///ossm-firmware/master/bootloader.bin" ./firmware/bootloader.bin --experimental
+          supabase storage cp "ss:///ossm-firmware/master/version.json" ./firmware/version.json --experimental
+
+      - name: Get Version
+        id: get_version
+        run: |
+          VERSION=$(jq -r .version ./firmware/version.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Releasing version $VERSION to alpha"
+
+      - name: Upload files to alpha/
+        run: |
+          # Delete existing files in alpha/
+          supabase storage rm "ss:///ossm-firmware/alpha/firmware.bin" "ss:///ossm-firmware/alpha/partitions.bin" "ss:///ossm-firmware/alpha/bootloader.bin" "ss:///ossm-firmware/alpha/manifest.json" "ss:///ossm-firmware/alpha/version.json" --experimental --yes || true
+          
+          # Upload firmware binaries
+          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/alpha/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/alpha/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          supabase storage cp ./firmware/bootloader.bin "ss:///ossm-firmware/alpha/bootloader.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          
+          # Create and upload manifest.json for alpha
+          cat .github/artifacts/manifest.json | sed "s/{{ branchName }}/alpha/g" > ./manifest.json
+          supabase storage cp ./manifest.json "ss:///ossm-firmware/alpha/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
+          
+          # Upload version.json
+          supabase storage cp ./firmware/version.json "ss:///ossm-firmware/alpha/version.json" --content-type "application/json" --cache-control "no-cache" --experimental
+
+      - name: Summary
+        run: |
+          echo "✅ Released v${{ steps.get_version.outputs.version }} to alpha channel"
+          echo ""
+          echo "Firmware URL: https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public/ossm-firmware/alpha/"

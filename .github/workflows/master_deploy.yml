@@ -142,8 +142,9 @@ jobs:
           if supabase storage cp "ss:///ossm-firmware/registry.json" ./registry.json --experimental; then
             echo "registry_exists=true" >> $GITHUB_OUTPUT
           else
-            echo "Registry.json does not exist. Failing workflow."
-            exit 1
+            echo "Registry.json does not exist. Creating initial registry."
+            echo "{}" > ./registry.json
+            echo "registry_exists=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Determine merged branch and clean up registry
