@@ -24,10 +24,10 @@ namespace Config {
         constexpr float beltPitchMm = 2.0f;
         // Top linear speed of the device.
         constexpr float motorStepPerRevolution = 800.0f;
-        // Top acceleration of the device in mm/s/s
+        // Top acceleration of the device in mm/s/s¢
         constexpr float maxAcceleration = 50000.0f;
         // Number of steps to move the arm 1mm
-        constexpr float maxSpeedMmPerSecond = maxRPM / 60.0 * pulleyToothCount * beltPitchMm;
+        constexpr float maxSpeedMmPerSecond = (maxRPM / 60.0) * pulleyToothCount * beltPitchMm;
         // This should match the step/rev of your stepper or servo.
         // N.b. the iHSV57 has a table on the side for setting the DIP switches
         // to your preference.
