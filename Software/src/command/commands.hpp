@@ -113,6 +113,8 @@ inline CommandValue streamCommandValue(const String& str) {
     return {Commands::streamPosition, pos, time};
 }
 
+static const char test_str[] PROGMEM = "test";
+
 static const char ignore_str[] PROGMEM = "ignore";
 
 inline WiFiCredentials parseWiFiCommand(const String& str) {
