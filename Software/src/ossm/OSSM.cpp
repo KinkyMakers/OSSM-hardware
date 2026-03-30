@@ -62,7 +62,7 @@ void OSSM::ble_click(String commandString) {
             break;
         case Commands::goToMenu:
             if (stateMachine != nullptr) {
-                stateMachine->process_event(LongPress{});
+                stateMachine->process_event(ReturnToMenu{});
             }
             break;
         case Commands::setSpeed:
