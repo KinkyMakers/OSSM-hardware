@@ -5,6 +5,98 @@ description: "Diagnose and resolve common OSSM issues including homing problems,
 
 This guide helps you diagnose and fix the most common issues with your OSSM. Start by identifying your symptom, then follow the troubleshooting steps.
 
+## Clicking noise during homing
+
+If your OSSM makes a loud clicking or ratcheting noise when it reaches each end of the rail during homing, the belt is likely not tensioned enough and is skipping.
+
+<Steps>
+<Step title="Check belt movement manually">
+With the OSSM unplugged, manually move the rail back and forth along its full range. The belt should move smoothly without slipping or making noise.
+</Step>
+
+<Step title="Verify belt clamp and tensioner position">
+Check these components:
+
+- **Front belt clamp bolt**: Ensure it is adequately tightened so the belt is firmly secured
+- **End tensioner piece**: Verify it is pushed fully onto the rail
+- **M5 tensioner screw**: Confirm it has not been tightened all the way down (it needs room for adjustment)
+</Step>
+
+<Step title="Adjust the tensioner screw">
+Slowly turn the M5 tensioner screw clockwise until you feel a bit of resistance. Do not screw it in all the way—you're adding tension incrementally.
+</Step>
+
+<Step title="Test with power">
+Plug your OSSM in and let it home. Listen for any clicking noise as it reaches each end of the rail.
+</Step>
+
+<Step title="Increase tension if needed">
+If you still hear clicking, power off and gently tighten the tensioner screw a bit more. Then power cycle and test again. Repeat until the clicking stops.
+</Step>
+
+<Step title="Verify under load">
+As a final check, set the rail in an upward position and apply some downward force with your hand. The belt should not skip. If it does, add more tension and power cycle to re-home.
+</Step>
+</Steps>
+
+<Tip>
+Proper belt tension prevents skipping during direction changes at the stroke endpoints. The belt should be tight enough to transfer motor force without slipping, but not so tight that it strains the motor or bearings.
+</Tip>
+
+<Card title="Belt Tension Guide" icon="wrench" href="/ossm/guides/housekeeping/belt-tension">
+  Complete belt tension adjustment, lubrication, and inspection guide.
+</Card>
+
+---
+
+## Motor sounds louder or seems weaker than before
+
+If your OSSM motor seems to be struggling, sounds louder than usual, or feels like it's lost power compared to when you first set it up, the issue is typically belt tension, rail lubrication, or power supply.
+
+<AccordionGroup>
+<Accordion title="Check belt tension">
+The most common cause of a motor that sounds louder or seems to struggle is belt tension loosening over time. When the belt is too loose, the motor works harder to overcome slippage, which creates more noise and reduces effective power transfer.
+
+**Signs of loose belt tension:**
+- Motor sounds louder or more strained during operation
+- Reduced thrust force compared to initial setup
+- Clicking or ratcheting sounds at stroke endpoints
+- Belt visibly deflects more than 5mm when pressed
+
+**Solution:**
+Follow the [belt tension guide](/ossm/guides/housekeeping/belt-tension) to verify and adjust your belt tension. Even small amounts of slack can significantly affect performance.
+</Accordion>
+
+<Accordion title="Lubricate the linear rail">
+Over time, the linear rail's factory lubrication can dry out or collect debris, increasing friction. This makes the motor work harder and can produce louder operation.
+
+**Signs of rail lubrication issues:**
+- Scratchy or grinding sensation when moving the carriage by hand
+- Motor sounds more strained even at lower speeds
+- Inconsistent movement (stuttering or binding)
+
+See the [belt tension guide](/ossm/guides/housekeeping/belt-tension#rail-lubrication) for lubrication instructions.
+</Accordion>
+
+<Accordion title="Verify power supply">
+An aging or failing power supply may deliver less voltage or current than rated, causing the motor to struggle under load.
+
+**Signs of power supply issues:**
+- Motor sounds strained only under load (during strokes, not at idle)
+- Performance degrades as the session continues (power supply heating up)
+- Visible dimming of motor LED during operation
+
+**Solution:**
+1. If you have a multimeter, measure the voltage at the power input terminals while the OSSM is operating—a healthy 24V supply should deliver close to 24V under load
+2. Try a different power supply if available
+3. Ensure you're using a supply rated for at least 5A
+
+See [insufficient power supply](#controller-powers-on-but-actuator-does-not-move) for more details.
+</Accordion>
+</AccordionGroup>
+
+---
+
 ## Homing is too slow
 
 If your OSSM homes very slowly or stalls during the homing sequence, the motor may need to be programmed.
@@ -35,7 +127,7 @@ When the controller turns on but the actuator remains stationary, the issue is t
 **Solution:**
 Ensure you're using a power supply that meets the minimum requirements:
 - Voltage: 24V DC
-- Current: At least 5A (10A recommended)
+- Current: At least 5A
 
 <Warning>
 Using an underpowered supply can damage components over time. Always use a supply rated for your motor's requirements.
@@ -206,6 +298,43 @@ If you have a RADR wireless remote, you can continue using your OSSM while waiti
 </Accordion>
 </AccordionGroup>
 
+## Menu options show blank screen (Get Help, WiFi, Update)
+
+If selecting certain menu options—such as **Get Help**, **WiFi Setup**, or **Update**—causes the display to go blank or show no response, the issue is usually related to your firmware version or WiFi configuration.
+
+<AccordionGroup>
+<Accordion title="Check firmware version">
+These menu options are implemented in current firmware:
+
+- **Get Help** — Displays a QR code linking to documentation
+- **WiFi Setup** — Opens the WiFi configuration portal
+- **Update** — Checks for over-the-air firmware updates
+
+If you see a blank screen instead, your firmware may be outdated. Update using the [Web Flasher](/ossm/tools/web-flasher) to get the latest version.
+
+<Note>
+If the display goes blank when selecting these options, press the encoder button to return to the menu.
+</Note>
+</Accordion>
+
+<Accordion title="WiFi Setup and Update require WiFi">
+**WiFi Setup** and **Update** require the OSSM to connect to a WiFi network. If WiFi has not been configured, these options may not function as expected.
+
+You can configure WiFi using the Web BLE Controller in a browser without relying on the wired remote's WiFi Setup menu. See [WiFi Setup](/ossm/guides/getting-started/wifi-setup) for instructions.
+
+To ensure you have the latest features, update your firmware using the [Web Flasher](/ossm/tools/web-flasher).
+</Accordion>
+
+<Accordion title="Alternative tools">
+If the wired remote's menu options aren't working for you, these browser-based tools provide the same functionality:
+
+1. Use the [Web BLE Controller](/ossm/tools/web-controller) to configure WiFi from your browser
+2. Use the [Web Flasher](/ossm/tools/web-flasher) to update firmware directly via USB
+</Accordion>
+</AccordionGroup>
+
+---
+
 ## Boot loops or display artifacts
 
 If your OSSM repeatedly restarts (boot loops) or shows corrupted characters, flickering, or visual glitches on the wired remote display, there may be a hardware fault with the wired remote board or the main control board.
@@ -224,7 +353,7 @@ If your OSSM repeatedly restarts (boot loops) or shows corrupted characters, fli
 Before suspecting a hardware fault, try:
 
 1. **Different RJ45 cable** — A damaged cable can cause intermittent faults
-2. **Different power supply** — Voltage fluctuations can cause instability (use a UL-listed 24V supply rated for at least 5A)
+2. **Different power supply** — Voltage fluctuations can cause instability (use a quality 24V supply rated for at least 5A)
 3. **Reflash firmware** — Corrupted firmware can cause unexpected behavior. Use the [Web Flasher](/ossm/tools/web-flasher) to install the latest stable version.
 </Accordion>
 
@@ -232,7 +361,7 @@ Before suspecting a hardware fault, try:
 If basic troubleshooting doesn't help, verify the control board is receiving power correctly:
 
 1. **Check the 3.3V LED** — The control board has a small blue LED near the ESP32 chip. If this LED is on, the board is receiving power and the voltage regulator is working.
-2. **Check 24V at the input terminals** — Use a multimeter to verify 24V DC at the power input terminals on the control board. You should read between 23V and 25V.
+2. **Check 24V at the input terminals** — Use a multimeter to verify 24V DC at the power input terminals on the control board. A healthy supply should read close to 24V.
 3. **Check voltage at motor terminals** — Measure voltage at the motor output terminals to confirm power is reaching the motor driver.
 
 If the 3.3V LED is off or dim, or if voltage readings are incorrect, the issue may be with your power supply or the control board itself.
@@ -328,6 +457,146 @@ To return to official firmware after experimenting with community builds, use th
 </Tip>
 </Accordion>
 </AccordionGroup>
+
+## Signs of control board failure
+
+If your OSSM control board isn't responding to any troubleshooting steps, the board itself may be defective. Hardware failures are rare but can occur, particularly if there was a manufacturing defect or a short circuit event.
+
+<AccordionGroup>
+<Accordion title="ESP32 chip is very hot">
+**Symptoms:**
+- The ESP32 chip on the control board becomes uncomfortably hot to touch within seconds of applying power
+- Overheating occurs whether powered via the 24V supply or via USB-C connection
+- The board may have worked briefly before, or never worked at all
+
+**What this indicates:**
+
+The ESP32 should be warm during operation but never hot enough to be uncomfortable. Excessive heat indicates a hardware fault—typically a short circuit or damaged component on the board.
+
+<Warning>
+If the ESP32 is too hot to touch comfortably, disconnect power immediately. Continued operation with a damaged board can cause further damage or safety hazards.
+</Warning>
+
+**Resolution:**
+
+An overheating ESP32 indicates a hardware defect that cannot be fixed through firmware updates or configuration changes. Contact support to request a replacement control board.
+</Accordion>
+
+<Accordion title="Unable to flash firmware at all">
+**Symptoms:**
+- The board is detected on a COM/serial port, but flashing always fails
+- Both the [Web Flasher](/ossm/tools/web-flasher) and PlatformIO fail to communicate with the board
+- Error messages indicate "unable to connect" or "failed to sync" despite the board being detected
+- You've already tried: different USB cables, different USB ports, different computers, installing drivers, closing other serial applications
+
+**What this indicates:**
+
+If the board appears on a COM port but cannot be flashed after exhausting all standard troubleshooting, the ESP32 or its flash memory may be damaged. This can occur from:
+- Electrostatic discharge during handling
+- A short circuit event
+- A manufacturing defect
+
+<Note>
+Before concluding the board is defective, ensure you've completed all steps in the [Web Flasher troubleshooting](/ossm/guides/getting-started/web-flasher#troubleshooting). Some connection issues are caused by driver conflicts or USB cable quality.
+</Note>
+
+**Resolution:**
+
+If you've exhausted all troubleshooting steps and still cannot flash the board, contact support with details of what you've tried. A replacement board may be needed.
+</Accordion>
+
+<Accordion title="No movement and no LED indication">
+**Symptoms:**
+- Motor does not move at all when powered on—no homing attempt, no sound, no vibration
+- The 3.3V LED on the board may illuminate, but no other activity occurs
+- No purple LED breathing pattern during homing
+- Motor's green power LED is on (indicating motor is receiving power)
+- ESP32 chip may be abnormally hot
+
+**Distinguishing board failure from motor failure:**
+
+| Observation | Likely Cause |
+|-------------|--------------|
+| Motor LED off, board LEDs on | Motor wiring or motor issue |
+| Motor LED on, no homing movement, ESP32 hot | Board failure |
+| Motor LED on, slow/stuttering movement | Motor programming issue |
+| Motor LED on, normal homing, then stops | Possible firmware or motor issue |
+
+**Resolution:**
+
+If the motor shows power (green LED) but the board shows no activity beyond the 3.3V LED, and especially if the ESP32 is overheating, the control board is likely defective. Contact support to arrange a replacement.
+</Accordion>
+
+<Accordion title="Strange noises on first power-up">
+**Symptoms:**
+- Unusual sounds on first startup—clicking, buzzing, or electronic tones (not mechanical belt noise)
+- 3.3V LED may flash in sync with the sounds
+- Sounds stop after a while and the board becomes unresponsive
+- Different from the normal homing movement sounds
+
+**What this indicates:**
+
+Electronic noises accompanied by LED flashing (not the normal purple breathing pattern) can indicate the board is in a fault state or experiencing a hardware issue. If the board subsequently becomes unresponsive or won't flash, the initial noise may have been a symptom of component failure.
+
+<Note>
+Normal OSSM operation produces quiet mechanical sounds from the motor and belt during homing. Electronic buzzing, beeping, or "8-bit" tones from the board itself are not normal.
+</Note>
+
+**Resolution:**
+
+If your board made unusual electronic noises on first power-up and is now unresponsive to flashing attempts, contact support with a description of what you observed. This helps identify potential batch issues.
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Power supply connection sparks or disconnects
+
+If you see sparks when connecting the power supply or the barrel jack connection is loose and disconnects with small movements, the cable may not be secured properly.
+
+<AccordionGroup>
+<Accordion title="Use the strain reliever">
+The PCB mount includes a strain reliever on the side to secure the power cable and prevent movement at the barrel jack connection.
+
+**Solution:**
+1. Route the power cable through the strain relief slot on the side of the PCB mount
+2. Secure the cable so the barrel jack connector cannot move or wiggle during use
+3. Ensure the barrel jack is fully seated before securing the cable
+
+<Tip>
+A properly secured power cable should have no slack at the barrel jack. The strain reliever takes mechanical stress off the connector, preventing intermittent connections and arcing.
+</Tip>
+</Accordion>
+
+<Accordion title="Check the barrel jack connection">
+**Symptoms:**
+- Sparks when plugging or unplugging the power supply
+- Power cuts out when the cable moves
+- Intermittent power during operation
+
+**Solution:**
+1. Unplug the power supply from the wall before disconnecting from the board
+2. Inspect the barrel jack connector for damage, bent pins, or debris
+3. Ensure the barrel jack is fully inserted until it clicks or seats firmly
+4. Use the strain reliever to prevent cable movement during use
+
+<Warning>
+Repeatedly connecting and disconnecting a loose barrel jack can cause arcing, which damages the connector over time. If you see visible damage to the barrel jack or PCB connector, contact support for replacement options.
+</Warning>
+</Accordion>
+
+<Accordion title="Verify power supply compatibility">
+Ensure your power supply matches the PCB requirements:
+
+- **Barrel jack size:** 5.5mm outer diameter × 2.1mm inner diameter
+- **Polarity:** Center-positive
+- **Voltage:** 24V DC (or USB-C PD if using that input)
+
+An incorrectly sized barrel jack may not seat properly, causing loose connections. If using a third-party power supply, verify the connector matches these specifications.
+</Accordion>
+</AccordionGroup>
+
+---
 
 ## Still having issues?
 
