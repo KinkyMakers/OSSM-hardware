@@ -170,6 +170,7 @@ String OSSM::getCurrentState() {
            ",\"stroke\":" + String((int)settings.stroke) +
            ",\"sensation\":" + String((int)settings.sensation) +
            ",\"depth\":" + String((int)settings.depth) +
+           ",\"buffer\":" + String((int)settings.buffer) +
            ",\"pattern\":" + String(static_cast<int>(settings.pattern)) +
            ",\"position\":" + String(positionMm, 2) +
            ",\"sessionId\":\"" + sessionId + "\"}";
