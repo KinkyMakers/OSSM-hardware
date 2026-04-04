@@ -3,10 +3,15 @@
 #include <esp_littlefs.h>
 #include <stdio.h>
 
+#include "pattern_registry.h"
+
 JsonDocument registry;
 
 bool initLittleFS() {
-    ESP_LOGI("MEMORY", "Initializing LittleFS...");
+#ifdef VERSIONDEV
+    delay(1000);
+#endif
+    ESP_LOGD("MEMORY", "Initializing LittleFS...");
 
     esp_vfs_littlefs_conf_t conf = {
         .base_path = "/littlefs",
@@ -24,11 +29,11 @@ bool initLittleFS() {
 
     size_t total = 0, used = 0;
     esp_littlefs_info(conf.partition_label, &total, &used);
-    ESP_LOGI("MEMORY", "LittleFS partition: total=%d, used=%d", total, used);
+    ESP_LOGD("MEMORY", "LittleFS partition: total=%d, used=%d", total, used);
 
     FILE *f = fopen("/littlefs/registry.json", "r");
     if (f) {
-        ESP_LOGI("MEMORY", "registry.json exists");
+        ESP_LOGD("MEMORY", "registry.json exists");
         fseek(f, 0, SEEK_END);
         long size = ftell(f);
         fseek(f, 0, SEEK_SET);
@@ -49,6 +54,15 @@ bool initLittleFS() {
         }
         fclose(f);
     }
+
+// print the ArduinoJSON to log
+#ifdef VERSIONDEV
+    String jsonString;
+    serializeJson(registry, jsonString);
+    ESP_LOGD("MEMORY", "registry: %s", jsonString.c_str());
+#endif
+
+    buildPatternCatalog();
 
     return true;
 }

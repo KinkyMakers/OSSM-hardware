@@ -3,14 +3,15 @@
 #include "Strings.h"
 #include "constants/Menu.h"
 #include "constants/Pins.h"
-#include "services/board.h"
 #include "ossm/state/ble.h"
 #include "ossm/state/menu.h"
 #include "ossm/state/session.h"
 #include "ossm/state/settings.h"
 #include "ossm/state/state.h"
+#include "services/board.h"
 #include "services/display.h"
 #include "services/encoder.h"
+#include "services/pattern_registry.h"
 #include "services/tasks.h"
 #include "structs/SettingPercents.h"
 #include "ui.h"
@@ -148,8 +149,7 @@ static void drawPlayControlsTask(void *pvParameters) {
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
             const char *headerText;
             if (isStrokeEngine) {
-                headerText =
-                    ui::strings::strokeEngineNames[(int)settings.pattern];
+                headerText = patternCatalog[settings.pattern].name;
             } else if (isStreaming) {
                 headerText = ui::strings::streaming;
             } else {
@@ -175,7 +175,7 @@ static void drawPlayControlsTask(void *pvParameters) {
             data.strokeCount = session.strokeCount;
             data.distanceMeters = session.distanceMeters;
             data.elapsedMs = displayLastUpdated - session.startTime;
-            data.pattern = (int)settings.pattern;
+            data.pattern = settings.pattern;
             data.isStrokeEngine = isStrokeEngine;
             data.isStreaming = isStreaming;
             data.headerText = headerText;

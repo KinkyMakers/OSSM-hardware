@@ -3,24 +3,21 @@
 
 #include "ArduinoJson.h"
 #include "NimBLEService.h"
-#include "Strings.h"
 #include "constants/LogTags.h"
 #include "esp_log.h"
+#include "services/pattern_registry.h"
 
 NimBLECharacteristic* initPatternsCharacteristic(NimBLEService* pService,
                                                  NimBLEUUID uuid) {
-    // Patterns characteristic (read-only list of all patterns)
     NimBLECharacteristic* pPatternsChar =
         pService->createCharacteristic(uuid, NIMBLE_PROPERTY::READ);
-    // Use ArduinoJson to construct the patterns JSON
+
     JsonDocument doc;
     JsonArray arr = doc.to<JsonArray>();
 
-    for (int i = 0; i < sizeof(ui::strings::strokeEngineNames) /
-                            sizeof(ui::strings::strokeEngineNames[0]);
-         i++) {
+    for (size_t i = 0; i < totalPatternCount; i++) {
         JsonObject pattern = arr.createNestedObject();
-        pattern["name"] = ui::strings::strokeEngineNames[i];
+        pattern["name"] = patternCatalog[i].name;
         pattern["idx"] = i;
     }
 
@@ -36,25 +33,16 @@ class PatternDataCallbacks : public NimBLECharacteristicCallbacks {
         std::string value = pCharacteristic->getValue();
         String patternValue = String(value.c_str());
 
-        // Parse the integer input
         int patternIndex = patternValue.toInt();
 
-        // Get the size of the StrokeEngineDescriptions array
-        int descriptionsCount =
-            sizeof(ui::strings::strokeEngineDescriptions) /
-            sizeof(ui::strings::strokeEngineDescriptions[0]);
-
-        // Use modulo to ensure valid index
-        int validIndex = patternIndex % descriptionsCount;
+        int validIndex =
+            totalPatternCount > 0 ? patternIndex % (int)totalPatternCount : 0;
         if (validIndex < 0) {
-            validIndex += descriptionsCount;  // Handle negative numbers
+            validIndex += (int)totalPatternCount;
         }
 
-        // Get the pattern description from PROGMEM
-        const char* description =
-            ui::strings::strokeEngineDescriptions[validIndex];
+        const char* description = patternCatalog[validIndex].description;
 
-        // Set the characteristic value to the description
         pCharacteristic->setValue(description);
 
         ESP_LOGD(NIMBLE_TAG,
@@ -65,7 +53,6 @@ class PatternDataCallbacks : public NimBLECharacteristicCallbacks {
 
     void onRead(NimBLECharacteristic* pCharacteristic,
                 NimBLEConnInfo& connInfo) override {
-        // Return the current value (set by onWrite)
         std::string value = pCharacteristic->getValue();
         ESP_LOGD(NIMBLE_TAG, "Pattern description read: %s", value.c_str());
     }

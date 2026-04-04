@@ -1,12 +1,12 @@
 #include "pattern_controls.h"
 
-#include "Strings.h"
 #include "constants/Pins.h"
-#include "services/board.h"
 #include "ossm/state/settings.h"
 #include "ossm/state/state.h"
+#include "services/board.h"
 #include "services/display.h"
 #include "services/encoder.h"
+#include "services/pattern_registry.h"
 #include "services/tasks.h"
 #include "structs/SettingPercents.h"
 #include "ui.h"
@@ -19,11 +19,6 @@ using namespace sml;
 
 namespace pattern_controls {
 
-static size_t numberOfDescriptions =
-    sizeof(ui::strings::strokeEngineDescriptions) /
-    sizeof(ui::strings::strokeEngineDescriptions[0]);
-static size_t numberOfPatterns = 7;
-
 static void drawPatternControlsTask(void *pvParameters) {
     SettingPercents savedSettings = settings;
 
@@ -31,14 +26,13 @@ static void drawPatternControlsTask(void *pvParameters) {
         return stateMachine->is("strokeEngine.pattern"_s);
     };
 
-    int nextPattern = (int)settings.pattern;
+    int nextPattern = settings.pattern;
     bool shouldUpdateDisplay = true;
-    const char *patternName = "nextPattern";
-    const char *patternDescription =
-        ui::strings::strokeEngineDescriptions[nextPattern];
+    const char *patternName = patternCatalog[nextPattern].name;
+    const char *patternDescription = patternCatalog[nextPattern].description;
 
     encoder.setAcceleration(10);
-    encoder.setBoundaries(0, numberOfPatterns * 3 - 1, true);
+    encoder.setBoundaries(0, totalPatternCount * 3 - 1, true);
     encoder.setEncoderValue(nextPattern * 3);
 
     showHeaderIcons = true;
@@ -62,29 +56,23 @@ static void drawPatternControlsTask(void *pvParameters) {
 
         nextPattern = encoder.readEncoder() / 3;
         shouldUpdateDisplay =
-            shouldUpdateDisplay || (int)settings.pattern != nextPattern;
+            shouldUpdateDisplay || settings.pattern != nextPattern;
         if (!shouldUpdateDisplay) {
             vTaskDelay(100);
             continue;
         }
 
-        patternName = ui::strings::strokeEngineNames[nextPattern];
+        patternName = patternCatalog[nextPattern].name;
+        patternDescription = patternCatalog[nextPattern].description;
 
-        if (nextPattern < (int)numberOfDescriptions) {
-            patternDescription =
-                ui::strings::strokeEngineDescriptions[nextPattern];
-        } else {
-            patternDescription = ui::strings::noDescription;
-        }
-
-        settings.pattern = (StrokePatterns)nextPattern;
+        settings.pattern = nextPattern;
 
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
             ui::TextPage page;
             page.title = patternName;
             page.body = patternDescription;
             page.scrollPercent =
-                ui::scrollPercent(nextPattern, numberOfPatterns);
+                ui::scrollPercent(nextPattern, totalPatternCount);
             ui::drawTextPage(display.getU8g2(), page);
             refreshPage(true, true);
             xSemaphoreGive(displayMutex);

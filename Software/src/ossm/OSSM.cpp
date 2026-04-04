@@ -10,6 +10,7 @@
 #include "services/communication/mqtt.h"
 #include "services/communication/queue.h"
 #include "services/encoder.h"
+#include "services/pattern_registry.h"
 #include "services/stepper.h"
 
 namespace sml = boost::sml;
@@ -24,7 +25,7 @@ SettingPercents OSSM::setting = {.speed = 0,
                                  .sensation = 50,
                                  .depth = 10,
                                  .buffer = 100,
-                                 .pattern = StrokePatterns::SimpleStroke};
+                                 .pattern = 0};
 
 OSSM::OSSM() {
     // Initialize global state from OSSM::setting
@@ -94,7 +95,8 @@ void OSSM::ble_click(String commandString) {
             settings.buffer = command.value;
             break;
         case Commands::setPattern:
-            settings.pattern = static_cast<StrokePatterns>(command.value % 7);
+            settings.pattern =
+                totalPatternCount > 0 ? command.value % totalPatternCount : 0;
             break;
         case Commands::streamPosition:
             // Position (0-100)
@@ -121,7 +123,7 @@ String OSSM::getStateFingerprint() {
     output += String((int)settings.stroke) + ":";
     output += String((int)settings.sensation) + ":";
     output += String((int)settings.depth) + ":";
-    output += String(static_cast<int>(settings.pattern)) + ":";
+    output += String(settings.pattern) + ":";
     output += sessionId;
     return output;
 }
@@ -144,7 +146,7 @@ String OSSM::getStateFingerprint() {
 // │   stroke     : integer  — cast from float                         │
 // │   sensation  : integer  — cast from float                         │
 // │   depth      : integer  — cast from float                         │
-// │   pattern    : integer  — StrokePatterns enum ordinal             │
+// │   pattern    : integer  — pattern index (0-N from patternCatalog) │
 // │   position   : number   — stepper position in mm (float)          │
 // │   sessionId  : UUID     — regenerated each time a play mode starts  │
 // │                                                                    │
@@ -170,7 +172,7 @@ String OSSM::getCurrentState() {
            ",\"stroke\":" + String((int)settings.stroke) +
            ",\"sensation\":" + String((int)settings.sensation) +
            ",\"depth\":" + String((int)settings.depth) +
-           ",\"pattern\":" + String(static_cast<int>(settings.pattern)) +
+           ",\"pattern\":" + String(settings.pattern) +
            ",\"position\":" + String(positionMm, 2) +
            ",\"sessionId\":\"" + sessionId + "\"}";
 }

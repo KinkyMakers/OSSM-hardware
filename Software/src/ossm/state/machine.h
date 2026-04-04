@@ -1,12 +1,11 @@
 #ifndef OSSM_STATE_MACHINE_H
 #define OSSM_STATE_MACHINE_H
 
-#include "boost/sml.hpp"
-
-#include "actions.h"
-#include "guards.h"
-#include "../Events.h"
 #include "../../utils/update.h"
+#include "../Events.h"
+#include "actions.h"
+#include "boost/sml.hpp"
+#include "guards.h"
 
 namespace sml = boost::sml;
 
@@ -59,7 +58,9 @@ struct OSSMStateMachine {
             "strokeEngine.preflight"_s + done / (resetSettingsStrokeEngine, drawPlayControls, startStrokeEngine) = "strokeEngine.idle"_s,
             "strokeEngine.preflight"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
             "strokeEngine.idle"_s + buttonPress / incrementControlStrokeEngine = "strokeEngine.idle"_s,
-            "strokeEngine.idle"_s + doublePress / drawPatternControls = "strokeEngine.pattern"_s,
+            "strokeEngine.idle"_s + doublePress  = "strokeEngine.pattern"_s,
+
+            "strokeEngine.pattern"_s + sml::on_entry<_> / drawPatternControls,
             "strokeEngine.pattern"_s + buttonPress / drawPlayControls = "strokeEngine.idle"_s,
             "strokeEngine.pattern"_s + doublePress / drawPlayControls = "strokeEngine.idle"_s,
             "strokeEngine.pattern"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,

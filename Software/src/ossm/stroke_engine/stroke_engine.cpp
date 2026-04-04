@@ -2,6 +2,8 @@
 
 #include <mqtt_client.h>
 
+#include "SplinePattern.h"
+#include "constants/Config.h"
 #include "constants/UserConfig.h"
 #include "ossm/OSSM.h"
 #include "ossm/state/ble.h"
@@ -9,6 +11,7 @@
 #include "ossm/state/settings.h"
 #include "ossm/state/state.h"
 #include "services/communication/mqtt.h"
+#include "services/pattern_registry.h"
 #include "services/stepper.h"
 #include "services/tasks.h"
 #include "structs/SettingPercents.h"
@@ -83,40 +86,134 @@ static void startStrokeEngineTask(void *pvParameters) {
         if (lastSetting.pattern != settings.pattern) {
             ESP_LOGD("UTILS", "change pattern: %d", settings.pattern);
 
-            switch (settings.pattern) {
-                case StrokePatterns::SimpleStroke:
-                    Stroker.setPattern(new SimpleStroke("Simple Stroke"),
-                                       false);
-                    break;
-                case StrokePatterns::TeasingPounding:
-                    Stroker.setPattern(new TeasingPounding("Teasing Pounding"),
-                                       false);
-                    break;
-                case StrokePatterns::RoboStroke:
-                    Stroker.setPattern(new RoboStroke("Robo Stroke"), false);
-                    break;
-                case StrokePatterns::HalfnHalf:
-                    Stroker.setPattern(new HalfnHalf("Half'n'Half"), false);
-                    break;
-                case StrokePatterns::Deeper:
-                    Stroker.setPattern(new Deeper("Deeper"), false);
-                    break;
-                case StrokePatterns::StopNGo:
-                    Stroker.setPattern(new StopNGo("Stop'n'Go"), false);
-                    break;
-                case StrokePatterns::Insist:
-                    Stroker.setPattern(new Insist("Insist"), false);
-                    break;
-                default:
-                    break;
+            if (settings.pattern < HARDCODED_PATTERN_COUNT) {
+                switch (static_cast<StrokePatterns>(settings.pattern)) {
+                    case StrokePatterns::SimpleStroke:
+                        Stroker.setPattern(new SimpleStroke("Simple Stroke"),
+                                           false);
+                        break;
+                    case StrokePatterns::TeasingPounding:
+                        Stroker.setPattern(
+                            new TeasingPounding("Teasing Pounding"), false);
+                        break;
+                    case StrokePatterns::RoboStroke:
+                        Stroker.setPattern(new RoboStroke("Robo Stroke"),
+                                           false);
+                        break;
+                    case StrokePatterns::HalfnHalf:
+                        Stroker.setPattern(new HalfnHalf("Half'n'Half"),
+                                           false);
+                        break;
+                    case StrokePatterns::Deeper:
+                        Stroker.setPattern(new Deeper("Deeper"), false);
+                        break;
+                    case StrokePatterns::StopNGo:
+                        Stroker.setPattern(new StopNGo("Stop'n'Go"), false);
+                        break;
+                    case StrokePatterns::Insist:
+                        Stroker.setPattern(new Insist("Insist"), false);
+                        break;
+                }
+            } else {
+                const char *patternId =
+                    patternCatalog[settings.pattern].id;
+                if (patternId == nullptr) {
+                    ESP_LOGE("StrokeEngine",
+                             "Registry pattern %d has no id, skipping",
+                             settings.pattern);
+                    lastSetting.pattern = settings.pattern;
+                    continue;
+                }
+
+                Stroker.stopMotion();
+
+                SplinePattern spline;
+                if (!spline.loadFromFile(patternId)) {
+                    ESP_LOGE("StrokeEngine",
+                             "Failed to load spline pattern '%s'", patternId);
+                    lastSetting.pattern = settings.pattern;
+                    continue;
+                }
+
+                lastSetting.pattern = settings.pattern;
+
+                float strokeSteps =
+                    fabsf(calibration.measuredStrokeSteps);
+                float maxSpeedHz =
+                    Config::Driver::maxSpeedMmPerSecond * (1_mm);
+                float maxAccel =
+                    Config::Driver::maxAcceleration * (1_mm);
+
+                TickType_t originTick = xTaskGetTickCount();
+                const TickType_t tickIntervalMs = 100;
+
+                while (isInCorrectState()) {
+                    if (lastSetting.pattern != settings.pattern) break;
+
+                    bool isStopped =
+                        settings.speed <
+                        Config::Advanced::commandDeadZonePercentage;
+
+                    if (isStopped) {
+                        stepper->stopMove();
+                        originTick = xTaskGetTickCount();
+                        vTaskDelay(pdMS_TO_TICKS(tickIntervalMs));
+                        continue;
+                    }
+
+                    float timeScale = 100.0f / settings.speed;
+                    float wallDtSec =
+                        (float)(xTaskGetTickCount() - originTick) /
+                        (float)configTICK_RATE_HZ;
+                    float splineTime = wallDtSec / timeScale;
+
+                    float duration = spline.totalDuration();
+                    if (duration > 0) {
+                        splineTime = fmodf(splineTime, duration);
+                        if (splineTime < 0) splineTime += duration;
+                    }
+
+                    float posNorm = spline.evaluate(splineTime);
+                    posNorm = fmaxf(0.0f, fminf(1.0f, posNorm));
+
+                    float velNorm = spline.evaluateVelocity(splineTime);
+                    float velScaled = velNorm / timeScale;
+
+                    int32_t targetPos =
+                        -(int32_t)(posNorm * strokeSteps);
+                    float velStepsPerSec =
+                        fabsf(velScaled) * strokeSteps;
+                    velStepsPerSec =
+                        fmaxf(100.0f, fminf(velStepsPerSec, maxSpeedHz));
+
+                    float accelSteps =
+                        velStepsPerSec /
+                        (tickIntervalMs / 1000.0f);
+                    accelSteps =
+                        fmaxf(1000.0f, fminf(accelSteps, maxAccel));
+
+                    stepper->setSpeedInHz((uint32_t)velStepsPerSec);
+                    stepper->setAcceleration((int32_t)accelSteps);
+                    stepper->moveTo(targetPos, false);
+
+                    ESP_LOGV("SplineCtrl",
+                             "t=%.3f pos=%.3f vel=%.1f target=%d",
+                             splineTime, posNorm, velStepsPerSec,
+                             targetPos);
+
+                    vTaskDelay(pdMS_TO_TICKS(tickIntervalMs));
+                }
+
+                stepper->stopMove();
+
+                if (!isInCorrectState()) break;
+                continue;
             }
 
             lastSetting.pattern = settings.pattern;
         }
 
         if (bleState.hasActiveConnection) {
-            // When connected to BLE, update more frequently for improved
-            // responsiveness
             vTaskDelay(100);
         } else {
             vTaskDelay(400);
