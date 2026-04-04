@@ -180,9 +180,9 @@ static void startStrokeEngineTask(void *pvParameters) {
                     float velScaled = velNorm / timeScale;
 
                     int32_t targetPos =
-                        -(int32_t)(posNorm * strokeSteps);
+                        (int32_t)(posNorm * strokeSteps * 0.5f);
                     float velStepsPerSec =
-                        fabsf(velScaled) * strokeSteps;
+                        fabsf(velScaled) * strokeSteps * 0.5f;
                     velStepsPerSec =
                         fmaxf(100.0f, fminf(velStepsPerSec, maxSpeedHz));
 
