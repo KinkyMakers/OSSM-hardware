@@ -93,7 +93,9 @@ static void drawPlayControlsTask(void *pvParameters) {
 
         next.speed = next.speedKnob;
         if (settings.speedBLE.has_value()) {
-            if (USE_SPEED_KNOB_AS_LIMIT) {
+            if (bleState.hasActiveConnection) {
+                next.speed = settings.speedBLE.value();
+            } else if (USE_SPEED_KNOB_AS_LIMIT) {
                 next.speed = next.speedKnob * settings.speedBLE.value() / 100;
             } else if (::wasLastSpeedCommandFromBLE()) {
                 next.speed = settings.speedBLE.value();

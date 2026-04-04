@@ -65,6 +65,18 @@ void OSSM::ble_click(String commandString) {
                 stateMachine->process_event(ReturnToMenu{});
             }
             break;
+        case Commands::goToRestart:
+            menuState.currentOption = Menu::Restart;
+            if (stateMachine != nullptr) {
+                stateMachine->process_event(ButtonPress{});
+            }
+            break;
+        case Commands::goToUpdate:
+            menuState.currentOption = Menu::UpdateOSSM;
+            if (stateMachine != nullptr) {
+                stateMachine->process_event(ButtonPress{});
+            }
+            break;
         case Commands::setSpeed:
             // BLE devices can be trusted to send true value
             // and can bypass potentiomer smoothing logic

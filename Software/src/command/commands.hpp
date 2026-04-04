@@ -20,6 +20,8 @@ enum class Commands {
     goToSimplePenetration,
     goToStreaming,
     goToMenu,
+    goToRestart,
+    goToUpdate,
 
     // SET VALUES
     setDepth,
@@ -143,6 +145,8 @@ inline CommandValue commandFromString(const String& str) {
             return {Commands::goToSimplePenetration, 0, 0};
         if (str == "go:streaming") return {Commands::goToStreaming, 0, 0};
         if (str == "go:menu") return {Commands::goToMenu, 0, 0};
+        if (str == "go:restart") return {Commands::goToRestart, 0, 0};
+        if (str == "go:update") return {Commands::goToUpdate, 0, 0};
         return {Commands::goToMenu, 0, 0};  // Default
     }
 

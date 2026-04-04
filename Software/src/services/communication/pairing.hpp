@@ -14,8 +14,9 @@
  * flow. Mirrors the Lockbox pairing protocol so the dashboard can reuse the
  * same useBLE hook with a different config.
  *
- * Read:  "MAC;chip;wifiConnected;md5;version"
+ * Read:  "MAC;chipModel;wifiConnected;md5;version;efuseMacHex"
  *        wifiConnected: "1" = connected, "0" = not connected
+ *        efuseMacHex: lower 32 bits of ESP.getEfuseMac() in hex
  *
  * Write: "9;ssid;password"  — provisions WiFi credentials
  *        Returns "ok:wifi:connecting" immediately; poll the read characteristic
@@ -48,7 +49,8 @@ class PairingCallbacks : public NimBLECharacteristicCallbacks {
         uint8_t wifiConnected = (WiFi.status() == WL_CONNECTED) ? 1 : 0;
         String info = WiFi.macAddress() + ";" + ESP.getChipModel() + ";" +
                       String(wifiConnected) + ";" + ESP.getSketchMD5() + ";" +
-                      String(VERSION);
+                      String(VERSION) + ";" +
+                      String((uint32_t)ESP.getEfuseMac(), HEX);
         pCharacteristic->setValue(info);
         ESP_LOGD("PAIRING_CHAR", "Read: %s", info.c_str());
     }
