@@ -124,19 +124,23 @@ namespace ui {
         static const char patternName4[] PROGMEM = "Deeper";
         static const char patternName5[] PROGMEM = "Stop'n'Go";
         static const char patternName6[] PROGMEM = "Insist";
+        static const char patternName7[] PROGMEM = "Progressive Stroke";
+        static const char patternName8[] PROGMEM = "Random Stroke";
+        static const char patternName9[] PROGMEM = "Go to Point";
 
-        static const char* const strokeEngineNames[7] = {
-patternName0, patternName1, patternName2,
-patternName3, patternName4, patternName5,
-patternName6,
+        static const char* const strokeEngineNames[10] = {
+                patternName0, patternName1, patternName2,
+                patternName3, patternName4, patternName5,
+                patternName6, patternName7, patternName8,
+                patternName9,
         };
 
         // ============================================================
         // Stroke Engine pattern descriptions
         // ============================================================
         static const char patternDesc0[] PROGMEM =
-            "Acceleration, coasting, deceleration equally split; no "
-            "sensation.";
+            "Acceleration, coasting, deceleration equally split; "
+            " Sensation adds randomness in stroke.";
         static const char patternDesc1[] PROGMEM =
             "Speed shifts with sensation; balances faster strokes.";
         static const char patternDesc2[] PROGMEM =
@@ -148,13 +152,19 @@ patternName6,
         static const char patternDesc5[] PROGMEM =
             "Pauses between strokes; sensation adjusts length.";
         static const char patternDesc6[] PROGMEM =
-            "Modifies length, maintains speed; sensation influences "
-            "direction.";
+            "Stroke length decreaes per cycle to set depth; sensation sets count.";
+        static const char patternDesc7[] PROGMEM =
+            "Strokes are made of substrokes controlled by sensation.";
+        static const char patternDesc8[] PROGMEM =
+            "Random Stroke. Sensation controls maximum randomness from current location.";
+        static const char patternDesc9[] PROGMEM =
+            "Moves to a point between depth and stroke based on sensation.";
 
-        static const char* const strokeEngineDescriptions[7] = {
-patternDesc0, patternDesc1, patternDesc2,
-patternDesc3, patternDesc4, patternDesc5,
-patternDesc6,
+        static const char* const strokeEngineDescriptions[10] = {
+                patternDesc0, patternDesc1, patternDesc2,
+                patternDesc3, patternDesc4, patternDesc5,
+                patternDesc6, patternDesc7, patternDesc8,
+                patternDesc9,
         };
 
     }  // namespace strings
