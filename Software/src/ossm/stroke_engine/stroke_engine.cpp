@@ -173,24 +173,20 @@ namespace stroke_engine {
 
                         currentSplineTime += fmodf(0.01f, 1.0f);
 
-                        float posNorm = spline.evaluate(currentSplineTime);
-                        posNorm = fmaxf(0.0f, fminf(1.0f, posNorm));
-
-                        float velNorm =
-                            spline.evaluateVelocity(currentSplineTime);
-                        float velScaled = velNorm / timeScale;
+                        auto sample = spline.evaluate(currentSplineTime);
+                        double posNorm = fmax(0.0, fmin(1.0, sample.position));
+                        double velScaled = sample.velocity / timeScale;
 
                         int32_t targetPos =
                             (int32_t)(posNorm * strokeSteps * 0.5f);
                         float velStepsPerSec =
-                            fabsf(velScaled) * strokeSteps * 0.5f;
+                            fabs(velScaled) * strokeSteps * 0.5f;
                         velStepsPerSec =
-                            fmaxf(100.0f, fminf(velStepsPerSec, maxSpeedHz));
+                            fmaxf(0.0f, fminf(velStepsPerSec, maxSpeedHz));
 
                         float accelSteps =
                             velStepsPerSec / (tickIntervalMs / 1000.0f);
-                        accelSteps =
-                            fmaxf(1000.0f, fminf(accelSteps, maxAccel));
+                        accelSteps = fmaxf(0.0f, fminf(accelSteps, maxAccel));
 
                         stepper->setSpeedInHz((uint32_t)velStepsPerSec);
                         stepper->setAcceleration((int32_t)accelSteps);
@@ -198,7 +194,7 @@ namespace stroke_engine {
 
                         float splinePercent = posNorm * 100.0f;
                         ESP_LOGI("SplineCtrl",
-                                 "t=%.3f pos=%.3f (%.1f%%) vel=%.1f target=%d",
+                                 "t=%.6f pos=%.6f (%.6f%%) vel=%.6f target=%d",
                                  currentSplineTime, posNorm, splinePercent,
                                  velStepsPerSec, targetPos);
 

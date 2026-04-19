@@ -5,7 +5,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#include <algorithm>
+#include <vector>
 
 static const char* TAG = "SplinePattern";
 
@@ -54,143 +54,115 @@ bool SplinePattern::loadFromFile(const char* id, float playRangeMm,
         return false;
     }
 
-    _points.clear();
-    _points.reserve(spline.size());
+    std::vector<double> xs;
+    std::vector<double> ys;
+    xs.reserve(spline.size());
+    ys.reserve(spline.size());
 
     for (JsonObject pt : spline) {
-        SplinePoint sp;
-        sp.x = pt["x"] | 0.0f;
-        sp.y = pt["y"] | 0.0f;
-
-        auto hIn = pt["handleIn"];
-        auto hOut = pt["handleOut"];
-        if (!hIn.isNull()) {
-            sp.handleIn = SplineHandle{hIn["x"] | 0.0f, hIn["y"] | 0.0f};
-        }
-        if (!hOut.isNull()) {
-            sp.handleOut = SplineHandle{hOut["x"] | 0.0f, hOut["y"] | 0.0f};
-        }
-
-        _points.push_back(sp);
+        xs.push_back(pt["x"] | 0.0);
+        ys.push_back(pt["y"] | 0.0);
     }
 
-    // Fill missing handles using half-chord offsets to the neighbor.
-    // handleIn of first point and handleOut of last point are unused by
-    // evaluateVelocity, so they stay nullopt if missing.
-    for (size_t i = 0; i + 1 < _points.size(); ++i) {
-        SplinePoint& p0 = _points[i];
-        SplinePoint& p1 = _points[i + 1];
-        const float halfDx = (p1.x - p0.x) * 0.5f;
-        const float halfDy = (p1.y - p0.y) * 0.5f;
+    // Drop the closing point at x=1 if present. We treat the pattern as
+    // periodic with period 1, so the value at x=1 is identical to x=0 and
+    // would be duplicated by the shifted copy of the first point below.
+    if (!xs.empty() && xs.back() >= 0.9999) {
+        xs.pop_back();
+        ys.pop_back();
+    }
 
-        if (!p0.handleOut) {
-            p0.handleOut = SplineHandle{halfDx, halfDy};
-        }
-        if (!p1.handleIn) {
-            p1.handleIn = SplineHandle{-halfDx, -halfDy};
+    if (xs.size() < 2) {
+        ESP_LOGE(TAG, "Not enough points to build a periodic spline");
+        return false;
+    }
+
+    for (size_t i = 1; i < xs.size(); i++) {
+        if (xs[i] <= xs[i - 1]) {
+            ESP_LOGE(TAG,
+                     "cubicSpline x values must be strictly increasing "
+                     "(index %u: %f <= %f)",
+                     (unsigned)i, xs[i], xs[i - 1]);
+            return false;
         }
     }
 
-    _totalDuration = _points.back().x;
-
-    // Assume an ordered list
-    // find the min distance between adjacent points to set the scaling factor.
-
-    float _maxSlopeAbs = 0;
-    float _dxAtMaxSlopePercent = 0;
-    for (size_t i = 1; i < _points.size(); i++) {
-        float dx = _points[i].x - _points[i - 1].x;
-        if (dx < 0.0001f) continue;
-        float slope = fabsf((_points[i].y - _points[i - 1].y) / dx);
-        if (slope > _maxSlopeAbs) {
-            _maxSlopeAbs = slope;
-            _dxAtMaxSlopePercent = dx;
+    // Tile the base period three times at offsets -1, 0, +1 so tk::spline
+    // sees a smooth periodic signal across the [0, 1] evaluation window.
+    // The spline grid now spans roughly [-1, 2], so the natural-boundary
+    // endpoints are far from where we actually sample.
+    std::vector<double> xsTiled;
+    std::vector<double> ysTiled;
+    xsTiled.reserve(xs.size() * 3);
+    ysTiled.reserve(ys.size() * 3);
+    for (int k = -1; k <= 1; ++k) {
+        for (size_t i = 0; i < xs.size(); ++i) {
+            xsTiled.push_back(xs[i] + k);
+            ysTiled.push_back(ys[i]);
         }
     }
-    float _dxAtMaxSlopeSeconds = playRangeMm / maxSpeedMmPerSec;
+
+    // Find the steepest segment in normalized (x in [0,1]) space. The
+    // motor's peak mm/s must be achievable on that segment, which gives us
+    // the minimum real-time period required for a full [0,1] traversal.
+    // Include the wrap segment (last point -> first point of next period)
+    // so a fast return stroke at the boundary is accounted for.
+    // TODO this will not determine the max slope. must use the second
+    // derivative = 0
+    float maxSlopeAbs = 0.0f;
+    float dxAtMaxSlopePercent = 0.0f;
+    auto considerSegment = [&](double x0, double y0, double x1, double y1) {
+        float dx = (float)(x1 - x0);
+        if (dx < 0.0001f) return;
+        float slope = fabsf((float)(y1 - y0) / dx);
+        if (slope > maxSlopeAbs) {
+            maxSlopeAbs = slope;
+            dxAtMaxSlopePercent = dx;
+        }
+    };
+    for (size_t i = 1; i < xs.size(); i++) {
+        considerSegment(xs[i - 1], ys[i - 1], xs[i], ys[i]);
+    }
+    considerSegment(xs.back(), ys.back(), xs.front() + 1.0, ys.front());
+
+    float dxAtMaxSlopeSeconds = playRangeMm / maxSpeedMmPerSec;
 
     ESP_LOGI(TAG,
              "maxSlopeAbs: %.3f, dxAtMaxSlopePercent: %.3f, "
              "dxAtMaxSlopeSeconds: %.3f",
-             _maxSlopeAbs, _dxAtMaxSlopePercent, _dxAtMaxSlopeSeconds);
+             maxSlopeAbs, dxAtMaxSlopePercent, dxAtMaxSlopeSeconds);
 
-    _totalDuration = _dxAtMaxSlopeSeconds / _dxAtMaxSlopePercent;
+    _totalDuration = (dxAtMaxSlopePercent > 0.0f)
+                         ? dxAtMaxSlopeSeconds / dxAtMaxSlopePercent
+                         : 0.0f;
 
-    ESP_LOGI(TAG, "Loaded '%s': %d points, duration=%.3f, minDx=%.3f", _name,
-             _points.size(), _totalDuration, _minDx);
+    _spline.set_boundary(tk::spline::first_deriv, 1.0f, tk::spline::first_deriv,
+                         1.0f);
+    _spline.set_boundary(tk::spline::second_deriv, 0.0,
+                         tk::spline::second_deriv, 0.0);
+    _spline.set_points(xsTiled, ysTiled, tk::spline::cspline_hermite);
+    _pointCount = xs.size();
+
+    ESP_LOGI(TAG, "Loaded '%s': %u points (tiled to %u), duration=%.3f", _name,
+             (unsigned)_pointCount, (unsigned)xsTiled.size(), _totalDuration);
 
     return true;
 }
 
-int SplinePattern::findSegment(float t) const {
-    if (_points.size() < 2) return 0;
-
-    for (size_t i = 1; i < _points.size(); i++) {
-        if (t <= _points[i].x) {
-            return i - 1;
-        }
+SplineSample SplinePattern::evaluate(double t) const {
+    if (_pointCount < 2) {
+        return SplineSample{0.0, 0.0, 0.0};
     }
 
-    return _points.size() - 2;
-}
+    // x grid is normalized to [0, 1]; wrap unbounded caller time into that.
+    // The spline itself spans [-1, 2] via periodic tiling, so t=0 and t=1
+    // sit well inside the interior and give C2-continuous derivatives.
+    t = fmod(t, 1.0);
+    if (t < 0.0) t += 1.0;
 
-float SplinePattern::hermite(float dt, const SplinePoint& p1,
-                             const SplinePoint& p2) {
-    float deltaX = p2.x - p1.x;
-    float deltaY = p2.y - p1.y;
-    float m0 = deltaY / deltaX;
-    float m1 = 0;
-    float m2 = 0;
-    float a = (m1 + m2 - 2.0f * m0) / (deltaX * deltaX);
-    float b = (m2 - m1) / (2.0f * deltaX) - (3.0f / 2.0f) * (p1.x + p2.x) * a;
-    float c = m1 - 3.0f * (p1.x * p1.x) * a - 2.0f * b * p1.x;
-    float d = p1.y - a * p1.x * p1.x * p1.x - b * p1.x * p1.x - c * p1.x;
-
-    return a * dt * dt * dt + b * dt * dt + c * dt + d;
-}
-
-float SplinePattern::hermiteDerivative(float dt, const SplinePoint& p1,
-                                       const SplinePoint& p2) {
-    float deltaX = p2.x - p1.x;
-    float deltaY = p2.y - p1.y;
-    float m0 = deltaY / deltaX;
-    float m1 = 0;
-    float m2 = 0;
-    float a = (m1 + m2 - 2.0f * m0) / (deltaX * deltaX);
-    float b = (m2 - m1) / (2.0f * deltaX) - (3.0f / 2.0f) * (p1.x + p2.x) * a;
-    float c = m1 - 3.0f * (p1.x * p1.x) * a - 2.0f * b * p1.x;
-    float d = p1.y - a * p1.x * p1.x * p1.x - b * p1.x * p1.x - c * p1.x;
-
-    return 3.0f * a * dt * dt + 2.0f * b * dt + c;
-}
-
-float SplinePattern::evaluate(float t) const {
-    if (_points.empty()) return 0;
-    if (_points.size() == 1) return _points[0].y;
-
-    // if (_totalDuration > 0) {
-    //     t = fmodf(t, _totalDuration);
-    //     if (t < 0) t += _totalDuration;
-    // }
-
-    int seg = findSegment(t);
-    const SplinePoint& p0 = _points[seg];
-    const SplinePoint& p1 = _points[seg + 1];
-
-    return hermite(t, p0, p1);
-}
-
-float SplinePattern::evaluateVelocity(float t) const {
-    if (_points.size() < 2) return 0;
-
-    if (_totalDuration > 0) {
-        t = fmodf(t, _totalDuration);
-        if (t < 0) t += _totalDuration;
-    }
-
-    int seg = findSegment(t);
-    const SplinePoint& p0 = _points[seg];
-    const SplinePoint& p1 = _points[seg + 1];
-
-    return hermiteDerivative(t, p0, p1);
+    return SplineSample{
+        (double)_spline(t),
+        (double)_spline.deriv(1, t),
+        (double)_spline.deriv(2, t),
+    };
 }
