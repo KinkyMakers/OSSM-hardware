@@ -9,7 +9,8 @@
 
 static const char* TAG = "SplinePattern";
 
-bool SplinePattern::loadFromFile(const char* id) {
+bool SplinePattern::loadFromFile(const char* id, float playRangeMm,
+                                 float maxSpeedMmPerSec) {
     char path[128];
     snprintf(path, sizeof(path), "/littlefs/patterns/%s.json", id);
 
@@ -60,22 +61,60 @@ bool SplinePattern::loadFromFile(const char* id) {
         SplinePoint sp;
         sp.x = pt["x"] | 0.0f;
         sp.y = pt["y"] | 0.0f;
-        sp.handleInX = pt["handleIn"]["x"] | 0.0f;
-        sp.handleInY = pt["handleIn"]["y"] | 0.0f;
-        sp.handleOutX = pt["handleOut"]["x"] | 0.0f;
-        sp.handleOutY = pt["handleOut"]["y"] | 0.0f;
+
+        auto hIn = pt["handleIn"];
+        auto hOut = pt["handleOut"];
+        if (!hIn.isNull()) {
+            sp.handleIn = SplineHandle{hIn["x"] | 0.0f, hIn["y"] | 0.0f};
+        }
+        if (!hOut.isNull()) {
+            sp.handleOut = SplineHandle{hOut["x"] | 0.0f, hOut["y"] | 0.0f};
+        }
+
         _points.push_back(sp);
+    }
+
+    // Fill missing handles using half-chord offsets to the neighbor.
+    // handleIn of first point and handleOut of last point are unused by
+    // evaluateVelocity, so they stay nullopt if missing.
+    for (size_t i = 0; i + 1 < _points.size(); ++i) {
+        SplinePoint& p0 = _points[i];
+        SplinePoint& p1 = _points[i + 1];
+        const float halfDx = (p1.x - p0.x) * 0.5f;
+        const float halfDy = (p1.y - p0.y) * 0.5f;
+
+        if (!p0.handleOut) {
+            p0.handleOut = SplineHandle{halfDx, halfDy};
+        }
+        if (!p1.handleIn) {
+            p1.handleIn = SplineHandle{-halfDx, -halfDy};
+        }
     }
 
     _totalDuration = _points.back().x;
 
-    _minDx = _totalDuration;
+    // Assume an ordered list
+    // find the min distance between adjacent points to set the scaling factor.
+
+    float _maxSlopeAbs = 0;
+    float _dxAtMaxSlopePercent = 0;
     for (size_t i = 1; i < _points.size(); i++) {
         float dx = _points[i].x - _points[i - 1].x;
-        if (dx > 0 && dx < _minDx) {
-            _minDx = dx;
+        if (dx < 0.0001f) continue;
+        float slope = fabsf((_points[i].y - _points[i - 1].y) / dx);
+        if (slope > _maxSlopeAbs) {
+            _maxSlopeAbs = slope;
+            _dxAtMaxSlopePercent = dx;
         }
     }
+    float _dxAtMaxSlopeSeconds = playRangeMm / maxSpeedMmPerSec;
+
+    ESP_LOGI(TAG,
+             "maxSlopeAbs: %.3f, dxAtMaxSlopePercent: %.3f, "
+             "dxAtMaxSlopeSeconds: %.3f",
+             _maxSlopeAbs, _dxAtMaxSlopePercent, _dxAtMaxSlopeSeconds);
+
+    _totalDuration = _dxAtMaxSlopeSeconds / _dxAtMaxSlopePercent;
 
     ESP_LOGI(TAG, "Loaded '%s': %d points, duration=%.3f, minDx=%.3f", _name,
              _points.size(), _totalDuration, _minDx);
@@ -95,56 +134,50 @@ int SplinePattern::findSegment(float t) const {
     return _points.size() - 2;
 }
 
-float SplinePattern::hermite(float dt, float y0, float y1, float m0,
-                             float m1) {
-    float dt2 = dt * dt;
-    float dt3 = dt2 * dt;
+float SplinePattern::hermite(float dt, const SplinePoint& p1,
+                             const SplinePoint& p2) {
+    float deltaX = p2.x - p1.x;
+    float deltaY = p2.y - p1.y;
+    float m0 = deltaY / deltaX;
+    float m1 = 0;
+    float m2 = 0;
+    float a = (m1 + m2 - 2.0f * m0) / (deltaX * deltaX);
+    float b = (m2 - m1) / (2.0f * deltaX) - (3.0f / 2.0f) * (p1.x + p2.x) * a;
+    float c = m1 - 3.0f * (p1.x * p1.x) * a - 2.0f * b * p1.x;
+    float d = p1.y - a * p1.x * p1.x * p1.x - b * p1.x * p1.x - c * p1.x;
 
-    return (2 * dt3 - 3 * dt2 + 1) * y0 + (dt3 - 2 * dt2 + dt) * m0 +
-           (-2 * dt3 + 3 * dt2) * y1 + (dt3 - dt2) * m1;
+    return a * dt * dt * dt + b * dt * dt + c * dt + d;
 }
 
-float SplinePattern::hermiteDerivative(float dt, float y0, float y1, float m0,
-                                       float m1, float segmentDx) {
-    float dt2 = dt * dt;
+float SplinePattern::hermiteDerivative(float dt, const SplinePoint& p1,
+                                       const SplinePoint& p2) {
+    float deltaX = p2.x - p1.x;
+    float deltaY = p2.y - p1.y;
+    float m0 = deltaY / deltaX;
+    float m1 = 0;
+    float m2 = 0;
+    float a = (m1 + m2 - 2.0f * m0) / (deltaX * deltaX);
+    float b = (m2 - m1) / (2.0f * deltaX) - (3.0f / 2.0f) * (p1.x + p2.x) * a;
+    float c = m1 - 3.0f * (p1.x * p1.x) * a - 2.0f * b * p1.x;
+    float d = p1.y - a * p1.x * p1.x * p1.x - b * p1.x * p1.x - c * p1.x;
 
-    float dydt_local = (6 * dt2 - 6 * dt) * y0 + (3 * dt2 - 4 * dt + 1) * m0 +
-                       (-6 * dt2 + 6 * dt) * y1 + (3 * dt2 - 2 * dt) * m1;
-
-    if (segmentDx > 0.0001f) {
-        return dydt_local / segmentDx;
-    }
-    return 0;
+    return 3.0f * a * dt * dt + 2.0f * b * dt + c;
 }
 
 float SplinePattern::evaluate(float t) const {
     if (_points.empty()) return 0;
     if (_points.size() == 1) return _points[0].y;
 
-    if (_totalDuration > 0) {
-        t = fmodf(t, _totalDuration);
-        if (t < 0) t += _totalDuration;
-    }
+    // if (_totalDuration > 0) {
+    //     t = fmodf(t, _totalDuration);
+    //     if (t < 0) t += _totalDuration;
+    // }
 
     int seg = findSegment(t);
     const SplinePoint& p0 = _points[seg];
     const SplinePoint& p1 = _points[seg + 1];
 
-    float segDx = p1.x - p0.x;
-    if (segDx < 0.0001f) return p0.y;
-
-    float dt = (t - p0.x) / segDx;
-
-    float d0 = (fabsf(p0.handleOutX) > 0.0001f)
-                   ? (p0.handleOutY / p0.handleOutX)
-                   : 0.0f;
-    float d1 =
-        (fabsf(p1.handleInX) > 0.0001f) ? (p1.handleInY / p1.handleInX) : 0.0f;
-
-    float m0 = d0 * segDx;
-    float m1 = d1 * segDx;
-
-    return hermite(dt, p0.y, p1.y, m0, m1);
+    return hermite(t, p0, p1);
 }
 
 float SplinePattern::evaluateVelocity(float t) const {
@@ -159,19 +192,5 @@ float SplinePattern::evaluateVelocity(float t) const {
     const SplinePoint& p0 = _points[seg];
     const SplinePoint& p1 = _points[seg + 1];
 
-    float segDx = p1.x - p0.x;
-    if (segDx < 0.0001f) return 0;
-
-    float dt = (t - p0.x) / segDx;
-
-    float d0 = (fabsf(p0.handleOutX) > 0.0001f)
-                   ? (p0.handleOutY / p0.handleOutX)
-                   : 0.0f;
-    float d1 =
-        (fabsf(p1.handleInX) > 0.0001f) ? (p1.handleInY / p1.handleInX) : 0.0f;
-
-    float m0 = d0 * segDx;
-    float m1 = d1 * segDx;
-
-    return hermiteDerivative(dt, p0.y, p1.y, m0, m1, segDx);
+    return hermiteDerivative(t, p0, p1);
 }

@@ -1,17 +1,24 @@
 #ifndef OSSM_SPLINE_PATTERN_H
 #define OSSM_SPLINE_PATTERN_H
 
+#include <optional>
 #include <vector>
+
+struct SplineHandle {
+    float x;
+    float y;
+};
 
 struct SplinePoint {
     float x, y;
-    float handleInX, handleInY;
-    float handleOutX, handleOutY;
+    std::optional<SplineHandle> handleIn;
+    std::optional<SplineHandle> handleOut;
 };
 
 class SplinePattern {
-   public:
-    bool loadFromFile(const char* id);
+  public:
+    bool loadFromFile(const char* id, float playRangeMm,
+                      float maxSpeedMmPerSec);
 
     float evaluate(float t) const;
     float evaluateVelocity(float t) const;
@@ -21,7 +28,7 @@ class SplinePattern {
     const char* name() const { return _name; }
     size_t pointCount() const { return _points.size(); }
 
-   private:
+  private:
     std::vector<SplinePoint> _points;
     float _totalDuration = 0;
     float _minDx = 0;
@@ -29,9 +36,10 @@ class SplinePattern {
 
     int findSegment(float t) const;
 
-    static float hermite(float dt, float y0, float y1, float m0, float m1);
-    static float hermiteDerivative(float dt, float y0, float y1, float m0,
-                                   float m1, float segmentDx);
+    static float hermite(float dt, const SplinePoint& p1,
+                         const SplinePoint& p2);
+    static float hermiteDerivative(float dt, const SplinePoint& p1,
+                                   const SplinePoint& p2);
 };
 
 #endif  // OSSM_SPLINE_PATTERN_H
