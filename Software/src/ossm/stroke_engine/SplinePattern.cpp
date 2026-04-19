@@ -59,9 +59,16 @@ bool SplinePattern::loadFromFile(const char* id, float playRangeMm,
     xs.reserve(spline.size());
     ys.reserve(spline.size());
 
+    // If every point omits both handles, treat the pattern as piecewise
+    // linear. One defined handle anywhere flips us back to hermite so
+    // authored curves keep their smoothness.
+    bool anyHandleDefined = false;
     for (JsonObject pt : spline) {
         xs.push_back(pt["x"] | 0.0);
         ys.push_back(pt["y"] | 0.0);
+        if (!pt["handleIn"].isNull() || !pt["handleOut"].isNull()) {
+            anyHandleDefined = true;
+        }
     }
 
     // Drop the closing point at x=1 if present. We treat the pattern as
@@ -136,15 +143,16 @@ bool SplinePattern::loadFromFile(const char* id, float playRangeMm,
                          ? dxAtMaxSlopeSeconds / dxAtMaxSlopePercent
                          : 0.0f;
 
-    _spline.set_boundary(tk::spline::first_deriv, 1.0f, tk::spline::first_deriv,
-                         1.0f);
-    _spline.set_boundary(tk::spline::second_deriv, 0.0,
-                         tk::spline::second_deriv, 0.0);
-    _spline.set_points(xsTiled, ysTiled, tk::spline::cspline_hermite);
+    // TODO: set the boundary conditions
+    const tk::spline::spline_type splineType = anyHandleDefined
+                                                   ? tk::spline::cspline_hermite
+                                                   : tk::spline::linear;
+    _spline.set_points(xsTiled, ysTiled, splineType);
     _pointCount = xs.size();
 
-    ESP_LOGI(TAG, "Loaded '%s': %u points (tiled to %u), duration=%.3f", _name,
-             (unsigned)_pointCount, (unsigned)xsTiled.size(), _totalDuration);
+    ESP_LOGI(TAG, "Loaded '%s': %u points (tiled to %u), duration=%.3f, %s",
+             _name, (unsigned)_pointCount, (unsigned)xsTiled.size(),
+             _totalDuration, anyHandleDefined ? "hermite" : "linear");
 
     return true;
 }
