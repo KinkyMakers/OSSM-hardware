@@ -1,6 +1,7 @@
 #include "board.h"
 
 #include "memory.h"
+#include "utils/AnalogSampler.h"
 
 bool USE_LATENCY_COMPENSATION = false;
 bool USE_SPEED_KNOB_AS_LIMIT = true;
@@ -23,6 +24,13 @@ void initBoard() {
 
     analogReadResolution(12);
     analogSetAttenuation(ADC_11db);  // allows us to read almost full 3.3V range
+
+    AnalogSampler::registerPin(Pins::Remote::speedPotPin);
+    // Current sensor uses a faster EMA so motor-stall detection in homing
+    // tracks step changes within ~30 ms (matches the old 50-sample window).
+    AnalogSampler::registerPin(Pins::Driver::currentSensorPin, 0.3f);
+    AnalogSampler::start();
+
     initLittleFS();
     initStepper();
     initEncoder();

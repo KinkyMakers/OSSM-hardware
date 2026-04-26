@@ -10,6 +10,6 @@
 extern SettingPercents settings;
 
 // Helper function to get speed
-inline int getSpeed() { return settings.speed; }
+inline float getSpeed() { return settings.speed; }
 
 #endif  // OSSM_STATE_SETTINGS_H

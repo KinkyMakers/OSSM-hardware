@@ -1,5 +1,6 @@
 #include "SplinePattern.h"
 
+#include <Arduino.h>
 #include <ArduinoJson.h>
 #include <esp_log.h>
 #include <math.h>
@@ -8,6 +9,12 @@
 #include <vector>
 
 static const char* TAG = "SplinePattern";
+
+SplinePattern::SplinePattern() {
+    startTime = millis();
+    timeDelta = 0;
+    currentSplinePercent = 0.0f;
+}
 
 bool SplinePattern::loadFromFile(const char* id, float playRangeMm,
                                  float maxSpeedMmPerSec) {
@@ -35,12 +42,18 @@ bool SplinePattern::loadFromFile(const char* id, float playRangeMm,
     buf[size] = '\0';
     fclose(f);
 
-    JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, buf);
+    bool ok = loadFromJson(id, buf, playRangeMm, maxSpeedMmPerSec);
     free(buf);
+    return ok;
+}
+
+bool SplinePattern::loadFromJson(const char* id, const char* jsonText,
+                                 float playRangeMm, float maxSpeedMmPerSec) {
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, jsonText);
 
     if (error) {
-        ESP_LOGE(TAG, "JSON parse failed for %s: %s", path, error.c_str());
+        ESP_LOGE(TAG, "JSON parse failed for %s: %s", id, error.c_str());
         return false;
     }
 
@@ -50,7 +63,7 @@ bool SplinePattern::loadFromFile(const char* id, float playRangeMm,
 
     JsonArray spline = doc["cubicSpline"];
     if (spline.isNull() || spline.size() < 2) {
-        ESP_LOGE(TAG, "cubicSpline missing or too short in %s", path);
+        ESP_LOGE(TAG, "cubicSpline missing or too short in %s", id);
         return false;
     }
 
@@ -144,9 +157,8 @@ bool SplinePattern::loadFromFile(const char* id, float playRangeMm,
                          : 0.0f;
 
     // TODO: set the boundary conditions
-    const tk::spline::spline_type splineType = anyHandleDefined
-                                                   ? tk::spline::cspline_hermite
-                                                   : tk::spline::linear;
+    const tk::spline::spline_type splineType =
+        anyHandleDefined ? tk::spline::cspline_hermite : tk::spline::linear;
     _spline.set_points(xsTiled, ysTiled, splineType);
     _pointCount = xs.size();
 
@@ -157,20 +169,40 @@ bool SplinePattern::loadFromFile(const char* id, float playRangeMm,
     return true;
 }
 
-SplineSample SplinePattern::evaluate(double t) const {
+SplineSample SplinePattern::evaluate(double speedPercent) {
     if (_pointCount < 2) {
-        return SplineSample{0.0, 0.0, 0.0};
+        return SplineSample{0.0, 0.0, 0.0, 0.0, 0.0};
     }
 
-    // x grid is normalized to [0, 1]; wrap unbounded caller time into that.
-    // The spline itself spans [-1, 2] via periodic tiling, so t=0 and t=1
-    // sit well inside the interior and give C2-continuous derivatives.
-    t = fmod(t, 1.0);
-    if (t < 0.0) t += 1.0;
+    long deltaTimeMS = millis() - startTime;
+
+    long timeSinceStartMS =
+        fmod(deltaTimeMS, _totalDuration * 1000 / speedPercent);
+
+    if (lastSpeedPercent > 0 && lastSpeedPercent != speedPercent) {
+        long lastTimeSinceStartMS =
+            fmod(deltaTimeMS, _totalDuration * 1000 / lastSpeedPercent);
+        timeOffset +=
+            timeSinceStartMS / (_totalDuration * 1000 / speedPercent) -
+            lastTimeSinceStartMS / (_totalDuration * 1000 / lastSpeedPercent);
+    }
+
+    double t =
+        timeSinceStartMS / (_totalDuration * 1000 / speedPercent) - timeOffset;
+
+    if (t < 0.0) {
+        t = 1.0 + fmod(t, 1.0);
+    } else if (t > 1.0) {
+        t = fmod(t, 1.0);
+    }
+
+    lastSpeedPercent = speedPercent;
 
     return SplineSample{
+        t,
         (double)_spline(t),
         (double)_spline.deriv(1, t),
         (double)_spline.deriv(2, t),
+        speedPercent,
     };
 }

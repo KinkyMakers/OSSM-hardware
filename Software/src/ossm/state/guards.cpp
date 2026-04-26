@@ -5,7 +5,7 @@
 #include "ossm/homing/homing.h"
 #include "ossm/state/calibration.h"
 #include "ossm/state/menu.h"
-#include "utils/analog.h"
+#include "utils/AnalogSampler.h"
 
 bool ossmIsStrokeTooShort() {
     return homing::isStrokeTooShort();
@@ -16,7 +16,7 @@ bool ossmIsNotHomed() {
 }
 
 bool ossmIsPreflightSafe() {
-    return getAnalogAveragePercent({Pins::Remote::speedPotPin, 50}) <
+    return AnalogSampler::readPercent(Pins::Remote::speedPotPin) <
            Config::Advanced::commandDeadZonePercentage;
 }
 

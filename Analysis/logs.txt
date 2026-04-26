@@ -1,0 +1,603 @@
+[ 77892][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.668586 pos=0.735609 (0.170915%) vel=-2.681841 naive=-8880.000000 acc=-7.815783, speed=17.091473, timeOffset=-10.109159
+[ 77961][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.701353 pos=0.644098 (0.170915%) vel=-2.886408 naive=-11160.000000 acc=-4.670078, speed=17.091473, timeOffset=-10.109159
+[ 78030][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.734121 pos=0.547573 (0.170915%) vel=-2.987897 naive=-13520.000000 acc=-1.524373, speed=17.091473, timeOffset=-10.109159
+[ 78099][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.766889 pos=0.449410 (0.170915%) vel=-2.986309 naive=-16520.000000 acc=1.621331, speed=17.091473, timeOffset=-10.109159
+[ 78168][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.799657 pos=0.352989 (0.170903%) vel=-2.881643 naive=-19720.000000 acc=4.767036, speed=17.090313, timeOffset=-10.111106
+[ 78237][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.832422 pos=0.261692 (0.170903%) vel=-2.673916 naive=-22260.000000 acc=7.912528, speed=17.090313, timeOffset=-10.111106
+[ 78307][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.865663 pos=0.177769 (0.170903%) vel=-2.357864 naive=-22300.000000 acc=11.103606, speed=17.090313, timeOffset=-10.111106
+[ 78376][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.898428 pos=0.107036 (0.169985%) vel=-1.942517 naive=-18560.000000 acc=14.249097, speed=16.998522, timeOffset=-10.238608
+[ 78445][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.931018 pos=0.051851 (0.169985%) vel=-1.427165 naive=-13000.000000 acc=17.377694, speed=16.998522, timeOffset=-10.238608
+[ 78514][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.963607 pos=0.015122 (0.169985%) vel=-0.809854 naive=-8060.000000 acc=20.506292, speed=16.998522, timeOffset=-10.238608
+[ 78583][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.996197 pos=0.000173 (0.169985%) vel=-0.090584 naive=-3920.000000 acc=23.634889, speed=16.998522, timeOffset=-10.238608
+[ 78652][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.028786 pos=0.009562 (0.169717%) vel=0.651096 naive=-880.000000 acc=21.236514, speed=16.971687, timeOffset=-10.276166
+[ 78721][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.061324 pos=0.041438 (0.169717%) vel=1.291273 naive=2300.000000 acc=18.112856, speed=16.971687, timeOffset=-10.276166
+[ 78790][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.093863 pos=0.092491 (0.169717%) vel=1.829812 naive=3780.000000 acc=14.989198, speed=16.971687, timeOffset=-10.276166
+[ 78859][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.126401 pos=0.159413 (0.173632%) vel=2.266713 naive=6400.000000 acc=11.865539, speed=17.363214, timeOffset=-10.725971
+[ 78928][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.159689 pos=0.240853 (0.173632%) vel=2.608512 naive=8520.000000 acc=8.669820, speed=17.363214, timeOffset=-10.725971
+[ 78996][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.192496 pos=0.330529 (0.173632%) vel=2.841276 naive=10640.000000 acc=5.520416, speed=17.363214, timeOffset=-10.725971
+[ 79065][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.225784 pos=0.427580 (0.178190%) vel=2.971853 naive=12980.000000 acc=2.324696, speed=17.818951, timeOffset=-11.082698
+[ 79134][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.259947 pos=0.529825 (0.178190%) vel=2.995251 naive=16200.000000 acc=-0.954902, speed=17.818951, timeOffset=-11.082698
+[ 79203][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.294109 pos=0.630955 (0.178190%) vel=2.906609 naive=20020.000000 acc=-4.234499, speed=17.818951, timeOffset=-11.082698
+[ 79271][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.327777 pos=0.725802 (0.178190%) vel=2.709637 naive=23340.000000 acc=-7.466567, speed=17.818951, timeOffset=-11.082698
+[ 79340][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.361939 pos=0.813375 (0.169579%) vel=2.398541 naive=24440.000000 acc=-10.746165, speed=16.957916, timeOffset=-11.304455
+[ 79409][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.394451 pos=0.885127 (0.169579%) vel=1.998429 naive=21600.000000 acc=-13.867288, speed=16.957916, timeOffset=-11.304455
+[ 79478][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.426963 pos=0.942220 (0.169579%) vel=1.496843 naive=15720.000000 acc=-16.988412, speed=16.957916, timeOffset=-11.304455
+[ 79547][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.459474 pos=0.981357 (0.175656%) vel=0.893784 naive=10180.000000 acc=-20.109536, speed=17.565628, timeOffset=-11.438975
+E (80465) esp-tls: [sock=54] delayed connect error: Connection reset by peer
+E (80467) TRANSPORT_BASE: Failed to open a new connection: 32772
+E (80468) MQTT_CLIENT: Error transport connect
+[ 79589][D][mqtt.cpp:50] event_disconnected_handler(): [MQTT] Disconnected from MQTT broker
+[ 79616][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.493151 pos=0.999442 (0.175656%) vel=0.162121 naive=5580.000000 acc=-23.342509, speed=17.565628, timeOffset=-11.438975
+[ 79685][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.526828 pos=0.991672 (0.175656%) vel=-0.609323 naive=2400.000000 acc=-21.424517, speed=17.565628, timeOffset=-11.438975
+[ 79755][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.560993 pos=0.958989 (0.175656%) vel=-1.285262 naive=-2000.000000 acc=-18.144689, speed=17.565628, timeOffset=-11.438975
+[ 79824][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.594670 pos=0.906027 (0.196745%) vel=-1.841879 naive=-4500.000000 acc=-14.911715, speed=19.674469, timeOffset=-11.418644
+[ 79893][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.632390 pos=0.826802 (0.196745%) vel=-2.336053 naive=-7440.000000 acc=-11.290607, speed=19.674469, timeOffset=-11.418644
+[ 79963][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.670656 pos=0.730040 (0.196745%) vel=-2.697818 naive=-10360.000000 acc=-7.617019, speed=19.674469, timeOffset=-11.418644
+[ 80032][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.708376 pos=0.623718 (0.197772%) vel=-2.916837 naive=-13260.000000 acc=-3.995911, speed=19.777243, timeOffset=-11.270958
+[ 80101][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.746293 pos=0.511121 (0.197772%) vel=-2.999340 naive=-16400.000000 acc=-0.355887, speed=19.777243, timeOffset=-11.270958
+[ 80170][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.784210 pos=0.398011 (0.197772%) vel=-2.943825 naive=-20140.000000 acc=3.284137, speed=19.777243, timeOffset=-11.270958
+[ 80239][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.822127 pos=0.289624 (0.197772%) vel=-2.750292 naive=-23380.000000 acc=6.924161, speed=19.777243, timeOffset=-11.270958
+[ 80308][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.860044 pos=0.191191 (0.242558%) vel=-2.418740 naive=-24500.000000 acc=10.564185, speed=24.255779, timeOffset=-11.796691
+[ 80377][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.906547 pos=0.091743 (0.242558%) vel=-1.823669 naive=-23080.000000 acc=15.028488, speed=24.255779, timeOffset=-11.796691
+[ 80446][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.953050 pos=0.024796 (0.242558%) vel=-1.020995 naive=-18520.000000 acc=19.492792, speed=24.255779, timeOffset=-11.796691
+[ 80515][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.999553 pos=0.000002 (0.267192%) vel=-0.010717 naive=-12920.000000 acc=23.957095, speed=26.719248, timeOffset=-11.221510
+[ 80584][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.050779 pos=0.028847 (0.267192%) vel=1.094932 naive=-7700.000000 acc=19.125197, speed=26.719248, timeOffset=-11.221510
+[ 80653][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.102005 pos=0.107879 (0.267192%) vel=1.948684 naive=-1380.000000 acc=14.207489, speed=26.719248, timeOffset=-11.221510
+[ 80722][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.153231 pos=0.224193 (0.267192%) vel=2.550521 naive=10160.000000 acc=9.289781, speed=26.691904, timeOffset=-11.221510
+[ 80792][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.205200 pos=0.367039 (0.266919%) vel=2.903662 naive=19240.000000 acc=4.300802, speed=26.691904, timeOffset=-11.261824
+[ 80861][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.256374 pos=0.519117 (0.266919%) vel=2.998050 naive=26080.000000 acc=-0.611873, speed=26.691904, timeOffset=-11.261824
+[ 80930][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.307806 pos=0.670328 (0.266919%) vel=2.839606 naive=31720.000000 acc=-5.549387, speed=26.691904, timeOffset=-11.261824
+[ 80999][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.358980 pos=0.806230 (0.302828%) vel=2.429923 naive=35820.000000 acc=-10.462062, speed=30.282795, timeOffset=-11.002217
+[ 81068][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.417038 pos=0.926544 (0.302828%) vel=1.660719 naive=36580.000000 acc=-16.035645, speed=30.282795, timeOffset=-11.002217
+[ 81136][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.474255 pos=0.992319 (0.302828%) vel=0.586072 naive=32140.000000 acc=-21.528451, speed=30.282795, timeOffset=-11.002217
+[ 81205][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.532313 pos=0.988010 (0.317392%) vel=-0.725391 naive=25480.000000 acc=-20.897967, speed=31.739220, timeOffset=-10.860313
+[ 81275][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.594045 pos=0.907175 (0.317392%) vel=-1.832548 naive=16260.000000 acc=-14.971666, speed=31.739220, timeOffset=-10.860313
+[ 81344][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.654896 pos=0.771550 (0.317392%) vel=-2.565847 naive=1660.000000 acc=-9.130027, speed=31.739220, timeOffset=-10.860313
+[ 81413][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.715746 pos=0.602119 (0.317392%) vel=-2.943680 naive=-18200.000000 acc=-3.288387, speed=31.739220, timeOffset=-10.860313
+[ 81482][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.776596 pos=0.420512 (0.330828%) vel=-2.966046 naive=-36700.000000 acc=2.553252, speed=33.082836, timeOffset=-10.874839
+[ 81551][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.840023 pos=0.241605 (0.330828%) vel=-2.611003 naive=-53900.000000 acc=8.642185, speed=33.082836, timeOffset=-10.874839
+[ 81620][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.904254 pos=0.095964 (0.330828%) vel=-1.857878 naive=-67300.000000 acc=14.808356, speed=33.082836, timeOffset=-10.874839
+[ 81689][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.967680 pos=0.011995 (0.357925%) vel=-0.725538 naive=-72540.000000 acc=20.897289, speed=35.792503, timeOffset=-10.854306
+[ 81758][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.036301 pos=0.015048 (0.357925%) vel=0.807981 naive=-68480.000000 acc=20.515060, speed=35.792503, timeOffset=-10.854306
+[ 81827][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.104923 pos=0.113624 (0.357925%) vel=1.989725 naive=-57500.000000 acc=13.927410, speed=35.792503, timeOffset=-10.854306
+[ 81896][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.173544 pos=0.277783 (0.357925%) vel=2.719416 naive=-40460.000000 acc=7.339759, speed=35.792503, timeOffset=-10.854306
+[ 81964][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.241171 pos=0.473524 (0.386459%) vel=2.996258 naive=-17260.000000 acc=0.847582, speed=38.645943, timeOffset=-10.597967
+[ 82033][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.315263 pos=0.691341 (0.386459%) vel=2.795556 naive=9520.000000 acc=-6.265247, speed=38.645943, timeOffset=-10.597967
+[ 82102][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.389355 pos=0.874765 (0.386459%) vel=2.067849 naive=33140.000000 acc=-13.378077, speed=38.645943, timeOffset=-10.597967
+[ 82171][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.463447 pos=0.984748 (0.396969%) vel=0.813139 naive=48780.000000 acc=-20.490907, speed=39.696884, timeOffset=-11.024454
+[ 82240][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.539554 pos=0.982216 (0.396969%) vel=-0.874195 naive=51220.000000 acc=-20.202837, speed=39.696884, timeOffset=-11.024454
+[ 82309][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.615661 pos=0.864227 (0.396969%) vel=-2.133741 naive=39120.000000 acc=-12.896581, speed=39.696884, timeOffset=-11.024454
+[ 82378][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.691767 pos=0.671538 (0.396969%) vel=-2.837231 naive=19680.000000 acc=-5.590324, speed=39.696884, timeOffset=-11.024454
+[ 82447][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.767874 pos=0.446468 (0.413356%) vel=-2.984664 naive=-4620.000000 acc=1.715932, speed=41.335648, timeOffset=-11.557693
+[ 82516][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.847123 pos=0.223289 (0.413356%) vel=-2.547222 naive=-27360.000000 acc=9.323805, speed=41.335648, timeOffset=-11.557693
+[ 82584][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.925223 pos=0.060409 (0.413356%) vel=-1.526249 naive=-44420.000000 acc=16.821418, speed=41.335648, timeOffset=-11.557693
+[ 82653][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.004472 pos=0.000239 (0.444883%) vel=0.106363 naive=-50380.000000 acc=23.570709, speed=44.488258, timeOffset=-11.795566
+[ 82723][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.091001 pos=0.087316 (0.444883%) vel=1.786524 naive=-42660.000000 acc=15.263927, speed=44.488258, timeOffset=-11.795566
+[ 82792][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.176294 pos=0.285288 (0.444883%) vel=2.739234 naive=-26800.000000 acc=7.075813, speed=44.488258, timeOffset=-11.795566
+[ 82861][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.261586 pos=0.534735 (0.465335%) vel=2.993556 naive=-2920.000000 acc=-1.112301, speed=46.533512, timeOffset=-11.693978
+[ 82931][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.352093 pos=0.789254 (0.465335%) vel=2.499693 naive=23180.000000 acc=-9.800971, speed=46.533512, timeOffset=-11.693978
+[ 83000][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.441307 pos=0.961897 (0.465335%) vel=1.243270 naive=42280.000000 acc=-18.365516, speed=46.533512, timeOffset=-11.693978
+[ 83069][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.530521 pos=0.989276 (0.465335%) vel=-0.687801 naive=46980.000000 acc=-21.069938, speed=46.533512, timeOffset=-11.693978
+[ 83139][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.621028 pos=0.852590 (0.472395%) vel=-2.201584 naive=34260.000000 acc=-12.381269, speed=47.239464, timeOffset=-12.618403
+[ 83208][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.711596 pos=0.614306 (0.472395%) vel=-2.929206 naive=12680.000000 acc=-3.686792, speed=47.239464, timeOffset=-12.618403
+[ 83277][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.802163 pos=0.345781 (0.472395%) vel=-2.869391 naive=-13640.000000 acc=5.007685, speed=47.239464, timeOffset=-12.618403
+[ 83346][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.892731 pos=0.118331 (0.495211%) vel=-2.022139 naive=-35860.000000 acc=13.702162, speed=49.521107, timeOffset=-12.127692
+[ 83415][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.987673 pos=0.001794 (0.495211%) vel=-0.288562 naive=-47560.000000 acc=22.816577, speed=49.521107, timeOffset=-12.127692
+[ 83484][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.082615 pos=0.072880 (0.495211%) vel=1.655141 naive=-41560.000000 acc=16.069007, speed=49.521107, timeOffset=-12.127692
+[ 83553][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.178603 pos=0.291633 (0.495211%) vel=2.755320 naive=-23000.000000 acc=6.854094, speed=49.521107, timeOffset=-12.127692
+[ 83622][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.273545 pos=0.570426 (0.522792%) vel=2.973390 naive=4360.000000 acc=-2.260321, speed=52.279247, timeOffset=-11.887152
+[ 83691][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.373775 pos=0.840984 (0.522792%) vel=2.264631 naive=31660.000000 acc=-11.882375, speed=52.279247, timeOffset=-11.887152
+[ 83760][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.474004 pos=0.992172 (0.522792%) vel=0.591456 naive=48680.000000 acc=-21.504430, speed=52.279247, timeOffset=-11.887152
+[ 83829][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.574234 pos=0.940417 (0.544469%) vel=-1.517106 naive=46240.000000 acc=-16.873516, speed=54.446930, timeOffset=-12.540952
+[ 83898][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.678620 pos=0.708321 (0.544469%) vel=-2.755434 naive=25140.000000 acc=-6.852497, speed=54.446930, timeOffset=-12.540952
+[ 83967][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.783005 pos=0.401559 (0.544469%) vel=-2.947711 naive=-5120.000000 acc=3.168521, speed=54.446930, timeOffset=-12.540952
+[ 84036][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.887391 pos=0.129322 (0.544469%) vel=-2.093938 naive=-32740.000000 acc=13.189540, speed=54.446930, timeOffset=-12.540952
+[ 84105][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.991777 pos=0.000803 (0.568084%) vel=-0.194114 naive=-48060.000000 acc=23.210559, speed=56.808449, timeOffset=-12.878128
+[ 84175][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.102268 pos=0.108392 (0.568084%) vel=1.952415 naive=-41320.000000 acc=14.182251, speed=56.808449, timeOffset=-12.878128
+[ 84244][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.211181 pos=0.384480 (0.568084%) vel=2.927669 naive=-19320.000000 acc=3.726592, speed=56.808449, timeOffset=-12.878128
+[ 84313][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.320094 pos=0.704773 (0.580593%) vel=2.764165 naive=9520.000000 acc=-6.729067, speed=58.059334, timeOffset=-12.931311
+[ 84382][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.431406 pos=0.948702 (0.580593%) vel=1.420414 naive=32040.000000 acc=-17.414953, speed=58.059334, timeOffset=-12.931311
+[ 84451][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.542717 pos=0.979350 (0.580593%) vel=-0.937622 naive=35800.000000 acc=-19.899161, speed=58.059334, timeOffset=-12.931311
+[ 84520][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.654028 pos=0.773772 (0.607862%) vel=-2.557894 naive=17060.000000 acc=-9.213275, speed=60.786186, timeOffset=-12.671045
+[ 84589][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.770695 pos=0.438057 (0.607862%) vel=-2.979443 naive=-12580.000000 acc=1.986699, speed=60.786186, timeOffset=-12.671045
+[ 84658][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.887234 pos=0.129651 (0.607862%) vel=-2.096008 naive=-42140.000000 acc=13.174465, speed=60.786186, timeOffset=-12.671045
+[ 84727][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.003773 pos=0.000170 (0.607862%) vel=0.089874 naive=-57280.000000 acc=23.637768, speed=60.786186, timeOffset=-12.671045
+[ 84796][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.120312 pos=0.145837 (0.632525%) vel=2.192695 naive=-47900.000000 acc=12.450002, speed=63.252491, timeOffset=-12.796932
+[ 84865][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.241580 pos=0.474750 (0.632525%) vel=2.996597 naive=-22880.000000 acc=0.808310, speed=63.252491, timeOffset=-12.796932
+[ 84934][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.362848 pos=0.815550 (0.632525%) vel=2.388739 naive=5920.000000 acc=-10.833383, speed=63.252491, timeOffset=-12.796932
+[ 85003][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.484115 pos=0.997036 (0.650238%) vel=0.369120 naive=22200.000000 acc=-22.475075, speed=65.023819, timeOffset=-13.005335
+[ 85072][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.608779 pos=0.878600 (0.650238%) vel=-2.042718 naive=12900.000000 acc=-13.557217, speed=65.023819, timeOffset=-13.005335
+[ 85141][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.733443 pos=0.549600 (0.650238%) vel=-2.986841 naive=-13840.000000 acc=-1.589510, speed=65.023819, timeOffset=-13.005335
+[ 85210][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.858106 pos=0.195896 (0.650238%) vel=-2.439026 naive=-45460.000000 acc=10.378198, speed=65.023819, timeOffset=-13.005335
+[ 85279][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.982770 pos=0.003481 (0.667238%) vel=-0.399273 naive=-64280.000000 acc=22.345906, speed=66.723839, timeOffset=-13.313492
+[ 85348][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.110693 pos=0.125334 (0.667238%) vel=2.068488 naive=-56040.000000 acc=13.373496, speed=66.723839, timeOffset=-13.313492
+[ 85417][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.238616 pos=0.465871 (0.667238%) vel=2.993779 naive=-28440.000000 acc=1.092898, speed=66.723839, timeOffset=-13.313492
+[ 85486][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.365403 pos=0.821618 (0.688820%) vel=2.360745 naive=3360.000000 acc=-11.078671, speed=68.882050, timeOffset=-12.883094
+[ 85555][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.497463 pos=0.999923 (0.688820%) vel=0.060569 naive=21220.000000 acc=-23.756489, speed=68.882050, timeOffset=-12.883094
+[ 85624][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.629524 pos=0.833450 (0.688820%) vel=-2.303306 naive=10240.000000 acc=-11.565692, speed=68.882050, timeOffset=-12.883094
+[ 85693][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.761585 pos=0.465271 (0.688820%) vel=-2.993558 naive=-17400.000000 acc=1.112127, speed=68.882050, timeOffset=-12.883094
+[ 85762][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.894578 pos=0.114619 (0.707144%) vel=-1.996665 naive=-46420.000000 acc=13.879491, speed=70.714371, timeOffset=-11.957352
+[ 85831][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.030051 pos=0.010403 (0.707144%) vel=0.677879 naive=-56280.000000 acc=21.115095, speed=70.714371, timeOffset=-11.957352
+[ 85900][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.165625 pos=0.256485 (0.707144%) vel=2.658278 naive=-36120.000000 acc=8.100035, speed=70.714371, timeOffset=-11.957352
+[ 85969][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.301198 pos=0.651447 (0.724666%) vel=2.874180 naive=-3640.000000 acc=-4.915025, speed=72.466576, timeOffset=-12.148171
+[ 86038][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.440131 pos=0.960422 (0.724666%) vel=1.264809 naive=24040.000000 acc=-18.252580, speed=72.466576, timeOffset=-12.148171
+[ 86107][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.579064 pos=0.932895 (0.724666%) vel=-1.597481 naive=24740.000000 acc=-16.409865, speed=72.466576, timeOffset=-12.148171
+[ 86176][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.717997 pos=0.595485 (0.748389%) vel=-2.950838 naive=-3280.000000 acc=-3.072309, speed=74.838943, timeOffset=-12.331221
+[ 86245][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.861478 pos=0.187732 (0.748389%) vel=-2.403488 naive=-40120.000000 acc=10.701882, speed=74.838943, timeOffset=-12.331221
+[ 86315][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.007039 pos=0.000589 (0.748389%) vel=0.166547 naive=-59660.000000 acc=23.324300, speed=74.838943, timeOffset=-12.331221
+[ 86384][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.150520 pos=0.217311 (0.748389%) vel=2.524976 naive=-45560.000000 acc=9.550108, speed=74.838943, timeOffset=-12.331221
+[ 86453][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.294001 pos=0.630640 (0.772627%) vel=2.907068 naive=-14200.000000 acc=-4.224084, speed=77.262726, timeOffset=-12.413820
+[ 86522][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.441728 pos=0.962418 (0.772627%) vel=1.235539 naive=14000.000000 acc=-18.405885, speed=77.262726, timeOffset=-12.413820
+[ 86591][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.589856 pos=0.914719 (0.772627%) vel=-1.768987 naive=13820.000000 acc=-15.373824, speed=77.262726, timeOffset=-12.413820
+[ 86660][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.737984 pos=0.536020 (0.776154%) vel=-2.993070 naive=-16540.000000 acc=-1.153532, speed=77.615395, timeOffset=-11.843002
+[ 86729][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.888291 pos=0.127443 (0.776154%) vel=-2.082033 naive=-52940.000000 acc=13.275903, speed=77.615395, timeOffset=-11.843002
+[ 86798][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.037095 pos=0.015696 (0.776154%) vel=0.824227 naive=-66720.000000 acc=20.438897, speed=77.615395, timeOffset=-11.843002
+[ 86867][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.185899 pos=0.311911 (0.776154%) vel=2.802771 naive=-45940.000000 acc=6.153696, speed=77.615395, timeOffset=-11.843002
+[ 86936][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.334703 pos=0.744386 (0.775109%) vel=2.655618 naive=-10240.000000 acc=-8.131504, speed=77.510948, timeOffset=-12.013805
+[ 87005][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.483307 pos=0.996731 (0.775109%) vel=0.387254 naive=13780.000000 acc=-22.397481, speed=77.510948, timeOffset=-12.013805
+[ 87074][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.631911 pos=0.827919 (0.775109%) vel=-2.330640 naive=3780.000000 acc=-11.336541, speed=77.510948, timeOffset=-12.013805
+[ 87143][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.780515 pos=0.408910 (0.777261%) vel=-2.955304 naive=-29120.000000 acc=2.929436, speed=77.726151, timeOffset=-12.661734
+[ 87212][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.929531 pos=0.053991 (0.777261%) vel=-1.452886 naive=-56260.000000 acc=17.235022, speed=77.726151, timeOffset=-12.661734
+[ 87281][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.078548 pos=0.066283 (0.777261%) vel=1.589002 naive=-54300.000000 acc=16.459393, speed=77.726151, timeOffset=-12.661734
+[ 87350][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.227565 pos=0.432874 (0.777261%) vel=2.975839 naive=-21260.000000 acc=2.153807, speed=77.726151, timeOffset=-12.661734
+[ 87419][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.376581 pos=0.847292 (0.768969%) vel=2.230908 naive=16280.000000 acc=-12.151778, speed=76.896881, timeOffset=-13.024039
+[ 87488][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.524008 pos=0.993305 (0.768969%) vel=-0.548518 naive=32900.000000 acc=-21.695264, speed=76.896881, timeOffset=-13.024039
+[ 87557][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.671434 pos=0.727938 (0.768969%) vel=-2.703717 naive=15020.000000 acc=-7.542306, speed=76.896881, timeOffset=-13.024039
+[ 87627][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.820998 pos=0.292733 (0.778051%) vel=-2.758049 naive=-19800.000000 acc=6.815767, speed=77.805107, timeOffset=-13.526985
+[ 87696][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.970165 pos=0.010256 (0.778051%) vel=-0.673304 naive=-44860.000000 acc=21.135885, speed=77.805107, timeOffset=-13.526985
+[ 87765][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.119333 pos=0.143696 (0.778051%) vel=2.180459 naive=-36420.000000 acc=12.543997, speed=77.805107, timeOffset=-13.526985
+[ 87835][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.270663 pos=0.561848 (0.776708%) vel=2.979506 naive=-1780.000000 acc=-1.983659, speed=77.670799, timeOffset=-13.748398
+[ 87904][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.419574 pos=0.930703 (0.776708%) vel=1.619752 naive=32160.000000 acc=-16.279057, speed=77.670799, timeOffset=-13.748398
+[ 87973][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.568484 pos=0.948859 (0.776708%) vel=-1.418492 naive=39240.000000 acc=-17.425544, speed=77.670799, timeOffset=-13.748398
+[ 88043][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.719552 pos=0.590891 (0.776708%) vel=-2.955501 naive=13640.000000 acc=-2.922966, speed=77.670799, timeOffset=-13.748398
+[ 88112][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.867094 pos=0.174405 (0.677100%) vel=-2.341868 naive=-20800.000000 acc=11.241057, speed=67.710007, timeOffset=-13.306450
+[ 88181][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.996908 pos=0.000114 (0.677100%) vel=-0.073751 naive=-36400.000000 acc=23.703160, speed=67.710007, timeOffset=-13.306450
+[ 88250][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.126721 pos=0.160141 (0.677100%) vel=2.270516 naive=-24840.000000 acc=11.834737, speed=67.710007, timeOffset=-13.306450
+[ 88319][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.256535 pos=0.519601 (0.613810%) vel=2.997950 naive=2220.000000 acc=-0.627366, speed=61.380981, timeOffset=-13.864270
+[ 88388][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.374215 pos=0.841979 (0.613810%) vel=2.259395 naive=29340.000000 acc=-11.924605, speed=61.380981, timeOffset=-13.864270
+[ 88457][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.491894 pos=0.999220 (0.613810%) vel=0.191385 naive=43620.000000 acc=-23.221844, speed=61.380981, timeOffset=-13.864270
+[ 88526][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.609574 pos=0.876972 (0.613810%) vel=-2.053463 naive=34300.000000 acc=-13.480917, speed=61.380981, timeOffset=-13.864270
+[ 88595][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.727253 pos=0.568052 (0.572421%) vel=-2.975164 naive=9880.000000 acc=-2.183677, speed=57.242119, timeOffset=-13.799991
+[ 88664][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.836573 pos=0.250663 (0.572421%) vel=-2.640246 naive=-18280.000000 acc=8.311005, speed=57.242119, timeOffset=-13.799991
+[ 88733][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.946318 pos=0.032106 (0.572421%) vel=-1.150053 naive=-38340.000000 acc=18.846481, speed=57.242119, timeOffset=-13.799991
+[ 88802][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.056062 pos=0.034896 (0.510852%) vel=1.194628 naive=-38620.000000 acc=18.618042, speed=51.085220, timeOffset=-13.153306
+[ 88871][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.154725 pos=0.228013 (0.510852%) vel=2.564290 naive=-19500.000000 acc=9.146388, speed=51.085220, timeOffset=-13.153306
+[ 88940][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.252666 pos=0.507997 (0.510852%) vel=2.999659 naive=7380.000000 acc=-0.255905, speed=51.085220, timeOffset=-13.153306
+[ 89009][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.350606 pos=0.785526 (0.510852%) vel=2.514163 naive=35440.000000 acc=-9.658197, speed=51.085220, timeOffset=-13.153306
+[ 89078][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.448547 pos=0.970410 (0.450322%) vel=1.107801 naive=55820.000000 acc=-19.060490, speed=45.032230, timeOffset=-13.378477
+[ 89147][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.534883 pos=0.986078 (0.450322%) vel=-0.778775 naive=60000.000000 acc=-20.651277, speed=45.032230, timeOffset=-13.378477
+[ 89216][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.621218 pos=0.852172 (0.450322%) vel=-2.203933 naive=47360.000000 acc=-12.363044, speed=45.032230, timeOffset=-13.378477
+[ 89285][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.707554 pos=0.626114 (0.382399%) vel=-2.913520 naive=26180.000000 acc=-4.074812, speed=38.239933, timeOffset=-12.891542
+[ 89355][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.781930 pos=0.404730 (0.382399%) vel=-2.951062 naive=2520.000000 acc=3.065293, speed=38.239933, timeOffset=-12.891542
+[ 89424][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.855244 pos=0.202920 (0.382399%) vel=-2.468341 naive=-18540.000000 acc=10.103395, speed=38.239933, timeOffset=-12.891542
+[ 89493][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.928730 pos=0.055161 (0.303590%) vel=-1.466665 naive=-34060.000000 acc=17.158098, speed=30.358967, timeOffset=-12.295232
+[ 89563][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.987778 pos=0.001763 (0.303590%) vel=-0.286160 naive=-38660.000000 acc=22.826680, speed=30.358967, timeOffset=-12.295232
+[ 89632][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.045982 pos=0.023817 (0.303590%) vel=1.002082 naive=-34640.000000 acc=19.585718, speed=30.358967, timeOffset=-12.295232
+E (90574) esp-tls: [sock=54] delayed connect error: Connection reset by peer
+E (90576) TRANSPORT_BASE: Failed to open a new connection: 32772
+E (90577) MQTT_CLIENT: Error transport connect
+[ 89698][D][mqtt.cpp:50] event_disconnected_handler(): [MQTT] Di c9nn1c[e][ftoo e_TngTnb.cke:
+2] startStrokeEngineTask(): [SplineCtrl] t=0.104186 pos=0.112163 (0.303590%) vel=1.979441 naive=-25300.000000 acc=13.998116, speed=30.358967, timeOffset=-12.295232
+[ 89782][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.172513 pos=0.274983 (0.258834%) vel=2.711796 naive=-5800.000000 acc=7.438757, speed=25.883450, timeOffset=-12.943093
+[ 89851][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.222137 pos=0.416756 (0.258834%) vel=2.962734 naive=13480.000000 acc=2.674879, speed=25.883450, timeOffset=-12.943093
+[ 89920][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.271760 pos=0.565116 (0.258834%) vel=2.977271 naive=31200.000000 acc=-2.088999, speed=25.883450, timeOffset=-12.943093
+[ 89989][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.321384 pos=0.708332 (0.213213%) vel=2.755407 naive=47620.000000 acc=-6.852877, speed=21.321342, timeOffset=-12.765098
+[ 90058][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.362261 pos=0.814148 (0.213213%) vel=2.395074 naive=60180.000000 acc=-10.777094, speed=21.321342, timeOffset=-12.765098
+[ 90127][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.403139 pos=0.901955 (0.213213%) vel=1.874330 naive=68820.000000 acc=-14.701311, speed=21.321342, timeOffset=-12.765098
+[ 90196][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.444016 pos=0.965197 (0.213213%) vel=1.193175 naive=71460.000000 acc=-18.625528, speed=21.321342, timeOffset=-12.765098
+[ 90264][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.484301 pos=0.997104 (0.196353%) vel=0.364951 naive=68140.000000 acc=-22.492873, speed=19.635298, timeOffset=-12.668664
+[ 90333][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.521946 pos=0.994390 (0.196353%) vel=-0.503576 naive=63880.000000 acc=-21.893228, speed=19.635298, timeOffset=-12.668664
+[ 90403][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.560136 pos=0.960084 (0.196353%) vel=-1.269678 naive=59100.000000 acc=-18.226954, speed=19.635298, timeOffset=-12.668664
+[ 90472][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.597781 pos=0.900225 (0.165668%) vel=-1.887805 naive=50780.000000 acc=-14.613056, speed=16.566830, timeOffset=-12.970828
+[ 90541][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.629543 pos=0.833407 (0.165668%) vel=-2.303521 naive=38420.000000 acc=-11.563912, speed=16.566830, timeOffset=-12.970828
+[ 90610][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.661304 pos=0.754922 (0.165668%) vel=-2.622389 naive=22440.000000 acc=-8.514768, speed=16.566830, timeOffset=-12.970828
+[ 90679][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.693066 pos=0.667848 (0.165668%) vel=-2.844411 naive=5540.000000 acc=-5.465625, speed=16.566830, timeOffset=-12.970828
+[ 90748][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.724828 pos=0.575260 (0.150049%) vel=-2.969587 naive=-9200.000000 acc=-2.416481, speed=15.004871, timeOffset=-13.681886
+[ 90817][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.753596 pos=0.489214 (0.150049%) vel=-2.999379 naive=-21800.000000 acc=0.345182, speed=15.004871, timeOffset=-13.681886
+[ 90886][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.782363 pos=0.403453 (0.150049%) vel=-2.949727 naive=-33720.000000 acc=3.106846, speed=15.004871, timeOffset=-13.681886
+[ 90955][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.811130 pos=0.320264 (0.140982%) vel=-2.820628 naive=-45080.000000 acc=5.868510, speed=14.098177, timeOffset=-13.260757
+[ 91024][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.838159 pos=0.246485 (0.140982%) vel=-2.626941 naive=-54460.000000 acc=8.463295, speed=14.098177, timeOffset=-13.260757
+[ 91093][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.865188 pos=0.178889 (0.140982%) vel=-2.363119 naive=-61280.000000 acc=11.058080, speed=14.098177, timeOffset=-13.260757
+[ 91162][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.892217 pos=0.119371 (0.133153%) vel=-2.029163 naive=-64160.000000 acc=13.652865, speed=13.315305, timeOffset=-13.628427
+[ 91231][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.917745 pos=0.072285 (0.133153%) vel=-1.649350 naive=-62020.000000 acc=16.103562, speed=13.315305, timeOffset=-13.628427
+[ 91300][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.943274 pos=0.035694 (0.133153%) vel=-1.206976 naive=-56280.000000 acc=18.554259, speed=13.315305, timeOffset=-13.628427
+[ 91369][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.968802 pos=0.011194 (0.133153%) vel=-0.702041 naive=-51040.000000 acc=21.004956, speed=13.315305, timeOffset=-13.628427
+[ 91438][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.994330 pos=0.000383 (0.135082%) vel=-0.134543 naive=-47240.000000 acc=23.455653, speed=13.508155, timeOffset=-13.290209
+[ 91507][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.020228 pos=0.004777 (0.135082%) vel=0.465822 naive=-44980.000000 acc=22.058156, speed=13.508155, timeOffset=-13.290209
+[ 91576][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.046125 pos=0.023960 (0.135082%) vel=1.004886 naive=-42000.000000 acc=19.571965, speed=13.508155, timeOffset=-13.290209
+[ 91645][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.072023 pos=0.056270 (0.128204%) vel=1.479564 naive=-36000.000000 acc=17.085774, speed=12.820395, timeOffset=-13.501001
+[ 91715][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.096959 pos=0.098228 (0.128204%) vel=1.875761 naive=-26680.000000 acc=14.691968, speed=12.820395, timeOffset=-13.501001
+[ 91784][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.121538 pos=0.148533 (0.128204%) vel=2.207880 naive=-14700.000000 acc=12.332360, speed=12.820395, timeOffset=-13.501001
+[ 91853][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.146117 pos=0.206289 (0.128204%) vel=2.482001 naive=-1800.000000 acc=9.972752, speed=12.820395, timeOffset=-13.501001
+[ 91922][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.170696 pos=0.270069 (0.127585%) vel=2.698125 naive=7940.000000 acc=7.613144, speed=12.758451, timeOffset=-13.610587
+[ 91991][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.195157 pos=0.338110 (0.127585%) vel=2.855627 naive=14860.000000 acc=5.264937, speed=12.758451, timeOffset=-13.610587
+[ 92060][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.219617 pos=0.409301 (0.127585%) vel=2.955691 naive=19360.000000 acc=2.916729, speed=12.758451, timeOffset=-13.610587
+[ 92129][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.244078 pos=0.482237 (0.129331%) vel=2.998317 naive=22280.000000 acc=0.568522, speed=12.933117, timeOffset=-13.300776
+[ 92198][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.268873 pos=0.556512 (0.129331%) vel=2.982902 naive=24580.000000 acc=-1.811833, speed=12.933117, timeOffset=-13.300776
+[ 92267][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.293669 pos=0.629673 (0.129331%) vel=2.908466 naive=26740.000000 acc=-4.192188, speed=12.933117, timeOffset=-13.300776
+[ 92336][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.318744 pos=0.701033 (0.129331%) vel=2.773166 naive=27980.000000 acc=-6.599396, speed=12.933117, timeOffset=-13.300776
+[ 92405][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.343539 pos=0.767522 (0.155122%) vel=2.580021 naive=27240.000000 acc=-8.979751, speed=15.512231, timeOffset=-12.705637
+[ 92474][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.373279 pos=0.839860 (0.155122%) vel=2.270508 naive=24460.000000 acc=-11.834795, speed=15.512231, timeOffset=-12.705637
+[ 92543][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.403019 pos=0.901731 (0.155122%) vel=1.876087 naive=18260.000000 acc=-14.689839, speed=15.512231, timeOffset=-12.705637
+[ 92612][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.432759 pos=0.950608 (0.222147%) vel=1.396756 naive=12260.000000 acc=-17.544882, speed=22.214687, timeOffset=-12.725395
+[ 92681][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.475349 pos=0.992948 (0.222147%) vel=0.562452 naive=7820.000000 acc=-21.633520, speed=22.214687, timeOffset=-12.725395
+[ 92750][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.517939 pos=0.996231 (0.222147%) vel=-0.415093 naive=3580.000000 acc=-22.277841, speed=22.214687, timeOffset=-12.725395
+[ 92819][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.560529 pos=0.959583 (0.307233%) vel=-1.276838 naive=-1360.000000 acc=-18.189203, speed=30.723324, timeOffset=-13.468334
+[ 92888][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.619432 pos=0.856090 (0.307233%) vel=-2.181694 naive=-9140.000000 acc=-12.534541, speed=30.723324, timeOffset=-13.468334
+[ 92957][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.678335 pos=0.709107 (0.307233%) vel=-2.753475 naive=-15600.000000 acc=-6.879878, speed=30.723324, timeOffset=-13.468334
+[ 93026][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.737237 pos=0.538255 (0.307233%) vel=-2.992181 naive=-21720.000000 acc=-1.225216, speed=30.723324, timeOffset=-13.468334
+[ 93095][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.796140 pos=0.363151 (0.396307%) vel=-2.897813 naive=-28340.000000 acc=4.429447, speed=39.630737, timeOffset=-13.427252
+[ 93164][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.872120 pos=0.162779 (0.396307%) vel=-2.284161 naive=-36820.000000 acc=11.723529, speed=39.630737, timeOffset=-13.427252
+[ 93233][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.948100 pos=0.030086 (0.396307%) vel=-1.116305 naive=-38300.000000 acc=19.017611, speed=39.630737, timeOffset=-13.427252
+[ 93302][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.024080 pos=0.006735 (0.456116%) vel=0.550090 naive=-30760.000000 acc=21.688307, speed=45.611557, timeOffset=-13.622333
+[ 93371][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.111527 pos=0.127063 (0.456116%) vel=2.079605 naive=-18020.000000 acc=13.293448, speed=45.611557, timeOffset=-13.622333
+[ 93440][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.198973 pos=0.349045 (0.456116%) vel=2.875020 naive=1800.000000 acc=4.898590, speed=45.611557, timeOffset=-13.622333
+[ 93508][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.285152 pos=0.604761 (0.456116%) vel=2.940688 naive=26660.000000 acc=-3.374604, speed=45.611557, timeOffset=-13.622333
+[ 93577][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.372599 pos=0.838312 (0.503508%) vel=2.278540 naive=48740.000000 acc=-11.769463, speed=50.350822, timeOffset=-14.024242
+[ 93646][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.469131 pos=0.989036 (0.503508%) vel=0.695114 naive=62880.000000 acc=-21.036588, speed=50.350822, timeOffset=-14.024242
+[ 93715][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.565664 pos=0.952789 (0.503508%) vel=-1.368966 naive=58680.000000 acc=-17.696286, speed=50.350822, timeOffset=-14.024242
+[ 93784][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.662196 pos=0.752581 (0.541986%) vel=-2.629944 naive=39420.000000 acc=-8.429161, speed=54.198566, timeOffset=-14.020668
+[ 93853][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.766106 pos=0.451750 (0.541986%) vel=-2.987549 naive=10160.000000 acc=1.546147, speed=54.198566, timeOffset=-14.020668
+[ 93922][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.870015 pos=0.167613 (0.541986%) vel=-2.308625 naive=-19780.000000 acc=11.521455, speed=54.198566, timeOffset=-14.020668
+[ 93991][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.973925 pos=0.007875 (0.541986%) vel=-0.593173 naive=-39440.000000 acc=21.496762, speed=54.198566, timeOffset=-14.020668
+[ 94060][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.077894 pos=0.065247 (0.588289%) vel=1.578214 naive=-38900.000000 acc=16.522196, speed=58.828930, timeOffset=-13.558094
+[ 94129][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.190681 pos=0.325381 (0.588289%) vel=2.831098 naive=-16440.000000 acc=5.694665, speed=58.828930, timeOffset=-13.558094
+[ 94198][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.303467 pos=0.657956 (0.588289%) vel=2.862780 naive=14700.000000 acc=-5.132867, speed=58.828930, timeOffset=-13.558094
+[ 94267][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.416254 pos=0.925237 (0.635686%) vel=1.673259 naive=39460.000000 acc=-15.960398, speed=63.568638, timeOffset=-13.868705
+[ 94336][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.538128 pos=0.983442 (0.635686%) vel=-0.845290 naive=46540.000000 acc=-20.339722, speed=63.568638, timeOffset=-13.868705
+[ 94405][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.660002 pos=0.758332 (0.635686%) vel=-2.611214 naive=27620.000000 acc=-8.639842, speed=63.568638, timeOffset=-13.868705
+[ 94474][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.781875 pos=0.404892 (0.635686%) vel=-2.951230 naive=-2760.000000 acc=3.060037, speed=63.568638, timeOffset=-13.868705
+[ 94543][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.904031 pos=0.096378 (0.666438%) vel=-1.861172 naive=-31680.000000 acc=14.786990, speed=66.643761, timeOffset=-13.207781
+[ 94612][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.031801 pos=0.011621 (0.666438%) vel=0.714671 naive=-42580.000000 acc=20.947151, speed=66.643761, timeOffset=-13.207781
+[ 94681][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.159570 pos=0.240542 (0.666438%) vel=2.607475 naive=-25220.000000 acc=8.681291, speed=66.643761, timeOffset=-13.207781
+[ 94750][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.287405 pos=0.611378 (0.700019%) vel=2.932841 naive=5820.000000 acc=-3.590884, speed=70.001915, timeOffset=-13.005375
+[ 94819][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.421613 pos=0.933972 (0.700019%) vel=1.586357 naive=35080.000000 acc=-16.474815, speed=70.001915, timeOffset=-13.005375
+[ 94888][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.555820 pos=0.965392 (0.700019%) vel=-1.190123 naive=41220.000000 acc=-18.641254, speed=70.001915, timeOffset=-13.005375
+[ 94957][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.690028 pos=0.676465 (0.723617%) vel=-2.827361 naive=18440.000000 acc=-5.757323, speed=72.361694, timeOffset=-13.633731
+[ 95027][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.830770 pos=0.266120 (0.723617%) vel=-2.686856 naive=-17600.000000 acc=7.753947, speed=72.361694, timeOffset=-13.633731
+[ 95096][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.969502 pos=0.010708 (0.723617%) vel=-0.687304 naive=-41660.000000 acc=21.072199, speed=72.361694, timeOffset=-13.633731
+[ 95165][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.108234 pos=0.120288 (0.723617%) vel=2.035313 naive=-35600.000000 acc=13.609550, speed=72.361694, timeOffset=-13.633731
+[ 95234][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.246966 pos=0.490897 (0.726047%) vel=2.999558 naive=-4400.000000 acc=0.291298, speed=72.604706, timeOffset=-14.182410
+[ 95303][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.386163 pos=0.868098 (0.726047%) vel=2.110058 naive=30560.000000 acc=-13.071680, speed=72.604706, timeOffset=-14.182410
+[ 95372][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.525361 pos=0.992543 (0.726047%) vel=-0.577792 naive=46380.000000 acc=-21.565343, speed=72.604706, timeOffset=-14.182410
+[ 95441][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.664559 pos=0.746344 (0.733075%) vel=-2.649590 naive=30420.000000 acc=-8.202365, speed=73.307480, timeOffset=-13.870174
+[ 95511][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.807141 pos=0.331563 (0.733075%) vel=-2.843278 naive=-3080.000000 acc=5.485500, speed=73.307480, timeOffset=-13.870174
+[ 95580][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.947575 pos=0.030675 (0.733075%) vel=-1.126272 naive=-29880.000000 acc=18.967228, speed=73.307480, timeOffset=-13.870174
+[ 95649][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.088120 pos=0.082234 (0.733075%) vel=1.742159 naive=-28440.000000 acc=15.540448, speed=73.307480, timeOffset=-13.870174
+[ 95718][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.228665 pos=0.436152 (0.732765%) vel=2.978152 naive=1220.000000 acc=2.048124, speed=73.276512, timeOffset=-13.927334
+[ 95787][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.369151 pos=0.830388 (0.732765%) vel=2.318545 naive=37440.000000 acc=-11.438501, speed=73.276512, timeOffset=-13.927334
+[ 95856][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.509637 pos=0.998900 (0.732765%) vel=-0.226824 naive=56100.000000 acc=-23.074874, speed=73.276512, timeOffset=-13.927334
+[ 95925][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.650122 pos=0.783691 (0.728124%) vel=-2.521174 naive=42380.000000 acc=-9.588249, speed=72.812355, timeOffset=-13.800409
+[ 95994][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.789718 pos=0.381848 (0.728124%) vel=-2.924278 naive=11480.000000 acc=3.812947, speed=72.812355, timeOffset=-13.800409
+[ 96063][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.929889 pos=0.053472 (0.728124%) vel=-1.446717 naive=-16560.000000 acc=17.269349, speed=72.812355, timeOffset=-13.800409
+[ 96132][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.069485 pos=0.052570 (0.728124%) vel=1.435885 naive=-19080.000000 acc=17.329455, speed=72.812355, timeOffset=-13.800409
+[ 96201][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.209081 pos=0.378338 (0.955005%) vel=2.919629 naive=8060.000000 acc=3.928259, speed=95.500496, timeOffset=-13.986184
+[ 96269][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.389521 pos=0.875107 (0.955005%) vel=2.065632 naive=50500.000000 acc=-13.393976, speed=95.500496, timeOffset=-13.986184
+[ 96338][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.572614 pos=0.942852 (0.955005%) vel=-1.489643 naive=60000.000000 acc=-17.029051, speed=95.500496, timeOffset=-13.986184
+[ 96407][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.755708 pos=0.482880 (0.996411%) vel=-2.998436 naive=26520.000000 acc=0.547923, speed=99.641098, timeOffset=-14.146621
+[ 96476][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.946739 pos=0.031623 (0.996411%) vel=-1.142094 naive=-11020.000000 acc=18.886979, speed=99.641098, timeOffset=-14.146621
+[ 96545][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.137771 pos=0.185930 (0.996411%) vel=2.395425 naive=-3420.000000 acc=10.773965, speed=99.641098, timeOffset=-14.146621
+[ 96614][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.326578 pos=0.722549 (0.999682%) vel=2.718519 naive=37420.000000 acc=-7.351492, speed=99.968193, timeOffset=-13.523833
+[ 96683][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.518237 pos=0.996106 (0.999682%) vel=-0.421724 naive=58560.000000 acc=-22.249249, speed=99.968193, timeOffset=-13.523833
+[ 96752][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.709936 pos=0.619162 (0.999682%) vel=-2.922955 naive=29940.000000 acc=-3.846124, speed=99.968193, timeOffset=-13.523833
+[ 96821][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.901595 pos=0.100956 (0.999682%) vel=-1.896908 naive=-9780.000000 acc=14.553135, speed=99.968193, timeOffset=-13.523833
+[ 96890][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.093254 pos=0.091380 (0.999972%) vel=1.820675 naive=-12480.000000 acc=15.047606, speed=99.997185, timeOffset=-13.468098
+[ 96959][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.284969 pos=0.604222 (0.999972%) vel=2.941305 naive=27660.000000 acc=-3.356989, speed=99.997185, timeOffset=-13.468098
+[ 97028][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.476433 pos=0.993545 (0.999972%) vel=0.538939 naive=62500.000000 acc=-21.737610, speed=99.997185, timeOffset=-13.468098
+[ 97097][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.668148 pos=0.736782 (0.999998%) vel=-2.678412 naive=48520.000000 acc=-7.857795, speed=99.999779, timeOffset=-13.465314
+[ 97166][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.859867 pos=0.191617 (0.999998%) vel=-2.420599 naive=7440.000000 acc=10.547277, speed=99.999779, timeOffset=-13.465314
+[ 97235][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.051587 pos=0.029738 (0.999998%) vel=1.110349 naive=-8880.000000 acc=19.047651, speed=99.999779, timeOffset=-13.465314
+[ 97304][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.243306 pos=0.479924 (0.999998%) vel=2.997849 naive=21740.000000 acc=0.642578, speed=99.999779, timeOffset=-13.465314
+[ 97373][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.435026 pos=0.953729 (1.000000%) vel=1.356739 naive=59320.000000 acc=-17.762494, speed=99.999969, timeOffset=-13.462534
+[ 97442][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.626468 pos=0.840434 (1.000000%) vel=-2.267516 naive=53140.000000 acc=-11.859046, speed=99.999969, timeOffset=-13.462534
+[ 97511][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.818188 pos=0.300508 (1.000000%) vel=-2.776818 naive=10520.000000 acc=6.546061, speed=99.999969, timeOffset=-13.462534
+[ 97580][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.009908 pos=0.001162 (1.000000%) vel=0.233080 naive=-17220.000000 acc=23.048831, speed=99.999969, timeOffset=-13.462534
+[ 97649][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.201628 pos=0.356695 (1.000000%) vel=2.887687 naive=5600.000000 acc=4.643724, speed=99.999969, timeOffset=-13.462534
+[ 97717][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.390569 pos=0.877266 (1.000000%) vel=2.051534 naive=43820.000000 acc=-13.494643, speed=99.999969, timeOffset=-13.462534
+[ 97786][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.582011 pos=0.928115 (1.000000%) vel=-1.645433 naive=45840.000000 acc=-16.126897, speed=99.999969, timeOffset=-13.462534
+[ 97856][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.776510 pos=0.420768 (1.000000%) vel=-2.966267 naive=2900.000000 acc=2.544951, speed=99.999969, timeOffset=-13.462534
+[ 97924][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.965451 pos=0.013664 (1.000000%) vel=-0.771877 naive=-34240.000000 acc=20.683318, speed=99.999969, timeOffset=-13.462534
+[ 97993][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.157171 pos=0.234312 (0.999455%) vel=2.586374 naive=-23940.000000 acc=8.911575, speed=99.945473, timeOffset=-13.568440
+[ 98062][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.348786 pos=0.780935 (0.999455%) vel=2.531579 naive=15640.000000 acc=-9.483502, speed=99.945473, timeOffset=-13.568440
+[ 98130][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.537625 pos=0.983865 (0.999455%) vel=-0.835046 naive=32220.000000 acc=-20.388016, speed=99.945473, timeOffset=-13.568440
+[ 98200][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.732285 pos=0.553057 (0.999956%) vel=-2.984936 naive=-840.000000 acc=-1.700659, speed=99.995644, timeOffset=-13.471113
+[ 98269][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.923996 pos=0.062294 (0.999956%) vel=-1.546813 naive=-40160.000000 acc=16.703652, speed=99.995644, timeOffset=-13.471113
+[ 98338][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.115708 pos=0.135874 (0.999956%) vel=2.134351 naive=-37000.000000 acc=12.892037, speed=99.995644, timeOffset=-13.471113
+[ 98407][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.307420 pos=0.669230 (0.999956%) vel=2.841744 naive=4900.000000 acc=-5.512274, speed=99.995644, timeOffset=-13.471113
+[ 98476][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.498897 pos=0.999985 (0.999995%) vel=0.026418 naive=34940.000000 acc=-23.894093, speed=99.999527, timeOffset=-13.462776
+[ 98545][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.690616 pos=0.674802 (0.999995%) vel=-2.830729 naive=14620.000000 acc=-5.700881, speed=99.999527, timeOffset=-13.462776
+[ 98614][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.882335 pos=0.140076 (0.999995%) vel=-2.159399 naive=-24320.000000 acc=12.704145, speed=99.999527, timeOffset=-13.462776
+[ 98684][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.076832 pos=0.063582 (1.000000%) vel=1.560623 naive=-30300.000000 acc=16.624089, speed=99.999969, timeOffset=-13.462773
+[ 98753][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.268552 pos=0.555555 (1.000000%) vel=2.983479 naive=9460.000000 acc=-1.781018, speed=99.999969, timeOffset=-13.462773
+[ 98822][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.460272 pos=0.982064 (1.000000%) vel=0.877710 naive=47720.000000 acc=-20.186126, speed=99.999969, timeOffset=-13.462773
+[ 98891][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.651714 pos=0.779666 (1.000000%) vel=-2.536317 naive=38480.000000 acc=-9.435414, speed=99.999969, timeOffset=-13.462773
+[ 98960][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.843434 pos=0.232748 (1.000000%) vel=-2.580961 naive=-1320.000000 acc=8.969693, speed=99.999969, timeOffset=-13.462773
+[ 99029][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.035154 pos=0.014135 (1.000000%) vel=0.784381 naive=-19440.000000 acc=20.625199, speed=99.999969, timeOffset=-13.462773
+[ 99098][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.226874 pos=0.430820 (1.000000%) vel=2.974329 naive=12020.000000 acc=2.220092, speed=99.999969, timeOffset=-13.462773
+[ 99166][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.415815 pos=0.924501 (0.998198%) vel=1.680253 naive=51200.000000 acc=-15.918275, speed=99.819756, timeOffset=-13.816730
+[ 99235][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.607190 pos=0.881829 (0.998198%) vel=-2.021051 naive=49760.000000 acc=-13.709787, speed=99.819756, timeOffset=-13.816730
+[ 99304][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.798564 pos=0.356140 (0.998198%) vel=-2.886793 naive=8080.000000 acc=4.662152, speed=99.819756, timeOffset=-13.816730
+[ 99372][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.985916 pos=0.002335 (0.999856%) vel=-0.328485 naive=-24380.000000 acc=22.647978, speed=99.985626, timeOffset=-13.488628
+[ 99441][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.177609 pos=0.288896 (0.999856%) vel=2.748457 naive=-8020.000000 acc=6.949556, speed=99.985626, timeOffset=-13.488628
+[ 99510][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.369301 pos=0.830736 (0.999856%) vel=2.316827 naive=32860.000000 acc=-11.452911, speed=99.985626, timeOffset=-13.488628
+[ 99579][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.560859 pos=0.959160 (0.999989%) vel=-1.282841 naive=44860.000000 acc=-18.157492, speed=99.998856, timeOffset=-13.463611
+[ 99648][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.752577 pos=0.492269 (0.999989%) vel=-2.999681 naive=9500.000000 acc=0.247410, speed=99.998856, timeOffset=-13.463611
+[ 99717][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.944295 pos=0.034471 (0.999989%) vel=-1.187975 naive=-29600.000000 acc=18.652312, speed=99.998856, timeOffset=-13.463611
+E (100637) esp-tls: [sock=54] delayed connect error: Connection reset by peer
+E (100638) TRANSPORT_BASE: Failed to open a new connection: 32772
+E (100639) MQTT_CLIENT: Error transport connect
+[ 99761][D][mqtt.cpp:50] event_disconnected_handler(): [MQTT] Disconnected from MQTT broker
+[ 99786][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.136013 pos=0.181735 (0.999989%) vel=2.376330 naive=-23780.000000 acc=10.942786, speed=99.998856, timeOffset=-13.463611
+[ 99856][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.330509 pos=0.733177 (0.999999%) vel=2.688879 naive=16700.000000 acc=-7.728854, speed=99.999908, timeOffset=-13.460824
+[ 99925][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.521952 pos=0.994387 (0.999999%) vel=-0.503710 naive=38760.000000 acc=-21.892639, speed=99.999908, timeOffset=-13.460824
+[ 99994][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.713671 pos=0.608219 (0.999999%) vel=-2.936651 naive=10580.000000 acc=-3.487543, speed=99.999908, timeOffset=-13.460824
+[100064][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.908170 pos=0.088803 (0.913780%) vel=-1.799152 naive=-29660.000000 acc=15.184294, speed=91.377960, timeOffset=-13.656811
+[100133][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.083359 pos=0.074118 (0.913780%) vel=1.667085 naive=-33180.000000 acc=15.997489, speed=91.377960, timeOffset=-13.656811
+[100202][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.258549 pos=0.525638 (0.913780%) vel=2.996492 naive=2260.000000 acc=-0.820728, speed=91.377960, timeOffset=-13.656811
+[100271][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.433739 pos=0.951968 (0.913780%) vel=1.379519 naive=39840.000000 acc=-17.638945, speed=91.377960, timeOffset=-13.656811
+[100340][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.608929 pos=0.878294 (0.755192%) vel=-2.044748 naive=39680.000000 acc=-13.542838, speed=75.519226, timeOffset=-14.407488
+[100409][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.753714 pos=0.488858 (0.755192%) vel=-2.999338 naive=11060.000000 acc=0.356561, speed=75.519226, timeOffset=-14.407488
+[100478][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.898500 pos=0.106897 (0.755192%) vel=-1.941498 naive=-20820.000000 acc=14.255960, speed=75.519226, timeOffset=-14.407488
+[100547][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.043285 pos=0.021186 (0.607929%) vel=0.948907 naive=-30200.000000 acc=19.844641, speed=60.792934, timeOffset=-14.977408
+[100616][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.159837 pos=0.241239 (0.607929%) vel=2.609792 naive=-12120.000000 acc=8.655632, speed=60.792934, timeOffset=-14.977408
+[100685][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.276389 pos=0.578874 (0.607929%) vel=2.966573 naive=17580.000000 acc=-2.533376, speed=60.792934, timeOffset=-14.977408
+[100754][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.392942 pos=0.882095 (0.607929%) vel=2.019251 naive=44720.000000 acc=-13.722384, speed=60.792934, timeOffset=-14.977408
+[100823][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.509494 pos=0.998932 (0.582547%) vel=-0.223522 naive=56540.000000 acc=-23.088608, speed=58.254654, timeOffset=-15.093505
+[100892][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.621179 pos=0.852258 (0.582547%) vel=-2.203453 naive=45380.000000 acc=-12.366773, speed=58.254654, timeOffset=-15.093505
+[100961][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.732865 pos=0.551324 (0.582547%) vel=-2.985907 naive=21620.000000 acc=-1.644938, speed=58.254654, timeOffset=-15.093505
+[101030][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.844551 pos=0.229871 (0.509138%) vel=-2.570885 naive=-6440.000000 acc=9.076896, speed=50.913780, timeOffset=-14.930678
+[101099][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.941995 pos=0.037252 (0.509138%) vel=-1.230621 naive=-24240.000000 acc=18.431514, speed=50.913780, timeOffset=-14.930678
+[101168][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.039607 pos=0.017830 (0.509138%) vel=0.875266 naive=-25460.000000 acc=20.197747, speed=50.913780, timeOffset=-14.930678
+[101237][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.137219 pos=0.184609 (0.438828%) vel=2.389458 naive=-8940.000000 acc=10.827008, speed=43.882809, timeOffset=-14.183722
+[101306][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.221520 pos=0.414930 (0.438828%) vel=2.961067 naive=12740.000000 acc=2.734065, speed=43.882809, timeOffset=-14.183722
+[101375][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.305652 pos=0.664199 (0.438828%) vel=2.851336 naive=34880.000000 acc=-5.342615, speed=43.882809, timeOffset=-14.183722
+[101444][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.389784 pos=0.875652 (0.438828%) vel=2.062096 naive=53040.000000 acc=-13.419295, speed=43.882809, timeOffset=-14.183722
+[101513][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.473916 pos=0.992120 (0.378447%) vel=0.593349 naive=61700.000000 acc=-21.495976, speed=37.844715, timeOffset=-14.469710
+[101582][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.546472 pos=0.975690 (0.378447%) vel=-1.011670 naive=57580.000000 acc=-19.538662, speed=37.844715, timeOffset=-14.469710
+[101651][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.619028 pos=0.856969 (0.378447%) vel=-2.176626 naive=44900.000000 acc=-12.573299, speed=37.844715, timeOffset=-14.469710
+[101720][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.691584 pos=0.672059 (0.249305%) vel=-2.836203 naive=25320.000000 acc=-5.607937, speed=24.930450, timeOffset=-13.820854
+[101789][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.739381 pos=0.531839 (0.249305%) vel=-2.994587 naive=6340.000000 acc=-1.019459, speed=24.930450, timeOffset=-13.820854
+[101858][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.787177 pos=0.389290 (0.249305%) vel=-2.933657 naive=-11660.000000 acc=3.569018, speed=24.930450, timeOffset=-13.820854
+[101927][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.834708 pos=0.255601 (0.249305%) vel=-2.655579 naive=-28360.000000 acc=8.131966, speed=24.930450, timeOffset=-13.820854
+[101996][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.882505 pos=0.139709 (0.229337%) vel=-2.157241 naive=-42160.000000 acc=12.720444, speed=22.933689, timeOffset=-12.910738
+[102065][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.926669 pos=0.058220 (0.229337%) vel=-1.501832 naive=-50380.000000 acc=16.960198, speed=22.933689, timeOffset=-12.910738
+[102134][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.970637 pos=0.009941 (0.229337%) vel=-0.663323 naive=-51260.000000 acc=21.181169, speed=22.933689, timeOffset=-12.910738
+[102203][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.014606 pos=0.002510 (0.167426%) vel=0.340296 naive=-46820.000000 acc=22.597859, speed=16.742638, timeOffset=-12.626627
+[102272][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.046705 pos=0.024546 (0.167426%) vel=1.016207 naive=-43000.000000 acc=19.516358, speed=16.742638, timeOffset=-12.626627
+[102341][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.078804 pos=0.066690 (0.167426%) vel=1.593206 naive=-36820.000000 acc=16.434857, speed=16.742638, timeOffset=-12.626627
+[102410][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.110903 pos=0.125768 (0.167426%) vel=2.071291 naive=-26200.000000 acc=13.353355, speed=16.742638, timeOffset=-12.626627
+[102479][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.143002 pos=0.198604 (0.164585%) vel=2.450464 naive=-11940.000000 acc=10.271854, speed=16.458502, timeOffset=-12.212380
+[102548][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.174556 pos=0.280538 (0.164585%) vel=2.726792 naive=3280.000000 acc=7.242648, speed=16.458502, timeOffset=-12.212380
+[102616][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.205653 pos=0.368353 (0.164585%) vel=2.905599 naive=15720.000000 acc=4.257343, speed=16.458502, timeOffset=-12.212380
+[102685][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.237075 pos=0.461260 (0.124789%) vel=2.991981 naive=26400.000000 acc=1.240795, speed=12.478868, timeOffset=-11.439246
+[102754][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.261000 pos=0.532977 (0.124789%) vel=2.994193 naive=34320.000000 acc=-1.055954, speed=12.478868, timeOffset=-11.439246
+[102823][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.284924 pos=0.604090 (0.124789%) vel=2.941455 naive=41740.000000 acc=-3.352704, speed=12.478868, timeOffset=-11.439246
+[102892][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.308848 pos=0.673285 (0.124789%) vel=2.833769 naive=48460.000000 acc=-5.649453, speed=12.478868, timeOffset=-11.439246
+[102961][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.332773 pos=0.739245 (0.098121%) vel=2.671135 naive=53540.000000 acc=-7.946203, speed=9.812085, timeOffset=-11.972897
+[103030][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.351585 pos=0.787981 (0.098121%) vel=2.504667 naive=55080.000000 acc=-9.752128, speed=9.812085, timeOffset=-11.972897
+[103099][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.370396 pos=0.833266 (0.098121%) vel=2.304226 naive=53500.000000 acc=-11.558054, speed=9.812085, timeOffset=-11.972897
+[103168][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.389208 pos=0.874461 (0.092572%) vel=2.069813 naive=48140.000000 acc=-13.363979, speed=9.257196, timeOffset=-12.127362
+[103237][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.406956 pos=0.909002 (0.092572%) vel=1.817511 naive=40020.000000 acc=-15.067777, speed=9.257196, timeOffset=-12.127362
+[103306][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.424704 pos=0.938796 (0.092572%) vel=1.534970 naive=32620.000000 acc=-16.771574, speed=9.257196, timeOffset=-12.127362
+[103375][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.442452 pos=0.963308 (0.090370%) vel=1.222191 naive=26180.000000 acc=-18.475371, speed=9.036963, timeOffset=-11.586966
+[103444][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.459777 pos=0.981627 (0.090370%) vel=0.887684 naive=20840.000000 acc=-20.138635, speed=9.036963, timeOffset=-11.586966
+[103513][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.477103 pos=0.993901 (0.090370%) vel=0.524361 naive=16680.000000 acc=-21.801898, speed=9.036963, timeOffset=-11.586966
+[103582][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.494429 pos=0.999630 (0.090370%) vel=0.132220 naive=13720.000000 acc=-23.465161, speed=9.036963, timeOffset=-11.586966
+[103651][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.511754 pos=0.998368 (0.088515%) vel=-0.275474 naive=12240.000000 acc=-22.871575, speed=8.851543, timeOffset=-11.975349
+[103720][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.528725 pos=0.990478 (0.088515%) vel=-0.649785 naive=10540.000000 acc=-21.242439, speed=8.851543, timeOffset=-11.975349
+[103789][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.545695 pos=0.976470 (0.088515%) vel=-0.996450 naive=7120.000000 acc=-19.613302, speed=8.851543, timeOffset=-11.975349
+[103858][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.562665 pos=0.956815 (0.092245%) vel=-1.315468 naive=1460.000000 acc=-17.984166, speed=9.224510, timeOffset=-12.192044
+[103927][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.580350 pos=0.930826 (0.092245%) vel=-1.618509 naive=-3400.000000 acc=-16.286384, speed=9.224510, timeOffset=-12.192044
+[103996][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.598035 pos=0.899744 (0.092245%) vel=-1.891524 naive=-2860.000000 acc=-14.588603, speed=9.224510, timeOffset=-12.192044
+[104065][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.615721 pos=0.864099 (0.092245%) vel=-2.134514 naive=-3240.000000 acc=-12.890821, speed=9.224510, timeOffset=-12.192044
+[104134][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.633406 pos=0.824422 (0.086162%) vel=-2.347478 naive=-3740.000000 acc=-11.193040, speed=8.616229, timeOffset=-12.474201
+[104204][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.650164 pos=0.783586 (0.086162%) vel=-2.521576 naive=-4040.000000 acc=-9.584230, speed=8.616229, timeOffset=-12.474201
+[104273][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.666683 pos=0.740696 (0.086162%) vel=-2.666800 naive=-4540.000000 acc=-7.998403, speed=8.616229, timeOffset=-12.474201
+[104342][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.683202 pos=0.695624 (0.088412%) vel=-2.785827 naive=-4940.000000 acc=-6.412577, speed=8.841217, timeOffset=-11.998555
+[104412][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.700398 pos=0.646852 (0.088412%) vel=-2.881905 naive=-5520.000000 acc=-4.761757, speed=8.841217, timeOffset=-11.998555
+[104481][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.717349 pos=0.597397 (0.088412%) vel=-2.948827 naive=-6300.000000 acc=-3.134521, speed=8.841217, timeOffset=-11.998555
+[104550][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.734299 pos=0.547041 (0.088412%) vel=-2.988167 naive=-7160.000000 acc=-1.507285, speed=8.841217, timeOffset=-11.998555
+[104619][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.751249 pos=0.496252 (0.087934%) vel=-2.999925 naive=-8360.000000 acc=0.119951, speed=8.793445, timeOffset=-12.099865
+[104688][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.768108 pos=0.445770 (0.087934%) vel=-2.984260 naive=-9920.000000 acc=1.738394, speed=8.793445, timeOffset=-12.099865
+[104757][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.784967 pos=0.395783 (0.087934%) vel=-2.941311 naive=-11360.000000 acc=3.356838, speed=8.793445, timeOffset=-12.099865
+[104826][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.801826 pos=0.346750 (0.068014%) vel=-2.871076 naive=-12020.000000 acc=4.975281, speed=6.801449, timeOffset=-12.336553
+[104895][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.814866 pos=0.309770 (0.068014%) vel=-2.798038 naive=-10540.000000 acc=6.227095, speed=6.801449, timeOffset=-12.336553
+[104964][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.827905 pos=0.273849 (0.068014%) vel=-2.708677 naive=-8040.000000 acc=7.478910, speed=6.801449, timeOffset=-12.336553
+[105033][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.840945 pos=0.239200 (0.065238%) vel=-2.602992 naive=-5940.000000 acc=8.730724, speed=6.523793, timeOffset=-11.928629
+[105102][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.853452 pos=0.207358 (0.065238%) vel=-2.486284 naive=-4280.000000 acc=9.931435, speed=6.523793, timeOffset=-11.928629
+[105170][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.865779 pos=0.177496 (0.065238%) vel=-2.356575 naive=-3300.000000 acc=11.114745, speed=6.523793, timeOffset=-11.928629
+[105239][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.878286 pos=0.148922 (0.065238%) vel=-2.210050 naive=-2760.000000 acc=12.315456, speed=6.523793, timeOffset=-11.928629
+[105308][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.890793 pos=0.122274 (0.068707%) vel=-2.048506 naive=-2440.000000 acc=13.516168, speed=6.870669, timeOffset=-12.186163
+[105377][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.903966 pos=0.096500 (0.068707%) vel=-1.862137 naive=-2380.000000 acc=14.780722, speed=6.870669, timeOffset=-12.186163
+[105446][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.917138 pos=0.073290 (0.068707%) vel=-1.659110 naive=-2080.000000 acc=16.045277, speed=6.870669, timeOffset=-12.186163
+[105515][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.930311 pos=0.052864 (0.064711%) vel=-1.439426 naive=-1720.000000 acc=17.309831, speed=6.471147, timeOffset=-12.043517
+[105584][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.942717 pos=0.036368 (0.064711%) vel=-1.217284 naive=-1360.000000 acc=18.500853, speed=6.471147, timeOffset=-12.043517
+[105653][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.955124 pos=0.022721 (0.064711%) vel=-0.980365 naive=-980.000000 acc=19.691875, speed=6.471147, timeOffset=-12.043517
+[105721][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.967350 pos=0.012235 (0.064711%) vel=-0.732423 naive=-740.000000 acc=20.865636, speed=6.471147, timeOffset=-12.043517
+[105789][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.979577 pos=0.004869 (0.064041%) vel=-0.470130 naive=-540.000000 acc=22.039397, speed=6.404106, timeOffset=-12.187916
+[105858][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.991855 pos=0.000787 (0.064041%) vel=-0.192296 naive=-300.000000 acc=23.218080, speed=6.404106, timeOffset=-12.187916
+[105927][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.004133 pos=0.000204 (0.064041%) vel=0.098371 naive=-40.000000 acc=23.603237, speed=6.404106, timeOffset=-12.187916
+[105996][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.016411 pos=0.003161 (0.065068%) vel=0.380934 naive=220.000000 acc=22.424554, speed=6.506849, timeOffset=-12.966150
+[106065][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.028886 pos=0.009627 (0.065068%) vel=0.653209 naive=460.000000 acc=21.226962, speed=6.506849, timeOffset=-12.966150
+[106133][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.041180 pos=0.019232 (0.065068%) vel=0.906921 naive=700.000000 acc=20.046725, speed=6.506849, timeOffset=-12.966150
+[106201][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.053474 pos=0.031867 (0.065068%) vel=1.146123 naive=900.000000 acc=18.866489, speed=6.506849, timeOffset=-12.966150
+[106270][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.065949 pos=0.047602 (0.065354%) vel=1.374011 naive=1140.000000 acc=17.668896, speed=6.535407, timeOffset=-12.904153
+[106339][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.078479 pos=0.066173 (0.065354%) vel=1.587861 naive=1340.000000 acc=16.466047, speed=6.535407, timeOffset=-12.904153
+[106408][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.091008 pos=0.087330 (0.065354%) vel=1.786640 naive=1520.000000 acc=15.263198, speed=6.535407, timeOffset=-12.904153
+[106477][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.103538 pos=0.110882 (0.065320%) vel=1.970347 naive=1720.000000 acc=14.060349, speed=6.532021, timeOffset=-12.911516
+[106545][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.115880 pos=0.136241 (0.065320%) vel=2.136564 naive=1960.000000 acc=12.875547, speed=6.532021, timeOffset=-12.911516
+[106613][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.128221 pos=0.163560 (0.065320%) vel=2.288159 naive=2400.000000 acc=11.690744, speed=6.532021, timeOffset=-12.911516
+[106682][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.140745 pos=0.193100 (0.065320%) vel=2.427036 naive=2720.000000 acc=10.488519, speed=6.532021, timeOffset=-12.911516
+[106751][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.153268 pos=0.224286 (0.055599%) vel=2.550858 naive=2940.000000 acc=9.286293, speed=5.559918, timeOffset=-13.031070
+[106820][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.163927 pos=0.251985 (0.055599%) vel=2.644391 naive=2780.000000 acc=8.262984, speed=5.559918, timeOffset=-13.031070
+[106889][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.174587 pos=0.280622 (0.055599%) vel=2.727016 naive=2860.000000 acc=7.239674, speed=5.559918, timeOffset=-13.031070
+[106957][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.185092 pos=0.309651 (0.050388%) vel=2.797772 naive=3020.000000 acc=6.231196, speed=5.038805, timeOffset=-13.170251
+[107025][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.194612 pos=0.336555 (0.050388%) vel=2.852745 naive=2980.000000 acc=5.317238, speed=5.038805, timeOffset=-13.170251
+[107094][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.204272 pos=0.364347 (0.050388%) vel=2.899632 naive=3080.000000 acc=4.389841, speed=5.038805, timeOffset=-13.170251
+[107163][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.213933 pos=0.392549 (0.049360%) vel=2.937560 naive=3220.000000 acc=3.462443, speed=4.936040, timeOffset=-12.395420
+[107232][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.223396 pos=0.420490 (0.049360%) vel=2.966028 naive=3440.000000 acc=2.553959, speed=4.936040, timeOffset=-12.395420
+[107301][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.232860 pos=0.448659 (0.049360%) vel=2.985898 naive=3760.000000 acc=1.645476, speed=4.936040, timeOffset=-12.395420
+[107369][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.242186 pos=0.476565 (0.049360%) vel=2.997069 naive=4180.000000 acc=0.750158, speed=4.936040, timeOffset=-12.395420
+[107438][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.251649 pos=0.504948 (0.068409%) vel=2.999869 naive=4860.000000 acc=-0.158325, speed=6.840902, timeOffset=-13.206031
+[107507][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.264765 pos=0.544242 (0.068409%) vel=2.989536 naive=6540.000000 acc=-1.417401, speed=6.840902, timeOffset=-13.206031
+[107576][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.277880 pos=0.583293 (0.068409%) vel=2.962690 naive=8140.000000 acc=-2.676477, speed=6.840902, timeOffset=-13.206031
+[107645][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.290995 pos=0.621884 (0.059130%) vel=2.919330 naive=9120.000000 acc=-3.935553, speed=5.912963, timeOffset=-13.252222
+[107714][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.302332 pos=0.654702 (0.059130%) vel=2.868547 naive=8700.000000 acc=-5.023840, speed=5.912963, timeOffset=-13.252222
+[107783][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.313668 pos=0.686875 (0.059130%) vel=2.805427 naive=6980.000000 acc=-6.112128, speed=5.912963, timeOffset=-13.252222
+[107852][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.325004 pos=0.718262 (0.059130%) vel=2.729969 naive=5340.000000 acc=-7.200416, speed=5.912963, timeOffset=-13.252222
+[107921][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.336341 pos=0.748724 (0.065970%) vel=2.642174 naive=4160.000000 acc=-8.288703, speed=6.597017, timeOffset=-12.738412
+[107990][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.348988 pos=0.781446 (0.065970%) vel=2.529662 naive=3580.000000 acc=-9.502892, speed=6.597017, timeOffset=-12.738412
+[108059][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.361636 pos=0.812648 (0.065970%) vel=2.401793 naive=3220.000000 acc=-10.717080, speed=6.597017, timeOffset=-12.738412
+[108128][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.374284 pos=0.842136 (0.059422%) vel=2.258567 naive=2820.000000 acc=-11.931268, speed=5.942227, timeOffset=-13.191180
+[108197][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.385676 pos=0.867069 (0.059422%) vel=2.116411 naive=2480.000000 acc=-13.024942, speed=5.942227, timeOffset=-13.191180
+[108265][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.396904 pos=0.889987 (0.059422%) vel=1.964125 naive=2080.000000 acc=-14.102765, speed=5.942227, timeOffset=-13.191180
+[108334][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.408296 pos=0.911424 (0.059422%) vel=1.797230 naive=1840.000000 acc=-15.196439, speed=5.942227, timeOffset=-13.191180
+[108403][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.419689 pos=0.930889 (0.059661%) vel=1.617876 naive=1660.000000 acc=-16.290112, speed=5.966066, timeOffset=-13.138045
+[108472][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.431127 pos=0.948305 (0.059661%) vel=1.425268 naive=1400.000000 acc=-17.388173, speed=5.966066, timeOffset=-13.138045
+[108541][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.442565 pos=0.963446 (0.059661%) vel=1.220100 naive=1120.000000 acc=-18.486235, speed=5.966066, timeOffset=-13.138045
+[108610][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.454003 pos=0.976168 (0.062174%) vel=1.002372 naive=920.000000 acc=-19.584296, speed=6.217373, timeOffset=-12.577283
+[108678][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.465750 pos=0.986566 (0.062174%) vel=0.765687 naive=740.000000 acc=-20.712026, speed=6.217373, timeOffset=-12.577283
+[108748][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.477843 pos=0.994283 (0.062174%) vel=0.508204 naive=560.000000 acc=-21.872925, speed=6.217373, timeOffset=-12.577283
+[108817][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.489763 pos=0.998760 (0.062174%) vel=0.240660 naive=320.000000 acc=-23.017240, speed=5.573762, timeOffset=-12.577283
+[108886][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.501683 pos=0.999966 (0.055738%) vel=-0.040253 naive=80.000000 acc=-23.838446, speed=5.573762, timeOffset=-13.018644
+[108955][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.512369 pos=0.998194 (0.055738%) vel=-0.289509 naive=-120.000000 acc=-22.812588, speed=5.573762, timeOffset=-13.018644
+[109025][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.523210 pos=0.993736 (0.055738%) vel=-0.531177 naive=-320.000000 acc=-21.771864, speed=5.573762, timeOffset=-13.018644
+[109094][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.533896 pos=0.986836 (0.065970%) vel=-0.758350 naive=-500.000000 acc=-20.746006, speed=6.596982, timeOffset=-12.721142
+[109164][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.546727 pos=0.975432 (0.065970%) vel=-1.016640 naive=-820.000000 acc=-19.514227, speed=6.596982, timeOffset=-12.721142
+[109233][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.559375 pos=0.961045 (0.065970%) vel=-1.255773 naive=-1040.000000 acc=-18.300046, speed=6.596982, timeOffset=-12.721142
+[109302][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.572022 pos=0.943731 (0.058515%) vel=-1.479548 naive=-1240.000000 acc=-17.085864, speed=5.851540, timeOffset=-13.399191
+[109372][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.583403 pos=0.925809 (0.058515%) vel=-1.667788 naive=-1300.000000 acc=-15.993273, speed=5.851540, timeOffset=-13.399191
+[109441][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.594622 pos=0.906115 (0.058515%) vel=-1.841168 naive=-1400.000000 acc=-14.916290, speed=5.851540, timeOffset=-13.399191
+[109510][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.605841 pos=0.884544 (0.058515%) vel=-2.002466 naive=-1560.000000 acc=-13.839308, speed=5.851540, timeOffset=-13.399191
+[109579][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.617059 pos=0.861231 (0.062394%) vel=-2.151683 naive=-1700.000000 acc=-12.762325, speed=6.239374, timeOffset=-13.523096
+[109649][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.629195 pos=0.834208 (0.062394%) vel=-2.299491 naive=-2080.000000 acc=-11.597318, speed=6.239374, timeOffset=-13.523096
+[109717][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.640983 pos=0.806320 (0.062394%) vel=-2.429538 naive=-2660.000000 acc=-10.465598, speed=6.239374, timeOffset=-13.523096
+[109786][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.652945 pos=0.776536 (0.066383%) vel=-2.547860 naive=-2820.000000 acc=-9.317234, speed=6.638341, timeOffset=-13.619745
+[109856][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.665857 pos=0.742897 (0.066383%) vel=-2.660157 naive=-3120.000000 acc=-8.077733, speed=6.638341, timeOffset=-13.619745
+E (110774) esp-tls: [sock=54] delayed connect error: Connection reset by peer
+E (110775) TRANSPORT_BASE: Failed to open a new connection: 32772
+E (110776) MQTT_CLIENT: Error transport connect
+[109898][D][mqtt.cpp:50] event_disconnected_handler(): [MQTT] Disconnected from MQTT broker
+[109925][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.678584 pos=0.708420 (0.066383%) vel=-2.755188 naive=-3580.000000 acc=-6.855938, speed=6.638341, timeOffset=-13.619745
+[109994][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.691311 pos=0.672833 (0.066383%) vel=-2.834669 naive=-3880.000000 acc=-5.634144, speed=6.638341, timeOffset=-13.619745
+[110063][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.704038 pos=0.636332 (0.063087%) vel=-2.898600 naive=-4180.000000 acc=-4.412350, speed=6.308714, timeOffset=-13.368707
+[110133][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.716308 pos=0.600463 (0.063087%) vel=-2.945514 naive=-4400.000000 acc=-3.234397, speed=6.308714, timeOffset=-13.368707
+[110202][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.728403 pos=0.564629 (0.063087%) vel=-2.977612 naive=-4800.000000 acc=-2.073271, speed=6.308714, timeOffset=-13.368707
+[110271][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.740498 pos=0.528491 (0.064954%) vel=-2.995667 naive=-5360.000000 acc=-0.912145, speed=6.495448, timeOffset=-12.943322
+[110340][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.752952 pos=0.491146 (0.064954%) vel=-2.999582 naive=-6340.000000 acc=0.283350, speed=6.495448, timeOffset=-12.943322
+[110409][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.765405 pos=0.453845 (0.064954%) vel=-2.988609 naive=-7560.000000 acc=1.478844, speed=6.495448, timeOffset=-12.943322
+[110478][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.777858 pos=0.416773 (0.064954%) vel=-2.962750 naive=-8740.000000 acc=2.674338, speed=6.495448, timeOffset=-12.943322
+[110546][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.790130 pos=0.380643 (0.063787%) vel=-2.922699 naive=-9300.000000 acc=3.852507, speed=6.378736, timeOffset=-13.210036
+[110615][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.802360 pos=0.345218 (0.063787%) vel=-2.868407 naive=-8760.000000 acc=5.026521, speed=6.378736, timeOffset=-13.210036
+[110684][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.814589 pos=0.310544 (0.063787%) vel=-2.799757 naive=-7220.000000 acc=6.200534, speed=6.378736, timeOffset=-13.210036
+[110753][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.826818 pos=0.276798 (0.065845%) vel=-2.716750 naive=-5700.000000 acc=7.374548, speed=6.584459, timeOffset=-13.738635
+[110822][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.839442 pos=0.243123 (0.065845%) vel=-2.616007 naive=-4620.000000 acc=8.586425, speed=6.584459, timeOffset=-13.738635
+[110891][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.852066 pos=0.210815 (0.065845%) vel=-2.499965 naive=-3800.000000 acc=9.798302, speed=6.584459, timeOffset=-13.738635
+[110960][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.864689 pos=0.180069 (0.065795%) vel=-2.368625 naive=-3200.000000 acc=11.010179, speed=6.579467, timeOffset=-13.750065
+[111029][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.877304 pos=0.151099 (0.065795%) vel=-2.222103 naive=-2800.000000 acc=12.221138, speed=6.579467, timeOffset=-13.750065
+[111098][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.889918 pos=0.124074 (0.065795%) vel=-2.060306 naive=-2540.000000 acc=13.432096, speed=6.579467, timeOffset=-13.750065
+[111167][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.902532 pos=0.099185 (0.065795%) vel=-1.883234 naive=-2240.000000 acc=14.643054, speed=6.579467, timeOffset=-13.750065
+[111236][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.915146 pos=0.076627 (0.065703%) vel=-1.690887 naive=-1980.000000 acc=15.854013, speed=6.570299, timeOffset=-13.771289
+[111305][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.927743 pos=0.056617 (0.065703%) vel=-1.483564 naive=-1660.000000 acc=17.063284, speed=6.570299, timeOffset=-13.771289
+[111374][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.940339 pos=0.039315 (0.065703%) vel=-1.261009 naive=-1360.000000 acc=18.272555, speed=6.570299, timeOffset=-13.771289
+[111443][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.952936 pos=0.024913 (0.066091%) vel=-1.023221 naive=-1040.000000 acc=19.481825, speed=6.609118, timeOffset=-13.681519
+[111512][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.965607 pos=0.013544 (0.066091%) vel=-0.768660 naive=-820.000000 acc=20.698241, speed=6.609118, timeOffset=-13.681519
+[111582][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.978461 pos=0.005407 (0.066091%) vel=-0.494661 naive=-580.000000 acc=21.932286, speed=6.609118, timeOffset=-13.681519
+[111651][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.991132 pos=0.000932 (0.066091%) vel=-0.209050 naive=-320.000000 acc=23.148702, speed=6.609118, timeOffset=-13.681519
+[111721][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.003987 pos=0.000190 (0.062802%) vel=0.094924 naive=-60.000000 acc=23.617254, speed=6.280217, timeOffset=-13.444020
+[111790][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.016027 pos=0.003017 (0.062802%) vel=0.372327 naive=200.000000 acc=22.461373, speed=6.280217, timeOffset=-13.444020
+[111858][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.027893 pos=0.008989 (0.062802%) vel=0.632093 naive=440.000000 acc=21.322243, speed=6.280217, timeOffset=-13.444020
+[111926][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.039759 pos=0.017964 (0.062722%) vel=0.878343 naive=640.000000 acc=20.183114, speed=6.272163, timeOffset=-13.462734
+[111995][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.051784 pos=0.029957 (0.062722%) vel=1.114104 naive=860.000000 acc=19.028715, speed=6.272163, timeOffset=-13.462734
+[112064][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.063809 pos=0.044702 (0.062722%) vel=1.335983 naive=1060.000000 acc=17.874317, speed=6.272163, timeOffset=-13.462734
+[112133][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.075834 pos=0.062032 (0.062722%) vel=1.543981 naive=1260.000000 acc=16.719918, speed=6.272163, timeOffset=-13.462734
+[112202][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.087859 pos=0.081780 (0.064538%) vel=1.738097 naive=1420.000000 acc=15.565519, speed=6.453772, timeOffset=-14.039263
+[112270][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.100053 pos=0.104102 (0.064538%) vel=1.920763 naive=1600.000000 acc=14.394910, speed=6.453772, timeOffset=-14.039263
+[112339][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.112426 pos=0.128939 (0.064538%) vel=2.091525 naive=1840.000000 acc=13.207086, speed=6.453772, timeOffset=-14.039263
+[112408][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.124799 pos=0.155799 (0.064759%) vel=2.247590 naive=2120.000000 acc=12.019262, speed=6.475937, timeOffset=-13.987507
+[112477][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.137215 pos=0.184600 (0.064759%) vel=2.389418 naive=2740.000000 acc=10.827359, speed=6.475937, timeOffset=-13.987507
+[112545][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.149451 pos=0.214617 (0.064759%) vel=2.514713 naive=2920.000000 acc=9.652729, speed=6.475937, timeOffset=-13.987507
+[112614][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.161866 pos=0.246552 (0.064759%) vel=2.627158 naive=3100.000000 acc=8.460826, speed=6.466091, timeOffset=-13.987507
+[112683][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.174282 pos=0.279792 (0.064661%) vel=2.724806 naive=3360.000000 acc=7.268922, speed=6.466091, timeOffset=-14.010609
+[112752][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.186679 pos=0.314099 (0.064661%) vel=2.807541 naive=3580.000000 acc=6.078831, speed=6.466091, timeOffset=-14.010609
+[112821][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.199076 pos=0.349340 (0.064661%) vel=2.875522 naive=3920.000000 acc=4.888739, speed=6.466091, timeOffset=-14.010609
+[112889][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.211293 pos=0.384806 (0.062535%) vel=2.928084 naive=4280.000000 acc=3.715896, speed=6.253534, timeOffset=-13.510355
+[112957][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.223108 pos=0.419636 (0.062535%) vel=2.965288 naive=4580.000000 acc=2.581606, speed=6.253534, timeOffset=-13.510355
+[113025][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.234924 pos=0.454826 (0.062535%) vel=2.989090 naive=5020.000000 acc=1.447317, speed=6.253534, timeOffset=-13.510355
+[113093][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.246739 pos=0.490218 (0.062563%) vel=2.999490 naive=5700.000000 acc=0.313028, speed=6.256331, timeOffset=-13.503767
+[113162][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.258734 pos=0.526191 (0.062563%) vel=2.996338 naive=6680.000000 acc=-0.838457, speed=6.256331, timeOffset=-13.503767
+[113231][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.270729 pos=0.562043 (0.062563%) vel=2.979376 naive=7680.000000 acc=-1.989942, speed=6.256331, timeOffset=-13.503767
+[113300][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.282723 pos=0.597609 (0.062563%) vel=2.948601 naive=8420.000000 acc=-3.141427, speed=6.256331, timeOffset=-13.503767
+[113369][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.294718 pos=0.632723 (0.064635%) vel=2.904015 naive=8380.000000 acc=-4.292911, speed=6.463513, timeOffset=-14.013836
+[113438][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.307110 pos=0.668349 (0.064635%) vel=2.843447 naive=7400.000000 acc=-5.482528, speed=6.463513, timeOffset=-14.013836
+[113506][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.319322 pos=0.702636 (0.064635%) vel=2.769335 naive=6160.000000 acc=-6.654904, speed=6.463513, timeOffset=-14.013836
+[113574][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.331534 pos=0.735930 (0.064139%) vel=2.680905 naive=4980.000000 acc=-7.827281, speed=6.413910, timeOffset=-14.131400
+[113643][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.343831 pos=0.768275 (0.064139%) vel=2.577396 naive=4040.000000 acc=-9.007768, speed=6.413910, timeOffset=-14.131400
+[113711][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.355949 pos=0.798819 (0.064139%) vel=2.461186 naive=3380.000000 acc=-10.171147, speed=6.413910, timeOffset=-14.131400
+[113780][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.368246 pos=0.828285 (0.064139%) vel=2.328856 naive=2920.000000 acc=-11.351634, speed=6.413910, timeOffset=-14.131400
+[113849][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.380543 pos=0.856035 (0.061530%) vel=2.182010 naive=2640.000000 acc=-12.532121, speed=6.153028, timeOffset=-13.751734
+[113918][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.392340 pos=0.880877 (0.061530%) vel=2.027494 naive=2400.000000 acc=-13.664593, speed=6.153028, timeOffset=-13.751734
+[113987][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.404136 pos=0.903817 (0.061530%) vel=1.859619 naive=1960.000000 acc=-14.797065, speed=6.153028, timeOffset=-13.751734
+[114056][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.415933 pos=0.924698 (0.064471%) vel=1.678385 naive=1880.000000 acc=-15.929537, speed=6.447083, timeOffset=-14.050855
+[114125][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.428293 pos=0.944197 (0.064471%) vel=1.474157 naive=1580.000000 acc=-17.116130, speed=6.447083, timeOffset=-14.050855
+[114194][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.440653 pos=0.961080 (0.064471%) vel=1.255262 naive=1280.000000 acc=-18.302723, speed=6.447083, timeOffset=-14.050855
+[114263][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.453014 pos=0.975167 (0.064471%) vel=1.021701 naive=1020.000000 acc=-19.489315, speed=6.447083, timeOffset=-14.050855
+[114332][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.465374 pos=0.986277 (0.063239%) vel=0.773473 naive=800.000000 acc=-20.675908, speed=6.323879, timeOffset=-14.345363
+[114401][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.477498 pos=0.994106 (0.063239%) vel=0.515740 naive=560.000000 acc=-21.839825, speed=6.323879, timeOffset=-14.345363
+[114470][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.489622 pos=0.998726 (0.063239%) vel=0.243895 naive=340.000000 acc=-23.003742, speed=6.323879, timeOffset=-14.345363
+[114538][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.501571 pos=0.999970 (0.065173%) vel=-0.037579 naive=80.000000 acc=-23.849209, speed=6.517255, timeOffset=-13.881897
+[114607][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.514066 pos=0.997670 (0.065173%) vel=-0.328078 naive=-160.000000 acc=-22.649701, speed=6.517255, timeOffset=-13.881897
+[114677][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.526742 pos=0.991725 (0.065173%) vel=-0.607473 naive=-420.000000 acc=-21.432808, speed=6.517255, timeOffset=-13.881897
+[114746][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.539236 pos=0.982492 (0.065173%) vel=-0.867779 naive=-680.000000 acc=-20.233300, speed=6.473072, timeOffset=-13.881897
+[114815][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.551731 pos=0.970101 (0.064731%) vel=-1.113098 naive=-880.000000 acc=-19.033792, speed=6.473072, timeOffset=-13.988238
+[114885][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.564321 pos=0.954611 (0.064731%) vel=-1.345125 naive=-1120.000000 acc=-17.825149, speed=6.473072, timeOffset=-13.988238
+[114954][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.576732 pos=0.936576 (0.064731%) vel=-1.558946 naive=-1300.000000 acc=-16.633773, speed=6.473072, timeOffset=-13.988238
+[115023][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.589142 pos=0.915979 (0.061609%) vel=-1.757981 naive=-1480.000000 acc=-15.442397, speed=6.160852, timeOffset=-13.740762
+[115093][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.601124 pos=0.893832 (0.061609%) vel=-1.936132 naive=-1600.000000 acc=-14.292052, speed=6.160852, timeOffset=-13.740762
+[115162][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.612936 pos=0.869993 (0.061609%) vel=-2.098247 naive=-1740.000000 acc=-13.158140, speed=6.160852, timeOffset=-13.740762
+[115231][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.624748 pos=0.844317 (0.061295%) vel=-2.246968 naive=-2040.000000 acc=-12.024228, speed=6.129537, timeOffset=-13.816276
+[115301][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.636669 pos=0.816702 (0.061295%) vel=-2.383497 naive=-2520.000000 acc=-10.879730, speed=6.129537, timeOffset=-13.816276
+[115370][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.648421 pos=0.787967 (0.061295%) vel=-2.504722 naive=-2820.000000 acc=-9.751582, speed=6.129537, timeOffset=-13.816276
+[115439][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.660173 pos=0.757885 (0.061295%) vel=-2.612690 naive=-2860.000000 acc=-8.623434, speed=6.129537, timeOffset=-13.816276
+[115508][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.671924 pos=0.726613 (0.062108%) vel=-2.707399 naive=-3080.000000 acc=-7.495285, speed=6.210824, timeOffset=-14.619290
+[115577][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.683831 pos=0.693870 (0.062108%) vel=-2.789843 naive=-3320.000000 acc=-6.352176, speed=6.210824, timeOffset=-14.619290
+[115646][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.695739 pos=0.660227 (0.062108%) vel=-2.858675 naive=-3600.000000 acc=-5.209067, speed=6.210824, timeOffset=-14.619290
+[115715][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.707646 pos=0.625846 (0.060005%) vel=-2.913896 naive=-4040.000000 acc=-4.065958, speed=6.000462, timeOffset=-14.130442
+[115784][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.719150 pos=0.592079 (0.060005%) vel=-2.954318 naive=-4280.000000 acc=-2.961566, speed=6.000462, timeOffset=-14.130442
+[115853][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.730654 pos=0.557921 (0.060005%) vel=-2.982036 naive=-4620.000000 acc=-1.857174, speed=6.000462, timeOffset=-14.130442
+[115922][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.742159 pos=0.523517 (0.060005%) vel=-2.997049 naive=-5120.000000 acc=-0.752783, speed=6.000462, timeOffset=-14.130442
+[115991][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.753663 pos=0.489013 (0.063365%) vel=-2.999356 naive=-6020.000000 acc=0.351609, speed=6.336493, timeOffset=-14.311393
+[116059][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.765635 pos=0.453157 (0.063365%) vel=-2.988266 naive=-7240.000000 acc=1.500946, speed=6.336493, timeOffset=-14.311393
+[116127][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.777607 pos=0.417515 (0.063365%) vel=-2.963417 naive=-8420.000000 acc=2.650283, speed=6.336493, timeOffset=-14.311393
+[116196][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.789755 pos=0.381739 (0.065542%) vel=-2.924136 naive=-9020.000000 acc=3.816521, speed=6.554233, timeOffset=-14.779557
+[116265][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.802321 pos=0.345328 (0.065542%) vel=-2.868600 naive=-8680.000000 acc=5.022835, speed=6.554233, timeOffset=-14.779557
+[116334][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.814887 pos=0.309710 (0.065542%) vel=-2.797905 naive=-7220.000000 acc=6.229149, speed=6.554233, timeOffset=-14.779557
+[116403][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.827453 pos=0.275076 (0.065542%) vel=-2.712052 naive=-5820.000000 acc=7.435463, speed=6.306272, timeOffset=-14.779557
+[116472][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.840019 pos=0.241616 (0.063063%) vel=-2.611040 naive=-4600.000000 acc=8.641777, speed=6.306272, timeOffset=-14.387243
+[116541][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.852109 pos=0.210707 (0.063063%) vel=-2.499541 naive=-3660.000000 acc=9.802453, speed=6.306272, timeOffset=-14.387243
+[116610][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.864199 pos=0.181231 (0.063063%) vel=-2.374009 naive=-3020.000000 acc=10.963130, speed=6.306272, timeOffset=-14.387243
+[116679][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.876290 pos=0.153358 (0.060173%) vel=-2.234444 naive=-2760.000000 acc=12.123806, speed=6.017311, timeOffset=-14.096999
+[116747][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.887659 pos=0.128762 (0.060173%) vel=-2.090402 naive=-2360.000000 acc=13.215249, speed=6.017311, timeOffset=-14.096999
+[116816][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.899195 pos=0.105550 (0.060173%) vel=-1.931558 naive=-2020.000000 acc=14.322742, speed=6.017311, timeOffset=-14.096999
+[116885][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.910732 pos=0.084244 (0.064755%) vel=-1.759937 naive=-1840.000000 acc=15.430234, speed=6.475493, timeOffset=-13.969005
+[116954][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.923146 pos=0.063615 (0.064755%) vel=-1.560975 naive=-1760.000000 acc=16.622056, speed=6.475493, timeOffset=-13.969005
+[117023][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.935561 pos=0.045547 (0.064755%) vel=-1.347217 naive=-1480.000000 acc=17.813878, speed=6.475493, timeOffset=-13.969005
+[117092][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.947976 pos=0.030225 (0.064755%) vel=-1.118663 naive=-1140.000000 acc=19.005700, speed=6.475493, timeOffset=-13.969005
+[117160][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.960211 pos=0.017990 (0.064204%) vel=-0.878946 naive=-880.000000 acc=20.180249, speed=6.420368, timeOffset=-14.104994
+[117229][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.972520 pos=0.008730 (0.064204%) vel=-0.623272 naive=-660.000000 acc=21.361925, speed=6.420368, timeOffset=-14.104994
+[117298][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.984829 pos=0.002706 (0.064204%) vel=-0.353052 naive=-440.000000 acc=22.543601, speed=6.420368, timeOffset=-14.104994
+[117366][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.996960 pos=0.000110 (0.063853%) vel=-0.072519 naive=-180.000000 acc=23.708151, speed=6.385302, timeOffset=-14.191833
+[117435][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.009202 pos=0.001004 (0.063853%) vel=0.216779 naive=60.000000 acc=23.116627, speed=6.385302, timeOffset=-14.191833
+[117503][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.021266 pos=0.005273 (0.063853%) vel=0.488683 naive=300.000000 acc=21.958437, speed=6.385302, timeOffset=-14.191833
+[117571][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.033331 pos=0.012739 (0.063853%) vel=0.746613 naive=540.000000 acc=20.800247, speed=6.385302, timeOffset=-14.191833
+[117640][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.045573 pos=0.023408 (0.065252%) vel=0.994054 naive=780.000000 acc=19.625025, speed=6.525248, timeOffset=-14.844322
+[117709][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.058083 pos=0.037348 (0.065252%) vel=1.232055 naive=1000.000000 acc=18.424046, speed=6.525248, timeOffset=-14.844322
+[117778][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.070593 pos=0.054172 (0.065252%) vel=1.455031 naive=1200.000000 acc=17.223067, speed=6.525248, timeOffset=-14.844322
+[117847][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.083103 pos=0.073691 (0.064644%) vel=1.662983 naive=1420.000000 acc=16.022087, speed=6.464448, timeOffset=-14.995629
+[117916][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.095497 pos=0.095501 (0.064644%) vel=1.854182 naive=1560.000000 acc=14.832298, speed=6.464448, timeOffset=-14.995629
+[117986][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.108070 pos=0.119955 (0.064644%) vel=2.033084 naive=1760.000000 acc=13.625266, speed=6.464448, timeOffset=-14.995629
+[118055][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.120464 pos=0.146168 (0.064644%) vel=2.194578 naive=2020.000000 acc=12.435477, speed=6.464448, timeOffset=-14.995629
+[118123][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.132678 pos=0.173872 (0.064275%) vel=2.339304 naive=2460.000000 acc=11.262931, speed=6.427473, timeOffset=-15.088030
+[118192][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.145001 pos=0.203523 (0.064275%) vel=2.470806 naive=2760.000000 acc=10.079947, speed=6.427473, timeOffset=-15.088030
+[118261][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.157323 pos=0.234706 (0.064275%) vel=2.587729 naive=2940.000000 acc=8.896964, speed=6.427473, timeOffset=-15.088030
+[118330][I][stroke_engine.cpp:202] startStrokeEngineTask(): [SplineCtrl] t=0.169646 pos=0.267239 (0.062715%) vel=2.690076 naive=3140.000000 acc=7.713980, speed=6.271519, timeOffset=-14.478193

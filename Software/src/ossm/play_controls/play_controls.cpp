@@ -15,7 +15,7 @@
 #include "services/tasks.h"
 #include "structs/SettingPercents.h"
 #include "ui.h"
-#include "utils/analog.h"
+#include "utils/AnalogSampler.h"
 #include "utils/format.h"
 #include "components/HeaderBar.h"
 
@@ -85,7 +85,7 @@ static void drawPlayControlsTask(void *pvParameters) {
         next.speedKnob = 0;
 #else
         next.speedKnob =
-            getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
+            AnalogSampler::readPercent(Pins::Remote::speedPotPin);
 #endif
         if (abs(next.speedKnob - settings.speedKnob) > 2 &&
             next.speedKnob < settings.speed) {

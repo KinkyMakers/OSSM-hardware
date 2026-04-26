@@ -40,7 +40,7 @@ class OSSM {
     String getStateFingerprint();
 
     // Backward compatibility accessors (deprecated - use globals directly)
-    int getSpeed() { return settings.speed; }
+    float getSpeed() { return settings.speed; }
 
     // Menu option accessor (deprecated - use menuState.currentOption)
     Menu menuOption = Menu::SimplePenetration;

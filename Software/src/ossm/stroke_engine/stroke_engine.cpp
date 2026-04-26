@@ -169,34 +169,37 @@ namespace stroke_engine {
                             continue;
                         }
 
-                        float timeScale = 100.0f / settings.speed;
+                        auto sample = spline.evaluate(settings.speed / 100.0f);
 
-                        currentSplineTime += fmodf(0.01f, 1.0f);
-
-                        auto sample = spline.evaluate(currentSplineTime);
                         double posNorm = fmax(0.0, fmin(1.0, sample.position));
-                        double velScaled = sample.velocity / timeScale;
+                        double velScaled = sample.velocity;
 
-                        int32_t targetPos =
-                            (int32_t)(posNorm * strokeSteps * 0.5f);
-                        float velStepsPerSec =
-                            fabs(velScaled) * strokeSteps * 0.5f;
+                        int32_t targetPos = (int32_t)(posNorm * strokeSteps);
+                        float velStepsPerSec = fabs(velScaled) * strokeSteps;
                         velStepsPerSec =
                             fmaxf(0.0f, fminf(velStepsPerSec, maxSpeedHz));
 
                         float accelSteps =
-                            velStepsPerSec / (tickIntervalMs / 1000.0f);
+                            fabs(sample.acceleration) * strokeSteps;
                         accelSteps = fmaxf(0.0f, fminf(accelSteps, maxAccel));
+
+                        float naiveVelocity =
+                            (targetPos - stepper->getCurrentPosition()) /
+                            (tickIntervalMs / 1000.0f);
 
                         stepper->setSpeedInHz((uint32_t)velStepsPerSec);
                         stepper->setAcceleration((int32_t)accelSteps);
+                        stepper->applySpeedAcceleration();
                         stepper->moveTo(targetPos, false);
 
-                        float splinePercent = posNorm * 100.0f;
                         ESP_LOGI("SplineCtrl",
-                                 "t=%.6f pos=%.6f (%.6f%%) vel=%.6f target=%d",
-                                 currentSplineTime, posNorm, splinePercent,
-                                 velStepsPerSec, targetPos);
+                                 "t=%.6f pos=%.6f (%.6f%%) vel=%.6f naive=%.6f "
+                                 "acc=%.6f, "
+                                 "speed=%.6f, timeOffset=%.6f",
+                                 sample.t, sample.position, sample.speedPercent,
+                                 sample.velocity, naiveVelocity,
+                                 sample.acceleration, settings.speed,
+                                 spline.getTimeOffset());
 
                         vTaskDelay(pdMS_TO_TICKS(tickIntervalMs));
                     }

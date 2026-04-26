@@ -11,7 +11,7 @@
 #include "services/led.h"
 #include "services/stepper.h"
 #include "services/tasks.h"
-#include "utils/analog.h"
+#include "utils/AnalogSampler.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -34,9 +34,11 @@ void clearHoming() {
     // Clear the stored values.
     calibration.measuredStrokeSteps = 0;
 
-    // Recalibrate the current sensor offset.
-    calibration.currentSensorOffset = (getAnalogAveragePercent(
-        SampleOnPin{Pins::Driver::currentSensorPin, 1000}));
+    // Recalibrate the current sensor offset. Give the EMA a moment to settle
+    // on the resting current level before snapshotting it as the offset.
+    vTaskDelay(pdMS_TO_TICKS(100));
+    calibration.currentSensorOffset =
+        AnalogSampler::readPercent(Pins::Driver::currentSensorPin);
 }
 
 static void startHomingTask(void *pvParameters) {
@@ -90,9 +92,9 @@ static void startHomingTask(void *pvParameters) {
         }
 
         // measure the current analog value.
-        float current = getAnalogAveragePercent(
-                            SampleOnPin{Pins::Driver::currentSensorPin, 50}) -
-                        calibration.currentSensorOffset;
+        float current =
+            AnalogSampler::readPercent(Pins::Driver::currentSensorPin) -
+            calibration.currentSensorOffset;
 
         ESP_LOGV("Homing", "Current: %f", current);
         bool isCurrentOverLimit =

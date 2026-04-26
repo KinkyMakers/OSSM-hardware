@@ -27,7 +27,7 @@ NimBLECharacteristic* pLatencyCompensationConfigCharacteristic = nullptr;
 NimBLECharacteristic* pCommandCharacteristic = nullptr;
 
 static long lostConnectionTime = 0;
-static int speedOnLostConnection = 0;
+static float speedOnLostConnection = 0.0f;
 static const unsigned long RAMP_DURATION_MS =
     2000;  // Duration for speed ramp to zero
 
@@ -66,7 +66,8 @@ class ServerCallbacks : public NimBLEServerCallbacks {
 
         // Capture current speed when connection is lost
         speedOnLostConnection = ossm->getSpeed();
-        ESP_LOGI(NIMBLE_TAG, "Speed on disconnect: %d", speedOnLostConnection);
+        ESP_LOGI(NIMBLE_TAG, "Speed on disconnect: %.2f",
+                 speedOnLostConnection);
 
         // Restart advertising when client disconnects
         if (pServer->getConnectedCount() == 0) {
@@ -163,7 +164,7 @@ void nimbleLoop(void* pvParameters) {
             if (lostConnectionTime > 0) {
                 // Skip ramp-down if speed was already zero when connection was
                 // lost
-                if (speedOnLostConnection <= 0) {
+                if (speedOnLostConnection <= 0.0f) {
                     lostConnectionTime = 0;
                     continue;
                 }
@@ -181,7 +182,7 @@ void nimbleLoop(void* pvParameters) {
                         NIMBLE_TAG,
                         "Speed ramp duration exceeded, setting speed to 0");
                     lostConnectionTime = 0;
-                    speedOnLostConnection = 0;
+                    speedOnLostConnection = 0.0f;
                     ossm->ble_click("set:speed:0");
                     continue;
                 }
@@ -194,7 +195,7 @@ void nimbleLoop(void* pvParameters) {
                 // Ramp from current speed to zero
                 int targetSpeed = (int)(speedOnLostConnection * (1.0 - t));
                 ESP_LOGI(NIMBLE_TAG,
-                         "Target speed: %d (from %d, progress: %.2f)",
+                         "Target speed: %d (from %.2f, progress: %.2f)",
                          targetSpeed, speedOnLostConnection, progress);
 
                 ossm->ble_click("set:speed:" + String(targetSpeed));

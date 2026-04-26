@@ -2,27 +2,20 @@
 #define OSSM_SOFTWARE_ANALOG_H
 
 #include "Arduino.h"
+#include "utils/AnalogSampler.h"
 
 typedef struct {
     int pinNumber;
     int samples;
 } SampleOnPin;
 
-// public static function to get the analog value of a pin
-static float getAnalogAveragePercent(SampleOnPin sampleOnPin) {
-    int sum = 0;
-    float average;
-    float percentage;
-
-    for (int i = 0; i < sampleOnPin.samples; i++) {
-        // TODO: Possibly use fancier filters?
-        sum += analogRead(sampleOnPin.pinNumber);
-        vTaskDelay(1);  // to allow other tasks to run
-    }
-    average = (float)sum / (float)sampleOnPin.samples;
-    // TODO: Might want to add a dead-band
-    percentage = 100.0f * average / 4096.0f;  // 12 bit resolution
-    return percentage;
+// Deprecated: prefer AnalogSampler::readPercent(pin) directly.
+//
+// Kept as a non-blocking shim around the background AnalogSampler so existing
+// callers compile unchanged. The `samples` field is ignored — filtering is now
+// done continuously by the sampler task at 100 Hz with an EMA per pin.
+static inline float getAnalogAveragePercent(SampleOnPin sampleOnPin) {
+    return AnalogSampler::readPercent(sampleOnPin.pinNumber);
 }
 
 #endif  // OSSM_SOFTWARE_ANALOG_H

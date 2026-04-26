@@ -11,7 +11,7 @@
 #include "services/stepper.h"
 #include "services/tasks.h"
 #include "ui.h"
-#include "utils/analog.h"
+#include "utils/AnalogSampler.h"
 #include "utils/format.h"
 #include "components/HeaderBar.h"
 
@@ -37,7 +37,7 @@ static void drawPreflightTask(void *pvParameters) {
         speedPercentage = 0;
 #else
         speedPercentage =
-            getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
+            AnalogSampler::readPercent(Pins::Remote::speedPotPin);
 #endif
         if (speedPercentage < Config::Advanced::commandDeadZonePercentage) {
             stateMachine->process_event(Done{});

@@ -28,8 +28,9 @@ static motorProperties servoMotor{
     .enablePin = Pins::Driver::motorEnablePin};
 
 static bool isChangeSignificant(float oldPct, float newPct) {
-    return oldPct != newPct &&
-           (abs(newPct - oldPct) > 2 || newPct == 0 || newPct == 100);
+    if (oldPct == newPct) return false;
+    if (newPct == 0.0f || newPct == 100.0f) return true;
+    return fabsf(newPct - oldPct) > 0.25f;
 }
 
 static float calculateSensation(float sensationPercentage) {

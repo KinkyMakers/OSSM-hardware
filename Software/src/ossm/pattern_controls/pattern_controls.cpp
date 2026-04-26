@@ -10,7 +10,7 @@
 #include "services/tasks.h"
 #include "structs/SettingPercents.h"
 #include "ui.h"
-#include "utils/analog.h"
+#include "utils/AnalogSampler.h"
 #include "utils/format.h"
 #include "components/HeaderBar.h"
 
@@ -40,13 +40,13 @@ static void drawPatternControlsTask(void *pvParameters) {
     while (isInCorrectState()) {
         float speed;
         float speedKnob =
-            getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
+            AnalogSampler::readPercent(Pins::Remote::speedPotPin);
         settings.speedKnob = speedKnob;
         if (USE_SPEED_KNOB_AS_LIMIT || !settings.speedBLE.has_value()) {
-            speed = speedKnob * (settings.speedBLE.value_or(100)) / 100;
+            speed = speedKnob * settings.speedBLE.value_or(100.0f) / 100.0f;
         } else {
-            speedKnob = settings.speedBLE.value_or(100);
-            speed = settings.speedBLE.value_or(100);
+            speedKnob = settings.speedBLE.value_or(100.0f);
+            speed = settings.speedBLE.value_or(100.0f);
         }
 
         if (speed != settings.speed) {
