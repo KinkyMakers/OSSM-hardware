@@ -1,0 +1,72 @@
+---
+title: "Hardware Tests"
+description: "Run on-device tests to verify OSSM peripherals, state machine, BLE, WiFi, and homing on real hardware"
+---
+
+Hardware tests run directly on a real OSSM connected over USB. They use the Unity test framework through PlatformIO's `hw_test` environment, which builds the full firmware source and flashes each test suite to the board.
+
+<Note>
+These are not the unit tests that run on your computer (`pio test -e test`). Hardware tests require a physical OSSM plugged in and powered on.
+</Note>
+
+## Prerequisites
+
+- OSSM connected via USB data cable
+- PlatformIO installed ([setup guide](/ossm/Software/getting-started/PlatformIO))
+- Device powered on (some tests exercise the motor, BLE radio, or WiFi)
+
+## Running tests
+
+Run all hardware tests:
+
+```bash
+pio test -e hw_test
+```
+
+Run a single test by name:
+
+```bash
+pio test -e hw_test -f test_hw_smoke
+```
+
+PlatformIO compiles the test, flashes it to the board, and streams the Unity output back over serial.
+
+## Test inventory
+
+| Test | What it verifies | Motor moves? | Runtime |
+|------|-----------------|:------------:|---------|
+| `test_hw_smoke` | Stepper init, OLED display, ADC reading, motor enable pin | No | ~5s |
+| `test_hw_homing` | Full homing cycle completes, measured stroke length is valid | **Yes** | ~30s |
+| `test_hw_homing_error` | Homing timeout triggers error state, error navigation works | No | ~50s |
+| `test_hw_pairing` | BLE server starts, pairing characteristic format/properties/UUID, advertising | No | ~5s |
+| `test_hw_state_machine` | Homing bypass, menu navigation (Help, WiFi, Update, Pairing), round-trip stability | No | ~10s |
+| `test_hw_wifi` | WiFi init, NVS credential storage, WiFi status JSON, BLE WiFi characteristic, bad-credentials handling | No | ~15s |
+
+<Warning>
+`test_hw_homing` commands the motor. Make sure the linear rail is clear and the device is properly mounted before running it.
+</Warning>
+
+## Recommended order
+
+1. **`test_hw_smoke`** — quick sanity check that peripherals are alive
+2. **`test_hw_pairing`** — BLE radio initialises and advertises correctly
+3. **`test_hw_wifi`** — WiFi and NVS credential storage work
+4. **`test_hw_state_machine`** — state machine boots and navigates without motor movement
+5. **`test_hw_homing`** — full homing with motor movement
+6. **`test_hw_homing_error`** — slowest test, verifies error handling on homing timeout
+
+## How it works
+
+The `hw_test` environment in `platformio.ini` extends `development` with two key settings:
+
+```ini
+[env:hw_test]
+extends = env:development
+test_filter = test_hw_*
+test_build_src = true
+```
+
+- **`test_filter`** limits PlatformIO to test folders matching `test_hw_*`
+- **`test_build_src`** includes the full `src/` tree so tests can use real firmware code (state machine, services, BLE stack) instead of mocks
+
+Each test is a standalone `setup()`/`loop()` program under `test/test_hw_*/main.cpp`. The `setup()` function initialises only the hardware it needs, runs the Unity assertions, and calls `UNITY_END()`.

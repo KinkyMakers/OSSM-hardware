@@ -75,9 +75,9 @@ class GPIOCallbacks : public NimBLECharacteristicCallbacks {
         static const char caps[] PROGMEM = "pins:[1,2,3,4]";
         pCharacteristic->setValue(String(FPSTR(caps)));
     }
-} gpioCallbacks;
+} inline gpioCallbacks;
 
-NimBLECharacteristic* initGPIOCharacteristic(NimBLEService* pService,
+inline NimBLECharacteristic* initGPIOCharacteristic(NimBLEService* pService,
                                              NimBLEUUID uuid) {
     NimBLECharacteristic* pChar = pService->createCharacteristic(
         uuid, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ);

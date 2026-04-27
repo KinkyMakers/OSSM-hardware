@@ -84,9 +84,9 @@ class WiFiConfigCallbacks : public NimBLECharacteristicCallbacks {
             "WiFi config notification/indication return code: %d, %s",
             code, NimBLEUtils::returnCodeToString(code));
     }
-} wifiConfigCallbacks;
+} inline wifiConfigCallbacks;
 
-NimBLECharacteristic* initWiFiConfigCharacteristic(NimBLEService* pService,
+inline NimBLECharacteristic* initWiFiConfigCharacteristic(NimBLEService* pService,
                                                     NimBLEUUID uuid) {
     NimBLECharacteristic* pWiFiConfigChar = pService->createCharacteristic(
         uuid, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ);

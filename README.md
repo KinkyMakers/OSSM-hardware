@@ -137,6 +137,7 @@ For firmware flashing and configuration, see the [Software Documentation](https:
 | [PlatformIO Setup](https://docs.researchanddesire.com/ossm/Software/getting-started/PlatformIO) | Development environment for custom builds |
 | [LED Status Guide](https://docs.researchanddesire.com/ossm/Software/getting-started/LED_Status) | Understanding indicator lights |
 | [StrokeEngine](https://docs.researchanddesire.com/ossm/Software/motion/stroke-engine/introduction) | Motion control library documentation |
+| [Hardware Tests](https://docs.researchanddesire.com/ossm/Software/getting-started/hardware-tests) | On-device test suites for verifying peripherals, BLE, WiFi, and homing |
 
 ---
 

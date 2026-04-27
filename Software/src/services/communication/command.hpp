@@ -43,9 +43,9 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
                  "Notification/Indication return code: %d, %s", code,
                  NimBLEUtils::returnCodeToString(code));
     }
-} chrCallbacks;
+} inline chrCallbacks;
 
-NimBLECharacteristic* initCommandCharacteristic(NimBLEService* pService,
+inline NimBLECharacteristic* initCommandCharacteristic(NimBLEService* pService,
                                                 NimBLEUUID uuid) {
     // Command characteristic (writable, readable)
     NimBLECharacteristic* pChar = pService->createCharacteristic(

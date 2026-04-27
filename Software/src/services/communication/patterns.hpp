@@ -7,7 +7,7 @@
 #include "constants/LogTags.h"
 #include "esp_log.h"
 
-NimBLECharacteristic* initPatternsCharacteristic(NimBLEService* pService,
+inline NimBLECharacteristic* initPatternsCharacteristic(NimBLEService* pService,
                                                  NimBLEUUID uuid) {
     // Patterns characteristic (read-only list of all patterns)
     NimBLECharacteristic* pPatternsChar =
@@ -69,9 +69,9 @@ class PatternDataCallbacks : public NimBLECharacteristicCallbacks {
         std::string value = pCharacteristic->getValue();
         ESP_LOGD(NIMBLE_TAG, "Pattern description read: %s", value.c_str());
     }
-} patternDataCallbacks;
+} inline patternDataCallbacks;
 
-NimBLECharacteristic* initPatternDataCharacteristic(NimBLEService* pService,
+inline NimBLECharacteristic* initPatternDataCharacteristic(NimBLEService* pService,
                                                     NimBLEUUID uuid) {
     NimBLECharacteristic* pPatternDataChar = pService->createCharacteristic(
         uuid, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ);
