@@ -23,6 +23,11 @@ export const OssmFunscriptPlayer = () => {
   const [funscriptFile, setFunscriptFile] = useState(null);
   const [funscriptActions, setFunscriptActions] = useState([]);
   const [funscriptSimpleActions, setFunscriptSimpleActions] = useState([]);
+  // Max position observed in the entire script (0-100). Used to render a
+  // safety marker on the position bar so users can gauge the deepest stroke
+  // the script will ever ask for, regardless of current playback time.
+  // See RAD-2053 (Issue 4).
+  const [funscriptMaxPosition, setFunscriptMaxPosition] = useState(0);
   const [isSimple, setIsSimple] = useState(true);
   const [isReverse, setIsReverse] = useState(false);
 
@@ -228,8 +233,14 @@ export const OssmFunscriptPlayer = () => {
       commandCharacteristicRef.current = await service.getCharacteristic(OSSM_COMMAND_CHARACTERISTIC_UUID);
       addLog('INFO', 'Got command characteristic');
 
-      // Enter streaming mode
+      // Enter streaming mode. We also send `set:speed:0` first to clear any
+      // residual safety-shutdown state before re-arming the streaming mode.
+      // Some firmware versions latch a safety state across BLE
+      // reconnects until a fresh streaming command is issued. See
+      // RAD-2053 (Issue 3) — full recovery still requires firmware fixes,
+      // but this gives the dashboard a best-effort reset hook.
       addLog('INFO', 'Entering streaming mode...');
+      await sendCommand('set:speed:0');
       await sendCommand('go:streaming');
 
       speedKnobCharacteristicRef.current = await service.getCharacteristic(OSSM_SPEED_KNOB_CHARACTERISTIC_UUID);
@@ -322,6 +333,7 @@ export const OssmFunscriptPlayer = () => {
     }
     if (!data.actions || !Array.isArray(data.actions)) {
       setError(`Failed to parse funscript`);
+      setFunscriptMaxPosition(0);
       return false;
     }
     var lastDirection = 0;
@@ -340,10 +352,24 @@ export const OssmFunscriptPlayer = () => {
     )
     data.simpleActions;
 
+    // Compute max position across the entire script (0-100). This drives a
+    // static safety marker on the position bar so users see the deepest
+    // stroke the script will ever request before playback reaches that
+    // point. See RAD-2053 (Issue 4).
+    let maxPos = 0;
+    for (const action of data.actions) {
+      const pos = Number(action?.pos);
+      if (Number.isFinite(pos) && pos > maxPos) {
+        maxPos = pos;
+      }
+    }
+    const clampedMaxPos = Math.max(0, Math.min(100, Math.round(maxPos)));
+
     setFunscriptActions(data.actions);
     setFunscriptSimpleActions(data.simpleActions);
+    setFunscriptMaxPosition(clampedMaxPos);
 
-    addLog('INFO', `Loaded ${data.actions.length} actions`);
+    addLog('INFO', `Loaded ${data.actions.length} actions (max pos ${clampedMaxPos})`);
 
     if (data.version) addLog('INFO', `Funscript version: ${data.version}`);
     if (data.inverted) addLog('INFO', 'Script is inverted');
@@ -403,7 +429,15 @@ export const OssmFunscriptPlayer = () => {
     setIsPlaying(true);
     syncIntervalRef.current = setInterval(syncFunscript, 2);
     addLog('INFO', 'Started sync');
-  }, [syncFunscript, addLog]);
+    // Warn when starting playback with Max Speed at 0. Raising the speed
+    // mid-playback puts the OSSM into a hard safety shutdown that only a
+    // power cycle clears. Surfacing this early prevents the user from
+    // having to recover from a stuck state. See RAD-2053 (Issue 2).
+    if (speed === 0) {
+      addLog('ERR', 'Max Speed is 0 — raise it BEFORE pressing play, or playback may trigger a safety shutdown');
+      setError('Max Speed is set to 0. Set it to a non-zero value before starting playback to avoid a safety shutdown that requires a power-cycle to clear.');
+    }
+  }, [syncFunscript, addLog, speed]);
 
   // Stop sync loop
   const stopSync = useCallback(() => {
@@ -570,9 +604,16 @@ export const OssmFunscriptPlayer = () => {
               Video File
             </label>
             <label className="block cursor-pointer">
+              {/*
+                Intentionally omit `accept` here. On Android, providing
+                `accept="video/*"` (or any explicit MIME) causes the system
+                picker to surface only the Photos/Gallery app, which hides
+                files on network drives and SD-cards. Leaving `accept` off
+                lets users open the full file browser via the standard
+                share-sheet. See RAD-2053 (Issue 1).
+              */}
               <input
                 type="file"
-                accept="video/*"
                 onChange={handleVideoSelect}
                 className="hidden"
               />
@@ -629,13 +670,36 @@ export const OssmFunscriptPlayer = () => {
           )}
         </div>
 
-        {/* Position bar */}
-        <div className="h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden mb-4">
+        {/*
+          Position bar with a static "script max depth" marker.
+          The filled violet bar shows the live commanded position.
+          The amber tick is the deepest position the script will EVER
+          request, computed from the full action list at load time. This
+          lets the user gauge the script's true peak depth before the
+          peak section plays. See RAD-2053 (Issue 4).
+        */}
+        <div className="relative h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden mb-1">
           <div
             className="h-full bg-violet-500 transition-all duration-75"
             style={{ width: `${currentPosition}%` }}
           />
+          {funscriptMaxPosition > 0 && (
+            <div
+              aria-label={`Script max depth: ${funscriptMaxPosition}`}
+              title={`Script max depth: ${funscriptMaxPosition}`}
+              className="absolute top-0 h-full w-0.5 bg-amber-500"
+              style={{ left: `${funscriptMaxPosition}%` }}
+            />
+          )}
         </div>
+        {funscriptMaxPosition > 0 && (
+          <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400 mb-3">
+            <span>Live position: {currentPosition}</span>
+            <span className="text-amber-600 dark:text-amber-400">
+              Script max depth: {funscriptMaxPosition}
+            </span>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
