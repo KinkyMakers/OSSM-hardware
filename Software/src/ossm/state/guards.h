@@ -4,6 +4,7 @@
 #include <WiFi.h>
 
 #include "../../constants/Menu.h"
+#include "ossm/state/calibration.h"
 
 // Forward declarations for guard implementations (defined in guards.cpp)
 bool ossmIsStrokeTooShort();
@@ -23,9 +24,7 @@ namespace guards {
     };
 
     // Guard for checking menu option - returns a lambda that checks if current option matches
-    constexpr auto isOption = [](Menu option) {
-        return [option]() { return ossmGetMenuOption() == option; };
-    };
+    constexpr auto isOption = [](Menu option) { return [option]() { return ossmGetMenuOption() == option; }; };
 
     // Guard for checking if preflight is safe
     constexpr auto isPreflightSafe = []() {
@@ -36,15 +35,7 @@ namespace guards {
 #endif
     };
 
-    // Guard for checking if this is the first homing
-    constexpr auto isFirstHomed = []() {
-        static bool firstHomed = true;
-        if (firstHomed) {
-            firstHomed = false;
-            return true;
-        }
-        return false;
-    };
+    constexpr auto isFirstHomed = []() { return calibration.isFirstHomed; };
 
     // Guard for checking if not homed
     constexpr auto isNotHomed = []() { return ossmIsNotHomed(); };
