@@ -88,7 +88,7 @@ namespace homing {
             int32_t currentPosition = stepper->getCurrentPosition();
             stepper->moveTo(currentPosition - sign * Config::Driver::homingOffsetMn, true);
 
-            if (!second && stateMachine->is("homing.backward"_s) && calibration.isFirstHomed) {
+            if (!second && stateMachine->is("homing.backward"_s)) {
                 second = true;
                 stepper->moveTo(targetPositionInSteps, false);
                 continue;
