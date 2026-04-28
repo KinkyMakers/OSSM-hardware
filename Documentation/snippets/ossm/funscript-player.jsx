@@ -1,3 +1,7 @@
+// NOTE: The pure stepping logic in this component is mirrored in
+// `funscript-player-logic.js` for unit testing (see RAD-1993). If you
+// change the inner loop of `syncFunscript`, update the helper too.
+
 export const OssmFunscriptPlayer = () => {
   // OSSM BLE UUIDs
   const OSSM_SERVICE_UUID = '522b443a-4f53-534d-0001-420badbabe69';
@@ -55,10 +59,27 @@ export const OssmFunscriptPlayer = () => {
   const lastSentTimeRef = useRef(0);
   const syncIntervalRef = useRef(null);
   const commandsSentRef = useRef(0);
+  // RAD-1993: Mirror reverse/simple toggles into refs so the running
+  // setInterval reads the current value, not a stale closure value.
+  // Without this, toggling Reverse while sync is running (or rapidly
+  // around play/pause) caused 1-2s of un-reversed positions to be sent
+  // because the interval was bound to an old `syncFunscript` closure.
+  const isReverseRef = useRef(isReverse);
+  const isSimpleRef = useRef(isSimple);
 
   useEffect(() => {
     setIsSupported(isWebBluetoothSupported());
   }, []);
+
+  // Keep refs in sync with state so the running sync interval always
+  // reads the latest reverse/simple values (RAD-1993).
+  useEffect(() => {
+    isReverseRef.current = isReverse;
+  }, [isReverse]);
+
+  useEffect(() => {
+    isSimpleRef.current = isSimple;
+  }, [isSimple]);
 
   // Auto-scroll logs
   useEffect(() => {
@@ -185,20 +206,30 @@ export const OssmFunscriptPlayer = () => {
   });
 
   const handleSimpleToggle = useCallback(async () => {
-    setIsSimple(!isSimple);
+    setIsSimple((prev) => {
+      const next = !prev;
+      // Update the ref synchronously so any in-flight sync tick
+      // immediately observes the new value (RAD-1993).
+      isSimpleRef.current = next;
+      return next;
+    });
     if (videoRef.current) {
       videoRef.current.pause();
     }
     stopSync();
-  }, [isSimple]);
+  }, []);
 
   const handleReverseToggle = useCallback(async () => {
-    setIsReverse(!isReverse);
+    setIsReverse((prev) => {
+      const next = !prev;
+      isReverseRef.current = next;
+      return next;
+    });
     if (videoRef.current) {
       videoRef.current.pause();
     }
     stopSync();
-  }, [isReverse]);
+  }, []);
 
 
   // Connect to OSSM
@@ -359,12 +390,13 @@ export const OssmFunscriptPlayer = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Sync funscript with video
+  // Sync funscript with video. Reads `isReverse`/`isSimple` from refs
+  // so the long-lived setInterval always observes the current toggle
+  // values (RAD-1993). Exported for testing via __test__ below.
   const syncFunscript = useCallback(() => {
-    var actions = funscriptActions;
-    if (isSimple){
-      actions = funscriptSimpleActions;
-    }
+    const useSimple = isSimpleRef.current;
+    const useReverse = isReverseRef.current;
+    const actions = useSimple ? funscriptSimpleActions : funscriptActions;
 
     if (!videoRef.current || actions.length === 0) return;
 
@@ -384,26 +416,32 @@ export const OssmFunscriptPlayer = () => {
         timeToNext = nextAction.at - action.at;
 
         if (action.at > lastSentTimeRef.current) {
-          if(isReverse){
-            sendStreamPosition(100 - nextAction.pos, timeToNext);
-          } else {
-            sendStreamPosition(nextAction.pos, timeToNext);
-          }
+          const targetPos = useReverse ? 100 - nextAction.pos : nextAction.pos;
+          sendStreamPosition(targetPos, timeToNext);
           lastSentTimeRef.current = action.at;
         }
       }
 
       currentActionIndexRef.current++;
     }
-  }, [funscriptActions, funscriptSimpleActions, timeOffset, buffer, sendStreamPosition, isReverse, isSimple]);
+  }, [funscriptActions, funscriptSimpleActions, timeOffset, buffer, sendStreamPosition]);
+
+  // Keep a ref to the latest syncFunscript so the long-lived
+  // setInterval below always invokes the current closure (RAD-1993).
+  const syncFunscriptRef = useRef(syncFunscript);
+  useEffect(() => {
+    syncFunscriptRef.current = syncFunscript;
+  }, [syncFunscript]);
 
   // Start sync loop
   const startSync = useCallback(() => {
     if (syncIntervalRef.current) return;
     setIsPlaying(true);
-    syncIntervalRef.current = setInterval(syncFunscript, 2);
+    syncIntervalRef.current = setInterval(() => {
+      syncFunscriptRef.current?.();
+    }, 2);
     addLog('INFO', 'Started sync');
-  }, [syncFunscript, addLog]);
+  }, [addLog]);
 
   // Stop sync loop
   const stopSync = useCallback(() => {
@@ -461,10 +499,7 @@ export const OssmFunscriptPlayer = () => {
   const handleVideoSeeked = () => {
     if (!videoRef.current) return;
     const currentTimeMs = videoRef.current.currentTime * 1000;
-    var actions = funscriptActions;
-    if (isSimple) {
-      actions = funscriptSimpleActions;
-    }
+    const actions = isSimpleRef.current ? funscriptSimpleActions : funscriptActions;
     currentActionIndexRef.current = actions.findIndex(a => a.at > currentTimeMs);
     if (currentActionIndexRef.current === -1) currentActionIndexRef.current = actions.length;
     lastSentTimeRef.current = currentTimeMs - 1;
