@@ -740,7 +740,7 @@ export const OssmBleController = () => {
                     value={deviceName}
                     onChange={(e) => setDeviceName(e.target.value)}
                     placeholder="OSSM"
-                    maxLength={20}
+                    maxLength={8}
                     className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
                   />
                 </div>
