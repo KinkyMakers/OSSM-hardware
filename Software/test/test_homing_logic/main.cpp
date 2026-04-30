@@ -38,13 +38,13 @@ void test_calculateMeasuredStroke_negative_position(void) {
 void test_calculateMeasuredStroke_positive_position_large_current(void) {
     // position=5000, current=7000, max=10000 → 7000
     float result = homing_logic::calculateMeasuredStroke(5000, 7000, 10000.0f);
-    TEST_ASSERT_EQUAL_FLOAT(5000.0f, result);
+    TEST_ASSERT_EQUAL_FLOAT(7000.0f, result);
 }
 
 void test_calculateMeasuredStroke_negative_position_large_current(void) {
     // position=-5000, current=7000, max=10000 → abs → 7000
     float result = homing_logic::calculateMeasuredStroke(-5000, 7000, 10000.0f);
-    TEST_ASSERT_EQUAL_FLOAT(5000.0f, result);
+    TEST_ASSERT_EQUAL_FLOAT(7000.0f, result);
 }
 
 void test_calculateMeasuredStroke_clamped_to_max(void) {
