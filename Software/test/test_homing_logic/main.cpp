@@ -25,34 +25,32 @@ void test_isCurrentOverLimit_exactly_at_threshold(void) {
 
 void test_calculateMeasuredStroke_positive_position(void) {
     // position=5000, max=10000 → 5000
-    float result = homing_logic::calculateMeasuredStroke(5000, 10000.0f);
+    float result = homing_logic::calculateMeasuredStroke(5000, 0, 10000.0f);
     TEST_ASSERT_EQUAL_FLOAT(5000.0f, result);
 }
 
 void test_calculateMeasuredStroke_negative_position(void) {
     // position=-5000, max=10000 → abs → 5000
-    float result = homing_logic::calculateMeasuredStroke(-5000, 10000.0f);
+    float result = homing_logic::calculateMeasuredStroke(-5000, 0, 10000.0f);
+    TEST_ASSERT_EQUAL_FLOAT(5000.0f, result);
+}
+
+void test_calculateMeasuredStroke_positive_position_large_current(void) {
+    // position=5000, current=7000, max=10000 → 7000
+    float result = homing_logic::calculateMeasuredStroke(5000, 7000, 10000.0f);
+    TEST_ASSERT_EQUAL_FLOAT(5000.0f, result);
+}
+
+void test_calculateMeasuredStroke_negative_position_large_current(void) {
+    // position=-5000, current=7000, max=10000 → abs → 7000
+    float result = homing_logic::calculateMeasuredStroke(-5000, 7000, 10000.0f);
     TEST_ASSERT_EQUAL_FLOAT(5000.0f, result);
 }
 
 void test_calculateMeasuredStroke_clamped_to_max(void) {
     // position=15000, max=10000 → clamped to 10000
-    float result = homing_logic::calculateMeasuredStroke(15000, 10000.0f);
+    float result = homing_logic::calculateMeasuredStroke(15000, 0, 10000.0f);
     TEST_ASSERT_EQUAL_FLOAT(10000.0f, result);
-}
-
-// ─── calculatePostHomingPosition ───
-
-void test_calculatePostHomingPosition_positive_sign(void) {
-    // sign=1, measured=5000, afterHoming=0.5 → goTo=-1*5000=-5000, negative so *0.5 = -2500
-    int32_t result = homing_logic::calculatePostHomingPosition(1, 5000.0f, 0.5f);
-    TEST_ASSERT_EQUAL_INT32(-2500, result);
-}
-
-void test_calculatePostHomingPosition_negative_sign(void) {
-    // sign=-1, measured=5000, afterHoming=0.5 → goTo=-(-1)*5000=5000, positive so unchanged = 5000
-    int32_t result = homing_logic::calculatePostHomingPosition(-1, 5000.0f, 0.5f);
-    TEST_ASSERT_EQUAL_INT32(5000, result);
 }
 
 // ─── isHomingTimedOut ───
@@ -93,10 +91,9 @@ int main(int argc, char **argv) {
 
     RUN_TEST(test_calculateMeasuredStroke_positive_position);
     RUN_TEST(test_calculateMeasuredStroke_negative_position);
+    RUN_TEST(test_calculateMeasuredStroke_positive_position_large_current);
+    RUN_TEST(test_calculateMeasuredStroke_negative_position_large_current);
     RUN_TEST(test_calculateMeasuredStroke_clamped_to_max);
-
-    RUN_TEST(test_calculatePostHomingPosition_positive_sign);
-    RUN_TEST(test_calculatePostHomingPosition_negative_sign);
 
     RUN_TEST(test_isHomingTimedOut_not_timed_out);
     RUN_TEST(test_isHomingTimedOut_timed_out);

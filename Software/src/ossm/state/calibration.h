@@ -12,6 +12,7 @@ struct CalibrationState {
     float measuredStrokeSteps = 0;
     bool isHomed = false;
     bool isForward = true;  // Homing direction
+    bool isFirstHomed = true;
 };
 
 extern CalibrationState calibration;
