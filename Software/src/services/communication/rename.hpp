@@ -21,7 +21,7 @@ class RenameConfigCallbacks : public NimBLECharacteristicCallbacks {
         u32_t currentTime = millis();
         if (currentTime - lastPresetCommand > 1000) {
             String value = pCharacteristic->getValue();
-            value = value.substring(0,20);
+            value = value.substring(0,8);
             Preferences userConfig;
             userConfig.begin("UserConfig", false);
             userConfig.putString("DeviceName", value);
