@@ -105,7 +105,8 @@ static void startHomingTask(void *pvParameters) {
                 calibration.measuredStrokeSteps,
                 Config::Driver::maxStrokeSteps);
 
-        if (!second && stateMachine->is("homing.backward"_s) &&isStrokeTooShort()) {
+        if (!second && stateMachine->is("homing.backward"_s) &&
+                    abs(stepper->getCurrentPosition()) < Config::Driver::minStrokeLengthMm) {
             second = true;
             stepper->setSpeedInHz(25_mm);
             stepper->moveTo(targetPositionInSteps, false);
