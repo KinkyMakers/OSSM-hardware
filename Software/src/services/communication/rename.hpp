@@ -27,6 +27,7 @@ class RenameConfigCallbacks : public NimBLECharacteristicCallbacks {
             userConfig.putString("DeviceName", value);
             userConfig.end();
             ESP_LOGI("NIMBLE_RENAME", "Rename write: %s", value.c_str());
+            ESP.restart();
         }
         lastPresetCommand = currentTime;
     }
