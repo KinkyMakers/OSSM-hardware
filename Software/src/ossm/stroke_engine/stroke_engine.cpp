@@ -146,6 +146,8 @@ namespace stroke_engine {
                     float maxSpeedHz =
                         Config::Driver::maxSpeedMmPerSecond * (1_mm);
                     float maxAccel = Config::Driver::maxAcceleration * (1_mm);
+                    stepper->setSpeedInHz((uint32_t)maxSpeedHz);
+                    stepper->applySpeedAcceleration();
 
                     TickType_t originTick = xTaskGetTickCount();
                     const TickType_t tickIntervalMs = 50;
@@ -179,18 +181,18 @@ namespace stroke_engine {
                         velStepsPerSec =
                             fmaxf(0.0f, fminf(velStepsPerSec, maxSpeedHz));
 
-                        float accelSteps =
-                            fabs(sample.acceleration) * strokeSteps;
-                        accelSteps = fmaxf(0.0f, fminf(accelSteps, maxAccel));
+                        float accelSteps = sample.acceleration * strokeSteps;
+                        accelSteps =
+                            fmaxf(-maxAccel, fminf(accelSteps, maxAccel));
 
                         float naiveVelocity =
                             (targetPos - stepper->getCurrentPosition()) /
                             (tickIntervalMs / 1000.0f);
 
-                        stepper->setSpeedInHz((uint32_t)velStepsPerSec);
-                        stepper->setAcceleration((int32_t)accelSteps);
-                        stepper->applySpeedAcceleration();
-                        stepper->moveTo(targetPos, false);
+                        stepper->setSpeedInHz((uint32_t)velStepsPerSec / 10);
+                        stepper->moveByAcceleration((int32_t)accelSteps / 10,
+                                                    true);
+                        // stepper->moveTo(targetPos, false);
 
                         ESP_LOGI("SplineCtrl",
                                  "t=%.6f pos=%.6f (%.6f%%) vel=%.6f naive=%.6f "

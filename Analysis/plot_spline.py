@@ -34,6 +34,12 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 FLOAT = r"-?\d+(?:\.\d+)?"
 
+# Newer PlatformIO/idf-monitor captures embed raw ANSI color codes
+# (ESC[37m, ESC[0m, ...) directly in the saved log. They get sprinkled inside
+# words and even between digits of numeric fields, so we strip them before
+# trying to match anything.
+ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+
 # Per-iteration "evaluate" log line (stroke_engine.cpp). Holds the rich
 # spline state: normalized position/velocity, the naive velocity (steps/sec)
 # fed to setSpeedInHz, acceleration, the user-driven speed setting, and the
@@ -56,6 +62,7 @@ def parse_log(path: str):
     eval_rows = []
     with open(path) as f:
         for line in f:
+            line = ANSI_ESCAPE_RE.sub("", line)
             me = EVAL_PATTERN.search(line)
             if me:
                 eval_rows.append(
