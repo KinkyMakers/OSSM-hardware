@@ -1,0 +1,16 @@
+Replacement Body section with Mounting Holes for Picatinny Rail
+Original Hardware will work with this build, 
+
+Note: 	Built for pitclamp Mini Housing
+Note: 	This version may be replaced later with the full Rifle Conversion later, will be stored as a seperate build if so
+	looking like the motor body will be quite forward on the chassis of that project so if this does stay in the build it will act as a forward
+	mount only,
+
+Additional Hardware to fit:
+	 - 2x M5 x 15 cap screws required
+	 - 2x M5 Standard Din Nuts Required
+	 - (Can use #10 x 24 x 1/2 as well)
+
+
+
+
