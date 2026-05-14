@@ -40,10 +40,14 @@ inline bool isSpeedChangeSignificant(float oldSpeed, float newSpeed,
 
 /// Calculate the target position for the next stroke.
 /// simple_penetration.cpp lines 77-82
+///
+/// Path X positive-going convention (counter=0 retracted, +M extended):
+///   isForward=true  → +(stroke%/100) * measuredStrokeSteps  (extend toward stroke depth)
+///   isForward=false → 0                                     (retract to home)
 inline int32_t calculateTarget(bool isForward, float strokePercent,
                                 float measuredStrokeSteps) {
     if (isForward) {
-        return -std::abs((strokePercent / 100.0f) * measuredStrokeSteps);
+        return std::abs((strokePercent / 100.0f) * measuredStrokeSteps);
     }
     return 0;
 }
