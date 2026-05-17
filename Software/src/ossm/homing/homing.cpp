@@ -1,10 +1,9 @@
 #include "homing.h"
 
 #include "Strings.h"
-#include "homing_logic.h"
 #include "constants/Config.h"
 #include "constants/Pins.h"
-#include "constants/UserConfig.h"
+#include "homing_logic.h"
 #include "ossm/Events.h"
 #include "ossm/state/calibration.h"
 #include "ossm/state/error.h"
@@ -25,15 +24,10 @@ void clearHoming() {
     // Set homing active flag for LED indication
     setHomingActive(true);
 
-    calibration.isForward = true;
-
     // Set acceleration and deceleration in steps/s^2
     stepper->setAcceleration(1000_mm);
     // Set speed in steps/s
-    stepper->setSpeedInHz(25_mm);
-
-    // Clear the stored values.
-    calibration.measuredStrokeSteps = 0;
+stepper->setSpeedInHz(25_mm);
 
     // Recalibrate the current sensor offset.
     calibration.currentSensorOffset = (getAnalogAveragePercent(
@@ -65,32 +59,24 @@ static void startHomingTask(void *pvParameters) {
     auto isInCorrectState = []() {
         // Add any states that you want to support here.
         return stateMachine->is("homing"_s) ||
-               stateMachine->is("homing.forward"_s) ||
-               stateMachine->is("homing.backward"_s);
+                stateMachine->is("homing.forward"_s) ||
+                stateMachine->is("homing.backward"_s);
     };
 
-    // run loop for 15second or until loop exits
+    bool second = false;
     while (isInCorrectState()) {
         TickType_t xCurrentTickCount = xTaskGetTickCount();
-        // Calculate the time in ticks that the task has been running.
         TickType_t xTicksPassed = xCurrentTickCount - xTaskStartTime;
-
-        // If you need the time in milliseconds, convert ticks to milliseconds.
-        // 'portTICK_PERIOD_MS' is the number of milliseconds per tick.
         uint32_t msPassed = xTicksPassed * portTICK_PERIOD_MS;
-
         if (homing_logic::isHomingTimedOut(msPassed, 40000)) {
             ESP_LOGE("Homing", "Homing took too long. Check power and restart");
             errorState.message = ui::strings::homingTookTooLong;
 
-            // Clear homing active flag for LED indication
             setHomingActive(false);
-
             stateMachine->process_event(Error{});
             break;
         }
 
-        // measure the current analog value.
         float current = getAnalogAveragePercent(
                             SampleOnPin{Pins::Driver::currentSensorPin, 50}) -
                         calibration.currentSensorOffset;
@@ -108,7 +94,6 @@ static void startHomingTask(void *pvParameters) {
         stepper->stopMove();
 
         stepper->setSpeedInHz(250_mm);
-        // step away from the hard stop, with your hands in the air!
         int32_t currentPosition = stepper->getCurrentPosition();
         stepper->moveTo(currentPosition - sign * Config::Driver::homingOffsetMn,
                         true);
@@ -117,16 +102,26 @@ static void startHomingTask(void *pvParameters) {
         calibration.measuredStrokeSteps =
             homing_logic::calculateMeasuredStroke(
                 stepper->getCurrentPosition(),
+                calibration.measuredStrokeSteps,
                 Config::Driver::maxStrokeSteps);
 
-        stepper->setCurrentPosition(0);
-        stepper->forceStopAndNewPosition(0);
+        if (!second && stateMachine->is("homing.backward"_s) &&
+                    abs(stepper->getCurrentPosition()) < Config::Driver::minStrokeLengthMm) {
+            second = true;
+            stepper->setSpeedInHz(25_mm);
+            stepper->moveTo(targetPositionInSteps, false);
+            continue;
+        }
 
-        int32_t goToPosition = homing_logic::calculatePostHomingPosition(
-            sign, calibration.measuredStrokeSteps,
-            UserConfig::afterHomingPosition);
+        ESP_LOGI("Homing", "Steps: %f", calibration.measuredStrokeSteps);
 
-        stepper->moveTo(goToPosition,true);
+        if (stateMachine->is("homing.backward"_s)) {
+            stepper->setCurrentPosition(0);
+            stepper->forceStopAndNewPosition(0);
+        }
+
+        stepper->setSpeedInHz(250_mm);
+        stepper->moveTo(0, true);
 
         // Clear homing active flag for LED indication
         setHomingActive(false);
