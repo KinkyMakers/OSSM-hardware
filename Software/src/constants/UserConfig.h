@@ -3,6 +3,7 @@
 
 namespace UserConfig {
     static bool displayMetric = true;
+    static float strokeEngineSpeedCurve = 0.8;
     static float afterHomingPosition = 0.0;
 
     // When true: BLE speed commands (0-100) are treated as a percentage of the

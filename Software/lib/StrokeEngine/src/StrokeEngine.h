@@ -129,15 +129,6 @@ class StrokeEngine {
 
     /**************************************************************************/
     /*!
-      @brief  Get the speed of a stroke. Speed is returned as Strokes per
-      Minute.
-      @return Strokes per Minute.
-    */
-    /**************************************************************************/
-    float getSpeed();
-
-    /**************************************************************************/
-    /*!
       @brief  Set the depth of a stroke. Settings tale effect with next stroke,
       or after calling applyNewSettingsNow().
       @param depth Depth in [mm]. Is constrained from 0 to TRAVEL
@@ -198,13 +189,13 @@ class StrokeEngine {
     /*!
       @brief  Choose a pattern for the StrokeEngine. Settings take effect with
       next stroke, or after calling applyNewSettingsNow().
-      @param patternIndex  Index of a pattern
+      @param nextPattern  Index of a pattern
       @param applyNow Set to true if changes should take effect immediately
       @return TRUE on success, FALSE, if patternIndex is invalid. Previous
                     pattern will be retained.
     */
     /**************************************************************************/
-    bool setPattern(Pattern *nextPattern, bool applyNow);
+    bool setPattern(StrokePatterns nextPattern, bool applyNow);
 
     /**************************************************************************/
     /*!
@@ -399,14 +390,14 @@ class StrokeEngine {
     int _maxStep;
     int _maxStepPerSecond;
     int _maxStepAcceleration;
-    Pattern *pattern = new SimpleStroke("Simple Stroke");
+    Pattern *pattern = Pattern::Create(StrokePatterns(0));
     bool _isHomed = false;
     int _index = 0;
     int _depth;
     int _previousDepth;
     int _stroke;
     int _previousStroke;
-    float _timeOfStroke;
+    float _speed;
     float _sensation;
     bool _applyUpdate = false;
     static void _homingProcedureImpl(void *_this) {
