@@ -1,0 +1,17 @@
+{
+  "name": "toppra",
+  "version": "0.6.8",
+  "description": "Time-Optimal Path Parameterization (vendored from hungpham2511/toppra)",
+  "license": "MIT",
+  "dependencies": {
+    "bolderflight/Bolder Flight Systems Eigen": "3.0.0"
+  },
+  "build": {
+    "flags": [
+      "-fexceptions",
+      "-Wno-error=reorder",
+      "-Wno-reorder"
+    ],
+    "libArchive": false
+  }
+}

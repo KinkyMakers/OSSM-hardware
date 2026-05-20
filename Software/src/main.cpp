@@ -13,6 +13,7 @@
 #include "services/led.h"
 #include "services/stepper.h"
 #include "services/wm.h"
+#include <toppra/toppra.hpp>
 
 namespace sml = boost::sml;
 using namespace sml;
