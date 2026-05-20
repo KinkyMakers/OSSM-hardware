@@ -6,15 +6,85 @@
 #include <math.h>
 #include <stdio.h>
 
+#include <algorithm>
 #include <vector>
 
 static const char* TAG = "SplinePattern";
 
-SplinePattern::SplinePattern() {
+// ─── Small math helpers ──────────────────────────────────────────────────
+
+namespace {
+
+// Per-anchor view of one JSON entry. handleIn and handleOut are parametric
+// tangent vectors describing the curve's slope at (x, y). handleOut is the
+// parametric derivative B'(u) at the anchor as the next segment leaves
+// (u=0); handleIn is B'(u) at the anchor as the previous segment arrives
+// (u=1). The geometric slope at the anchor is therefore handle.y / handle.x,
+// and the vector's magnitude controls how strongly the curve adheres to
+// that direction. Segment A → B becomes a cubic Bezier with control points
+//   P0 = A,  P1 = A + A.handleOut/3,  P2 = B − B.handleIn/3,  P3 = B
+// chosen so that B'(0) = A.handleOut and B'(1) = B.handleIn exactly. All-
+// zero handles still cleanly degenerate to a straight line.
+struct Anchor {
+    double x;
+    double y;
+    double handleInX;
+    double handleInY;
+    double handleOutX;
+    double handleOutY;
+};
+
+struct XY {
+    double x;
+    double y;
+};
+
+// Evaluate the spline at a single u value and copy the first 2D point out of
+// the resulting De Boor net. Allocates / frees a tsDeBoorNet per call; both
+// operations are cheap (single small malloc), but keep this off the hot path
+// where possible. Returns true on success.
+bool evalXY(const tsBSpline* spline, tsReal u, XY* out) {
+    tsDeBoorNet net = ts_deboornet_init();
+    tsStatus status;
+    bool ok = false;
+    if (ts_bspline_eval(spline, u, &net, &status) == TS_SUCCESS) {
+        const tsReal* result = ts_deboornet_result_ptr(&net);
+        if (result != nullptr) {
+            out->x = result[0];
+            out->y = result[1];
+            ok = true;
+        }
+    }
+    ts_deboornet_free(&net);
+    return ok;
+}
+
+}  // namespace
+
+// ─── Lifecycle ───────────────────────────────────────────────────────────
+
+SplinePattern::SplinePattern()
+    : _spline(ts_bspline_init()),
+      _splineDeriv1(ts_bspline_init()),
+      _splineDeriv2(ts_bspline_init()) {
     startTime = millis();
     timeDelta = 0;
     currentSplinePercent = 0.0f;
 }
+
+SplinePattern::~SplinePattern() { freeSplines(); }
+
+void SplinePattern::freeSplines() {
+    ts_bspline_free(&_spline);
+    ts_bspline_free(&_splineDeriv1);
+    ts_bspline_free(&_splineDeriv2);
+    _spline = ts_bspline_init();
+    _splineDeriv1 = ts_bspline_init();
+    _splineDeriv2 = ts_bspline_init();
+    _splineReady = false;
+}
+
+// ─── Loading ─────────────────────────────────────────────────────────────
 
 bool SplinePattern::loadFromFile(const char* id, float playRangeMm,
                                  float maxSpeedMmPerSec) {
@@ -67,113 +137,243 @@ bool SplinePattern::loadFromJson(const char* id, const char* jsonText,
         return false;
     }
 
-    std::vector<double> xs;
-    std::vector<double> ys;
-    xs.reserve(spline.size());
-    ys.reserve(spline.size());
-
-    // If every point omits both handles, treat the pattern as piecewise
-    // linear. One defined handle anywhere flips us back to hermite so
-    // authored curves keep their smoothness.
-    bool anyHandleDefined = false;
+    std::vector<Anchor> anchors;
+    anchors.reserve(spline.size());
     for (JsonObject pt : spline) {
-        xs.push_back(pt["x"] | 0.0);
-        ys.push_back(pt["y"] | 0.0);
-        if (!pt["handleIn"].isNull() || !pt["handleOut"].isNull()) {
-            anyHandleDefined = true;
+        Anchor a{};
+        a.x = pt["x"] | 0.0;
+        a.y = pt["y"] | 0.0;
+        JsonObject hin = pt["handleIn"];
+        if (!hin.isNull()) {
+            a.handleInX = hin["x"] | 0.0;
+            a.handleInY = hin["y"] | 0.0;
         }
+        JsonObject hout = pt["handleOut"];
+        if (!hout.isNull()) {
+            a.handleOutX = hout["x"] | 0.0;
+            a.handleOutY = hout["y"] | 0.0;
+        }
+        anchors.push_back(a);
     }
 
-    // Drop the closing point at x=1 if present. We treat the pattern as
+    // Drop the closing point at x≈1 if present. We treat the pattern as
     // periodic with period 1, so the value at x=1 is identical to x=0 and
-    // would be duplicated by the shifted copy of the first point below.
-    if (!xs.empty() && xs.back() >= 0.9999) {
-        xs.pop_back();
-        ys.pop_back();
+    // would be duplicated by the shifted copy of the first anchor below.
+    if (!anchors.empty() && anchors.back().x >= 0.9999) {
+        anchors.pop_back();
     }
 
-    if (xs.size() < 2) {
-        ESP_LOGE(TAG, "Not enough points to build a periodic spline");
+    if (anchors.size() < 2) {
+        ESP_LOGE(TAG, "Not enough anchors to build a periodic spline");
+        freeSplines();
         return false;
     }
 
-    for (size_t i = 1; i < xs.size(); i++) {
-        if (xs[i] <= xs[i - 1]) {
+    for (size_t i = 1; i < anchors.size(); i++) {
+        if (anchors[i].x <= anchors[i - 1].x) {
             ESP_LOGE(TAG,
                      "cubicSpline x values must be strictly increasing "
                      "(index %u: %f <= %f)",
-                     (unsigned)i, xs[i], xs[i - 1]);
+                     (unsigned)i, anchors[i].x, anchors[i - 1].x);
+            freeSplines();
             return false;
         }
     }
 
-    // Tile the base period three times at offsets -1, 0, +1 so tk::spline
-    // sees a smooth periodic signal across the [0, 1] evaluation window.
-    // The spline grid now spans roughly [-1, 2], so the natural-boundary
-    // endpoints are far from where we actually sample.
-    std::vector<double> xsTiled;
-    std::vector<double> ysTiled;
-    xsTiled.reserve(xs.size() * 3);
-    ysTiled.reserve(ys.size() * 3);
+    _baseAnchorCount = anchors.size();
+
+    // Tile anchors at offsets -1, 0, +1 so the wrap-around segment from the
+    // last anchor back to the first stays smooth. We always evaluate against
+    // the middle tile, so the tile-boundary endpoints are far from where we
+    // sample.
+    std::vector<Anchor> tiled;
+    tiled.reserve(anchors.size() * 3 + 1);
     for (int k = -1; k <= 1; ++k) {
-        for (size_t i = 0; i < xs.size(); ++i) {
-            xsTiled.push_back(xs[i] + k);
-            ysTiled.push_back(ys[i]);
+        for (const Anchor& a : anchors) {
+            Anchor shifted = a;
+            shifted.x = a.x + k;
+            tiled.push_back(shifted);
         }
     }
+    // Close the tiled chain with a copy of the first anchor offset by +2 so
+    // the wrap-around segment from the last anchor of tile +1 has a target.
+    Anchor closing = anchors.front();
+    closing.x = anchors.front().x + 2.0;
+    tiled.push_back(closing);
 
-    // Find the steepest segment in normalized (x in [0,1]) space. The
-    // motor's peak mm/s must be achievable on that segment, which gives us
-    // the minimum real-time period required for a full [0,1] traversal.
-    // Include the wrap segment (last point -> first point of next period)
-    // so a fast return stroke at the boundary is accounted for.
-    // TODO this will not determine the max slope. must use the second
-    // derivative = 0
+    // Build per-segment cubic Bezier control points. With TS_BEZIERS each
+    // segment owns four control points; adjacent segments duplicate their
+    // shared anchor as P3 of one segment and P0 of the next.
+    const size_t segmentCount = tiled.size() - 1;
+    const size_t numCtrl = segmentCount * 4;
+    std::vector<tsReal> ctrl;
+    ctrl.reserve(numCtrl * 2);
+
+    bool sawSegmentXMonotonicityWarning = false;
+    for (size_t i = 0; i < segmentCount; ++i) {
+        const Anchor& a = tiled[i];
+        const Anchor& b = tiled[i + 1];
+
+        // For a cubic Bezier, B'(0) = 3(P1 − P0) and B'(1) = 3(P3 − P2).
+        // To make B'(0) = a.handleOut and B'(1) = b.handleIn we place the
+        // control points at one-third of the tangent vector away from the
+        // anchor. Note the sign flip on handleIn: the parametric tangent at
+        // u=1 points from P2 toward P3, so handleIn (the "arriving" tangent)
+        // pulls P2 back from B.
+        const double p0x = a.x;
+        const double p0y = a.y;
+        const double p1x = a.x + a.handleOutX / 3.0;
+        const double p1y = a.y + a.handleOutY / 3.0;
+        const double p2x = b.x - b.handleInX / 3.0;
+        const double p2y = b.y - b.handleInY / 3.0;
+        const double p3x = b.x;
+        const double p3y = b.y;
+
+        // The Newton solver in evaluate() needs x(u) strictly monotonic
+        // inside each segment. A necessary condition is that both control
+        // x-coordinates sit between the anchor x-values; warn once if not so
+        // the pattern author can tighten the handle.
+        const double xLo = std::min(p0x, p3x);
+        const double xHi = std::max(p0x, p3x);
+        if (!sawSegmentXMonotonicityWarning &&
+            (p1x < xLo - 1e-9 || p1x > xHi + 1e-9 || p2x < xLo - 1e-9 ||
+             p2x > xHi + 1e-9)) {
+            ESP_LOGW(TAG,
+                     "Pattern '%s' segment %u may have non-monotonic x(u); "
+                     "Newton solve could land on wrong root",
+                     id, (unsigned)i);
+            sawSegmentXMonotonicityWarning = true;
+        }
+
+        ctrl.push_back(p0x);
+        ctrl.push_back(p0y);
+        ctrl.push_back(p1x);
+        ctrl.push_back(p1y);
+        ctrl.push_back(p2x);
+        ctrl.push_back(p2y);
+        ctrl.push_back(p3x);
+        ctrl.push_back(p3y);
+    }
+
+    // (Re)build the tinyspline objects. freeSplines() resets them to a known
+    // initialised state so the destructor is safe even if we bail mid-way.
+    freeSplines();
+
+    tsStatus status;
+    if (ts_bspline_new(numCtrl, 2, 3, TS_BEZIERS, &_spline, &status) !=
+        TS_SUCCESS) {
+        ESP_LOGE(TAG, "ts_bspline_new failed for %s: %s", id, status.message);
+        freeSplines();
+        return false;
+    }
+    if (ts_bspline_set_control_points(&_spline, ctrl.data(), &status) !=
+        TS_SUCCESS) {
+        ESP_LOGE(TAG, "ts_bspline_set_control_points failed for %s: %s", id,
+                 status.message);
+        freeSplines();
+        return false;
+    }
+    // tinyspline's derive() does an internal continuity check at internal
+    // knots with a strict epsilon. We construct each segment so that
+    // adjacent Beziers share an anchor (C0) and matched tangents (C1, C2 by
+    // symmetry when handleIn == handleOut), but tinyspline accumulates
+    // float-precision error in its knot vector (TS_DOMAIN_DEFAULT_MIN/MAX
+    // are float literals — see tinyspline.h) which produces residuals on the
+    // order of 1e-7 between mathematically-equal control points. Passing
+    // epsilon < 0 disables the check entirely; we own the geometry so we
+    // know it's continuous by construction.
+    if (ts_bspline_derive(&_spline, 1, -1.0, &_splineDeriv1, &status) !=
+        TS_SUCCESS) {
+        ESP_LOGE(TAG, "ts_bspline_derive(1) failed for %s: %s", id,
+                 status.message);
+        freeSplines();
+        return false;
+    }
+    if (ts_bspline_derive(&_splineDeriv1, 1, -1.0, &_splineDeriv2, &status) !=
+        TS_SUCCESS) {
+        ESP_LOGE(TAG, "ts_bspline_derive(2) failed for %s: %s", id,
+                 status.message);
+        freeSplines();
+        return false;
+    }
+    _splineReady = true;
+
+    // Populate the segment lookup. The spline u-domain is [0, 1] split into
+    // segmentCount equal-length windows.
+    _segments.clear();
+    _segments.reserve(segmentCount);
+    const double duPerSeg = 1.0 / (double)segmentCount;
+    for (size_t i = 0; i < segmentCount; ++i) {
+        TiledSegment seg{};
+        seg.xStart = tiled[i].x;
+        seg.xEnd = tiled[i + 1].x;
+        seg.uStart = (double)i * duPerSeg;
+        seg.uEnd = (double)(i + 1) * duPerSeg;
+        _segments.push_back(seg);
+    }
+
+    // Approximate the steepest slope by sampling each base-period segment in
+    // u. The per-evaluate cost of this is paid once at load. We need the
+    // segment that yields the largest |dy/dx| across normalized x ∈ [0, 1] so
+    // we can compute totalDuration consistent with the motor's mm/s ceiling.
+    constexpr int kSlopeSamples = 32;
     float maxSlopeAbs = 0.0f;
     float dxAtMaxSlopePercent = 0.0f;
-    auto considerSegment = [&](double x0, double y0, double x1, double y1) {
-        float dx = (float)(x1 - x0);
-        if (dx < 0.0001f) return;
-        float slope = fabsf((float)(y1 - y0) / dx);
-        if (slope > maxSlopeAbs) {
-            maxSlopeAbs = slope;
-            dxAtMaxSlopePercent = dx;
+    // We sample only the middle tile (segments [N, 2N) where N is the base
+    // anchor count) so the slope reflects one full period including the wrap
+    // segment, but not any anchors duplicated at +1/-1.
+    const size_t midStart = _baseAnchorCount;
+    const size_t midEnd = 2 * _baseAnchorCount;
+    for (size_t segIdx = midStart; segIdx < midEnd && segIdx < segmentCount;
+         ++segIdx) {
+        const TiledSegment& seg = _segments[segIdx];
+        for (int s = 0; s <= kSlopeSamples; ++s) {
+            const double frac = (double)s / kSlopeSamples;
+            const tsReal u = (tsReal)(seg.uStart + frac * (seg.uEnd - seg.uStart));
+            XY d1;
+            if (!evalXY(&_splineDeriv1, u, &d1)) continue;
+            if (fabs(d1.x) < 1e-9) continue;
+            const float slope = (float)fabs(d1.y / d1.x);
+            if (slope > maxSlopeAbs) {
+                maxSlopeAbs = slope;
+                dxAtMaxSlopePercent = (float)(seg.xEnd - seg.xStart);
+            }
         }
-    };
-    for (size_t i = 1; i < xs.size(); i++) {
-        considerSegment(xs[i - 1], ys[i - 1], xs[i], ys[i]);
     }
-    considerSegment(xs.back(), ys.back(), xs.front() + 1.0, ys.front());
 
-    float dxAtMaxSlopeSeconds = playRangeMm / maxSpeedMmPerSec;
+    const float dxAtMaxSlopeSeconds = playRangeMm / maxSpeedMmPerSec;
 
     ESP_LOGI(TAG,
              "maxSlopeAbs: %.3f, dxAtMaxSlopePercent: %.3f, "
              "dxAtMaxSlopeSeconds: %.3f",
              maxSlopeAbs, dxAtMaxSlopePercent, dxAtMaxSlopeSeconds);
 
+    // dxAtMaxSlopePercent is the x-span (in normalized period units) of the
+    // segment containing the steepest sample. Treating that segment as the
+    // bottleneck, the wall-clock time to traverse it equals
+    // dxAtMaxSlopeSeconds, so the full period scales as 1 / dxPercent.
     _totalDuration = (dxAtMaxSlopePercent > 0.0f)
                          ? dxAtMaxSlopeSeconds / dxAtMaxSlopePercent
                          : 0.0f;
 
-    // TODO: set the boundary conditions
-    const tk::spline::spline_type splineType =
-        anyHandleDefined ? tk::spline::cspline_hermite : tk::spline::linear;
-    _spline.set_points(xsTiled, ysTiled, splineType);
-    _pointCount = xs.size();
-
-    ESP_LOGI(TAG, "Loaded '%s': %u points (tiled to %u), duration=%.3f, %s",
-             _name, (unsigned)_pointCount, (unsigned)xsTiled.size(),
-             _totalDuration, anyHandleDefined ? "hermite" : "linear");
+    ESP_LOGI(TAG,
+             "Loaded '%s': %u anchors (tiled to %u segments), duration=%.3f",
+             _name, (unsigned)_baseAnchorCount, (unsigned)segmentCount,
+             _totalDuration);
 
     return true;
 }
 
+// ─── Evaluation ──────────────────────────────────────────────────────────
+
 SplineSample SplinePattern::evaluate(double speedPercent) {
-    if (_pointCount < 2) {
+    if (!_splineReady || _baseAnchorCount < 2 || _segments.empty()) {
         return SplineSample{0.0, 0.0, 0.0, 0.0, 0.0};
     }
 
+    // ── Time → normalized t in [0, 1] ────────────────────────────────────
+    // Identical to the original implementation. Speed changes mid-stroke
+    // adjust `timeOffset` so the curve doesn't jump when the period scales.
     long deltaTimeMS = millis() - startTime;
 
     long timeSinceStartMS =
@@ -198,11 +398,103 @@ SplineSample SplinePattern::evaluate(double speedPercent) {
 
     lastSpeedPercent = speedPercent;
 
+    // ── Locate the middle-tile segment containing t ──────────────────────
+    // The middle tile spans _segments[N .. 2N) where N is the base anchor
+    // count, with x running from anchors[0].x (typically 0) to that value
+    // plus 1. Binary search over the middle tile only.
+    const size_t midStart = _baseAnchorCount;
+    const size_t midEnd = std::min(2 * _baseAnchorCount, _segments.size());
+
+    size_t segIdx = midStart;
+    // Lower bound on xStart > t, then step back one.
+    {
+        size_t lo = midStart;
+        size_t hi = midEnd;
+        while (lo < hi) {
+            const size_t mid = lo + (hi - lo) / 2;
+            if (_segments[mid].xStart <= t) {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        segIdx = (lo == midStart) ? midStart : (lo - 1);
+    }
+    // Clamp in case rounding pushes us past the tile boundary.
+    if (segIdx >= midEnd) segIdx = midEnd - 1;
+    const TiledSegment& seg = _segments[segIdx];
+
+    // ── Solve x(u) = t with Newton + bisection bracket ──────────────────
+    double uLo = seg.uStart;
+    double uHi = seg.uEnd;
+    const double segDx = seg.xEnd - seg.xStart;
+    double u = (segDx > 1e-12)
+                   ? (seg.uStart + (t - seg.xStart) / segDx *
+                                       (seg.uEnd - seg.uStart))
+                   : seg.uStart;
+    if (u < uLo) u = uLo;
+    if (u > uHi) u = uHi;
+
+    XY pos{};
+    XY vel{};
+    constexpr int kMaxIters = 20;
+    constexpr double kTol = 1e-6;
+    bool converged = false;
+    for (int it = 0; it < kMaxIters; ++it) {
+        if (!evalXY(&_spline, (tsReal)u, &pos)) break;
+        const double fx = pos.x - t;
+        if (fabs(fx) < kTol) {
+            converged = true;
+            break;
+        }
+        if (!evalXY(&_splineDeriv1, (tsReal)u, &vel)) break;
+        // Maintain the bracket [uLo, uHi] so a bad Newton step can fall back
+        // to bisection without losing the root.
+        if (fx > 0) {
+            uHi = u;
+        } else {
+            uLo = u;
+        }
+        double uNext = u;
+        if (fabs(vel.x) > 1e-9) {
+            uNext = u - fx / vel.x;
+        }
+        if (!(uNext > uLo && uNext < uHi)) {
+            // Newton stepped outside the bracket (or hit a flat x'); bisect.
+            uNext = 0.5 * (uLo + uHi);
+        }
+        if (fabs(uNext - u) < 1e-12) {
+            converged = true;
+            u = uNext;
+            break;
+        }
+        u = uNext;
+    }
+
+    // Final eval to make sure pos / vel correspond to the converged u even
+    // when we exited early via tolerance check.
+    if (!converged) {
+        evalXY(&_spline, (tsReal)u, &pos);
+    }
+    evalXY(&_splineDeriv1, (tsReal)u, &vel);
+
+    XY acc{};
+    evalXY(&_splineDeriv2, (tsReal)u, &acc);
+
+    // ── Compose dy/dt and d²y/dt² from the parametric derivatives ──────
+    // y = y(u(t)) where x(u(t)) = t.
+    //   dy/dt           = y'(u) / x'(u)
+    //   d²y/dt²         = (y''(u) x'(u) − y'(u) x''(u)) / x'(u)³
+    double yPos = pos.y;
+    double velocity = 0.0;
+    double acceleration = 0.0;
+    if (fabs(vel.x) > 1e-9) {
+        velocity = vel.y / vel.x;
+        const double xpCubed = vel.x * vel.x * vel.x;
+        acceleration = (acc.y * vel.x - vel.y * acc.x) / xpCubed;
+    }
+
     return SplineSample{
-        t,
-        (double)_spline(t),
-        (double)_spline.deriv(1, t),
-        (double)_spline.deriv(2, t),
-        speedPercent,
+        t, yPos, velocity, acceleration, speedPercent,
     };
 }
