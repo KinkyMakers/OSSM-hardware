@@ -45,9 +45,11 @@ struct OSSMStateMachine {
             "menu.idle"_s + buttonPress[(isOption(Menu::Restart))] = "restart"_s,
 
             "simplePenetration"_s [isNotHomed] = "homing"_s,
-            "simplePenetration"_s [isPreflightSafe] / (resetSettingsSimplePen, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
+            // DESTRUCTIVE TEST: no UI for simplePenetration — toppra+RMT test
+            // owns the screen real estate (it is intentionally left as-is).
+            "simplePenetration"_s [isPreflightSafe] / (resetSettingsSimplePen, startSimplePenetration) = "simplePenetration.idle"_s,
             "simplePenetration"_s / drawPreflight = "simplePenetration.preflight"_s,
-            "simplePenetration.preflight"_s + done / (resetSettingsSimplePen, drawPlayControls, startSimplePenetration) = "simplePenetration.idle"_s,
+            "simplePenetration.preflight"_s + done / (resetSettingsSimplePen, startSimplePenetration) = "simplePenetration.idle"_s,
             "simplePenetration.preflight"_s + longPress = "menu"_s,
             "simplePenetration.idle"_s + longPress / (emergencyStop, setNotHomed) = "menu"_s,
             "simplePenetration.idle"_s + event<ReturnToMenu> / emergencyStop = "menu"_s,
