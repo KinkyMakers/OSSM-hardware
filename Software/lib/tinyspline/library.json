@@ -1,0 +1,13 @@
+{
+  "name": "tinyspline",
+  "version": "0.6.0",
+  "description": "Small ANSI C library for NURBS, B-splines, and Bezier curves. Vendored C-only sources from https://github.com/msteinbeck/tinyspline (tinyspline + parson.c for serialization). The upstream tinysplinecxx.cxx C++ wrapper is intentionally omitted because it requires exceptions, which are disabled in staging/production builds.",
+  "homepage": "https://github.com/msteinbeck/tinyspline",
+  "license": "MIT",
+  "frameworks": "*",
+  "platforms": "*",
+  "build": {
+    "srcDir": "src",
+    "srcFilter": ["+<*.c>", "+<*.h>"]
+  }
+}
