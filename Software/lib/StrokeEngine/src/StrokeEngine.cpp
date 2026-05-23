@@ -47,9 +47,6 @@ void StrokeEngine::begin(machineGeometry *physics, motorProperties *motor,
 }
 
 void StrokeEngine::setSpeed(float speedPercent, bool applyNow = false) {
-    // Speed is the desired peak motor speed as a percentage [0, 100] of
-    // motorProperties.maxSpeed. timeOfStroke is derived from speed + stroke
-    // so the pattern's peak step rate equals `_speedPercent% * _maxStepPerSecond`.
     if (xSemaphoreTake(_patternMutex, portMAX_DELAY) == pdTRUE) {
         _speedPercent = constrain(speedPercent, 0.0f, 100.0f);
         _recalcTimeOfStroke();
@@ -126,9 +123,6 @@ void StrokeEngine::setStroke(float stroke, bool applyNow = false) {
 
         pattern->setStroke(_stroke);
 
-        // Peak speed is a function of (stroke, speedPercent, maxStepPerSecond),
-        // so a stroke change requires re-deriving timeOfStroke to keep peak
-        // motor speed at `_speedPercent% * _maxStepPerSecond`.
         _recalcTimeOfStroke();
         pattern->setTimeOfStroke(_timeOfStroke);
 
@@ -550,7 +544,6 @@ void StrokeEngine::setMaxSpeed(float maxSpeed) {
         pattern->setSpeedLimit(_maxStepPerSecond, _maxStepAcceleration,
                               _motor->stepsPerMillimeter);
 
-        // Peak speed depends on _maxStepPerSecond, so re-derive timeOfStroke.
         _recalcTimeOfStroke();
         pattern->setTimeOfStroke(_timeOfStroke);
         xSemaphoreGive(_patternMutex);
@@ -832,8 +825,6 @@ void StrokeEngine::_recalcTimeOfStroke() {
     // neutral sensation. Solve for T given the desired peak as a percentage
     // of the motor's max step rate.
     if (_stroke <= 0 || _maxStepPerSecond <= 0 || _speedPercent <= 0.0f) {
-        // No meaningful motion — clamp to the max allowed time so the pattern
-        // effectively idles instead of dividing by zero.
         _timeOfStroke = 120.0f;
         return;
     }
