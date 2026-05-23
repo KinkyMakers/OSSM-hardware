@@ -117,21 +117,24 @@ class StrokeEngine {
 
     /**************************************************************************/
     /*!
-      @brief  Set the speed of a stroke. Speed is given in Strokes per Minute
-      and internally calculated to the time a full stroke needs to complete.
-      Settings tale effect with next stroke, or after calling
-      applyNewSettingsNow().
-      @param speed Strokes per Minute. Is constrained from 0.5 to 6000
+      @brief  Set the desired peak motor speed as a percentage of
+      motorProperties.maxSpeed. The library converts this into the appropriate
+      timeOfStroke for the current stroke length so the pattern's peak step
+      rate equals `speedPercent% * maxStepPerSecond`. timeOfStroke is
+      automatically recomputed whenever setStroke() or setMaxSpeed() is called,
+      so changing stroke length keeps the peak motor speed constant. Settings
+      take effect with next stroke, or after calling applyNewSettingsNow().
+      @param speedPercent Peak motor speed as a percentage. Constrained to
+                          [0, 100].
       @param applyNow Set to true if changes should take effect immediately
     */
     /**************************************************************************/
-    void setSpeed(float speed, bool applyNow);
+    void setSpeed(float speedPercent, bool applyNow);
 
     /**************************************************************************/
     /*!
-      @brief  Get the speed of a stroke. Speed is returned as Strokes per
-      Minute.
-      @return Strokes per Minute.
+      @brief  Get the configured peak speed percentage.
+      @return Peak motor speed as a percentage [0, 100].
     */
     /**************************************************************************/
     float getSpeed();
@@ -407,8 +410,10 @@ class StrokeEngine {
     int _stroke;
     int _previousStroke;
     float _timeOfStroke;
+    float _speedPercent = 0.0f;
     float _sensation;
     bool _applyUpdate = false;
+    void _recalcTimeOfStroke();
     static void _homingProcedureImpl(void *_this) {
         static_cast<StrokeEngine *>(_this)->_homingProcedure();
     }
