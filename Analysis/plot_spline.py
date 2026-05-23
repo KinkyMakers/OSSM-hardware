@@ -9,11 +9,18 @@ Two input formats are supported:
    the x-axis.
 
 2. CSV produced by the `test_spline_patterns` unit test. Columns:
-      millis_ms,t,position,velocity,acceleration
-   The test drives SplinePattern::evaluate(1.0) across 3x totalDuration
-   using a faked millis() clock. Position/velocity/acceleration come straight
-   from `evaluate()`, so velocity and acceleration are in normalized units
-   per second / per second^2.
+      millis_ms,t,position,velocity,acceleration[,jerk][,speed]
+   The test drives SplinePattern::evaluate(1.0) (and evaluateFeasible(1.0))
+   across 3x totalDuration using a faked millis() clock. Position / velocity /
+   acceleration come straight from the evaluator, so units are normalized per
+   second / per second^2 / per second^3.
+
+   When a raw `spline_samples_<id>.csv` is plotted, the script also looks for
+   a sibling `spline_samples_<id>_feasible.csv` (output of evaluateFeasible)
+   and overlays it on the same panels. Raw curves are drawn faded/dashed and
+   the feasible curves are drawn solid so the time-stretching introduced by
+   MAX_SPEED / MAX_ACCEL / MAX_JERK feasibility is visible at a glance. A
+   jerk panel is added when the feasible CSV is present.
 
 Usage:
     python plot_spline.py <log_or_csv>
@@ -92,19 +99,27 @@ def parse_log(path: str):
 
 
 def parse_csv(path: str):
-    """Parse unit-test CSV; returns arrays + accel + optional speed column."""
+    """Parse unit-test CSV.
+
+    Returns a dict of numpy arrays. The `jerk` and `speed` columns are
+    optional — only present in `_feasible.csv` and the speed-change variants
+    respectively.
+    """
     data = np.genfromtxt(path, delimiter=",", names=True)
-    millis = data["millis_ms"].astype(np.int64)
-    t_param = data["t"].astype(np.float64)
-    pos = data["position"].astype(np.float64)
-    vel = data["velocity"].astype(np.float64)
-    accel = data["acceleration"].astype(np.float64)
-    speed = (
-        data["speed"].astype(np.float64)
-        if "speed" in (data.dtype.names or ())
-        else None
-    )
-    return millis, t_param, pos, vel, accel, speed
+    names = data.dtype.names or ()
+    return {
+        "millis": data["millis_ms"].astype(np.int64),
+        "t": data["t"].astype(np.float64),
+        "pos": data["position"].astype(np.float64),
+        "vel": data["velocity"].astype(np.float64),
+        "acc": data["acceleration"].astype(np.float64),
+        "jerk": (
+            data["jerk"].astype(np.float64) if "jerk" in names else None
+        ),
+        "speed": (
+            data["speed"].astype(np.float64) if "speed" in names else None
+        ),
+    }
 
 
 def report_cadence(wall_s: np.ndarray) -> None:
@@ -117,75 +132,125 @@ def report_cadence(wall_s: np.ndarray) -> None:
     )
 
 
-def plot(
-    millis,
-    t_param,
-    pos,
-    vel,
-    row4,
-    *,
-    row4_label,
-    out_path,
-    title_suffix="",
-    speed=None,
-):
+# Channel colors: raw uses the soft pastels; feasible uses a darker shade so
+# the overlay reads cleanly without picking a clashing hue.
+RAW_COLORS = {
+    "t":    "#ab47bc",
+    "pos":  "#4fc3f7",
+    "vel":  "#ff8a65",
+    "acc":  "#81c784",
+    "jerk": "#ffd54f",
+}
+FEASIBLE_COLORS = {
+    "t":    "#6a1b9a",
+    "pos":  "#0277bd",
+    "vel":  "#d84315",
+    "acc":  "#2e7d32",
+    "jerk": "#f57c00",
+}
+
+
+def _detect_speed_changes(wall_s, speed):
+    changes = []
+    if speed is None or speed.size <= 1:
+        return changes
+    change_idx = np.where(np.diff(speed) != 0)[0] + 1
+    for i in change_idx:
+        changes.append((wall_s[i], float(speed[i - 1]), float(speed[i])))
+    return changes
+
+
+def plot(raw, feasible=None, *, out_path: str, title_suffix: str = ""):
+    """Plot a raw `evaluate()` CSV, optionally overlaid with an
+    `evaluateFeasible()` CSV sampled across the same wall-clock window.
+
+    raw / feasible are dicts as returned by parse_csv (or None for feasible
+    if no sibling file exists). Feasible may carry the extra `jerk` column;
+    when present a 5th panel is added.
+    """
+    millis = raw["millis"]
     wall_s = (millis - millis[0]) / 1000.0
     report_cadence(wall_s)
 
-    fig, axes = plt.subplots(4, 1, figsize=(14, 10), sharex=True)
-    line_kw = dict(linewidth=0.8, alpha=0.6)
-    dot_kw = dict(s=8)
+    has_feasible = feasible is not None and feasible["millis"].size > 0
+    has_jerk = has_feasible and feasible["jerk"] is not None
+    panel_keys = ["t", "pos", "vel", "acc"] + (["jerk"] if has_jerk else [])
+    panel_labels = {
+        "t": "Spline t",
+        "pos": "Position",
+        "vel": "Velocity",
+        "acc": "Acceleration",
+        "jerk": "Jerk",
+    }
+    raw_key_of = {"t": "t", "pos": "pos", "vel": "vel", "acc": "acc",
+                  "jerk": "jerk"}
 
-    # Detect speed-change boundaries (test_sweep_all_patterns_with_speed_change
-    # produces a CSV with a `speed` column). Each change is drawn as a dashed
-    # vertical line on every subplot so position / velocity / accel kinks line
-    # up with the speed event that caused them.
-    speed_changes = []
-    if speed is not None and speed.size > 1:
-        change_idx = np.where(np.diff(speed) != 0)[0] + 1
-        for i in change_idx:
-            speed_changes.append(
-                (wall_s[i], float(speed[i - 1]), float(speed[i]))
-            )
-
-    axes[0].plot(wall_s, t_param, color="#ab47bc", **line_kw)
-    axes[0].scatter(wall_s, t_param, color="#ab47bc", **dot_kw)
-    axes[0].set_ylabel("Spline t")
-    axes[0].set_title(
-        f"SplineCtrl  ({len(millis)} samples, "
-        f"{wall_s[-1]:.2f}s wall-clock span){title_suffix}"
+    fig, axes = plt.subplots(
+        len(panel_keys), 1, figsize=(14, 2.4 * len(panel_keys)), sharex=True
     )
-    axes[0].grid(True, alpha=0.3)
+    if len(panel_keys) == 1:
+        axes = [axes]
 
-    # Secondary x-axis on the top panel that maps device time -> spline t.
-    # Uses the observed (wall_s, t_param) pairs via linear interpolation so the
-    # mapping is correct even when the spline velocity changes mid-run.
+    # Raw curve is drawn faded/dashed so the feasible overlay reads as the
+    # primary signal when both are present. When raw is plotted alone it
+    # falls back to a solid line (no overlay to disambiguate against).
+    raw_alone = not has_feasible
+    raw_line_kw = dict(
+        linewidth=0.9 if raw_alone else 0.8,
+        alpha=0.7 if raw_alone else 0.45,
+        linestyle="-" if raw_alone else "--",
+    )
+    raw_dot_kw = dict(s=6, alpha=0.6 if has_feasible else 0.8)
+    feasible_line_kw = dict(linewidth=1.4, alpha=0.95)
+    feasible_dot_kw = dict(s=8)
+
+    # Wall-clock x for the feasible CSV. Both sweeps were driven by the same
+    # faked millis() clock so they share an origin; we still rebase against
+    # raw's first millis to keep one consistent x-axis.
+    if has_feasible:
+        feasible_wall_s = (feasible["millis"] - millis[0]) / 1000.0
+
+    speed_changes = _detect_speed_changes(wall_s, raw["speed"])
+
+    for ax, key in zip(axes, panel_keys):
+        raw_y = raw.get(raw_key_of[key])
+        if raw_y is not None and key != "jerk":
+            color = RAW_COLORS[key]
+            label = "evaluate()" if has_feasible else None
+            ax.plot(wall_s, raw_y, color=color, label=label, **raw_line_kw)
+            ax.scatter(wall_s, raw_y, color=color, **raw_dot_kw)
+        if has_feasible:
+            f_y = feasible.get(raw_key_of[key])
+            if f_y is not None:
+                color = FEASIBLE_COLORS[key]
+                ax.plot(feasible_wall_s, f_y, color=color,
+                        label="evaluateFeasible()", **feasible_line_kw)
+                ax.scatter(feasible_wall_s, f_y, color=color,
+                           **feasible_dot_kw)
+        ax.set_ylabel(panel_labels[key])
+        ax.grid(True, alpha=0.3)
+
+    if has_feasible:
+        axes[0].legend(loc="upper right", fontsize=9, framealpha=0.85)
+
+    axes[0].set_title(
+        f"SplineCtrl  ({len(millis)} raw samples"
+        + (f" + {feasible['millis'].size} feasible" if has_feasible else "")
+        + f", {wall_s[-1]:.2f}s wall-clock span){title_suffix}"
+    )
+
+    # Secondary x-axis on the top panel maps device time -> spline t for the
+    # raw stream (kept consistent with previous behaviour).
     def wall_to_t(x):
-        return np.interp(x, wall_s, t_param)
+        return np.interp(x, wall_s, raw["t"])
 
     def t_to_wall(x):
-        return np.interp(x, t_param, wall_s)
+        return np.interp(x, raw["t"], wall_s)
 
     secax = axes[0].secondary_xaxis("top", functions=(wall_to_t, t_to_wall))
-    secax.set_xlabel("Spline t (from t= field)")
+    secax.set_xlabel("Raw spline t (from t= field)")
 
-    axes[1].plot(wall_s, pos, color="#4fc3f7", **line_kw)
-    axes[1].scatter(wall_s, pos, color="#4fc3f7", **dot_kw)
-    axes[1].set_ylabel("Position")
-    axes[1].grid(True, alpha=0.3)
-
-    axes[2].plot(wall_s, vel, color="#ff8a65", **line_kw)
-    axes[2].scatter(wall_s, vel, color="#ff8a65", **dot_kw)
-    axes[2].set_ylabel("Velocity")
-    axes[2].grid(True, alpha=0.3)
-
-    axes[3].plot(wall_s, row4, color="#81c784", **line_kw)
-    axes[3].scatter(wall_s, row4, color="#81c784", **dot_kw)
-    axes[3].set_ylabel(row4_label)
-    axes[3].set_xlabel(
-        f"Device time (s, t0 = {millis[0]} ms)"
-    )
-    axes[3].grid(True, alpha=0.3)
+    axes[-1].set_xlabel(f"Device time (s, t0 = {millis[0]} ms)")
 
     for x, before, after in speed_changes:
         for ax in axes:
@@ -205,25 +270,54 @@ def plot(
     print(f"Saved {out_path}")
 
 
+# Maps Analysis/spline_samples_<id>.csv -> Analysis/spline_samples_<id>_feasible.csv.
+# Run only on the raw file; the script auto-discovers the sibling and overlays
+# it. Speed-change CSVs (no _feasible sibling) plot the raw curve standalone.
+def _feasible_sibling_path(raw_path: str):
+    if raw_path.endswith("_feasible.csv"):
+        return None
+    base, ext = os.path.splitext(raw_path)
+    if ext.lower() != ".csv":
+        return None
+    candidate = f"{base}_feasible.csv"
+    return candidate if os.path.exists(candidate) else None
+
+
 def main(path: str):
     is_csv = path.lower().endswith(".csv")
     if is_csv:
-        millis, t_param, pos, vel, accel, speed = parse_csv(path)
-        if millis.size == 0:
+        raw = parse_csv(path)
+        if raw["millis"].size == 0:
             print(f"No rows in {path}.")
             sys.exit(1)
+
+        feasible = None
+        sibling = _feasible_sibling_path(path)
+        if sibling is not None:
+            feasible = parse_csv(sibling)
+            print(f"Overlaying feasible CSV: {sibling}")
+        elif path.endswith("_feasible.csv"):
+            # User pointed us straight at a feasible CSV. Plot it as the
+            # `feasible` overlay against an empty raw spec so the jerk panel
+            # appears and the feasible curve renders in its standard color.
+            feasible = raw
+            raw = {
+                "millis": feasible["millis"],
+                "t": feasible["t"],
+                "pos": np.full_like(feasible["pos"], np.nan),
+                "vel": np.full_like(feasible["vel"], np.nan),
+                "acc": np.full_like(feasible["acc"], np.nan),
+                "jerk": None,
+                "speed": feasible["speed"],
+            }
+
         base = os.path.splitext(os.path.basename(path))[0]
         out = os.path.join(SCRIPT_DIR, f"spline_plot_{base}.png")
         plot(
-            millis,
-            t_param,
-            pos,
-            vel,
-            accel,
-            row4_label="Acceleration",
+            raw,
+            feasible=feasible,
             out_path=out,
             title_suffix=f"  —  {base}",
-            speed=speed,
         )
     else:
         rows = parse_log(path)

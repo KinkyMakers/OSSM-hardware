@@ -66,7 +66,8 @@ bool evalXY(const tsBSpline* spline, tsReal u, XY* out) {
 SplinePattern::SplinePattern()
     : _spline(ts_bspline_init()),
       _splineDeriv1(ts_bspline_init()),
-      _splineDeriv2(ts_bspline_init()) {
+      _splineDeriv2(ts_bspline_init()),
+      _splineDeriv3(ts_bspline_init()) {
     startTime = millis();
     timeDelta = 0;
     currentSplinePercent = 0.0f;
@@ -78,16 +79,20 @@ void SplinePattern::freeSplines() {
     ts_bspline_free(&_spline);
     ts_bspline_free(&_splineDeriv1);
     ts_bspline_free(&_splineDeriv2);
+    ts_bspline_free(&_splineDeriv3);
     _spline = ts_bspline_init();
     _splineDeriv1 = ts_bspline_init();
     _splineDeriv2 = ts_bspline_init();
+    _splineDeriv3 = ts_bspline_init();
     _splineReady = false;
 }
 
 // ─── Loading ─────────────────────────────────────────────────────────────
 
 bool SplinePattern::loadFromFile(const char* id, float playRangeMm,
-                                 float maxSpeedMmPerSec) {
+                                 float maxSpeedMmPerSec,
+                                 float maxAccelMmPerSec2,
+                                 float maxJerkMmPerSec3) {
     char path[128];
     snprintf(path, sizeof(path), "/littlefs/patterns/%s.json", id);
 
@@ -112,13 +117,16 @@ bool SplinePattern::loadFromFile(const char* id, float playRangeMm,
     buf[size] = '\0';
     fclose(f);
 
-    bool ok = loadFromJson(id, buf, playRangeMm, maxSpeedMmPerSec);
+    bool ok = loadFromJson(id, buf, playRangeMm, maxSpeedMmPerSec,
+                           maxAccelMmPerSec2, maxJerkMmPerSec3);
     free(buf);
     return ok;
 }
 
 bool SplinePattern::loadFromJson(const char* id, const char* jsonText,
-                                 float playRangeMm, float maxSpeedMmPerSec) {
+                                 float playRangeMm, float maxSpeedMmPerSec,
+                                 float maxAccelMmPerSec2,
+                                 float maxJerkMmPerSec3) {
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, jsonText);
 
@@ -296,6 +304,16 @@ bool SplinePattern::loadFromJson(const char* id, const char* jsonText,
         freeSplines();
         return false;
     }
+    // Third parametric derivative powers the jerk term in the chain-rule
+    // formula d3y/dx3 used by both the load-time feasibility sweep and
+    // evaluateFeasible's per-call jerk computation.
+    if (ts_bspline_derive(&_splineDeriv2, 1, -1.0, &_splineDeriv3, &status) !=
+        TS_SUCCESS) {
+        ESP_LOGE(TAG, "ts_bspline_derive(3) failed for %s: %s", id,
+                 status.message);
+        freeSplines();
+        return false;
+    }
     _splineReady = true;
 
     // Populate the segment lookup. The spline u-domain is [0, 1] split into
@@ -316,28 +334,90 @@ bool SplinePattern::loadFromJson(const char* id, const char* jsonText,
     // u. The per-evaluate cost of this is paid once at load. We need the
     // segment that yields the largest |dy/dx| across normalized x ∈ [0, 1] so
     // we can compute totalDuration consistent with the motor's mm/s ceiling.
-    constexpr int kSlopeSamples = 32;
+    //
+    // The same sweep also records |d²y/dx²| and |d³y/dx³| (computed from the
+    // chain rule on the parametric derivatives) so we can size
+    // _feasibleTotalDuration to keep acceleration and jerk within their
+    // physical limits at speedPercent = 1.0.
+    //
+    // We restrict the chain-rule curvature / jerk samples to the segment
+    // interior (5% – 95% in u). Near segment boundaries cubic Beziers with
+    // degenerate handles drive g'(u) → 0, so the formulas (·) / g'³ and
+    // (·) / g'⁵ become numerically singular even though the analytic value
+    // is well-defined. For patterns that are genuinely C² the interior
+    // samples are a good estimate of the global max; for patterns with
+    // corners (true C¹ discontinuities) the analytic jerk is unbounded and
+    // no calibration can capture it — uniform time-scaling can't satisfy
+    // MAX_JERK on such patterns, so this is a best-effort estimate.
+    constexpr int kSlopeSamples = 128;
+    constexpr int kInteriorSamples = 128;
+    constexpr double kInteriorMin = 0.05;
+    constexpr double kInteriorMax = 0.95;
     float maxSlopeAbs = 0.0f;
+    float maxCurvAbs = 0.0f;
+    float maxJerkAbs = 0.0f;
     float dxAtMaxSlopePercent = 0.0f;
     // We sample only the middle tile (segments [N, 2N) where N is the base
     // anchor count) so the slope reflects one full period including the wrap
     // segment, but not any anchors duplicated at +1/-1.
     const size_t midStart = _baseAnchorCount;
     const size_t midEnd = 2 * _baseAnchorCount;
+
     for (size_t segIdx = midStart; segIdx < midEnd && segIdx < segmentCount;
          ++segIdx) {
         const TiledSegment& seg = _segments[segIdx];
+        const double segDx = seg.xEnd - seg.xStart;
+
+        // Slope sweep covers the full segment (slope formula is only
+        // first-order and doesn't blow up the way y_xx / y_xxx can).
         for (int s = 0; s <= kSlopeSamples; ++s) {
             const double frac = (double)s / kSlopeSamples;
-            const tsReal u = (tsReal)(seg.uStart + frac * (seg.uEnd - seg.uStart));
-            XY d1;
+            const tsReal u =
+                (tsReal)(seg.uStart + frac * (seg.uEnd - seg.uStart));
+            XY d1{};
             if (!evalXY(&_splineDeriv1, u, &d1)) continue;
             if (fabs(d1.x) < 1e-9) continue;
             const float slope = (float)fabs(d1.y / d1.x);
             if (slope > maxSlopeAbs) {
                 maxSlopeAbs = slope;
-                dxAtMaxSlopePercent = (float)(seg.xEnd - seg.xStart);
+                dxAtMaxSlopePercent = (float)segDx;
             }
+        }
+
+        // Interior sweep for curvature and jerk-along-path. Chain rule:
+        //   y_xx  = (f''·g' − f'·g'') / g'³
+        //   y_xxx = (f'''·g'² − 3·f''·g'·g'' − f'·g'·g''' + 3·f'·g''²)
+        //           / g'⁵
+        for (int s = 0; s <= kInteriorSamples; ++s) {
+            const double frac =
+                kInteriorMin +
+                (kInteriorMax - kInteriorMin) * s / kInteriorSamples;
+            const tsReal u =
+                (tsReal)(seg.uStart + frac * (seg.uEnd - seg.uStart));
+            XY d1{}, d2{}, d3{};
+            if (!evalXY(&_splineDeriv1, u, &d1)) continue;
+            if (!evalXY(&_splineDeriv2, u, &d2)) continue;
+            if (!evalXY(&_splineDeriv3, u, &d3)) continue;
+            const double gp = d1.x;
+            // Skip samples where g' has collapsed: the chain-rule formulas
+            // produce numerical garbage that doesn't reflect the true
+            // analytic value. The threshold scales with the segment's
+            // average dx/du = segDx / (uEnd - uStart) so it adapts to
+            // segment width.
+            const double avgGp = segDx / (seg.uEnd - seg.uStart);
+            if (fabs(gp) < 1e-3 * fabs(avgGp)) continue;
+            const double gp2 = gp * gp;
+            const double gp3 = gp2 * gp;
+            const double gp5 = gp3 * gp2;
+            const double curv = (d2.y * d1.x - d1.y * d2.x) / gp3;
+            const double jrk =
+                (d3.y * gp2 - 3.0 * d2.y * d1.x * d2.x -
+                 d1.y * d1.x * d3.x + 3.0 * d1.y * d2.x * d2.x) /
+                gp5;
+            const float curvAbs = (float)fabs(curv);
+            const float jrkAbs = (float)fabs(jrk);
+            if (curvAbs > maxCurvAbs) maxCurvAbs = curvAbs;
+            if (jrkAbs > maxJerkAbs) maxJerkAbs = jrkAbs;
         }
     }
 
@@ -356,39 +436,80 @@ bool SplinePattern::loadFromJson(const char* id, const char* jsonText,
                          ? dxAtMaxSlopeSeconds / dxAtMaxSlopePercent
                          : 0.0f;
 
+    // ── Feasibility period (accounts for speed AND accel AND jerk) ───────
+    // Physical envelope at full speed when the period is T:
+    //   |v|   = playRangeMm · |dy/dx|   / T
+    //   |a|   = playRangeMm · |d²y/dx²| / T²
+    //   |j|   = playRangeMm · |d³y/dx³| / T³
+    // Inverting each against its respective device limit yields a minimum
+    // period; the largest of those is the binding constraint.
+    const float T_v = (maxSpeedMmPerSec > 0.0f)
+                          ? playRangeMm * maxSlopeAbs / maxSpeedMmPerSec
+                          : 0.0f;
+    const float T_a = (maxAccelMmPerSec2 > 0.0f)
+                          ? sqrtf(playRangeMm * maxCurvAbs / maxAccelMmPerSec2)
+                          : 0.0f;
+    const float T_j = (maxJerkMmPerSec3 > 0.0f)
+                          ? cbrtf(playRangeMm * maxJerkAbs / maxJerkMmPerSec3)
+                          : 0.0f;
+    // Include _totalDuration in the max so the feasible period is never
+    // shorter than the slope-only calibration above, even if our T_v
+    // (which uses true max|dy/dx| rather than the per-segment x-span) ends
+    // up slightly smaller for unusual patterns.
+    _feasibleTotalDuration =
+        std::max({_totalDuration, T_v, T_a, T_j});
+
+    const char* binding = "speed";
+    if (T_a >= T_v && T_a >= T_j) binding = "accel";
+    if (T_j >= T_v && T_j >= T_a) binding = "jerk";
+    if (_totalDuration >= T_v && _totalDuration >= T_a &&
+        _totalDuration >= T_j) {
+        binding = "slope-segment";
+    }
+
     ESP_LOGI(TAG,
-             "Loaded '%s': %u anchors (tiled to %u segments), duration=%.3f",
+             "'%s' calibration: maxSlope=%.3f maxCurv=%.3f maxJerk=%.3f "
+             "-> T_v=%.3fs T_a=%.3fs T_j=%.3fs feasibleTotal=%.3fs "
+             "(binding=%s)",
+             _name, maxSlopeAbs, maxCurvAbs, maxJerkAbs, T_v, T_a, T_j,
+             _feasibleTotalDuration, binding);
+
+    ESP_LOGI(TAG,
+             "Loaded '%s': %u anchors (tiled to %u segments), duration=%.3f, "
+             "feasibleDuration=%.3f",
              _name, (unsigned)_baseAnchorCount, (unsigned)segmentCount,
-             _totalDuration);
+             _totalDuration, _feasibleTotalDuration);
 
     return true;
 }
 
 // ─── Evaluation ──────────────────────────────────────────────────────────
 
-SplineSample SplinePattern::evaluate(double speedPercent) {
-    if (!_splineReady || _baseAnchorCount < 2 || _segments.empty()) {
-        return SplineSample{0.0, 0.0, 0.0, 0.0, 0.0};
+SplineSample SplinePattern::sampleAtPeriod(double speedPercent, float period,
+                                           double& lastSpeed, double& tOffset,
+                                           bool computeJerk) {
+    if (!_splineReady || _baseAnchorCount < 2 || _segments.empty() ||
+        period <= 0.0f || speedPercent <= 0.0) {
+        return SplineSample{0.0, 0.0, 0.0, 0.0, 0.0, speedPercent};
     }
 
     // ── Time → normalized t in [0, 1] ────────────────────────────────────
     // Identical to the original implementation. Speed changes mid-stroke
-    // adjust `timeOffset` so the curve doesn't jump when the period scales.
+    // adjust `tOffset` so the curve doesn't jump when the period scales.
     long deltaTimeMS = millis() - startTime;
 
     long timeSinceStartMS =
-        fmod(deltaTimeMS, _totalDuration * 1000 / speedPercent);
+        fmod(deltaTimeMS, period * 1000 / speedPercent);
 
-    if (lastSpeedPercent > 0 && lastSpeedPercent != speedPercent) {
+    if (lastSpeed > 0 && lastSpeed != speedPercent) {
         long lastTimeSinceStartMS =
-            fmod(deltaTimeMS, _totalDuration * 1000 / lastSpeedPercent);
-        timeOffset +=
-            timeSinceStartMS / (_totalDuration * 1000 / speedPercent) -
-            lastTimeSinceStartMS / (_totalDuration * 1000 / lastSpeedPercent);
+            fmod(deltaTimeMS, period * 1000 / lastSpeed);
+        tOffset += timeSinceStartMS / (period * 1000 / speedPercent) -
+                   lastTimeSinceStartMS / (period * 1000 / lastSpeed);
     }
 
     double t =
-        timeSinceStartMS / (_totalDuration * 1000 / speedPercent) - timeOffset;
+        timeSinceStartMS / (period * 1000 / speedPercent) - tOffset;
 
     if (t < 0.0) {
         t = 1.0 + fmod(t, 1.0);
@@ -396,7 +517,7 @@ SplineSample SplinePattern::evaluate(double speedPercent) {
         t = fmod(t, 1.0);
     }
 
-    lastSpeedPercent = speedPercent;
+    lastSpeed = speedPercent;
 
     // ── Locate the middle-tile segment containing t ──────────────────────
     // The middle tile spans _segments[N .. 2N) where N is the base anchor
@@ -481,20 +602,51 @@ SplineSample SplinePattern::evaluate(double speedPercent) {
     XY acc{};
     evalXY(&_splineDeriv2, (tsReal)u, &acc);
 
-    // ── Compose dy/dt and d²y/dt² from the parametric derivatives ──────
+    // ── Compose dy/dt, d²y/dt², and (optionally) d³y/dt³ ─────────────────
     // y = y(u(t)) where x(u(t)) = t.
-    //   dy/dt           = y'(u) / x'(u)
-    //   d²y/dt²         = (y''(u) x'(u) − y'(u) x''(u)) / x'(u)³
+    //   dy/dt   = y'(u) / x'(u)
+    //   d²y/dt² = (y''(u) x'(u) − y'(u) x''(u)) / x'(u)³
+    //   d³y/dt³ = (y'''(u) x'(u)² − 3 y''(u) x'(u) x''(u)
+    //              − y'(u) x'(u) x'''(u) + 3 y'(u) x''(u)²) / x'(u)⁵
     double yPos = pos.y;
     double velocity = 0.0;
     double acceleration = 0.0;
+    double jerk = 0.0;
     if (fabs(vel.x) > 1e-9) {
-        velocity = vel.y / vel.x;
-        const double xpCubed = vel.x * vel.x * vel.x;
-        acceleration = (acc.y * vel.x - vel.y * acc.x) / xpCubed;
+        const double xp = vel.x;
+        const double xp2 = xp * xp;
+        const double xp3 = xp2 * xp;
+        velocity = vel.y / xp;
+        acceleration = (acc.y * xp - vel.y * acc.x) / xp3;
+        if (computeJerk) {
+            XY jrk{};
+            if (evalXY(&_splineDeriv3, (tsReal)u, &jrk)) {
+                const double xp5 = xp3 * xp2;
+                jerk = (jrk.y * xp2 - 3.0 * acc.y * xp * acc.x -
+                        vel.y * xp * jrk.x + 3.0 * vel.y * acc.x * acc.x) /
+                       xp5;
+            }
+        }
     }
 
     return SplineSample{
-        t, yPos, velocity, acceleration, speedPercent,
+        t, yPos, velocity, acceleration, jerk, speedPercent,
     };
+}
+
+SplineSample SplinePattern::evaluate(double speedPercent) {
+    // Raw (slope-only) sample — preserves today's behaviour for tests and
+    // plot comparison. No jerk computation needed.
+    return sampleAtPeriod(speedPercent, _totalDuration, lastSpeedPercent,
+                          timeOffset, /*computeJerk=*/false);
+}
+
+SplineSample SplinePattern::evaluateFeasible(double speedPercent) {
+    // Feasibility-aware sample — plays the same geometry against the longer
+    // `_feasibleTotalDuration`, so |velocity|, |acceleration|, and |jerk|
+    // (when expressed in physical units via playRangeMm) stay within the
+    // limits supplied to loadFromJson at speedPercent ≤ 1.0.
+    return sampleAtPeriod(speedPercent, _feasibleTotalDuration,
+                          lastSpeedPercentFeasible, timeOffsetFeasible,
+                          /*computeJerk=*/true);
 }

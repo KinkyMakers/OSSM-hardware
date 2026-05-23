@@ -132,7 +132,9 @@ namespace stroke_engine {
                     SplinePattern spline;
                     if (!spline.loadFromFile(
                             patternId, measuredStrokeMm,
-                            Config::Driver::maxSpeedMmPerSecond)) {
+                            Config::Driver::maxSpeedMmPerSecond,
+                            Config::Driver::maxAcceleration,
+                            Config::Driver::maxJerk)) {
                         ESP_LOGE("StrokeEngine",
                                  "Failed to load spline pattern '%s'",
                                  patternId);
@@ -171,7 +173,8 @@ namespace stroke_engine {
                             continue;
                         }
 
-                        auto sample = spline.evaluate(settings.speed / 100.0f);
+                        auto sample =
+                            spline.evaluateFeasible(settings.speed / 100.0f);
 
                         double posNorm = fmax(0.0, fmin(1.0, sample.position));
                         double velScaled = sample.velocity;
@@ -196,12 +199,12 @@ namespace stroke_engine {
 
                         ESP_LOGI("SplineCtrl",
                                  "t=%.6f pos=%.6f (%.6f%%) vel=%.6f naive=%.6f "
-                                 "acc=%.6f, "
+                                 "acc=%.6f jerk=%.6f, "
                                  "speed=%.6f, timeOffset=%.6f",
                                  sample.t, sample.position, sample.speedPercent,
                                  sample.velocity, naiveVelocity,
-                                 sample.acceleration, settings.speed,
-                                 spline.getTimeOffset());
+                                 sample.acceleration, sample.jerk,
+                                 settings.speed, spline.getTimeOffset());
 
                         vTaskDelay(pdMS_TO_TICKS(tickIntervalMs));
                     }

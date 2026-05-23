@@ -26,6 +26,10 @@ namespace Config {
         constexpr float motorStepPerRevolution = 800.0f;
         // Top acceleration of the device in mm/s/s¢
         constexpr float maxAcceleration = 50000.0f;
+        // Top jerk of the device in mm/s^3. Sets how aggressively the
+        // trajectory is allowed to change acceleration. Reduce if you hear
+        // or see motion ringing.
+        constexpr float maxJerk = 500000.0f;
         // Number of steps to move the arm 1mm
         constexpr float maxSpeedMmPerSecond = (maxRPM / 60.0) * pulleyToothCount * beltPitchMm;
         // This should match the step/rev of your stepper or servo.
