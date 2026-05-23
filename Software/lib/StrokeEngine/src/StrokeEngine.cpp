@@ -29,8 +29,9 @@ void StrokeEngine::begin(machineGeometry *physics, motorProperties *motor,
     _previousDepth = _maxStep;
     _stroke = _maxStep / 3;
     _previousStroke = _maxStep / 3;
-    _timeOfStroke = 1.0;
+    _speedPercent = 0.0f;
     _sensation = 0.0;
+    _recalcTimeOfStroke();
 
     if (_servo) {
         _servo->setDirectionPin(_motor->directionPin, _motor->invertDirection);
@@ -45,18 +46,19 @@ void StrokeEngine::begin(machineGeometry *physics, motorProperties *motor,
 #endif
 }
 
-void StrokeEngine::setSpeed(float speed, bool applyNow = false) {
-    // Update pattern with new speed, will be used with the next stroke or on
-    // update request
+void StrokeEngine::setSpeed(float speedPercent, bool applyNow = false) {
+    // Speed is the desired peak motor speed as a percentage [0, 100] of
+    // motorProperties.maxSpeed. timeOfStroke is derived from speed + stroke
+    // so the pattern's peak step rate equals `_speedPercent% * _maxStepPerSecond`.
     if (xSemaphoreTake(_patternMutex, portMAX_DELAY) == pdTRUE) {
-        // Convert FPM into seconds to complete a full stroke
-        // Constrain stroke time between 10ms and 120 seconds
-        _timeOfStroke = constrain(60.0 / speed, 0.01, 120.0);
+        _speedPercent = constrain(speedPercent, 0.0f, 100.0f);
+        _recalcTimeOfStroke();
 
         pattern->setTimeOfStroke(_timeOfStroke);
 
 #ifdef DEBUG_TALKATIVE
-        Serial.println("setTimeOfStroke: " + String(_timeOfStroke, 2));
+        Serial.println("setSpeed: " + String(_speedPercent, 2) +
+                       "% -> T=" + String(_timeOfStroke, 3) + "s");
 #endif
 
         // When running a pattern and immediate update requested:
@@ -74,10 +76,7 @@ void StrokeEngine::setSpeed(float speed, bool applyNow = false) {
     }
 }
 
-float StrokeEngine::getSpeed() {
-    // Convert speed into FPMs
-    return 60.0 / _timeOfStroke;
-}
+float StrokeEngine::getSpeed() { return _speedPercent; }
 
 void StrokeEngine::setDepth(float depth, bool applyNow = false) {
     if (xSemaphoreTake(_patternMutex, portMAX_DELAY) == pdTRUE) {
@@ -126,6 +125,12 @@ void StrokeEngine::setStroke(float stroke, bool applyNow = false) {
                             _maxStep);
 
         pattern->setStroke(_stroke);
+
+        // Peak speed is a function of (stroke, speedPercent, maxStepPerSecond),
+        // so a stroke change requires re-deriving timeOfStroke to keep peak
+        // motor speed at `_speedPercent% * _maxStepPerSecond`.
+        _recalcTimeOfStroke();
+        pattern->setTimeOfStroke(_timeOfStroke);
 
 #ifdef DEBUG_TALKATIVE
         Serial.println("setStroke: " + String(_stroke));
@@ -544,6 +549,10 @@ void StrokeEngine::setMaxSpeed(float maxSpeed) {
             int(0.5 + _motor->maxSpeed * _motor->stepsPerMillimeter);
         pattern->setSpeedLimit(_maxStepPerSecond, _maxStepAcceleration,
                               _motor->stepsPerMillimeter);
+
+        // Peak speed depends on _maxStepPerSecond, so re-derive timeOfStroke.
+        _recalcTimeOfStroke();
+        pattern->setTimeOfStroke(_timeOfStroke);
         xSemaphoreGive(_patternMutex);
     }
 }
@@ -816,6 +825,21 @@ void StrokeEngine::_applyMotionProfile(motionParameter *motion) {
             _callbackTelemetry(position, speed, clipping);
         }
     }
+}
+
+void StrokeEngine::_recalcTimeOfStroke() {
+    // Every built-in pattern produces peakStepsPerSec = 3 * stroke / T at
+    // neutral sensation. Solve for T given the desired peak as a percentage
+    // of the motor's max step rate.
+    if (_stroke <= 0 || _maxStepPerSecond <= 0 || _speedPercent <= 0.0f) {
+        // No meaningful motion — clamp to the max allowed time so the pattern
+        // effectively idles instead of dividing by zero.
+        _timeOfStroke = 120.0f;
+        return;
+    }
+    float desiredPeak = (_speedPercent / 100.0f) * float(_maxStepPerSecond);
+    _timeOfStroke =
+        constrain(3.0f * float(_stroke) / desiredPeak, 0.01f, 120.0f);
 }
 
 void StrokeEngine::_setupDepths() {
