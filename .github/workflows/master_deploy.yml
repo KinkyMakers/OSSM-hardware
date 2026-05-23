@@ -90,51 +90,36 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Clear master directory in Supabase
+      - name: Upload firmware to staging prefix (master_next)
         run: |
-          # List all files in master directory and remove any that aren't our target files
-          BUCKET="ossm-firmware"
-          PREFIX="master/"
+          # Wipe any leftovers from a previous failed run so the staging prefix is clean
+          supabase storage rm -r "ss:///ossm-firmware/master_next" --experimental --yes || true
 
-          # Get list of files via Supabase REST API
-          RESPONSE=$(curl -s -X POST "https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/list/${BUCKET}" \
-            -H "apikey: ${SUPABASE_ACCESS_TOKEN}" \
-            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d "{\"prefix\": \"${PREFIX}\", \"limit\": 1000}")
+          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/master_next/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/master_next/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+          supabase storage cp ./firmware/bootloader.bin "ss:///ossm-firmware/master_next/bootloader.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
 
-          # Extract file names and delete any that aren't our 4 target files
-          echo "$RESPONSE" | jq -r '.[]?.name // empty' | while read -r file; do
-            if [ -n "$file" ]; then
-              # Remove the prefix to get just the filename
-              filename="${file#$PREFIX}"
-              if [[ "$filename" != "firmware.bin" && "$filename" != "partitions.bin" && "$filename" != "bootloader.bin" && "$filename" != "manifest.json" ]]; then
-                echo "Removing unexpected file: $file"
-                curl -s -X DELETE "https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/${BUCKET}/${file}" \
-                  -H "apikey: ${SUPABASE_ACCESS_TOKEN}" \
-                  -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" || true
-              fi
-            fi
-          done
-        continue-on-error: true
-
-      - name: Upload firmware to Supabase Storage
-        run: |
-          supabase storage rm "ss:///ossm-firmware/master/firmware.bin" --experimental --yes 
-          supabase storage rm "ss:///ossm-firmware/master/partitions.bin" --experimental --yes 
-          supabase storage rm "ss:///ossm-firmware/master/bootloader.bin" --experimental --yes 
-          supabase storage rm "ss:///ossm-firmware/master/manifest.json" --experimental --yes 
-          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/master/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/master/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-          supabase storage cp ./firmware/bootloader.bin "ss:///ossm-firmware/master/bootloader.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-
-      - name: Create and upload manifest.json
+      - name: Create and upload manifest.json to staging prefix
         run: |
           # Create a temporary manifest file with "master" as the branch name
           cat .github/artifacts/manifest.json | sed "s/{{ branchName }}/master/g" > ./manifest.json
 
-          # Upload the manifest file to Supabase Storage
-          supabase storage cp ./manifest.json "ss:///ossm-firmware/master/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
+          # Upload the manifest file to the staging prefix
+          supabase storage cp ./manifest.json "ss:///ossm-firmware/master_next/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
+
+      - name: Promote master_next to master
+        run: |
+          # Wipe the live directory so the destination paths for mv are free.
+          # rm -r catches any orphaned rows that per-file rm reports as "Object not found"
+          # but that still cause 409 Duplicate on cp.
+          supabase storage rm -r "ss:///ossm-firmware/master" --experimental --yes || true
+
+          # mv is an in-place UPDATE on storage.objects, which requires the destination
+          # path to be free. The rm -r above guarantees that.
+          supabase storage mv "ss:///ossm-firmware/master_next/firmware.bin" "ss:///ossm-firmware/master/firmware.bin" --experimental
+          supabase storage mv "ss:///ossm-firmware/master_next/partitions.bin" "ss:///ossm-firmware/master/partitions.bin" --experimental
+          supabase storage mv "ss:///ossm-firmware/master_next/bootloader.bin" "ss:///ossm-firmware/master/bootloader.bin" --experimental
+          supabase storage mv "ss:///ossm-firmware/master_next/manifest.json" "ss:///ossm-firmware/master/manifest.json" --experimental
 
       - name: Download registry.json
         id: download_registry
