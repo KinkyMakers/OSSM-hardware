@@ -86,6 +86,21 @@ class ServerCallbacks : public NimBLEServerCallbacks {
     }
 } serverCallbacks;
 
+// Read callback for the state characteristic. The nimbleLoop task only
+// flushes a fresh state JSON to the characteristic buffer when the
+// fingerprint changes (and the fingerprint excludes positionMm), so a
+// plain BLE read returns stale position data between settings changes.
+// Adding this callback lets a client poll the characteristic and always
+// get the current position — getCurrentState() formats fresh JSON on
+// every read. Notify path is unchanged.
+class StateCharacteristicCallbacks : public NimBLECharacteristicCallbacks {
+    void onRead(NimBLECharacteristic* pCharacteristic,
+                NimBLEConnInfo& connInfo) override {
+        if (ossm == nullptr) return;
+        pCharacteristic->setValue(ossm->getCurrentState());
+    }
+} stateCharCallbacks;
+
 #ifdef PRETEND_TO_BE_FLESHY_THRUST_SYNC
 class FTSCallbacks : public NimBLECharacteristicCallbacks {
     void onWrite(NimBLECharacteristic* pCharacteristic,
@@ -306,6 +321,8 @@ void initNimble() {
 
     pStateCharacteristic = initStateCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_STATE_UUID));
+    // Wire the read callback so client-initiated reads return live position.
+    pStateCharacteristic->setCallbacks(&stateCharCallbacks);
 
     initPatternsCharacteristic(pService,
                                NimBLEUUID(CHARACTERISTIC_PATTERNS_UUID));
