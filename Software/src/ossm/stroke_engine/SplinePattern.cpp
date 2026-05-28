@@ -15,49 +15,50 @@ static const char* TAG = "SplinePattern";
 
 namespace {
 
-// Per-anchor view of one JSON entry. handleIn and handleOut are parametric
-// tangent vectors describing the curve's slope at (x, y). handleOut is the
-// parametric derivative B'(u) at the anchor as the next segment leaves
-// (u=0); handleIn is B'(u) at the anchor as the previous segment arrives
-// (u=1). The geometric slope at the anchor is therefore handle.y / handle.x,
-// and the vector's magnitude controls how strongly the curve adheres to
-// that direction. Segment A → B becomes a cubic Bezier with control points
-//   P0 = A,  P1 = A + A.handleOut/3,  P2 = B − B.handleIn/3,  P3 = B
-// chosen so that B'(0) = A.handleOut and B'(1) = B.handleIn exactly. All-
-// zero handles still cleanly degenerate to a straight line.
-struct Anchor {
-    double x;
-    double y;
-    double handleInX;
-    double handleInY;
-    double handleOutX;
-    double handleOutY;
-};
+    // Per-anchor view of one JSON entry. handleIn and handleOut are parametric
+    // tangent vectors describing the curve's slope at (x, y). handleOut is the
+    // parametric derivative B'(u) at the anchor as the next segment leaves
+    // (u=0); handleIn is B'(u) at the anchor as the previous segment arrives
+    // (u=1). The geometric slope at the anchor is therefore handle.y /
+    // handle.x, and the vector's magnitude controls how strongly the curve
+    // adheres to that direction. Segment A → B becomes a cubic Bezier with
+    // control points
+    //   P0 = A,  P1 = A + A.handleOut/3,  P2 = B − B.handleIn/3,  P3 = B
+    // chosen so that B'(0) = A.handleOut and B'(1) = B.handleIn exactly. All-
+    // zero handles still cleanly degenerate to a straight line.
+    struct Anchor {
+        double x;
+        double y;
+        double handleInX;
+        double handleInY;
+        double handleOutX;
+        double handleOutY;
+    };
 
-struct XY {
-    double x;
-    double y;
-};
+    struct XY {
+        double x;
+        double y;
+    };
 
-// Evaluate the spline at a single u value and copy the first 2D point out of
-// the resulting De Boor net. Allocates / frees a tsDeBoorNet per call; both
-// operations are cheap (single small malloc), but keep this off the hot path
-// where possible. Returns true on success.
-bool evalXY(const tsBSpline* spline, tsReal u, XY* out) {
-    tsDeBoorNet net = ts_deboornet_init();
-    tsStatus status;
-    bool ok = false;
-    if (ts_bspline_eval(spline, u, &net, &status) == TS_SUCCESS) {
-        const tsReal* result = ts_deboornet_result_ptr(&net);
-        if (result != nullptr) {
-            out->x = result[0];
-            out->y = result[1];
-            ok = true;
+    // Evaluate the spline at a single u value and copy the first 2D point out
+    // of the resulting De Boor net. Allocates / frees a tsDeBoorNet per call;
+    // both operations are cheap (single small malloc), but keep this off the
+    // hot path where possible. Returns true on success.
+    bool evalXY(const tsBSpline* spline, tsReal u, XY* out) {
+        tsDeBoorNet net = ts_deboornet_init();
+        tsStatus status;
+        bool ok = false;
+        if (ts_bspline_eval(spline, u, &net, &status) == TS_SUCCESS) {
+            const tsReal* result = ts_deboornet_result_ptr(&net);
+            if (result != nullptr) {
+                out->x = result[0];
+                out->y = result[1];
+                ok = true;
+            }
         }
+        ts_deboornet_free(&net);
+        return ok;
     }
-    ts_deboornet_free(&net);
-    return ok;
-}
 
 }  // namespace
 
@@ -389,9 +390,8 @@ bool SplinePattern::loadFromJson(const char* id, const char* jsonText,
         //   y_xxx = (f'''·g'² − 3·f''·g'·g'' − f'·g'·g''' + 3·f'·g''²)
         //           / g'⁵
         for (int s = 0; s <= kInteriorSamples; ++s) {
-            const double frac =
-                kInteriorMin +
-                (kInteriorMax - kInteriorMin) * s / kInteriorSamples;
+            const double frac = kInteriorMin + (kInteriorMax - kInteriorMin) *
+                                                   s / kInteriorSamples;
             const tsReal u =
                 (tsReal)(seg.uStart + frac * (seg.uEnd - seg.uStart));
             XY d1{}, d2{}, d3{};
@@ -410,10 +410,9 @@ bool SplinePattern::loadFromJson(const char* id, const char* jsonText,
             const double gp3 = gp2 * gp;
             const double gp5 = gp3 * gp2;
             const double curv = (d2.y * d1.x - d1.y * d2.x) / gp3;
-            const double jrk =
-                (d3.y * gp2 - 3.0 * d2.y * d1.x * d2.x -
-                 d1.y * d1.x * d3.x + 3.0 * d1.y * d2.x * d2.x) /
-                gp5;
+            const double jrk = (d3.y * gp2 - 3.0 * d2.y * d1.x * d2.x -
+                                d1.y * d1.x * d3.x + 3.0 * d1.y * d2.x * d2.x) /
+                               gp5;
             const float curvAbs = (float)fabs(curv);
             const float jrkAbs = (float)fabs(jrk);
             if (curvAbs > maxCurvAbs) maxCurvAbs = curvAbs;
@@ -456,8 +455,7 @@ bool SplinePattern::loadFromJson(const char* id, const char* jsonText,
     // shorter than the slope-only calibration above, even if our T_v
     // (which uses true max|dy/dx| rather than the per-segment x-span) ends
     // up slightly smaller for unusual patterns.
-    _feasibleTotalDuration =
-        std::max({_totalDuration, T_v, T_a, T_j});
+    _feasibleTotalDuration = std::max({_totalDuration, T_v, T_a, T_j});
 
     const char* binding = "speed";
     if (T_a >= T_v && T_a >= T_j) binding = "accel";
@@ -490,7 +488,7 @@ SplineSample SplinePattern::sampleAtPeriod(double speedPercent, float period,
                                            bool computeJerk) {
     if (!_splineReady || _baseAnchorCount < 2 || _segments.empty() ||
         period <= 0.0f || speedPercent <= 0.0) {
-        return SplineSample{0.0, 0.0, 0.0, 0.0, 0.0, speedPercent};
+        return SplineSample{0.0, 0.0, 0.0, 0.0, 0.0, speedPercent, 0.0};
     }
 
     // ── Time → normalized t in [0, 1] ────────────────────────────────────
@@ -498,8 +496,7 @@ SplineSample SplinePattern::sampleAtPeriod(double speedPercent, float period,
     // adjust `tOffset` so the curve doesn't jump when the period scales.
     long deltaTimeMS = millis() - startTime;
 
-    long timeSinceStartMS =
-        fmod(deltaTimeMS, period * 1000 / speedPercent);
+    long timeSinceStartMS = fmod(deltaTimeMS, period * 1000 / speedPercent);
 
     if (lastSpeed > 0 && lastSpeed != speedPercent) {
         long lastTimeSinceStartMS =
@@ -508,8 +505,7 @@ SplineSample SplinePattern::sampleAtPeriod(double speedPercent, float period,
                    lastTimeSinceStartMS / (period * 1000 / lastSpeed);
     }
 
-    double t =
-        timeSinceStartMS / (period * 1000 / speedPercent) - tOffset;
+    double t = timeSinceStartMS / (period * 1000 / speedPercent) - tOffset;
 
     if (t < 0.0) {
         t = 1.0 + fmod(t, 1.0);
@@ -549,10 +545,10 @@ SplineSample SplinePattern::sampleAtPeriod(double speedPercent, float period,
     double uLo = seg.uStart;
     double uHi = seg.uEnd;
     const double segDx = seg.xEnd - seg.xStart;
-    double u = (segDx > 1e-12)
-                   ? (seg.uStart + (t - seg.xStart) / segDx *
-                                       (seg.uEnd - seg.uStart))
-                   : seg.uStart;
+    double u =
+        (segDx > 1e-12)
+            ? (seg.uStart + (t - seg.xStart) / segDx * (seg.uEnd - seg.uStart))
+            : seg.uStart;
     if (u < uLo) u = uLo;
     if (u > uHi) u = uHi;
 
@@ -629,8 +625,13 @@ SplineSample SplinePattern::sampleAtPeriod(double speedPercent, float period,
         }
     }
 
+    // get the "y" position at the end of the segment
+    XY endPos{};
+    evalXY(&_spline, seg.uEnd, &endPos);
+    const double handleY = endPos.y;
+
     return SplineSample{
-        t, yPos, velocity, acceleration, jerk, speedPercent,
+        t, yPos, velocity, acceleration, jerk, speedPercent, handleY,
     };
 }
 

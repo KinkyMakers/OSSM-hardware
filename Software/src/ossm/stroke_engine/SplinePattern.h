@@ -12,6 +12,8 @@ struct SplineSample {
     double acceleration;
     double jerk;
     double speedPercent;
+    // Normalised stroke position along the pattern y-axis, clamped to [0, 1].
+    double handleY;
 };
 
 class SplinePattern {

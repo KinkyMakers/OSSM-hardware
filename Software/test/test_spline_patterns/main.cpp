@@ -166,13 +166,13 @@ static SweepResult sweepPattern(const std::string& id, const std::string& json,
         analysisDir + "/spline_samples_" + id + "_feasible.csv";
     FILE* csv = fopen(csvPath.c_str(), "w");
     TEST_ASSERT_NOT_NULL_MESSAGE(csv, ("failed to open " + csvPath).c_str());
-    fprintf(csv, "millis_ms,t,position,velocity,acceleration\n");
+    fprintf(csv, "millis_ms,t,position,handleY,velocity,acceleration\n");
 
     FILE* feasibleCsv = fopen(feasibleCsvPath.c_str(), "w");
     TEST_ASSERT_NOT_NULL_MESSAGE(
         feasibleCsv, ("failed to open " + feasibleCsvPath).c_str());
     fprintf(feasibleCsv,
-            "millis_ms,t,position,velocity,acceleration,jerk\n");
+            "millis_ms,t,position,handleY,velocity,acceleration,jerk\n");
 
     for (unsigned long ms = 0; ms <= totalMs; ms += stepMs) {
         g_fakedMs = ms;
@@ -186,10 +186,10 @@ static SweepResult sweepPattern(const std::string& id, const std::string& json,
         SplineSample s = pattern.evaluate(1.0);
         SplineSample fs = pattern.evaluateFeasible(1.0);
 
-        fprintf(csv, "%lu,%.9f,%.9f,%.9f,%.9f\n", ms, t, s.position, s.velocity,
-                s.acceleration);
-        fprintf(feasibleCsv, "%lu,%.9f,%.9f,%.9f,%.9f,%.9f\n", ms, fs.t,
-                fs.position, fs.velocity, fs.acceleration, fs.jerk);
+        fprintf(csv, "%lu,%.9f,%.9f,%.9f,%.9f,%.9f\n", ms, t, s.position,
+                s.handleY, s.velocity, s.acceleration);
+        fprintf(feasibleCsv, "%lu,%.9f,%.9f,%.9f,%.9f,%.9f,%.9f\n", ms, fs.t,
+                fs.position, fs.handleY, fs.velocity, fs.acceleration, fs.jerk);
 
         if (s.position > result.maxPos) result.maxPos = s.position;
         if (s.position < result.minPos) result.minPos = s.position;
@@ -246,7 +246,7 @@ static void sweepPatternWithSpeedChange(const std::string& id,
     // Extra `speed` column lets the plotter draw markers at each change.
     // plot_spline.py's parse_csv uses names=True so older readers that only
     // look up the original 5 columns still work.
-    fprintf(csv, "millis_ms,t,position,velocity,acceleration,speed\n");
+    fprintf(csv, "millis_ms,t,position,handleY,velocity,acceleration,speed\n");
 
     for (unsigned long i = 0; i < numSamples; ++i) {
         const unsigned long ms = i * stepMs;
@@ -263,8 +263,8 @@ static void sweepPatternWithSpeedChange(const std::string& id,
 
         SplineSample s = pattern.evaluate(speedPercent);
 
-        fprintf(csv, "%lu,%.9f,%.9f,%.9f,%.9f,%.3f\n", ms, s.t, s.position,
-                s.velocity, s.acceleration, s.speedPercent);
+        fprintf(csv, "%lu,%.9f,%.9f,%.9f,%.9f,%.9f,%.3f\n", ms, s.t, s.position,
+                s.handleY, s.velocity, s.acceleration, s.speedPercent);
     }
 
     fclose(csv);

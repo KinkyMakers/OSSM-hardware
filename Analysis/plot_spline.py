@@ -9,7 +9,7 @@ Two input formats are supported:
    the x-axis.
 
 2. CSV produced by the `test_spline_patterns` unit test. Columns:
-      millis_ms,t,position,velocity,acceleration[,jerk][,speed]
+      millis_ms,t,position,handleY,velocity,acceleration[,jerk][,speed]
    The test drives SplinePattern::evaluate(1.0) (and evaluateFeasible(1.0))
    across 3x totalDuration using a faked millis() clock. Position / velocity /
    acceleration come straight from the evaluator, so units are normalized per
@@ -23,8 +23,12 @@ Two input formats are supported:
    jerk panel is added when the feasible CSV is present.
 
 Usage:
+    python plot_spline.py
+        Plot every spline_samples_*.csv in this directory (skips
+        *_feasible.csv — those are overlaid on their raw sibling).
+
     python plot_spline.py <log_or_csv>
-    python plot_spline.py Analysis/spline_samples_abc_ABC-000.csv
+        Plot a single log or CSV file.
 """
 
 import os
@@ -53,6 +57,13 @@ ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 # current spline timeOffset.
 EVAL_PATTERN = re.compile(
     rf"\[\s*(\d+)\].*\[SplineCtrl\]\s+"
+    rf"t=({FLOAT})\s+pos=({FLOAT})\s+handleY=({FLOAT})\s+\({FLOAT}%\)\s+"
+    rf"vel=({FLOAT})\s+naive=({FLOAT})\s+"
+    rf"acc=({FLOAT})\s+jerk=({FLOAT}),\s*"
+    rf"speed=({FLOAT}),\s*timeOffset=({FLOAT})"
+)
+EVAL_PATTERN_LEGACY = re.compile(
+    rf"\[\s*(\d+)\].*\[SplineCtrl\]\s+"
     rf"t=({FLOAT})\s+pos=({FLOAT})\s*(?:\([^)]*\))?\s+"
     rf"vel=({FLOAT})\s+naive=({FLOAT})\s+acc=({FLOAT}),\s*"
     rf"speed=({FLOAT}),\s*timeOffset=({FLOAT})"
@@ -73,15 +84,44 @@ def parse_log(path: str):
             me = EVAL_PATTERN.search(line)
             if me:
                 eval_rows.append(
-                    tuple(float(me.group(i)) for i in range(1, 9))
+                    (
+                        float(me.group(1)),
+                        float(me.group(2)),
+                        float(me.group(3)),
+                        float(me.group(4)),
+                        float(me.group(6)),
+                        float(me.group(7)),
+                        float(me.group(8)),
+                        float(me.group(9)),
+                        float(me.group(10)),
+                        float(me.group(11)),
+                    )
+                )
+                continue
+            me = EVAL_PATTERN_LEGACY.search(line)
+            if me:
+                eval_rows.append(
+                    (
+                        float(me.group(1)),
+                        float(me.group(2)),
+                        float(me.group(3)),
+                        float(me.group(3)),
+                        float(me.group(4)),
+                        float(me.group(5)),
+                        float(me.group(6)),
+                        np.nan,
+                        float(me.group(7)),
+                        float(me.group(8)),
+                    )
                 )
 
     if not eval_rows:
         empty_i = np.array([], dtype=np.int64)
         empty_f = np.array([], dtype=np.float64)
         return {
-            "millis": empty_i, "t": empty_f, "pos": empty_f, "vel": empty_f,
-            "naive": empty_f, "acc": empty_f, "speed": empty_f,
+            "millis": empty_i, "t": empty_f, "pos": empty_f,
+            "handleY": empty_f, "vel": empty_f, "naive": empty_f,
+            "acc": empty_f, "jerk": empty_f, "speed": empty_f,
             "timeOffset": empty_f,
         }
 
@@ -90,27 +130,35 @@ def parse_log(path: str):
         "millis": e[:, 0].astype(np.int64),
         "t": e[:, 1],
         "pos": e[:, 2],
-        "vel": e[:, 3],
-        "naive": e[:, 4],
-        "acc": e[:, 5],
-        "speed": e[:, 6],
-        "timeOffset": e[:, 7],
+        "handleY": e[:, 3],
+        "vel": e[:, 4],
+        "naive": e[:, 5],
+        "acc": e[:, 6],
+        "jerk": e[:, 7],
+        "speed": e[:, 8],
+        "timeOffset": e[:, 9],
     }
 
 
 def parse_csv(path: str):
     """Parse unit-test CSV.
 
-    Returns a dict of numpy arrays. The `jerk` and `speed` columns are
-    optional — only present in `_feasible.csv` and the speed-change variants
-    respectively.
+    Returns a dict of numpy arrays. The `handleY`, `jerk`, and `speed`
+    columns are optional — older CSVs omit `handleY`; `_feasible.csv` adds
+    `jerk`; speed-change variants add `speed`.
     """
     data = np.genfromtxt(path, delimiter=",", names=True)
     names = data.dtype.names or ()
+    pos = data["position"].astype(np.float64)
     return {
         "millis": data["millis_ms"].astype(np.int64),
         "t": data["t"].astype(np.float64),
-        "pos": data["position"].astype(np.float64),
+        "pos": pos,
+        "handleY": (
+            data["handleY"].astype(np.float64)
+            if "handleY" in names
+            else np.clip(pos, 0.0, 1.0)
+        ),
         "vel": data["velocity"].astype(np.float64),
         "acc": data["acceleration"].astype(np.float64),
         "jerk": (
@@ -219,6 +267,13 @@ def plot(raw, feasible=None, *, out_path: str, title_suffix: str = ""):
             label = "evaluate()" if has_feasible else None
             ax.plot(wall_s, raw_y, color=color, label=label, **raw_line_kw)
             ax.scatter(wall_s, raw_y, color=color, **raw_dot_kw)
+            if key == "pos":
+                raw_hy = raw.get("handleY")
+                if raw_hy is not None and not np.allclose(raw_hy, raw_y):
+                    ax.plot(
+                        wall_s, raw_hy, color="#1565c0", linewidth=1.2,
+                        alpha=0.95, label="handleY [0,1]",
+                    )
         if has_feasible:
             f_y = feasible.get(raw_key_of[key])
             if f_y is not None:
@@ -227,10 +282,18 @@ def plot(raw, feasible=None, *, out_path: str, title_suffix: str = ""):
                         label="evaluateFeasible()", **feasible_line_kw)
                 ax.scatter(feasible_wall_s, f_y, color=color,
                            **feasible_dot_kw)
+                if key == "pos":
+                    f_hy = feasible.get("handleY")
+                    if f_hy is not None and not np.allclose(f_hy, f_y):
+                        ax.plot(
+                            feasible_wall_s, f_hy, color="#0d47a1",
+                            linewidth=1.0, alpha=0.85, linestyle=":",
+                            label="feasible handleY",
+                        )
         ax.set_ylabel(panel_labels[key])
         ax.grid(True, alpha=0.3)
 
-    if has_feasible:
+    if has_feasible or axes[0].get_legend_handles_labels()[0]:
         axes[0].legend(loc="upper right", fontsize=9, framealpha=0.85)
 
     axes[0].set_title(
@@ -273,6 +336,19 @@ def plot(raw, feasible=None, *, out_path: str, title_suffix: str = ""):
 # Maps Analysis/spline_samples_<id>.csv -> Analysis/spline_samples_<id>_feasible.csv.
 # Run only on the raw file; the script auto-discovers the sibling and overlays
 # it. Speed-change CSVs (no _feasible sibling) plot the raw curve standalone.
+def discover_csv_targets(analysis_dir: str | None = None) -> list[str]:
+    """Return plot targets: raw and speed-change CSVs, not _feasible siblings."""
+    root = analysis_dir or SCRIPT_DIR
+    targets = []
+    for name in sorted(os.listdir(root)):
+        if not name.startswith("spline_samples_") or not name.endswith(".csv"):
+            continue
+        if name.endswith("_feasible.csv"):
+            continue
+        targets.append(os.path.join(root, name))
+    return targets
+
+
 def _feasible_sibling_path(raw_path: str):
     if raw_path.endswith("_feasible.csv"):
         return None
@@ -283,13 +359,13 @@ def _feasible_sibling_path(raw_path: str):
     return candidate if os.path.exists(candidate) else None
 
 
-def main(path: str):
+def main(path: str) -> int:
     is_csv = path.lower().endswith(".csv")
     if is_csv:
         raw = parse_csv(path)
         if raw["millis"].size == 0:
             print(f"No rows in {path}.")
-            sys.exit(1)
+            return 1
 
         feasible = None
         sibling = _feasible_sibling_path(path)
@@ -319,15 +395,17 @@ def main(path: str):
             out_path=out,
             title_suffix=f"  —  {base}",
         )
-    else:
-        rows = parse_log(path)
-        if rows["millis"].size == 0:
-            print("No SplineCtrl data found in file.")
-            sys.exit(1)
-        dt = (rows["millis"][-1] - rows["millis"][0]) / 1000.0
-        print(f"Parsed {rows['millis'].size} samples over {dt:.1f}s")
-        out = os.path.join(SCRIPT_DIR, "spline_plot.png")
-        plot_log(rows, out_path=out)
+        return 0
+
+    rows = parse_log(path)
+    if rows["millis"].size == 0:
+        print("No SplineCtrl data found in file.")
+        return 1
+    dt = (rows["millis"][-1] - rows["millis"][0]) / 1000.0
+    print(f"Parsed {rows['millis'].size} samples over {dt:.1f}s")
+    out = os.path.join(SCRIPT_DIR, "spline_plot.png")
+    plot_log(rows, out_path=out)
+    return 0
 
 
 def plot_log(rows, *, out_path: str) -> None:
@@ -434,9 +512,22 @@ def plot_log(rows, *, out_path: str) -> None:
 
 
 if __name__ == "__main__":
-    path = sys.argv[1] if len(sys.argv) > 1 else None
-    if not path:
-        print("Usage: python plot_spline.py <log_or_csv>")
-        print("       python plot_spline.py Analysis/spline_samples_abc_ABC-000.csv")
+    if len(sys.argv) > 1:
+        sys.exit(main(sys.argv[1]))
+
+    targets = discover_csv_targets()
+    if not targets:
+        print(f"No spline_samples_*.csv files found in {SCRIPT_DIR}")
         sys.exit(1)
-    main(path)
+
+    failed = []
+    for path in targets:
+        print(f"\n--- {os.path.basename(path)} ---")
+        if main(path) != 0:
+            failed.append(path)
+
+    if failed:
+        print(f"\nFailed to plot {len(failed)}/{len(targets)} file(s).")
+        sys.exit(1)
+
+    print(f"\nPlotted {len(targets)} CSV(s).")

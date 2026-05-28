@@ -159,6 +159,9 @@ namespace stroke_engine {
 
                     float currentSplineTime = 0;
 
+                    int32_t lastTargetPos = 0;
+                    stepper->setAcceleration(maxAccel);
+
                     while (isInCorrectState()) {
                         if (lastSetting.pattern != settings.pattern) break;
 
@@ -173,13 +176,12 @@ namespace stroke_engine {
                             continue;
                         }
 
-                        auto sample =
-                            spline.evaluateFeasible(settings.speed / 100.0f);
+                        auto sample = spline.evaluate(settings.speed / 100.0f);
 
-                        double posNorm = fmax(0.0, fmin(1.0, sample.position));
                         double velScaled = sample.velocity;
 
-                        int32_t targetPos = (int32_t)(posNorm * strokeSteps);
+                        int32_t targetPos =
+                            (int32_t)(sample.handleY * strokeSteps);
                         float velStepsPerSec = fabs(velScaled) * strokeSteps;
                         velStepsPerSec =
                             fmaxf(0.0f, fminf(velStepsPerSec, maxSpeedHz));
@@ -192,19 +194,24 @@ namespace stroke_engine {
                             (targetPos - stepper->getCurrentPosition()) /
                             (tickIntervalMs / 1000.0f);
 
-                        stepper->setSpeedInHz((uint32_t)velStepsPerSec / 10);
-                        stepper->moveByAcceleration((int32_t)accelSteps / 10,
-                                                    true);
-                        // stepper->moveTo(targetPos, false);
+                        stepper->setSpeedInHz((uint32_t)velStepsPerSec);
+                        stepper->setAcceleration(accelSteps);
+                        stepper->applySpeedAcceleration();
+                        if (targetPos != lastTargetPos) {
+                            stepper->moveTo(targetPos, false);
+                            lastTargetPos = targetPos;
+                        }
 
                         ESP_LOGI("SplineCtrl",
-                                 "t=%.6f pos=%.6f (%.6f%%) vel=%.6f naive=%.6f "
+                                 "t=%.6f pos=%.6f handleY=%.6f (%.6f%%) "
+                                 "vel=%.6f naive=%.6f "
                                  "acc=%.6f jerk=%.6f, "
                                  "speed=%.6f, timeOffset=%.6f",
-                                 sample.t, sample.position, sample.speedPercent,
-                                 sample.velocity, naiveVelocity,
-                                 sample.acceleration, sample.jerk,
-                                 settings.speed, spline.getTimeOffset());
+                                 sample.t, sample.position, sample.handleY,
+                                 sample.speedPercent, sample.velocity,
+                                 naiveVelocity, sample.acceleration,
+                                 sample.jerk, settings.speed,
+                                 spline.getTimeOffset());
 
                         vTaskDelay(pdMS_TO_TICKS(tickIntervalMs));
                     }
