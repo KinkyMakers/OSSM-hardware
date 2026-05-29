@@ -1,10 +1,10 @@
 {
     "name": "Test Pattern 1",
-    "description": "Periodic cubic-spline interpolant of y = (1 - cos(2*pi*x)) / 2 sampled at 0, 1/4, 1/2, 3/4. Slopes are 0, 3, 0, -3 (NOT the analytical pi, -pi): solving the periodic tridiagonal system for these four values yields these slopes, which makes the per-segment cubic Beziers C2-continuous (no acceleration jumps at the anchors). Position deviates from the true sinusoid by ~1%. Handles encode the parametric tangent (dx, dy) where dy/dx is the geometric slope at the anchor; dx = 0.25 (= segment span) keeps x(u) strictly monotonic per segment.",
+    "description": "Periodic cubic-spline interpolant of y = (1 - cos(2*pi*t)) / 2 sampled at 0, 1/4, 1/2, 3/4. Slopes are 0, 3, 0, -3 (NOT the analytical pi, -pi): solving the periodic tridiagonal system for these four values yields these slopes, which makes the per-segment cubic Beziers C2-continuous (no acceleration jumps at the anchors). Position deviates from the true sinusoid by ~1%. Handles encode the parametric tangent (dx, dy) where dy/dx is the geometric slope at the anchor; dx = 0.25 (= segment span) keeps t strictly monotonic per segment.",
     "ver": "0.0.0",
     "cubicSpline": [
         {
-            "x": 0,
+            "t": 0,
             "y": 0,
             "handleIn": {
                 "x": 0.25,
@@ -16,7 +16,7 @@
             }
         },
         {
-            "x": 0.25,
+            "t": 0.25,
             "y": 0.5,
             "handleIn": {
                 "x": 0.25,
@@ -28,7 +28,7 @@
             }
         },
         {
-            "x": 0.5,
+            "t": 0.5,
             "y": 1,
             "handleIn": {
                 "x": 0.25,
@@ -40,7 +40,7 @@
             }
         },
         {
-            "x": 0.75,
+            "t": 0.75,
             "y": 0.5,
             "handleIn": {
                 "x": 0.25,
@@ -52,7 +52,7 @@
             }
         },
         {
-            "x": 1,
+            "t": 1,
             "y": 0,
             "handleIn": {
                 "x": 0.25,

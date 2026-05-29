@@ -132,9 +132,7 @@ namespace stroke_engine {
                     SplinePattern spline;
                     if (!spline.loadFromFile(
                             patternId, measuredStrokeMm,
-                            Config::Driver::maxSpeedMmPerSecond,
-                            Config::Driver::maxAcceleration,
-                            Config::Driver::maxJerk)) {
+                            Config::Driver::maxSpeedMmPerSecond)) {
                         ESP_LOGE("StrokeEngine",
                                  "Failed to load spline pattern '%s'",
                                  patternId);
@@ -148,8 +146,6 @@ namespace stroke_engine {
                     float maxSpeedHz =
                         Config::Driver::maxSpeedMmPerSecond * (1_mm);
                     float maxAccel = Config::Driver::maxAcceleration * (1_mm);
-                    stepper->setSpeedInHz((uint32_t)maxSpeedHz);
-                    stepper->applySpeedAcceleration();
 
                     TickType_t originTick = xTaskGetTickCount();
                     const TickType_t tickIntervalMs = 50;
@@ -161,6 +157,7 @@ namespace stroke_engine {
 
                     int32_t lastTargetPos = 0;
                     stepper->setAcceleration(maxAccel);
+                    stepper->applySpeedAcceleration();
 
                     while (isInCorrectState()) {
                         if (lastSetting.pattern != settings.pattern) break;
@@ -182,9 +179,13 @@ namespace stroke_engine {
 
                         int32_t targetPos =
                             (int32_t)(sample.handleY * strokeSteps);
-                        float velStepsPerSec = fabs(velScaled) * strokeSteps;
-                        velStepsPerSec =
-                            fmaxf(0.0f, fminf(velStepsPerSec, maxSpeedHz));
+
+                        float velStepsPerSec = fabs(velScaled) * strokeSteps *
+                                               (settings.speed / 100.0f) /
+                                               (3.0f * spline.totalDuration());
+
+                        // velStepsPerSec =
+                        //     fmaxf(0.0f, fminf(velStepsPerSec, maxSpeedHz));
 
                         float accelSteps = sample.acceleration * strokeSteps;
                         accelSteps =
@@ -195,23 +196,18 @@ namespace stroke_engine {
                             (tickIntervalMs / 1000.0f);
 
                         stepper->setSpeedInHz((uint32_t)velStepsPerSec);
-                        stepper->setAcceleration(accelSteps);
-                        stepper->applySpeedAcceleration();
-                        if (targetPos != lastTargetPos) {
-                            stepper->moveTo(targetPos, false);
-                            lastTargetPos = targetPos;
-                        }
+                        // stepper->setAcceleration(accelSteps);
+                        stepper->moveTo(targetPos, false);
 
                         ESP_LOGI("SplineCtrl",
                                  "t=%.6f pos=%.6f handleY=%.6f (%.6f%%) "
                                  "vel=%.6f naive=%.6f "
-                                 "acc=%.6f jerk=%.6f, "
+                                 "acc=%.6f, "
                                  "speed=%.6f, timeOffset=%.6f",
                                  sample.t, sample.position, sample.handleY,
                                  sample.speedPercent, sample.velocity,
                                  naiveVelocity, sample.acceleration,
-                                 sample.jerk, settings.speed,
-                                 spline.getTimeOffset());
+                                 settings.speed, spline.getTimeOffset());
 
                         vTaskDelay(pdMS_TO_TICKS(tickIntervalMs));
                     }

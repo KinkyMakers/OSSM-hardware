@@ -113,19 +113,12 @@ static std::string slurp(const std::string& path) {
 // independent of the firmware headers so this test stays standalone.
 static constexpr float kTestPlayRangeMm = 100.0f;
 static constexpr float kTestMaxSpeedMmPerSec = 350.0f;
-static constexpr float kTestMaxAccelMmPerSec2 = 50000.0f;
-static constexpr float kTestMaxJerkMmPerSec3 = 500000.0f;
 
 struct SweepResult {
     SplineSample t0;
     SplineSample tDuration;  // one full period later
     double maxPos = -1e9;
     double minPos = 1e9;
-    // Worst-case physical magnitudes observed along the feasible sweep, in
-    // device units (mm, mm/s, mm/s², mm/s³). Used by the bounds assertion.
-    double maxFeasibleVelMm = 0.0;
-    double maxFeasibleAccMm = 0.0;
-    double maxFeasibleJerkMm = 0.0;
 };
 
 static SweepResult sweepPattern(const std::string& id, const std::string& json,
@@ -138,41 +131,23 @@ static SweepResult sweepPattern(const std::string& id, const std::string& json,
 
     // playRangeMm / maxSpeedMmPerSec only affect totalDuration scaling;
     // they don't change the shape we plot. 100 mm / 350 mm/s ≈ realistic OSSM.
-    const bool ok = pattern.loadFromJson(
-        id.c_str(), json.c_str(), kTestPlayRangeMm, kTestMaxSpeedMmPerSec,
-        kTestMaxAccelMmPerSec2, kTestMaxJerkMmPerSec3);
+    const bool ok =
+        pattern.loadFromJson(id.c_str(), json.c_str(), kTestPlayRangeMm,
+                             kTestMaxSpeedMmPerSec);
     TEST_ASSERT_TRUE_MESSAGE(ok, ("loadFromJson failed for " + id).c_str());
     TEST_ASSERT_GREATER_THAN_FLOAT(0.0f, pattern.totalDuration());
-    TEST_ASSERT_GREATER_THAN_FLOAT(0.0f, pattern.feasibleTotalDuration());
     TEST_ASSERT_GREATER_OR_EQUAL(2u, pattern.pointCount());
-    // The feasible period can never be shorter than the slope-only one —
-    // it just adds extra constraints to the calibration.
-    TEST_ASSERT_GREATER_OR_EQUAL_FLOAT(pattern.totalDuration(),
-                                       pattern.feasibleTotalDuration());
 
     const double durationMs =
         static_cast<double>(pattern.totalDuration()) * 1000.0;
-    const double feasibleDurationMs =
-        static_cast<double>(pattern.feasibleTotalDuration()) * 1000.0;
-    // Use the longer of the two periods to size the sweep so both CSVs
-    // cover at least 3 full cycles of their respective time-base.
-    const double sweepDurationMs = std::max(durationMs, feasibleDurationMs);
     const unsigned long totalMs =
-        static_cast<unsigned long>(std::ceil(3.0 * sweepDurationMs));
+        static_cast<unsigned long>(std::ceil(3.0 * durationMs));
     const unsigned long stepMs = 10;
 
     const std::string csvPath = analysisDir + "/spline_samples_" + id + ".csv";
-    const std::string feasibleCsvPath =
-        analysisDir + "/spline_samples_" + id + "_feasible.csv";
     FILE* csv = fopen(csvPath.c_str(), "w");
     TEST_ASSERT_NOT_NULL_MESSAGE(csv, ("failed to open " + csvPath).c_str());
     fprintf(csv, "millis_ms,t,position,handleY,velocity,acceleration\n");
-
-    FILE* feasibleCsv = fopen(feasibleCsvPath.c_str(), "w");
-    TEST_ASSERT_NOT_NULL_MESSAGE(
-        feasibleCsv, ("failed to open " + feasibleCsvPath).c_str());
-    fprintf(feasibleCsv,
-            "millis_ms,t,position,handleY,velocity,acceleration,jerk\n");
 
     for (unsigned long ms = 0; ms <= totalMs; ms += stepMs) {
         g_fakedMs = ms;
@@ -184,35 +159,20 @@ static SweepResult sweepPattern(const std::string& id, const std::string& json,
             std::fmod(static_cast<double>(ms), durationMs) / durationMs;
 
         SplineSample s = pattern.evaluate(1.0);
-        SplineSample fs = pattern.evaluateFeasible(1.0);
 
         fprintf(csv, "%lu,%.9f,%.9f,%.9f,%.9f,%.9f\n", ms, t, s.position,
                 s.handleY, s.velocity, s.acceleration);
-        fprintf(feasibleCsv, "%lu,%.9f,%.9f,%.9f,%.9f,%.9f,%.9f\n", ms, fs.t,
-                fs.position, fs.handleY, fs.velocity, fs.acceleration, fs.jerk);
 
         if (s.position > result.maxPos) result.maxPos = s.position;
         if (s.position < result.minPos) result.minPos = s.position;
-
-        const double velMm = std::fabs(fs.velocity) * kTestPlayRangeMm;
-        const double accMm = std::fabs(fs.acceleration) * kTestPlayRangeMm;
-        const double jrkMm = std::fabs(fs.jerk) * kTestPlayRangeMm;
-        if (velMm > result.maxFeasibleVelMm) result.maxFeasibleVelMm = velMm;
-        if (accMm > result.maxFeasibleAccMm) result.maxFeasibleAccMm = accMm;
-        if (jrkMm > result.maxFeasibleJerkMm) result.maxFeasibleJerkMm = jrkMm;
 
         if (ms == 0) result.t0 = s;
         if (ms == static_cast<unsigned long>(durationMs)) result.tDuration = s;
     }
 
     fclose(csv);
-    fclose(feasibleCsv);
-    printf(
-        "Wrote %s (totalDuration=%.3fs, feasibleDuration=%.3fs, %lu ms swept; "
-        "peak feasible v=%.1f mm/s, a=%.1f mm/s^2, j=%.1f mm/s^3)\n",
-        csvPath.c_str(), pattern.totalDuration(),
-        pattern.feasibleTotalDuration(), totalMs, result.maxFeasibleVelMm,
-        result.maxFeasibleAccMm, result.maxFeasibleJerkMm);
+    printf("Wrote %s (totalDuration=%.3fs, %lu ms swept)\n", csvPath.c_str(),
+           pattern.totalDuration(), totalMs);
     return result;
 }
 
@@ -227,9 +187,9 @@ static void sweepPatternWithSpeedChange(const std::string& id,
                                         const std::string& analysisDir) {
     resetFakeClock();
     SplinePattern pattern;
-    const bool ok = pattern.loadFromJson(
-        id.c_str(), json.c_str(), kTestPlayRangeMm, kTestMaxSpeedMmPerSec,
-        kTestMaxAccelMmPerSec2, kTestMaxJerkMmPerSec3);
+    const bool ok =
+        pattern.loadFromJson(id.c_str(), json.c_str(), kTestPlayRangeMm,
+                             kTestMaxSpeedMmPerSec);
     TEST_ASSERT_TRUE_MESSAGE(ok, ("loadFromJson failed for " + id).c_str());
 
     const unsigned long stepMs = 10;
@@ -290,11 +250,6 @@ void test_pattern_dir_resolves() {
 }
 
 void test_sweep_all_patterns() {
-    // Sample-grid mis-alignment with the calibration sweep can let the
-    // empirical peak skim a few % past the analytic bound; allow that wiggle
-    // before failing the test.
-    constexpr double kBoundSlack = 1.10;
-
     for (const auto& id : g_ids) {
         const std::string path = g_patternDir + "/" + id + ".json";
         const std::string json = slurp(path);
@@ -315,25 +270,6 @@ void test_sweep_all_patterns() {
                                  ("unexpected undershoot in " + id).c_str());
         TEST_ASSERT_TRUE_MESSAGE(r.maxPos < 1.25,
                                  ("unexpected overshoot in " + id).c_str());
-
-        // Feasibility: the secondary spline (evaluateFeasible) must keep
-        // physical |v| and |a| below the limits passed to loadFromJson at
-        // speedPercent = 1.0. These are bounded for any cubic Bezier path
-        // (first/second derivatives are finite), so a tight assertion is
-        // appropriate.
-        TEST_ASSERT_TRUE_MESSAGE(
-            r.maxFeasibleVelMm <= kTestMaxSpeedMmPerSec * kBoundSlack,
-            ("feasible spline exceeded MAX_SPEED for " + id).c_str());
-        TEST_ASSERT_TRUE_MESSAGE(
-            r.maxFeasibleAccMm <= kTestMaxAccelMmPerSec2 * kBoundSlack,
-            ("feasible spline exceeded MAX_ACCEL for " + id).c_str());
-
-        // Jerk is left advisory — cubic Beziers are at best C² across
-        // segment boundaries, so patterns with tangent discontinuities
-        // (corners) have impulsive |d³y/dx³| there. Uniform time-scaling
-        // cannot bound that; only path-smoothing or a runtime jerk-limited
-        // tracker could. The peak is printed by sweepPattern() so it's
-        // visible in the test log for diagnostic purposes.
     }
 }
 

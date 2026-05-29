@@ -3,14 +3,11 @@
 
 #include <tinyspline.h>
 
-#include <vector>
-
 struct SplineSample {
     double t;
     double position;
     double velocity;
     double acceleration;
-    double jerk;
     double speedPercent;
     // Normalised stroke position along the pattern y-axis, clamped to [0, 1].
     double handleY;
@@ -28,66 +25,44 @@ class SplinePattern {
     SplinePattern& operator=(const SplinePattern&) = delete;
 
     bool loadFromFile(const char* id, float playRangeMm,
-                      float maxSpeedMmPerSec, float maxAccelMmPerSec2,
-                      float maxJerkMmPerSec3);
+                      float maxSpeedMmPerSec);
     bool loadFromJson(const char* id, const char* jsonText, float playRangeMm,
-                      float maxSpeedMmPerSec, float maxAccelMmPerSec2,
-                      float maxJerkMmPerSec3);
+                      float maxSpeedMmPerSec);
 
-    // Raw sample using the slope-only `_totalDuration` (today's behaviour).
-    // Position/velocity/acceleration may exceed the device's physical
-    // limits; callers that drive the motor should prefer evaluateFeasible.
+    // Sample using the slope-only `_totalDuration`. The period is sized so a
+    // pattern played at speedPercent = 1.0 reaches |dy/dx|·playRangeMm =
+    // maxSpeedMmPerSec at its steepest point; callers are still responsible
+    // for clamping the returned velocity / acceleration to the device's
+    // physical limits when driving the motor.
     SplineSample evaluate(double speedPercent);
 
-    // Sample using `_feasibleTotalDuration`, the period stretched far enough
-    // that |velocity|, |acceleration|, and |jerk| stay within the limits
-    // supplied at load time (when expressed in physical units via
-    // playRangeMm). At speedPercent <= 1.0 the returned sample is
-    // physically realisable.
-    SplineSample evaluateFeasible(double speedPercent);
-
     float totalDuration() const { return _totalDuration; }
-    float feasibleTotalDuration() const { return _feasibleTotalDuration; }
     const char* name() const { return _name; }
     size_t pointCount() const { return _baseAnchorCount; }
     double getTimeOffset() const { return timeOffset; }
 
   private:
-    // Looks up an anchor [x_i, x_{i+1}) interval inside the tiled spline and
-    // remembers the matching u-domain in the underlying tsBSpline. Each
-    // tsBSpline of type TS_BEZIERS is parameterised over [0, 1] split into
-    // tiledSegmentCount equal-length u-windows, one per cubic Bezier segment.
-    struct TiledSegment {
-        double xStart;
-        double xEnd;
-        double uStart;
-        double uEnd;
-    };
-
-    // 2D Bezier B-spline over (x, y). x(u) is the time axis, y(u) is the
-    // normalised position. Derivative splines are pre-built once at load to
-    // avoid per-evaluate allocation.
+    // 2D Bezier B-spline over (t, y). t is the pattern time axis in [0, 1]
+    // per period; y is the normalised position. Derivative splines are
+    // pre-built once at load to avoid per-evaluate allocation. The spline is
+    // constructed from a tiled anchor sequence (3 copies of one period + a
+    // closing anchor) so the wrap-around is smooth; uniform TS_BEZIERS knots
+    // mean segment i spans knot t ∈ [i / N, (i+1) / N] where N =
+    // num_control_points / 4. One period maps to the middle tile only:
+    // [_knotTMin, _knotTMax], not the full [0, 1] knot range.
     tsBSpline _spline;
     tsBSpline _splineDeriv1;
     tsBSpline _splineDeriv2;
-    tsBSpline _splineDeriv3;
     bool _splineReady = false;
 
-    std::vector<TiledSegment> _segments;
     size_t _baseAnchorCount = 0;
-    // Slope-only period (kept for backwards compatibility with evaluate()).
+    double _knotTMin = 0.0;
+    double _knotTMax = 1.0;
     float _totalDuration = 0.0f;
-    // Period stretched against speed, accel, and jerk simultaneously.
-    float _feasibleTotalDuration = 0.0f;
     char _name[64] = {};
 
     double lastSpeedPercent = 0;
     double timeOffset = 0;
-    // evaluateFeasible runs against its own time-base, so it needs an
-    // independent speed-change rebasing offset to avoid jumping when the
-    // user changes speed mid-stroke.
-    double lastSpeedPercentFeasible = 0;
-    double timeOffsetFeasible = 0;
 
     long startTime = 0;
     long timeDelta = 0;
@@ -95,12 +70,10 @@ class SplinePattern {
 
     void freeSplines();
 
-    // Shared core for evaluate() / evaluateFeasible(): drives the time-base
-    // off `period` (seconds for one full pattern) and the per-evaluator
-    // speed-tracking state. Computes jerk only when computeJerk is true.
+    // Shared core for evaluate(): drives the time-base off `period` (seconds
+    // for one full pattern) and the speed-tracking state.
     SplineSample sampleAtPeriod(double speedPercent, float period,
-                                double& lastSpeed, double& tOffset,
-                                bool computeJerk);
+                                double& lastSpeed, double& tOffset);
 };
 
 #endif  // OSSM_SPLINE_PATTERN_H
