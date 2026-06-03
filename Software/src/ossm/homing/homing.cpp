@@ -51,6 +51,21 @@ static void startHomingTask(void *pvParameters) {
     return;
 #endif
 
+#ifdef DEV_SHAMEFULLY_I_HAVE_NO_SERVO
+    // No servo attached: still run the real stepper setup so all the stepper
+    // procedures execute, then fake a successful sensorless home with a sane
+    // stroke length so the play modes are usable.
+    stepper->enableOutputs();
+    stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
+    stepper->setCurrentPosition(0);
+    stepper->forceStopAndNewPosition(0);
+    calibration.measuredStrokeSteps = 300_mm;  // pretend ~300mm of usable rail
+    setHomingActive(false);
+    stateMachine->process_event(Done{});
+    vTaskDelete(nullptr);
+    return;
+#endif
+
     // Stroke Engine and Simple Penetration treat this differently.
     stepper->enableOutputs();
     stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);

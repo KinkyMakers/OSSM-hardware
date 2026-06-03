@@ -29,7 +29,7 @@ namespace guards {
 
     // Guard for checking if preflight is safe
     constexpr auto isPreflightSafe = []() {
-#ifdef AJ_DEVELOPMENT_HARDWARE
+#if defined(AJ_DEVELOPMENT_HARDWARE) || defined(DEV_SHAMEFULLY_I_HAVE_NO_SERVO)
         return true;
 #else
         return ossmIsPreflightSafe();

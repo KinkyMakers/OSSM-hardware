@@ -80,7 +80,7 @@ static void drawPlayControlsTask(void *pvParameters) {
     while (isInCorrectState()) {
         shouldUpdateDisplay = false;
 
-#ifdef AJ_DEVELOPMENT_HARDWARE
+#if defined(AJ_DEVELOPMENT_HARDWARE) || defined(DEV_SHAMEFULLY_I_HAVE_NO_SERVO)
         next.speedKnob = 0;
 #else
         next.speedKnob =
