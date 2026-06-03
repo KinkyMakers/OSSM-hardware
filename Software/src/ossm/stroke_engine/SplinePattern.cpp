@@ -11,6 +11,14 @@
 
 static const char* TAG = "SplinePattern";
 
+// Resolution of the forward re-sync scan: how many candidate samples to test
+// across one full period when locating the handle's current position.
+static constexpr int kSyncSamples = 256;
+
+// A candidate is considered a positional match when its y is within this much
+// of currentPosition (normalised [0, 1] stroke axis).
+static constexpr double kPositionEpsilon = 0.02;
+
 // ─── Small math helpers ──────────────────────────────────────────────────
 
 namespace {
@@ -56,9 +64,7 @@ SplinePattern::SplinePattern()
     : _spline(ts_bspline_init()),
       _splineDeriv1(ts_bspline_init()),
       _splineDeriv2(ts_bspline_init()) {
-    startTime = millis();
-    timeDelta = 0;
-    currentSplinePercent = 0.0f;
+    _lastPeriodT = 0.0;
 }
 
 SplinePattern::~SplinePattern() { freeSplines(); }
@@ -285,37 +291,79 @@ bool SplinePattern::loadFromJson(const char* id, const char* jsonText,
 
 // ─── Evaluation ──────────────────────────────────────────────────────────
 
-SplineSample SplinePattern::sampleAtPeriod(double speedPercent, float period,
-                                           double& lastSpeed, double& tOffset) {
-    if (!_splineReady || _baseAnchorCount < 2 || period <= 0.0f ||
-        speedPercent <= 0.0) {
-        return SplineSample{0.0, 0.0, 0.0, 0.0, speedPercent, 0.0};
+double SplinePattern::syncToPosition(float currentPosition, bool direction) {
+    // Convert a normalised period t to its knot-space coordinate.
+    auto toKnot = [this](double periodT) {
+        return _knotTMin + periodT * (_knotTMax - _knotTMin);
+    };
+
+    const double step = 1.0 / (double)kSyncSamples;
+
+    double closestAnyT = _lastPeriodT;
+    double closestAnyDist = 1e9;
+
+    // Scan forward (with looping) over one full period starting at the last
+    // synced point. We assume the handle has moved forward (or stayed put), so
+    // the true position is the nearest point ahead, never behind.
+    for (int i = 0; i <= kSyncSamples; ++i) {
+        double periodT = _lastPeriodT + i * step;
+        periodT = periodT - floor(periodT);  // wrap into [0, 1)
+
+        const tsReal knotT = (tsReal)toKnot(periodT);
+
+        TY pos{};
+        TY vel{};
+        if (!evalTY(&_spline, knotT, &pos)) continue;
+
+        const double dist = fabs(pos.y - (double)currentPosition);
+
+        // Track the globally closest y as a direction-agnostic fallback.
+        if (dist < closestAnyDist) {
+            closestAnyDist = dist;
+            closestAnyT = periodT;
+        }
+
+        if (dist >= kPositionEpsilon) continue;
+
+        // dy/dt sign: knotT increases monotonically with periodT, so the sign
+        // of dy/dknotT equals the sign of dy/dt.
+        if (!evalTY(&_splineDeriv1, knotT, &vel)) continue;
+        const bool movingForward = vel.y > 0.0;
+
+        // First (nearest-ahead) point that matches both position and the
+        // requested direction wins.
+        if (movingForward == direction) {
+            return periodT;
+        }
     }
 
-    // ── Time → normalized t in [0, 1] ────────────────────────────────────
-    // Identical to the original implementation. Speed changes mid-stroke
-    // adjust `tOffset` so the curve doesn't jump when the period scales.
-    long deltaTimeMS = millis() - startTime;
+    // No same-direction match within epsilon over a full loop: snap to the
+    // closest y, ignoring direction.
+    return closestAnyT;
+}
 
-    long timeSinceStartMS = fmod(deltaTimeMS, period * 1000 / speedPercent);
-
-    if (lastSpeed > 0 && lastSpeed != speedPercent) {
-        long lastTimeSinceStartMS =
-            fmod(deltaTimeMS, period * 1000 / lastSpeed);
-        tOffset += timeSinceStartMS / (period * 1000 / speedPercent) -
-                   lastTimeSinceStartMS / (period * 1000 / lastSpeed);
+SplineSample SplinePattern::evaluate(float currentPosition, float currentSpeed,
+                                     bool direction, float timeStepMs) {
+    if (!_splineReady || _baseAnchorCount < 2 || _totalDuration <= 0.0f ||
+        currentSpeed <= 0.0f) {
+        return SplineSample{0.0, 0.0, 0.0, 0.0, (double)currentSpeed, 0.0};
     }
 
-    lastSpeed = speedPercent;
+    // ── Step 1: re-sync to where the handle actually is on the curve ──────
+    const double syncedT = syncToPosition(currentPosition, direction);
+    _lastPeriodT = syncedT;
 
-    double t = timeSinceStartMS / (period * 1000 / speedPercent) - tOffset;
-    if (t < 0.0) {
-        t = 1.0 + fmod(t, 1.0);
-    } else if (t > 1.0) {
-        t = fmod(t, 1.0);
-    }
+    // ── Step 2: advance by speed × timeStep, then sample the next target ──
+    // At currentSpeed = 1.0 one full period takes `_totalDuration` seconds, so
+    // in timeStepMs we advance (timeStepMs / 1000) / _totalDuration of a
+    // period, scaled by speed.
+    const double dt =
+        (double)currentSpeed * ((double)timeStepMs / 1000.0) / _totalDuration;
 
-    const double knotT = _knotTMin + t * (_knotTMax - _knotTMin);
+    double tNext = syncedT + dt;
+    tNext = tNext - floor(tNext);  // wrap into [0, 1)
+
+    const double knotT = _knotTMin + tNext * (_knotTMax - _knotTMin);
 
     TY pos{};
     TY vel{};
@@ -343,11 +391,6 @@ SplineSample SplinePattern::sampleAtPeriod(double speedPercent, float period,
     }
 
     return SplineSample{
-        t, pos.y, vel.y, acc.y, speedPercent, endY,
+        tNext, pos.y, vel.y, acc.y, (double)currentSpeed, endY,
     };
-}
-
-SplineSample SplinePattern::evaluate(double speedPercent) {
-    return sampleAtPeriod(speedPercent, _totalDuration, lastSpeedPercent,
-                          timeOffset);
 }

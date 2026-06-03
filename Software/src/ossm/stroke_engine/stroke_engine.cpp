@@ -147,13 +147,7 @@ namespace stroke_engine {
                         Config::Driver::maxSpeedMmPerSecond * (1_mm);
                     float maxAccel = Config::Driver::maxAcceleration * (1_mm);
 
-                    TickType_t originTick = xTaskGetTickCount();
                     const TickType_t tickIntervalMs = 50;
-
-                    long startTime = millis();
-                    long lastLogTime = startTime;
-
-                    float currentSplineTime = 0;
 
                     int32_t lastTargetPos = 0;
                     stepper->setAcceleration(maxAccel);
@@ -168,12 +162,26 @@ namespace stroke_engine {
 
                         if (isStopped) {
                             stepper->stopMove();
-                            originTick = xTaskGetTickCount();
                             vTaskDelay(pdMS_TO_TICKS(tickIntervalMs));
                             continue;
                         }
 
-                        auto sample = spline.evaluate(settings.speed / 100.0f);
+                        int32_t currentStepperPos =
+                            stepper->getCurrentPosition();
+                        float currentPos =
+                            strokeSteps > 0.0f
+                                ? (float)currentStepperPos / strokeSteps
+                                : 0.0f;
+                        float speed01 = settings.speed / 100.0f;
+                        // Forward = handle moving toward the last commanded
+                        // target (deeper / larger position). Defaults to
+                        // forward on the first tick (lastTargetPos == 0).
+                        bool direction =
+                            (lastTargetPos - currentStepperPos) >= 0;
+
+                        auto sample = spline.evaluate(currentPos, speed01,
+                                                      direction,
+                                                      (float)tickIntervalMs);
 
                         double velScaled = sample.velocity;
 
@@ -181,7 +189,7 @@ namespace stroke_engine {
                             (int32_t)(sample.handleY * strokeSteps);
 
                         float velStepsPerSec = fabs(velScaled) * strokeSteps *
-                                               (settings.speed / 100.0f) /
+                                               speed01 /
                                                (3.0f * spline.totalDuration());
 
                         // velStepsPerSec =
@@ -192,22 +200,24 @@ namespace stroke_engine {
                             fmaxf(-maxAccel, fminf(accelSteps, maxAccel));
 
                         float naiveVelocity =
-                            (targetPos - stepper->getCurrentPosition()) /
+                            (targetPos - currentStepperPos) /
                             (tickIntervalMs / 1000.0f);
 
                         stepper->setSpeedInHz((uint32_t)velStepsPerSec);
                         // stepper->setAcceleration(accelSteps);
                         stepper->moveTo(targetPos, false);
+                        lastTargetPos = targetPos;
 
                         ESP_LOGI("SplineCtrl",
                                  "t=%.6f pos=%.6f handleY=%.6f (%.6f%%) "
                                  "vel=%.6f naive=%.6f "
                                  "acc=%.6f, "
-                                 "speed=%.6f, timeOffset=%.6f",
+                                 "speed=%.6f, curPos=%.6f dir=%d lastT=%.6f",
                                  sample.t, sample.position, sample.handleY,
                                  sample.speedPercent, sample.velocity,
                                  naiveVelocity, sample.acceleration,
-                                 settings.speed, spline.getTimeOffset());
+                                 settings.speed, currentPos, direction,
+                                 spline.lastPeriodT());
 
                         vTaskDelay(pdMS_TO_TICKS(tickIntervalMs));
                     }

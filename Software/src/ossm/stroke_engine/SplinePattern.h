@@ -29,17 +29,20 @@ class SplinePattern {
     bool loadFromJson(const char* id, const char* jsonText, float playRangeMm,
                       float maxSpeedMmPerSec);
 
-    // Sample using the slope-only `_totalDuration`. The period is sized so a
-    // pattern played at speedPercent = 1.0 reaches |dy/dx|·playRangeMm =
-    // maxSpeedMmPerSec at its steepest point; callers are still responsible
-    // for clamping the returned velocity / acceleration to the device's
-    // physical limits when driving the motor.
-    SplineSample evaluate(double speedPercent);
+    // Position-based, closed-loop sample. Given where the handle actually is
+    // (currentPosition, normalised [0, 1]) and which way it is moving
+    // (direction: true = forward / inserting / dy/dt > 0), first re-sync to the
+    // matching point on the curve, then advance by currentSpeed (0..1) over
+    // timeStepMs and sample the next target. Callers remain responsible for
+    // clamping the returned velocity / acceleration to the device's physical
+    // limits when driving the motor.
+    SplineSample evaluate(float currentPosition, float currentSpeed,
+                          bool direction, float timeStepMs);
 
     float totalDuration() const { return _totalDuration; }
     const char* name() const { return _name; }
     size_t pointCount() const { return _baseAnchorCount; }
-    double getTimeOffset() const { return timeOffset; }
+    double lastPeriodT() const { return _lastPeriodT; }
 
   private:
     // 2D Bezier B-spline over (t, y). t is the pattern time axis in [0, 1]
@@ -61,19 +64,18 @@ class SplinePattern {
     float _totalDuration = 0.0f;
     char _name[64] = {};
 
-    double lastSpeedPercent = 0;
-    double timeOffset = 0;
-
-    long startTime = 0;
-    long timeDelta = 0;
-    long currentSplinePercent = 0;
+    // Last synced position on the curve, in normalised period units [0, 1).
+    // The forward re-sync scan in evaluate() starts here each tick.
+    double _lastPeriodT = 0.0;
 
     void freeSplines();
 
-    // Shared core for evaluate(): drives the time-base off `period` (seconds
-    // for one full pattern) and the speed-tracking state.
-    SplineSample sampleAtPeriod(double speedPercent, float period,
-                                double& lastSpeed, double& tOffset);
+    // Forward-scan (with looping) from `_lastPeriodT` to find where the handle
+    // currently sits on the curve. Returns the matching normalised period t in
+    // [0, 1): the nearest point ahead whose y is within epsilon of
+    // currentPosition and whose dy/dt sign matches `direction`, or the globally
+    // closest y (ignoring direction) if no such point exists.
+    double syncToPosition(float currentPosition, bool direction);
 };
 
 #endif  // OSSM_SPLINE_PATTERN_H
