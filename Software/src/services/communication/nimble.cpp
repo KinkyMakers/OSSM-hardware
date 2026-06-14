@@ -14,8 +14,8 @@
 #include "ossm/OSSM.h"
 #include "pairing.hpp"
 #include "patterns.hpp"
-#include "rename.hpp"
 #include "services/led.h"
+#include "services/UserConfig.h"
 #include "state.hpp"
 #include "wifi.hpp"
 
@@ -73,7 +73,7 @@ class ServerCallbacks : public NimBLEServerCallbacks {
         if (pServer->getConnectedCount() == 0) {
             ESP_LOGI(NIMBLE_TAG,
                      "No connections remaining, restarting advertising");
-            NimBLEDevice::setDeviceName(getDeviceName());
+            NimBLEDevice::setDeviceName(UserConfig::getDeviceName());
             pServer->startAdvertising();
         }
 
@@ -280,7 +280,7 @@ void nimbleLoop(void* pvParameters) {
 
 void initNimble() {
     /** Initialize NimBLE and set the device name */
-    NimBLEDevice::init(getDeviceName());
+    NimBLEDevice::init(UserConfig::getDeviceName());
 
     NimBLEDevice::setSecurityAuth(BLE_SM_PAIR_AUTHREQ_SC);
     pServer = NimBLEDevice::createServer();
@@ -303,6 +303,9 @@ void initNimble() {
 
     initRenameConfigCharacteristic(pService,
                                  NimBLEUUID(CHARACTERISTIC_RENAME_CONFIG_UUID));
+
+    initDirectionConfigCharacteristic(pService,
+                                 NimBLEUUID(CHARACTERISTIC_DIRECTION_CONFIG_UUID));
 
     pStateCharacteristic = initStateCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_STATE_UUID));
@@ -357,7 +360,7 @@ void initNimble() {
 
     // Update advertising to include new services
     NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
-    pAdvertising->setName(getDeviceName());
+    pAdvertising->setName(UserConfig::getDeviceName());
     pAdvertising->addServiceUUID(pService->getUUID());
     pAdvertising->addServiceUUID(pDeviceInfoService->getUUID());
 #ifdef PRETEND_TO_BE_FLESHY_THRUST_SYNC

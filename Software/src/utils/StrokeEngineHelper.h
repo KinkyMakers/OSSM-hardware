@@ -5,6 +5,7 @@
 #include "../lib/StrokeEngine/src/StrokeEngine.h"
 #include "constants/Config.h"
 #include "constants/Pins.h"
+#include "services/UserConfig.h"
 
 /*#################################################################################################
 ##
@@ -21,7 +22,6 @@ static motorProperties servoMotor{
     .stepsPerMillimeter =
         Config::Driver::motorStepPerRevolution /
         (Config::Driver::pulleyToothCount * Config::Driver::beltPitchMm),
-    .invertDirection = true,
     .enableActiveLow = true,
     .stepPin = Pins::Driver::motorStepPin,
     .directionPin = Pins::Driver::motorDirectionPin,

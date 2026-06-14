@@ -1,6 +1,8 @@
 #ifndef OSSM_SOFTWARE_USERCONFIG_H
 #define OSSM_SOFTWARE_USERCONFIG_H
 
+#include "Arduino.h"
+
 namespace UserConfig {
     static bool displayMetric = true;
     static float afterHomingPosition = 0.0;
@@ -12,5 +14,12 @@ namespace UserConfig {
     // MQTT telemetry publish rate in Hz (messages per second).
     // The publish loop will target this rate on a best-effort basis.
     static float mqttPublishFrequencyHz = 30.0f;
+
+    std::string getDeviceName();
+    void setDeviceName(String value);
+
+    bool getDirection();
+    void setDirection(bool value);
+
 }
 #endif  // OSSM_SOFTWARE_USERCONFIG_H

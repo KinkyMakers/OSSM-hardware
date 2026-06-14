@@ -6,6 +6,7 @@
 #include <NimBLEUUID.h>
 
 #include "Arduino.h"
+#include "services/UserConfig.h"
 
 /** Handler class for speed knob config characteristic */
 class SpeedKnobConfigCallbacks : public NimBLECharacteristicCallbacks {
@@ -137,6 +138,75 @@ inline NimBLECharacteristic* initLatencyCompensationConfigCharacteristic(NimBLES
                                        : String(FPSTR(false_str)));
 
     return pLatencyCompensationConfigChar;
+}
+
+class RenameConfigCallbacks : public NimBLECharacteristicCallbacks {
+    int lastPresetCommand = millis();
+
+    void onWrite(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) override {
+        int currentTime = millis();
+        if (currentTime - lastPresetCommand > 1000) {
+            String value = pCharacteristic->getValue();
+            value = value.substring(0, 8);
+            UserConfig::setDeviceName(value);
+        }
+        lastPresetCommand = currentTime;
+    }
+
+    void onRead(NimBLECharacteristic* pCharacteristic,
+                NimBLEConnInfo& connInfo) override {
+        std::string name = UserConfig::getDeviceName();
+        pCharacteristic->setValue(name);
+        ESP_LOGD("NIMBLE_RENAME", "Name read: %s", name.c_str());
+    }
+} inline renameConfigCallbacks;
+
+inline NimBLECharacteristic* initRenameConfigCharacteristic(NimBLEService* pService, NimBLEUUID uuid) {
+    NimBLECharacteristic* pRenameConfigChar = pService->createCharacteristic(
+        uuid, NIMBLE_PROPERTY::WRITE_NR | NIMBLE_PROPERTY::READ);
+
+    pRenameConfigChar->setCallbacks(&renameConfigCallbacks);
+    pRenameConfigChar->setValue(UserConfig::getDeviceName());
+
+    return pRenameConfigChar;
+}
+
+class DirectionConfigCallbacks : public NimBLECharacteristicCallbacks {
+    void onWrite(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) override {
+        std::string value = pCharacteristic->getValue();
+        String configValue = String(value.c_str());
+        configValue.toLowerCase();
+        if (configValue == "true" || configValue == "1" || configValue == "t") {
+            UserConfig::setDirection(true);
+        } else if (configValue == "false" || configValue == "0" || configValue == "f") {
+            UserConfig::setDirection(false);
+        } else {
+            ESP_LOGW(NIMBLE_TAG, "Invalid direction config value: %s",configValue.c_str());
+            pCharacteristic->setValue("error:invalid_value");
+        }
+    }
+
+    void onRead(NimBLECharacteristic* pCharacteristic, NimBLEConnInfo& connInfo) override {
+        // Use PROGMEM strings for read values
+        static const char true_str[] PROGMEM = "true";
+        static const char false_str[] PROGMEM = "false";
+
+        String value = UserConfig::getDirection() ? String(FPSTR(true_str))
+                                                : String(FPSTR(false_str));
+        ESP_LOGD(NIMBLE_TAG, "Direction config read: %s", value.c_str());
+        pCharacteristic->setValue(value);
+    }
+} inline directionConfigCallbacks;
+
+inline NimBLECharacteristic* initDirectionConfigCharacteristic(
+    NimBLEService* pService, NimBLEUUID uuid) {
+    NimBLECharacteristic* pDirectionConfigChar = pService->createCharacteristic(
+        uuid, NIMBLE_PROPERTY::WRITE_NR | NIMBLE_PROPERTY::READ);
+
+    pDirectionConfigChar->setCallbacks(&directionConfigCallbacks);
+    pDirectionConfigChar->setValue(UserConfig::getDirection());
+
+    return pDirectionConfigChar;
 }
 
 #endif  // OSSM_CONFIG_HPP

@@ -24,6 +24,7 @@
                   "ossm/guides/getting-started/quickstart",
                   "ossm/guides/getting-started/ble-pairing",
                   "ossm/guides/getting-started/rename",
+                  "ossm/guides/getting-started/set-direction",
                   "ossm/guides/getting-started/wifi-setup",
                   "ossm/guides/getting-started/web-flasher",
                   {
