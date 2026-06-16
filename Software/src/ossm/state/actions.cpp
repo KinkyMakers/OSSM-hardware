@@ -152,6 +152,7 @@ void ossmStartStrokeEngine() {
 void ossmEmergencyStop() {
     stepper->forceStop();
     stepper->disableOutputs();
+    ossmSetNotHomed();
 }
 
 void ossmDrawHelp() {
