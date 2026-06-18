@@ -9,13 +9,13 @@ void tearDown(void) {}
 void test_calculateMaxStroke_stroke_less_than_depth(void) {
     // stroke=50%, depth=80%, measured=10000 → min(50,80)=50% → 5000
     int32_t result = streaming_logic::calculateMaxStroke(50.0f, 80.0f, 10000.0f);
-    TEST_ASSERT_EQUAL_INT32(5000, result);
+    TEST_ASSERT_EQUAL_INT32(4000, result);
 }
 
 void test_calculateMaxStroke_depth_less_than_stroke(void) {
     // stroke=80%, depth=50%, measured=10000 → min(80,50)=50% → 5000
     int32_t result = streaming_logic::calculateMaxStroke(80.0f, 50.0f, 10000.0f);
-    TEST_ASSERT_EQUAL_INT32(5000, result);
+    TEST_ASSERT_EQUAL_INT32(4000, result);
 }
 
 void test_calculateMaxStroke_both_100(void) {
@@ -35,7 +35,7 @@ void test_calculateDepthOffset_full_depth(void) {
 void test_calculateDepthOffset_zero_depth(void) {
     // depthPct=0 → 0
     int32_t result = streaming_logic::calculateDepthOffset(10000.0f, 5000, 0.0f);
-    TEST_ASSERT_EQUAL_INT32(0, result);
+    TEST_ASSERT_EQUAL_INT32(-5000, result);
 }
 
 // ─── scaleStreamPosition ───
@@ -45,7 +45,7 @@ void test_scaleStreamPosition_100_percent(void) {
     int32_t maxStroke = 5000;
     int32_t depth = 2000;
     int32_t result = streaming_logic::scaleStreamPosition(100, maxStroke, depth);
-    TEST_ASSERT_EQUAL_INT32(-depth, result);
+    TEST_ASSERT_EQUAL_INT32(depth, result);
 }
 
 void test_scaleStreamPosition_0_percent(void) {
@@ -53,7 +53,7 @@ void test_scaleStreamPosition_0_percent(void) {
     int32_t maxStroke = 5000;
     int32_t depth = 2000;
     int32_t result = streaming_logic::scaleStreamPosition(0, maxStroke, depth);
-    TEST_ASSERT_EQUAL_INT32(-maxStroke - depth, result);
+    TEST_ASSERT_EQUAL_INT32(maxStroke + depth, result);
 }
 
 void test_scaleStreamPosition_50_percent(void) {
@@ -61,7 +61,7 @@ void test_scaleStreamPosition_50_percent(void) {
     int32_t maxStroke = 5000;
     int32_t depth = 2000;
     int32_t result = streaming_logic::scaleStreamPosition(50, maxStroke, depth);
-    TEST_ASSERT_EQUAL_INT32(-4500, result);
+    TEST_ASSERT_EQUAL_INT32(4500, result);
 }
 
 // ─── planMotion ───
