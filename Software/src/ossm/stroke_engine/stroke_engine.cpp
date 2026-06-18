@@ -2,7 +2,6 @@
 
 #include <mqtt_client.h>
 
-#include "constants/UserConfig.h"
 #include "ossm/OSSM.h"
 #include "ossm/state/ble.h"
 #include "ossm/state/calibration.h"
@@ -11,6 +10,7 @@
 #include "services/communication/mqtt.h"
 #include "services/stepper.h"
 #include "services/tasks.h"
+#include "services/UserConfig.h"
 #include "structs/SettingPercents.h"
 #include "utils/StrokeEngineHelper.h"
 #include "utils/getEfuseMac.h"
@@ -28,6 +28,7 @@ static void startStrokeEngineTask(void *pvParameters) {
         .keepoutBoundary = 6.0};
     SettingPercents lastSetting = settings;
 
+    servoMotor.invertDirection = !UserConfig::getDirection();
     Stroker.begin(&strokingMachine, &servoMotor, stepper);
     Stroker.thisIsHome();
 

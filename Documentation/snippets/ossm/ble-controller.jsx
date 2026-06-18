@@ -5,6 +5,7 @@ export const OssmBleController = () => {
   const OSSM_SPEED_KNOB_LIMIT_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1010-420badbabe69';
   const OSSM_WIFI_CONFIG_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1020-420badbabe69';
   const OSSM_RENAME_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1040-420badbabe69';
+  const OSSM_DIRECTION_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1050-420badbabe69';
   const OSSM_STATE_CHARACTERISTIC_UUID = '522b443a-4f53-534d-2000-420badbabe69';
   const OSSM_PATTERNS_CHARACTERISTIC_UUID = '522b443a-4f53-534d-3000-420badbabe69';
   const OSSM_PATTERN_DESCRIPTION_CHARACTERISTIC_UUID = '522b443a-4f53-534d-3010-420badbabe69';
@@ -102,6 +103,7 @@ export const OssmBleController = () => {
   const [isWifiSaving, startWifiTransition] = useTransition();
 
   const [deviceName, setDeviceName] = useState(null);
+  const [deviceDirection, setDeviceDirection] = useState(null);
 
   // Dev tools state
   const [logs, setLogs] = useState([]);
@@ -113,6 +115,7 @@ export const OssmBleController = () => {
   const commandCharacteristicRef = useRef(null);
   const wifiConfigCharacteristicRef = useRef(null);
   const renameConfigCharacteristicRef = useRef(null);
+  const directionConfigCharacteristicRef = useRef(null);
 
   const serverRef = useRef(null);
 
@@ -217,7 +220,7 @@ export const OssmBleController = () => {
 
     try {
       const encoder = new TextEncoder();
-      await renameConfigCharacteristicRef.current.writeValue(encoder.encode(deviceName));
+      await renameConfigCharacteristicRef.current.writeValueWithoutResponse(encoder.encode(deviceName));
       return true;
     } catch (err) {
       console.error('Failed to send new name:', err);
@@ -227,6 +230,24 @@ export const OssmBleController = () => {
     }
   }, [deviceName,addLog]);
 
+  const handleDirectionSave = useCallback(async () => {
+    if (!directionConfigCharacteristicRef.current) {
+      console.warn('Direction characteristic not available');
+      return false;
+    }
+    console.log('[OSSM BLE] Sending new direciton:', deviceDirection);
+    addLog('TX', deviceDirection);
+
+    try {
+      const encoder = new TextEncoder();
+      await directionConfigCharacteristicRef.current.writeValueWithoutResponse(encoder.encode(deviceDirection));
+      return true;
+    } catch (err) {
+      console.error('Failed to send new direction:', err);
+      addLog('ERR',`Send failed: ${err.message}`);
+      setError(`Failed to send new direction: ${err.message}`);
+    }
+  }, [deviceDirection, addLog]);
 
   const handleWifiSave = useCallback(() => {
     if (!wifiConfigCharacteristicRef.current || !wifiSSID || !wifiPassword) {
@@ -326,8 +347,17 @@ export const OssmBleController = () => {
       renameConfigCharacteristicRef.current = renameChar;
 
       const renameValue = await renameChar.readValue();
-      addLog('RX', 'Device Name: ${renameValue}')
-      setDeviceName(new TextDecoder().decode(renameValue));
+      const renameValueRaw = new TextDecoder().decode(renameValue);
+      addLog('RX', `Device Name: ${renameValueRaw}`);
+      setDeviceName(renameValueRaw);
+
+      const directionChar = await service.getCharacteristic(OSSM_DIRECTION_CHARACTERISTIC_UUID);
+      directionConfigCharacteristicRef.current = directionChar;
+
+      const directionValue = await directionChar.readValue();
+      const directionValueRaw = new TextDecoder().decode(directionValue);
+      addLog('RX', `Direction: ${directionValueRaw}`);
+      setDeviceDirection(directionValueRaw == 'true');
 
       // Read current state from device
       try {
@@ -551,7 +581,7 @@ export const OssmBleController = () => {
             {[
               { id: 'controller', label: 'Controller' },
               { id: 'wifi', label: 'WiFi Settings' },
-              { id: 'rename', label: 'Set Device Name' },
+              { id: 'settings', label: 'Device Settings' },
               { id: 'logs', label: 'Raw Logs' },
             ].map((tab) => (
               <button
@@ -727,7 +757,7 @@ export const OssmBleController = () => {
           )}
 
           {/* Rename Device Tab */}
-          {activeTab === 'rename' && (
+          {activeTab === 'settings' && (
             <div className="space-y-4">
               {/* Device Name Form */}
               <div className="space-y-3">
@@ -749,7 +779,24 @@ export const OssmBleController = () => {
                   disabled={!deviceName}
                   className="w-full rounded-lg bg-violet-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Save
+                  Save Name and Reboot
+                </button>
+              </div><div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                    Reverse direction: &nbsp;
+                    <input
+                      type="checkbox"
+                      checked={deviceDirection}
+                      onChange={(e) => setDeviceDirection(e.target.checked)}
+                     />
+                  </label>
+                </div>
+                <button
+                  onClick={handleDirectionSave}
+                  className="w-full rounded-lg bg-violet-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Set Direction and Reboot
                 </button>
               </div>
             </div>

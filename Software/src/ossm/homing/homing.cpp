@@ -4,7 +4,6 @@
 #include "homing_logic.h"
 #include "constants/Config.h"
 #include "constants/Pins.h"
-#include "constants/UserConfig.h"
 #include "ossm/Events.h"
 #include "ossm/state/calibration.h"
 #include "ossm/state/error.h"
@@ -12,6 +11,7 @@
 #include "services/led.h"
 #include "services/stepper.h"
 #include "services/tasks.h"
+#include "services/UserConfig.h"
 #include "utils/analog.h"
 
 namespace sml = boost::sml;
@@ -51,9 +51,8 @@ static void startHomingTask(void *pvParameters) {
     return;
 #endif
 
-    // Stroke Engine and Simple Penetration treat this differently.
     stepper->enableOutputs();
-    stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
+    stepper->setDirectionPin(Pins::Driver::motorDirectionPin, UserConfig::getDirection());
     int16_t sign = stateMachine->is("homing.backward"_s) ? 1 : -1;
 
     int32_t targetPositionInSteps =

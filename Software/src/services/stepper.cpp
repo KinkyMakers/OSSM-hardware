@@ -1,4 +1,5 @@
 #include "stepper.h"
+#include "services/UserConfig.h"
 
 FastAccelStepperEngine stepperEngine = FastAccelStepperEngine();
 FastAccelStepper *stepper = nullptr;
@@ -8,7 +9,7 @@ void initStepper() {
     stepperEngine.init();
     stepper = stepperEngine.stepperConnectToPin(Pins::Driver::motorStepPin);
     if (stepper) {
-        stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
+        stepper->setDirectionPin(Pins::Driver::motorDirectionPin, UserConfig::getDirection());
         stepper->setEnablePin(Pins::Driver::motorEnablePin, true);
         stepper->setAutoEnable(false);
     }
