@@ -22,6 +22,7 @@ void ossmDrawWiFi();
 void ossmDrawUpdate();
 void ossmDrawNoUpdate();
 void ossmDrawUpdating();
+void ossmStartUpdate();
 void ossmDrawError();
 void ossmSetHomed();
 void ossmSetNotHomed();
@@ -71,7 +72,11 @@ namespace actions {
     constexpr auto drawNoUpdate = []() { ossmDrawNoUpdate(); };
     
     constexpr auto drawUpdating = []() { ossmDrawUpdating(); };
-    
+
+    // Spawns the OTA update task (TLS check + download run there, not on the
+    // button task, which lacks the stack for a TLS handshake).
+    constexpr auto startUpdate = []() { ossmStartUpdate(); };
+
     constexpr auto stopWifiPortal = []() {};
     
     constexpr auto resetWiFi = []() { ossmResetWiFi(); };

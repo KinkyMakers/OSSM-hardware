@@ -92,12 +92,10 @@ struct OSSMStateMachine {
             "pairing.wifi.idle"_s + buttonPress = "menu"_s,
             "pairing.wifi.idle"_s + longPress = "menu"_s,
 
-            "update"_s [isOnline] / drawUpdate = "update.checking"_s,
+            "update"_s [isOnline] / (drawUpdate, startUpdate) = "update.checking"_s,
             "update"_s = "wifi"_s,
-            "update.checking"_s [isUpdateAvailable] / (drawUpdating, updateOSSM) = "update.updating"_s,
-            "update.checking"_s / drawNoUpdate = "update.idle"_s,
+            "update.checking"_s + updateUnavailable / drawNoUpdate = "update.idle"_s,
             "update.idle"_s + buttonPress = "menu"_s,
-            "update.updating"_s  = X,
 
             "wifi"_s / drawWiFi = "wifi.idle"_s,
             "wifi.idle"_s + done / stopWifiPortal = "menu"_s,

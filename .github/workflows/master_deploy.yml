@@ -1,4 +1,8 @@
-name: Master Branch Deployment
+name: Master Branch Cleanup
+
+# Post-merge cleanup only. Publishing firmware to ossm-firmware/master/ is owned
+# solely by the Version Control workflow (version_bump.yml). Having this workflow
+# also publish caused a race that intermittently wiped master/version.json.
 
 on:
   push:
@@ -28,44 +32,8 @@ jobs:
             echo "changes_detected=false" >> $GITHUB_OUTPUT
           fi
 
-  build:
-    needs: check_changes
-    if: needs.check_changes.outputs.changes_detected == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            ~/.platformio/.cache
-          key: ${{ runner.os }}-pio
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.9"
-
-      - name: Install PlatformIO Core
-        run: pip install --upgrade platformio
-
-      - name: Build PlatformIO Project
-        run: |
-          cd Software
-          pio run -e production
-
-      - name: Upload firmware artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: firmware-bin
-          path: |
-            Software/.pio/build/production/firmware.bin
-            Software/.pio/build/production/partitions.bin
-            Software/.pio/build/production/bootloader.bin
-          retention-days: 1
-
   upload_to_supabase:
-    needs: [check_changes, build]
+    needs: [check_changes]
     if: needs.check_changes.outputs.changes_detected == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -76,12 +44,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download firmware artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: firmware-bin
-          path: ./firmware
-
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
@@ -89,37 +51,6 @@ jobs:
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Upload firmware to staging prefix (master_next)
-        run: |
-          # Wipe any leftovers from a previous failed run so the staging prefix is clean
-          supabase storage rm -r "ss:///ossm-firmware/master_next" --experimental --yes || true
-
-          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/master_next/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/master_next/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-          supabase storage cp ./firmware/bootloader.bin "ss:///ossm-firmware/master_next/bootloader.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-
-      - name: Create and upload manifest.json to staging prefix
-        run: |
-          # Create a temporary manifest file with "master" as the branch name
-          cat .github/artifacts/manifest.json | sed "s/{{ branchName }}/master/g" > ./manifest.json
-
-          # Upload the manifest file to the staging prefix
-          supabase storage cp ./manifest.json "ss:///ossm-firmware/master_next/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
-
-      - name: Promote master_next to master
-        run: |
-          # Wipe the live directory so the destination paths for mv are free.
-          # rm -r catches any orphaned rows that per-file rm reports as "Object not found"
-          # but that still cause 409 Duplicate on cp.
-          supabase storage rm -r "ss:///ossm-firmware/master" --experimental --yes || true
-
-          # mv is an in-place UPDATE on storage.objects, which requires the destination
-          # path to be free. The rm -r above guarantees that.
-          supabase storage mv "ss:///ossm-firmware/master_next/firmware.bin" "ss:///ossm-firmware/master/firmware.bin" --experimental
-          supabase storage mv "ss:///ossm-firmware/master_next/partitions.bin" "ss:///ossm-firmware/master/partitions.bin" --experimental
-          supabase storage mv "ss:///ossm-firmware/master_next/bootloader.bin" "ss:///ossm-firmware/master/bootloader.bin" --experimental
-          supabase storage mv "ss:///ossm-firmware/master_next/manifest.json" "ss:///ossm-firmware/master/manifest.json" --experimental
 
       - name: Download registry.json
         id: download_registry
