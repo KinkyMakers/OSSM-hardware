@@ -13,6 +13,7 @@
 #include "ossm/Events.h"
 #include "ossm/pages/update.h"
 #include "ossm/state/state.h"
+#include "services/communication/mqtt.h"
 #include "structs/Version.h"
 
 // NOTE: logs in updateTask are ESP_LOGW so they are visible in the production
@@ -105,12 +106,24 @@ static void updateTask(void *pvParameters) {
              (unsigned long)esp_get_free_heap_size(),
              (unsigned long)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
 
+    // Free MQTT's TLS memory and stop its competing reconnect retries for the
+    // duration of the update. On success the reboot brings MQTT back fresh; on
+    // the no-update / failure paths we restart it before returning.
+    bool mqttStopped = false;
+    if (mqttClient != nullptr) {
+        esp_mqtt_client_stop(mqttClient);
+        mqttStopped = true;
+    }
+
     Version remote = getRemoteVersion();
     ESP_LOGW(UPDATE_TAG, "Version check done (free heap: %lu)",
              (unsigned long)esp_get_free_heap_size());
 
     if (!isNewer(remote)) {
         ESP_LOGW(UPDATE_TAG, "No newer version available");
+        if (mqttStopped) {
+            esp_mqtt_client_start(mqttClient);
+        }
         stateMachine->process_event(UpdateUnavailable{});
         vTaskDelete(nullptr);
         return;
@@ -138,6 +151,9 @@ static void updateTask(void *pvParameters) {
     }
 
     ESP_LOGE(UPDATE_TAG, "OTA failed: %s", esp_err_to_name(ret));
+    if (mqttStopped) {
+        esp_mqtt_client_start(mqttClient);
+    }
     stateMachine->process_event(UpdateUnavailable{});
     vTaskDelete(nullptr);
 }
