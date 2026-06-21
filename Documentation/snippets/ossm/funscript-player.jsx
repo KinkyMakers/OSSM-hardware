@@ -447,6 +447,56 @@ export const OssmFunscriptPlayer = () => {
     }
   };
 
+  // Load a built-in example funscript so new users can test the player
+  // without needing to find a script first. Loops a simple ~30s pattern that
+  // ramps from slow to faster strokes so behaviour at varying speeds is visible.
+  const handleLoadExampleFunscript = () => {
+    const exampleFunscript = {
+      version: '1.0',
+      range: 100,
+      inverted: false,
+      actions: (() => {
+        const actions = [];
+        let t = 0;
+        // Phase 1: slow long strokes (~3s per stroke) for 6 strokes
+        for (let i = 0; i < 6; i += 1) {
+          actions.push({ at: t, pos: 0 });
+          t += 1500;
+          actions.push({ at: t, pos: 100 });
+          t += 1500;
+        }
+        // Phase 2: medium strokes (~1.5s per stroke) for 8 strokes
+        for (let i = 0; i < 8; i += 1) {
+          actions.push({ at: t, pos: 0 });
+          t += 750;
+          actions.push({ at: t, pos: 100 });
+          t += 750;
+        }
+        // Phase 3: faster shorter strokes (~0.6s per stroke) for 10 strokes
+        for (let i = 0; i < 10; i += 1) {
+          actions.push({ at: t, pos: 30 });
+          t += 300;
+          actions.push({ at: t, pos: 100 });
+          t += 300;
+        }
+        // End: return to fully extended (pos 0)
+        actions.push({ at: t, pos: 0 });
+        return actions;
+      })(),
+    };
+
+    const fileName = 'example.funscript';
+    const blob = new Blob([JSON.stringify(exampleFunscript)], {
+      type: 'application/json',
+    });
+    const fakeFile = new File([blob], fileName, { type: 'application/json' });
+    setFunscriptFile(fakeFile);
+    if (parseFunscript(JSON.stringify(exampleFunscript))) {
+      resetPlayback();
+      addLog('INFO', 'Loaded built-in example funscript');
+    }
+  };
+
   // Video event handlers
   const handleVideoPlay = () => {
     addLog('INFO', 'Video playing');
@@ -603,6 +653,13 @@ export const OssmFunscriptPlayer = () => {
                 {funscriptFile ? funscriptFile.name : 'Click to select .funscript'}
               </div>
             </label>
+            <button
+              type="button"
+              onClick={handleLoadExampleFunscript}
+              className="mt-2 w-full text-xs font-medium text-violet-600 dark:text-violet-400 hover:underline"
+            >
+              Or load built-in example funscript
+            </button>
           </div>
         </div>
 
