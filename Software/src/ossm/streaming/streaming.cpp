@@ -27,7 +27,12 @@ static void startStreamingTask(void *pvParameters) {
     };
 
     auto best = std::chrono::steady_clock::now();
-    PositionTime lastPositionTime;
+    PositionTime lastPositionTime{
+        0,
+        0,
+        std::chrono::steady_clock::now(),
+        0
+    };
     
     // Reset the queue to clear any existing commands
     targetQueue = {};
@@ -54,7 +59,11 @@ static void startStreamingTask(void *pvParameters) {
         PositionTime targetPositionTime = targetQueue.front();
         //Wait for previous command to finish if it isn't moving in the same direction.
         int16_t distance = targetPositionTime.position - lastPositionTime.position;
-        targetPositionTime.direction = distance/abs(distance);
+        if (distance == 0) {
+            targetPositionTime.direction = lastPositionTime.direction;
+        } else {
+            targetPositionTime.direction = distance/abs(distance);
+        }
         bool sameDirection = lastPositionTime.direction == targetPositionTime.direction;
         if (!sameDirection && stepper->isRunning()){
             vTaskDelay(1);
