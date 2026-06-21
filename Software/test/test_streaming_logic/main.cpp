@@ -38,30 +38,30 @@ void test_calculateDepthOffset_zero_depth(void) {
     TEST_ASSERT_EQUAL_INT32(0, result);
 }
 
-// ─── scaleStreamPosition ───
+// ─── scaleStreamPosition (Path X positive-going convention) ───
 
 void test_scaleStreamPosition_100_percent(void) {
-    // posPercent=100 → -(1-1.0)*maxStroke - depth = -depth
+    // posPercent=100 → 1.0*maxStroke + depth = maxStroke + depth (fully extended end of stroke window)
     int32_t maxStroke = 5000;
     int32_t depth = 2000;
     int32_t result = streaming_logic::scaleStreamPosition(100, maxStroke, depth);
-    TEST_ASSERT_EQUAL_INT32(-depth, result);
+    TEST_ASSERT_EQUAL_INT32(maxStroke + depth, result);
 }
 
 void test_scaleStreamPosition_0_percent(void) {
-    // posPercent=0 → -(1-0)*maxStroke - depth = -maxStroke - depth
+    // posPercent=0 → 0*maxStroke + depth = depth (retracted start of stroke window)
     int32_t maxStroke = 5000;
     int32_t depth = 2000;
     int32_t result = streaming_logic::scaleStreamPosition(0, maxStroke, depth);
-    TEST_ASSERT_EQUAL_INT32(-maxStroke - depth, result);
+    TEST_ASSERT_EQUAL_INT32(depth, result);
 }
 
 void test_scaleStreamPosition_50_percent(void) {
-    // posPercent=50 → -(1-0.5)*5000 - 2000 = -2500 - 2000 = -4500
+    // posPercent=50 → 0.5*5000 + 2000 = 2500 + 2000 = 4500
     int32_t maxStroke = 5000;
     int32_t depth = 2000;
     int32_t result = streaming_logic::scaleStreamPosition(50, maxStroke, depth);
-    TEST_ASSERT_EQUAL_INT32(-4500, result);
+    TEST_ASSERT_EQUAL_INT32(4500, result);
 }
 
 // ─── planMotion ───

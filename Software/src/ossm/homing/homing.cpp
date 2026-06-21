@@ -53,8 +53,13 @@ static void startHomingTask(void *pvParameters) {
 
     // Stroke Engine and Simple Penetration treat this differently.
     stepper->enableOutputs();
-    stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
-    int16_t sign = stateMachine->is("homing.backward"_s) ? 1 : -1;
+    // Path X: standardize on invertDirection=true. With this polarity, positive
+    // counter direction = physical extend. We want homing.backward to END at the
+    // retracted hard stop with counter=0 (so positive working range = extend),
+    // so its drive direction must be NEGATIVE. Sign assignment is therefore
+    // inverted from the pre-Path-X convention.
+    stepper->setDirectionPin(Pins::Driver::motorDirectionPin, true);
+    int16_t sign = stateMachine->is("homing.backward"_s) ? -1 : 1;
 
     int32_t targetPositionInSteps =
         round(sign * Config::Driver::maxStrokeSteps);

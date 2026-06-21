@@ -26,10 +26,14 @@ inline int32_t calculateDepthOffset(float measuredStrokeSteps,
 
 /// Scale a BLE position percentage (0-100) into stepper target position.
 /// streaming.cpp line 95
+///
+/// Path X positive-going convention (counter=0 retracted, +M extended):
+///   posPercent=0   → counter = 0 + depth          (start of stroke window, retracted)
+///   posPercent=100 → counter = maxStroke + depth  (end of stroke window, extended)
+/// Wire convention is now natural: pos=0 retract, pos=100 extend.
 inline int32_t scaleStreamPosition(int posPercent, int32_t maxStroke,
                                    int32_t depth) {
-    return -(1 - (static_cast<float>(posPercent) / 100.0f)) * maxStroke -
-           depth;
+    return (static_cast<float>(posPercent) / 100.0f) * maxStroke + depth;
 }
 
 /// Result of motion profile planning.
