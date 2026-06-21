@@ -19,22 +19,11 @@ inline bool isCurrentOverLimit(float currentReading, float offset,
 /// Calculate the measured stroke from the stepper's current position,
 /// clamped to the maximum physical stroke.
 /// homing.cpp lines 116-118
-inline float calculateMeasuredStroke(int32_t currentPosition,
+inline float calculateMeasuredStroke(int32_t currentPosition, 
+                                     int32_t currentMeasuredSteps,
                                      float maxStrokeSteps) {
-    return std::min(static_cast<float>(std::abs(currentPosition)),
-                    maxStrokeSteps);
-}
-
-/// Calculate where to move after homing completes.
-/// homing.cpp lines 123-127
-inline int32_t calculatePostHomingPosition(int16_t sign,
-                                           float measuredStrokeSteps,
-                                           float afterHomingPosition) {
-    int32_t goToPosition = -sign * measuredStrokeSteps;
-    if (goToPosition < 0) {
-        goToPosition = goToPosition * afterHomingPosition;
-    }
-    return goToPosition;
+    return std::min(static_cast<float>(std::max(std::abs(currentPosition),
+                                currentMeasuredSteps)),maxStrokeSteps);
 }
 
 /// Check if homing has exceeded the timeout.

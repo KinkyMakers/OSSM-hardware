@@ -25,6 +25,7 @@ void ossmDrawUpdating();
 void ossmStartUpdate();
 void ossmDrawError();
 void ossmSetHomed();
+void ossmSetFirstHomed();
 void ossmSetNotHomed();
 void ossmCheckPairing();
 void ossmDrawPairingSuccess();
@@ -88,6 +89,8 @@ namespace actions {
     constexpr auto drawPairingSuccess = []() { ossmDrawPairingSuccess(); };
 
     constexpr auto setHomed = []() { ossmSetHomed(); };
+
+    constexpr auto setFirstHomed = []() { ossmSetFirstHomed(); };
     
     constexpr auto setNotHomed = []() { ossmSetNotHomed(); };
     
