@@ -1,6 +1,7 @@
 #include "homing.h"
 
 #include "Strings.h"
+#include "homing_logic.h"
 #include "constants/Config.h"
 #include "constants/Pins.h"
 #include "constants/UserConfig.h"
@@ -78,7 +79,7 @@ static void startHomingTask(void *pvParameters) {
         // 'portTICK_PERIOD_MS' is the number of milliseconds per tick.
         uint32_t msPassed = xTicksPassed * portTICK_PERIOD_MS;
 
-        if (msPassed > 40000) {
+        if (homing_logic::isHomingTimedOut(msPassed, 40000)) {
             ESP_LOGE("Homing", "Homing took too long. Check power and restart");
             errorState.message = ui::strings::homingTookTooLong;
 
@@ -95,8 +96,8 @@ static void startHomingTask(void *pvParameters) {
                         calibration.currentSensorOffset;
 
         ESP_LOGV("Homing", "Current: %f", current);
-        bool isCurrentOverLimit =
-            current > Config::Driver::sensorlessCurrentLimit;
+        bool isCurrentOverLimit = homing_logic::isCurrentOverLimit(
+            current, 0, Config::Driver::sensorlessCurrentLimit);
 
         if (!isCurrentOverLimit) {
             vTaskDelay(10);  // Increased from 1ms to 10ms to reduce CPU load
@@ -114,16 +115,16 @@ static void startHomingTask(void *pvParameters) {
 
         // measure and save the current position
         calibration.measuredStrokeSteps =
-            min(float(abs(stepper->getCurrentPosition())),
+            homing_logic::calculateMeasuredStroke(
+                stepper->getCurrentPosition(),
                 Config::Driver::maxStrokeSteps);
 
         stepper->setCurrentPosition(0);
         stepper->forceStopAndNewPosition(0);
 
-        int32_t goToPosition = -sign * calibration.measuredStrokeSteps;
-        if (goToPosition < 0){
-            goToPosition = goToPosition * UserConfig::afterHomingPosition;
-        }
+        int32_t goToPosition = homing_logic::calculatePostHomingPosition(
+            sign, calibration.measuredStrokeSteps,
+            UserConfig::afterHomingPosition);
 
         stepper->moveTo(goToPosition,true);
 

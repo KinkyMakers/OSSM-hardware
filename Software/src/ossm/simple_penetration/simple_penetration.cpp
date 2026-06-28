@@ -1,5 +1,6 @@
 #include "simple_penetration.h"
 
+#include "simple_pen_logic.h"
 #include "constants/Config.h"
 #include "ossm/state/calibration.h"
 #include "ossm/state/session.h"
@@ -30,17 +31,18 @@ static void startSimplePenetrationTask(void *pvParameters) {
     bool stopped = false;
 
     while (isInCorrectState()) {
-        auto speed =
-            (1_mm) * Config::Driver::maxSpeedMmPerSecond * settings.speed / 100.0;
-        auto acceleration = (1_mm) * Config::Driver::maxSpeedMmPerSecond *
-                            settings.speed * settings.speed /
-                            Config::Advanced::accelerationScaling;
+        auto speed = simple_pen_logic::calculateSpeed(
+            settings.speed, Config::Driver::maxSpeedMmPerSecond, (1_mm));
+        auto acceleration = simple_pen_logic::calculateAcceleration(
+            settings.speed, Config::Driver::maxSpeedMmPerSecond,
+            Config::Advanced::accelerationScaling, (1_mm));
 
-        bool isSpeedZero =
-            settings.speedKnob < Config::Advanced::commandDeadZonePercentage;
+        bool isSpeedZero = simple_pen_logic::isInDeadZone(
+            settings.speedKnob, Config::Advanced::commandDeadZonePercentage);
         bool isSpeedChanged =
-            !isSpeedZero && abs(speed - lastSpeed) >
-                                5 * Config::Advanced::commandDeadZonePercentage;
+            !isSpeedZero && simple_pen_logic::isSpeedChangeSignificant(
+                                lastSpeed, speed,
+                                Config::Advanced::commandDeadZonePercentage);
         bool isAtTarget =
             abs(targetPosition - stepper->getCurrentPosition()) == 0;
 
@@ -74,12 +76,9 @@ static void startSimplePenetrationTask(void *pvParameters) {
         bool nextDirection = !calibration.isForward;
         calibration.isForward = nextDirection;
 
-        if (calibration.isForward) {
-            targetPosition = -abs(((float)settings.stroke / 100.0) *
-                                  calibration.measuredStrokeSteps);
-        } else {
-            targetPosition = 0;
-        }
+        targetPosition = simple_pen_logic::calculateTarget(
+            calibration.isForward, settings.stroke,
+            calibration.measuredStrokeSteps);
 
         ESP_LOGV("SimplePenetration", "target: %f,\tspeed: %f,\tacc: %f",
                  targetPosition, speed, acceleration);

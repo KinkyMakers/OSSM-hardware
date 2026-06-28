@@ -27,6 +27,8 @@
     "522b443a-4f53-534d-1020-420badbabe69"
 #define CHARACTERISTIC_LATENCY_COMPENSATION_CONFIG_UUID \
     "522b443a-4f53-534d-1030-420badbabe69"
+#define CHARACTERISTIC_RENAME_CONFIG_UUID \
+    "522b443a-4f53-534d-1040-420badbabe69"
 // **********************************************************
 // State Characteristics
 // - Range: 2000-2FFF

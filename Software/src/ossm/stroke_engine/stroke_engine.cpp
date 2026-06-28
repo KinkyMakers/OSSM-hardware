@@ -53,7 +53,7 @@ static void startStrokeEngineTask(void *pvParameters) {
                 Stroker.startPattern();
             }
 
-            Stroker.setSpeed(settings.speed * 3, true);
+            Stroker.setSpeed(settings.speed, true);
             lastSetting.speed = settings.speed;
         }
 

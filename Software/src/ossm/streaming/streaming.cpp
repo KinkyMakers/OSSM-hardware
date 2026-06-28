@@ -2,6 +2,7 @@
 
 #include <queue>
 #include <chrono>
+#include "streaming_logic.h"
 #include "constants/Config.h"
 #include "ossm/state/calibration.h"
 #include "ossm/state/session.h"
@@ -85,14 +86,18 @@ static void startStreamingTask(void *pvParameters) {
         }
         lastPositionTime = targetPositionTime;
         //Grab the minimal value between depth and stroke, use as max stroke length.
-        int32_t maxStroke = abs(((float)min(settings.stroke,settings.depth) / 100.0) * calibration.measuredStrokeSteps);
+        int32_t maxStroke = streaming_logic::calculateMaxStroke(
+            settings.stroke, settings.depth,
+            calibration.measuredStrokeSteps);
         //Set 100% at max depth and constrain speeds based on user inputs.
-        int32_t depth = (calibration.measuredStrokeSteps - maxStroke) * (settings.depth/100.0);
+        int32_t depth = streaming_logic::calculateDepthOffset(
+            calibration.measuredStrokeSteps, maxStroke, settings.depth);
         uint32_t speedLimit = maxSpeed * (settings.speed/100.0);
         uint32_t accelLimit = maxAccel * (settings.sensation/100.0);
         // skip movement if speeds are 0
         if (speedLimit > 0 && accelLimit > 0){
-            targetPosition = -(1-(static_cast<float>(targetPositionTime.position) / 100.0f)) * maxStroke - depth;
+            targetPosition = streaming_logic::scaleStreamPosition(
+                targetPositionTime.position, maxStroke, depth);
             currentPosition = stepper->getCurrentPosition();
             // Calculate distance to travel (in steps)
             distance = abs(targetPosition - currentPosition);

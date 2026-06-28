@@ -55,9 +55,9 @@ class SpeedKnobConfigCallbacks : public NimBLECharacteristicCallbacks {
             "Speed knob config notification/indication return code: %d, %s",
             code, NimBLEUtils::returnCodeToString(code));
     }
-} speedKnobConfigCallbacks;
+} inline speedKnobConfigCallbacks;
 
-NimBLECharacteristic* initSpeedKnobConfigCharacteristic(NimBLEService* pService,
+inline NimBLECharacteristic* initSpeedKnobConfigCharacteristic(NimBLEService* pService,
                                                         NimBLEUUID uuid) {
     NimBLECharacteristic* pSpeedKnobConfigChar = pService->createCharacteristic(
         uuid, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ);
@@ -121,9 +121,9 @@ class LatencyCompensationConfigCallbacks : public NimBLECharacteristicCallbacks 
             "Latency compensation config notification/indication return code: %d, %s",
             code, NimBLEUtils::returnCodeToString(code));
     }
-} latencyCompensationConfigCallbacks;
+} inline latencyCompensationConfigCallbacks;
 
-NimBLECharacteristic* initLatencyCompensationConfigCharacteristic(NimBLEService* pService,
+inline NimBLECharacteristic* initLatencyCompensationConfigCharacteristic(NimBLEService* pService,
                                                         NimBLEUUID uuid) {
     NimBLECharacteristic* pLatencyCompensationConfigChar = pService->createCharacteristic(
         uuid, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::READ);

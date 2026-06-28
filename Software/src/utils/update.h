@@ -1,102 +1,24 @@
 #ifndef SOFTWARE_UPDATE_H
 #define SOFTWARE_UPDATE_H
 
-#include <Arduino.h>
-#include <HTTPClient.h>
-#include <HTTPUpdate.h>
+#include <cstdint>
 
-#include "ArduinoJson.h"
-#include "constants/LogTags.h"
-
-#ifndef SW_VERSION
-#define SW_VERSION "0.0.0"
-#endif
-
-static auto isUpdateAvailable = []() {
-    // check if we're online
-    if (WiFiClass::status() != WL_CONNECTED) {
-        ESP_LOGD(UPDATE_TAG, "Not connected to WiFi");
-        return false;
-    }
-
-    String serverNameBubble =
-        "http://d2g4f7zewm360.cloudfront.net/check-for-ossm-update";  // live
-                                                                      // url
-#ifdef VERSIONDEV
-    serverNameBubble =
-        "http://d2oq8yqnezqh3r.cloudfront.net/check-for-ossm-update";  // version-test
-#endif
-
-#ifdef VERSIONSTAGING
-    serverNameBubble =
-        "http://d2oq8yqnezqh3r.cloudfront.net/check-for-ossm-update";  // version-test
-#endif
-
-    ESP_LOGD(UPDATE_TAG, "Checking for updates at %s",
-             serverNameBubble.c_str());
-
-    // Making the POST request to the bubble server
-    HTTPClient http;
-    WiFiClient client;
-    http.begin(client, serverNameBubble);
-    http.addHeader("Content-Type", "application/json");
-    JsonDocument doc;
-    // Add values in the document
-    doc["ossmSwVersion"] = SW_VERSION;
-    String requestBody;
-    serializeJson(doc, requestBody);
-    int httpResponseCode = http.POST(requestBody);
-
-    // Reading payload
-    String payload = "{}";
-    payload = http.getString();
-    ESP_LOGD(UPDATE_TAG, "HTTP Response code: %d", httpResponseCode);
-    JsonDocument bubbleResponse;
-    deserializeJson(bubbleResponse, payload);
-    bool response_needUpdate = bubbleResponse["response"]["needUpdate"];
-
-    ESP_LOGD("UTILS", "Payload: %s", payload.c_str());
-
-    if (httpResponseCode <= 0) {
-        ESP_LOGD("UTILS", "Failed to reach update server");
-    }
-    http.end();
-    client.stop();
-    return response_needUpdate;
-};
-
-auto updateOSSM = []() {
-    // check if we're online
-
-    WiFiClient client;
-    String url = "http://d2sy3zdr3r1gt5.cloudfront.net/firmware.bin";
-
-#ifdef VERSIONDEV
-    url = "http://d2sy3zdr3r1gt5.cloudfront.net/firmware-dev.bin";
-#endif
-#ifdef VERSIONSTAGING
-    url = "http://d2sy3zdr3r1gt5.cloudfront.net/firmware-dev.bin";
-#endif
-
-    t_httpUpdate_return ret = httpUpdate.update(client, url);
-
-    switch (ret) {
-        case HTTP_UPDATE_FAILED:
-            ESP_LOGD("UTILS", "HTTP_UPDATE_FAILED Error (%d): %s\n",
-                     httpUpdate.getLastError(),
-                     httpUpdate.getLastErrorString().c_str());
-            break;
-
-        case HTTP_UPDATE_NO_UPDATES:
-            ESP_LOGD("UTILS", "HTTP_UPDATE_NO_UPDATES");
-            break;
-
-        case HTTP_UPDATE_OK:
-            ESP_LOGD("UTILS", "HTTP_UPDATE_OK");
-            break;
-    }
-
-    client.stop();
-};
+// OTA configuration. Single source of truth shared with the webflasher: the
+// Supabase "production" channel. The device fetches version.json, decides for
+// itself whether a newer build exists, and downloads firmware.bin from the same
+// place over validated HTTPS. To move hosts later (e.g. GitHub Pages), only
+// OTA_BASE_URL changes.
+//
+// The actual check + download run in a dedicated FreeRTOS task (see
+// ossmStartUpdate in update.cpp), because a TLS handshake needs far more stack
+// than the button task — where the state machine runs — has available.
+namespace OtaConfig {
+static const char *OTA_BASE_URL =
+    "https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public/"
+    "ossm-firmware/";
+static const char *PRODUCTION_PATH = "production/";
+static const char *VERSION_JSON = "version.json";
+static const char *FIRMWARE_BIN = "firmware.bin";
+}  // namespace OtaConfig
 
 #endif  // SOFTWARE_UPDATE_H

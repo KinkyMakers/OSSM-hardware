@@ -224,9 +224,20 @@ Uses `min_spiffs.csv` (PlatformIO built-in minimal SPIFFS partition).
 
 ## Testing
 
+### Unit tests (native, no hardware)
+
 - Framework: Unity (PlatformIO native)
 - Mocking: ArduinoFake
 - Run: `pio test -e test`
+
+### Hardware tests (on-device, USB-connected OSSM)
+
+- Environment: `hw_test` (extends `development`, builds full `src/`)
+- Run all: `pio test -e hw_test`
+- Run one: `pio test -e hw_test -f test_hw_smoke`
+- Available suites: `test_hw_smoke`, `test_hw_homing`, `test_hw_homing_error`, `test_hw_pairing`, `test_hw_state_machine`, `test_hw_wifi`
+- `test_hw_homing` moves the motor — keep the rail clear
+- Full docs: `Documentation/ossm/Software/getting-started/hardware-tests.mdx`
 
 ## Important Rules
 

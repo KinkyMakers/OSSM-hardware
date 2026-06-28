@@ -4,6 +4,7 @@ export const OssmBleController = () => {
   const OSSM_COMMAND_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1000-420badbabe69';
   const OSSM_SPEED_KNOB_LIMIT_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1010-420badbabe69';
   const OSSM_WIFI_CONFIG_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1020-420badbabe69';
+  const OSSM_RENAME_CHARACTERISTIC_UUID = '522b443a-4f53-534d-1040-420badbabe69';
   const OSSM_STATE_CHARACTERISTIC_UUID = '522b443a-4f53-534d-2000-420badbabe69';
   const OSSM_PATTERNS_CHARACTERISTIC_UUID = '522b443a-4f53-534d-3000-420badbabe69';
   const OSSM_PATTERN_DESCRIPTION_CHARACTERISTIC_UUID = '522b443a-4f53-534d-3010-420badbabe69';
@@ -100,6 +101,8 @@ export const OssmBleController = () => {
   const [wifiStatus, setWifiStatus] = useState(null);
   const [isWifiSaving, startWifiTransition] = useTransition();
 
+  const [deviceName, setDeviceName] = useState(null);
+
   // Dev tools state
   const [logs, setLogs] = useState([]);
   const [rawInput, setRawInput] = useState('');
@@ -109,6 +112,8 @@ export const OssmBleController = () => {
 
   const commandCharacteristicRef = useRef(null);
   const wifiConfigCharacteristicRef = useRef(null);
+  const renameConfigCharacteristicRef = useRef(null);
+
   const serverRef = useRef(null);
 
   const [isSupported, setIsSupported] = useState(true);
@@ -200,6 +205,28 @@ export const OssmBleController = () => {
       await sendCommand('set:speed:0');
     }
   }, [isPaused, speed, sendCommand]);
+
+  const handleDeviceNameSave = useCallback(async () => {
+    if (!renameConfigCharacteristicRef.current) {
+      console.warn('Rename characteristic not available');
+      return false;
+    }
+
+    console.log('[OSSM BLE] Sending new name:', deviceName);
+    addLog('TX', deviceName);
+
+    try {
+      const encoder = new TextEncoder();
+      await renameConfigCharacteristicRef.current.writeValue(encoder.encode(deviceName));
+      return true;
+    } catch (err) {
+      console.error('Failed to send new name:', err);
+      addLog('ERR', `Send failed: ${err.message}`);
+      setError(`Failed to send new name: ${err.message}`);
+      return false;
+    }
+  }, [deviceName,addLog]);
+
 
   const handleWifiSave = useCallback(() => {
     if (!wifiConfigCharacteristicRef.current || !wifiSSID || !wifiPassword) {
@@ -294,6 +321,13 @@ export const OssmBleController = () => {
       } catch (wifiErr) {
         console.warn('[OSSM BLE] Could not get WiFi characteristic:', wifiErr);
       }
+
+      const renameChar = await service.getCharacteristic(OSSM_RENAME_CHARACTERISTIC_UUID);
+      renameConfigCharacteristicRef.current = renameChar;
+
+      const renameValue = await renameChar.readValue();
+      addLog('RX', 'Device Name: ${renameValue}')
+      setDeviceName(new TextDecoder().decode(renameValue));
 
       // Read current state from device
       try {
@@ -517,6 +551,7 @@ export const OssmBleController = () => {
             {[
               { id: 'controller', label: 'Controller' },
               { id: 'wifi', label: 'WiFi Settings' },
+              { id: 'rename', label: 'Set Device Name' },
               { id: 'logs', label: 'Raw Logs' },
             ].map((tab) => (
               <button
@@ -686,6 +721,35 @@ export const OssmBleController = () => {
                   className="w-full rounded-lg bg-violet-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isWifiSaving ? 'Connecting...' : 'Save & Connect'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Rename Device Tab */}
+          {activeTab === 'rename' && (
+            <div className="space-y-4">
+              {/* Device Name Form */}
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                    Device Name
+                  </label>
+                  <input
+                    type="text"
+                    value={deviceName}
+                    onChange={(e) => setDeviceName(e.target.value)}
+                    placeholder="OSSM"
+                    maxLength={8}
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+                  />
+                </div>
+                <button
+                  onClick={handleDeviceNameSave}
+                  disabled={!deviceName}
+                  className="w-full rounded-lg bg-violet-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Save
                 </button>
               </div>
             </div>

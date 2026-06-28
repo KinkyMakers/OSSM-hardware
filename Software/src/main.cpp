@@ -36,7 +36,7 @@ using namespace sml;
 
 OneButton button(Pins::Remote::encoderSwitch, false);
 
-void setup() {
+void __attribute__((weak)) setup() {
     // Suppress verbose GPIO configuration logs
     esp_log_level_set("gpio", ESP_LOG_WARN);
 
@@ -100,4 +100,4 @@ void setup() {
         configMAX_PRIORITIES - 1, nullptr, 0);
 };
 
-void loop() { vTaskDelete(nullptr); };
+void __attribute__((weak)) loop() { vTaskDelete(nullptr); };
