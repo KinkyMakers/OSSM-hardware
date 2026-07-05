@@ -186,8 +186,13 @@ void ossmDrawPairingSuccess() {
     pages::drawPairingSuccess();
 }
 
+void ossmSetFirstHomed() {
+    calibration.isFirstHomed = false;
+}
+
 void ossmSetHomed() {
     calibration.isHomed = true;
+    ossmSetFirstHomed();
 }
 
 void ossmSetNotHomed() {
