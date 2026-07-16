@@ -127,23 +127,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for documentation changes
+        id: documentation-changes
+        uses: tj-actions/changed-files@v47
+        with:
+          files: Documentation/**
 
       - uses: pnpm/action-setup@v4
+        if: steps.documentation-changes.outputs.any_changed == 'true'
         with:
           version: 10
 
       - uses: actions/setup-node@v4
+        if: steps.documentation-changes.outputs.any_changed == 'true'
         with:
           node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: Documentation/pnpm-lock.yaml
 
       - name: Install dependencies
+        if: steps.documentation-changes.outputs.any_changed == 'true'
         run: |
           cd Documentation
           pnpm install
 
       - name: Validate documentation
+        if: steps.documentation-changes.outputs.any_changed == 'true'
         run: |
           cd Documentation
           pnpm run mint:validate
