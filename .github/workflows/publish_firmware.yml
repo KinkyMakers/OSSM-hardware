@@ -1,0 +1,59 @@
+name: Publish immutable firmware candidate
+
+on:
+  push:
+    branches: [main, staging]
+    paths:
+      - "Software/**"
+      - ".github/scripts/publish_immutable_firmware.py"
+      - ".github/scripts/test_publish_immutable_firmware.py"
+      - ".github/scripts/release_workflow.py"
+      - ".github/scripts/test_release_workflow.py"
+      - ".github/workflows/publish_firmware.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firmware-publish-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_name == 'main' && 'firmware-production' || 'firmware-staging' }}
+    env:
+      FIRMWARE_PUBLISH_TOKEN: ${{ secrets.FIRMWARE_PUBLISH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install PlatformIO
+        run: python -m pip install --upgrade platformio
+      - name: Test publisher
+        run: |
+          python .github/scripts/test_publish_immutable_firmware.py
+          python .github/scripts/test_release_workflow.py
+      - name: Run native unit tests
+        working-directory: Software
+        run: pio test -e test
+      - name: Select track build
+        run: python .github/scripts/release_workflow.py configure --branch "$GITHUB_REF_NAME"
+      - name: Build application
+        working-directory: Software
+        run: pio run -e "$PIO_ENV"
+      - name: Publish validating release
+        id: publish
+        run: |
+          python .github/scripts/publish_immutable_firmware.py \
+            --device-type ossm \
+            --track "$TRACK" \
+            --build-sha "$GITHUB_SHA" \
+            --version-file Software/src/constants/Version.h \
+            --artifact "application:Software/.pio/build/$PIO_ENV/firmware.bin:1:true" \
+            --artifact "bootloader:Software/.pio/build/$PIO_ENV/bootloader.bin:2:false" \
+            --artifact "partitions:Software/.pio/build/$PIO_ENV/partitions.bin:3:false"
+      - name: Candidate summary
+        run: echo "Release ${{ steps.publish.outputs.release_id }} is waiting for hardware validation" >> "$GITHUB_STEP_SUMMARY"
