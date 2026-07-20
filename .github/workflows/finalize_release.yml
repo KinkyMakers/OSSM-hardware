@@ -19,7 +19,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       FIRMWARE_PUBLISH_TOKEN: ${{ secrets.FIRMWARE_PUBLISH_TOKEN }}
     steps:
-      - name: Checkout exact main candidate
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: main
@@ -28,12 +28,13 @@ jobs:
       - name: Verify persisted release gates
         id: release
         run: |
-          curl --fail --silent --show-error \\
-            --header "Authorization: Bearer $FIRMWARE_PUBLISH_TOKEN" \\
-            "https://dashboard.researchanddesire.com/api/internal/firmware/v1/releases/${{ inputs.release_id }}?track=main" \\
+          curl --fail --silent --show-error \
+            --header "Authorization: Bearer $FIRMWARE_PUBLISH_TOKEN" \
+            "https://dashboard.researchanddesire.com/api/internal/firmware/v1/releases/${{ inputs.release_id }}?track=main" \
             --output release.json
-          jq -e --arg sha "$GITHUB_SHA" --arg device "ossm" '
+          jq -e --arg device "ossm" '
             . as $release |
+            $release.buildSha as $sha |
             $release.track == "main" and
             $release.deviceType == $device and
             $release.buildSha == $sha and
@@ -46,10 +47,19 @@ jobs:
           ' release.json
           echo "version=$(jq -r .version release.json)" >> "$GITHUB_OUTPUT"
           echo "manifest_url=$(jq -r .manifestUrl release.json)" >> "$GITHUB_OUTPUT"
+          echo "build_sha=$(jq -r .buildSha release.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout exact release candidate
+        env:
+          RELEASE_BUILD_SHA: ${{ steps.release.outputs.build_sha }}
+        run: |
+          git checkout --detach "$RELEASE_BUILD_SHA"
+          test "$(git rev-parse HEAD)" = "$RELEASE_BUILD_SHA"
 
       - name: Create idempotent numeric tag
         env:
           VERSION: ${{ steps.release.outputs.version }}
+          CANDIDATE_SHA: ${{ steps.release.outputs.build_sha }}
         run: |
           git fetch --tags --force
           EXISTING_SHA=""
@@ -58,11 +68,11 @@ jobs:
           fi
           ACTION="$(python .github/scripts/release_workflow.py tag-action \
             --existing-sha "$EXISTING_SHA" \
-            --candidate-sha "$GITHUB_SHA")"
+            --candidate-sha "$CANDIDATE_SHA")"
           if [[ "$ACTION" == "create" ]]; then
             git config user.name "AJ"
             git config user.email "ajay.koenig@gmail.com"
-            git tag "$VERSION" "$GITHUB_SHA"
+            git tag "$VERSION" "$CANDIDATE_SHA"
             git push origin "$VERSION"
           fi
 
@@ -71,5 +81,5 @@ jobs:
           VERSION: ${{ steps.release.outputs.version }}
           MANIFEST_URL: ${{ steps.release.outputs.manifest_url }}
         run: |
-          gh release view "$VERSION" >/dev/null 2>&1 || \\
+          gh release view "$VERSION" >/dev/null 2>&1 || \
             gh release create "$VERSION" --title "$VERSION" --notes "Firmware manifest: $MANIFEST_URL"
