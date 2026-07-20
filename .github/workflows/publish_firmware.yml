@@ -127,8 +127,8 @@ jobs:
             echo "Version allocation did not change the canonical files"
             exit 1
           fi
-          git config user.name "AJ"
-          git config user.email "ajay.koenig@gmail.com"
+          git config user.name "rad-version-control[bot]"
+          git config user.email "rad-version-control[bot]@users.noreply.github.com"
           git commit -m "AUTO: Version bump $GITHUB_REF_NAME $NEXT_VERSION"
           git push origin "HEAD:$GITHUB_REF_NAME"
           RELEASE_BUILD_SHA="$(git rev-parse HEAD)"
