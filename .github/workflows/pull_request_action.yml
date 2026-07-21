@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main
-      - release
+      - staging
 
 jobs:
   check_changes:
@@ -16,14 +16,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check for changes in Software directory
+      - name: Check for firmware or release workflow changes
         id: check_changes
         run: |
-          if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -q "^Software/"; then
-            echo "Changes detected in Software directory"
+          if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -Eq "^(Software/|\.github/scripts/|\.github/workflows/)"; then
+            echo "Firmware-affecting changes detected"
             echo "changes_detected=true" >> $GITHUB_OUTPUT
           else
-            echo "No changes in Software directory, skipping build"
+            echo "No firmware-affecting changes detected, skipping build"
             echo "changes_detected=false" >> $GITHUB_OUTPUT
           fi
 
@@ -45,7 +45,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.12"
 
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
@@ -53,7 +53,13 @@ jobs:
       - name: Build PlatformIO Project
         run: |
           cd Software
+          pio run -e staging
           pio run -e production
+
+      - name: Test immutable publisher
+        run: |
+          python .github/scripts/test_publish_immutable_firmware.py
+          python .github/scripts/test_release_workflow.py
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
@@ -126,168 +132,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for documentation changes
+        id: documentation-changes
+        uses: tj-actions/changed-files@v47
+        with:
+          files: Documentation/**
 
       - uses: pnpm/action-setup@v4
+        if: steps.documentation-changes.outputs.any_changed == 'true'
         with:
           version: 10
 
       - uses: actions/setup-node@v4
+        if: steps.documentation-changes.outputs.any_changed == 'true'
         with:
           node-version: '20'
           cache: 'pnpm'
           cache-dependency-path: Documentation/pnpm-lock.yaml
 
       - name: Install dependencies
+        if: steps.documentation-changes.outputs.any_changed == 'true'
         run: |
           cd Documentation
           pnpm install
 
       - name: Validate documentation
+        if: steps.documentation-changes.outputs.any_changed == 'true'
         run: |
           cd Documentation
           pnpm run mint:validate
-
-  upload_to_supabase:
-    needs: [check_changes, build]
-    if: needs.check_changes.outputs.changes_detected == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      checks: write
-      contents: read
-      deployments: write
-    env:
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Download firmware artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: firmware-bin
-          path: ./firmware
-
-      - name: URL encode branch name
-        id: encode_branch
-        run: |
-          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
-          URL_ENCODED_BRANCH=$(echo "$BRANCH_NAME" | sed 's/\//%2F/g' | sed 's/+/%2B/g' | sed 's/ /%20/g')
-          echo "encoded_branch=$URL_ENCODED_BRANCH" >> $GITHUB_OUTPUT
-
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
-      - name: Get commit hash
-        id: get_commit_hash
-        run: |
-          COMMIT_HASH=$(git rev-parse --short HEAD)
-          echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
-
-      # The registry is no longer read or edited here; it is rebuilt from the
-      # bucket after the firmware upload (see rebuild_registry.sh). This step
-      # only names the archive folder for the firmware currently at the branch
-      # head, derived from git history.
-      - name: Determine old commit
-        id: update_registry
-        run: |
-          BRANCH_PATH="${{ steps.encode_branch.outputs.encoded_branch }}"
-          CURRENT_COMMIT="${{ steps.get_commit_hash.outputs.commit_hash }}"
-
-          OLD_COMMIT=""
-          if supabase storage ls "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" --experimental > /dev/null 2>&1; then
-            # Find the last commit that modified Software files before current commit
-            OLD_COMMIT=$(git log --format="%h" -1 --skip=1 -- Software/ 2>/dev/null || echo "")
-            if [ -z "$OLD_COMMIT" ]; then
-              # Fallback: use parent commit
-              OLD_COMMIT=$(git rev-parse --short HEAD^ 2>/dev/null || echo "")
-            fi
-            if [ -n "$OLD_COMMIT" ]; then
-              echo "Determined old commit from git: $OLD_COMMIT"
-            else
-              echo "Warning: Could not determine old commit, using current commit"
-              OLD_COMMIT="$CURRENT_COMMIT"
-            fi
-          else
-            echo "No existing firmware found at $BRANCH_PATH, this is first upload"
-          fi
-
-          echo "old_commit=$OLD_COMMIT" >> $GITHUB_OUTPUT
-
-      - name: Move existing firmware out of the way
-        if: steps.update_registry.outputs.old_commit != ''
-        run: |
-          OLD_COMMIT="${{ steps.update_registry.outputs.old_commit }}"
-          BRANCH_PATH="${{ steps.encode_branch.outputs.encoded_branch }}"
-          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/firmware.bin" --experimental || true
-          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/partitions.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/partitions.bin" --experimental || true
-          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/bootloader.bin" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/bootloader.bin" --experimental || true
-          supabase storage mv "ss:///ossm-firmware/$BRANCH_PATH/manifest.json" "ss:///ossm-firmware/$BRANCH_PATH/$OLD_COMMIT/manifest.json" --experimental || true
-        continue-on-error: true
-
-      - name: Upload firmware to Supabase Storage
-        run: |
-          BRANCH_PATH="${{ steps.encode_branch.outputs.encoded_branch }}"
-          # Delete existing files first (ignore errors if they don't exist)
-          supabase storage rm "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" --experimental --yes || true
-          supabase storage rm "ss:///ossm-firmware/$BRANCH_PATH/partitions.bin" --experimental --yes || true
-          supabase storage rm "ss:///ossm-firmware/$BRANCH_PATH/bootloader.bin" --experimental --yes || true
-          # Upload new files
-          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/$BRANCH_PATH/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/$BRANCH_PATH/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-          supabase storage cp ./firmware/bootloader.bin "ss:///ossm-firmware/$BRANCH_PATH/bootloader.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-
-      - name: Create and upload manifest.json
-        run: |
-          BRANCH_PATH="${{ steps.encode_branch.outputs.encoded_branch }}"
-          # Create a temporary manifest file with the branch name replaced
-          cat .github/artifacts/manifest.json | sed "s/{{ branchName }}/$BRANCH_PATH/g" > ./manifest.json
-          # Delete existing manifest if it exists
-          supabase storage rm "ss:///ossm-firmware/$BRANCH_PATH/manifest.json" --experimental --yes || true
-          # Upload the manifest file to Supabase Storage
-          supabase storage cp ./manifest.json "ss:///ossm-firmware/$BRANCH_PATH/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
-
-      # Runs before the GitHub Deployment is created so the deployment's
-      # ?branch= flasher link resolves against a registry that already lists
-      # this branch.
-      - name: Rebuild registry from bucket contents
-        run: bash .github/scripts/rebuild_registry.sh
-
-      - name: Create GitHub Deployment
-        id: create_deployment
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const deployment = await github.rest.repos.createDeployment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: context.payload.pull_request ? context.payload.pull_request.head.ref : context.ref,
-              environment: 'firmware',
-              auto_merge: false,
-              required_contexts: [],
-              description: 'OSSM Firmware Deployment'
-            });
-
-            return { id: deployment.data.id };
-
-      - name: Create Deployment Status
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const deploymentId = ${{ steps.create_deployment.outputs.result }}.id;
-            const flashUrl = 'https://docs.researchanddesire.com/ossm/tools/web-flasher?branch=${{ steps.encode_branch.outputs.encoded_branch }}';
-
-            await github.rest.repos.createDeploymentStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              deployment_id: deploymentId,
-              state: 'success',
-              environment_url: flashUrl,
-              log_url: flashUrl,
-              description: 'Firmware ready to flash'
-            });

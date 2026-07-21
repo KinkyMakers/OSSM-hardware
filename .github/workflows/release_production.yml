@@ -1,76 +1,68 @@
-name: Release Alpha as Production
+name: Publish verified production legacy alias
 
 on:
   workflow_dispatch:
+    inputs:
+      release_id:
+        description: Validated immutable release UUID
+        required: true
+        type: string
 
 permissions:
   contents: read
-  id-token: write # required for the AWS OIDC login (legacy CloudFront mirror)
 
 jobs:
-  release-production:
+  alias:
     runs-on: ubuntu-latest
+    environment: firmware-production
     env:
+      FIRMWARE_PUBLISH_TOKEN: ${{ secrets.FIRMWARE_PUBLISH_TOKEN }}
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+      SUPABASE_PROJECT_ID: acjajruwevyyatztbkdf
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v1
         with:
           version: latest
 
-      - name: Download files from alpha/
+      - name: Download and verify immutable release
+        id: release
         run: |
-          mkdir -p ./firmware
-          supabase storage cp "ss:///ossm-firmware/alpha/firmware.bin" ./firmware/firmware.bin --experimental
-          supabase storage cp "ss:///ossm-firmware/alpha/partitions.bin" ./firmware/partitions.bin --experimental
-          supabase storage cp "ss:///ossm-firmware/alpha/bootloader.bin" ./firmware/bootloader.bin --experimental
-          supabase storage cp "ss:///ossm-firmware/alpha/version.json" ./firmware/version.json --experimental
+          python .github/scripts/download_verified_release.py \
+            --release-id "${{ inputs.release_id }}" \
+            --track main \
+            --device ossm \
+            --output firmware
 
-      - name: Get Version
-        id: get_version
+      - name: Replace production Supabase aliases
         run: |
-          VERSION=$(jq -r .version ./firmware/version.json)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Releasing version $VERSION to production"
-
-      - name: Upload files to production/
-        run: |
-          # Delete existing files in production/
-          supabase storage rm "ss:///ossm-firmware/production/firmware.bin" "ss:///ossm-firmware/production/partitions.bin" "ss:///ossm-firmware/production/bootloader.bin" "ss:///ossm-firmware/production/manifest.json" "ss:///ossm-firmware/production/version.json" --experimental --yes || true
-          
-          # Upload firmware binaries
-          supabase storage cp ./firmware/firmware.bin "ss:///ossm-firmware/production/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-          supabase storage cp ./firmware/partitions.bin "ss:///ossm-firmware/production/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-          supabase storage cp ./firmware/bootloader.bin "ss:///ossm-firmware/production/bootloader.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-          
-          # Create and upload manifest.json for production
-          cat .github/artifacts/manifest.json | sed "s/{{ branchName }}/production/g" > ./manifest.json
-          supabase storage cp ./manifest.json "ss:///ossm-firmware/production/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
-          
-          # Upload version.json
-          supabase storage cp ./firmware/version.json "ss:///ossm-firmware/production/version.json" --content-type "application/json" --cache-control "no-cache" --experimental
+          for ALIAS in master production; do
+            supabase storage rm "ss:///ossm-firmware/$ALIAS/firmware.bin" "ss:///ossm-firmware/$ALIAS/partitions.bin" "ss:///ossm-firmware/$ALIAS/bootloader.bin" \
+              "ss:///ossm-firmware/$ALIAS/manifest.json" \
+              "ss:///ossm-firmware/$ALIAS/version.json" --experimental --yes || true
+            [[ ! -f "./firmware/firmware.bin" ]] || supabase storage cp "./firmware/firmware.bin" "ss:///ossm-firmware/$ALIAS/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+            [[ ! -f "./firmware/partitions.bin" ]] || supabase storage cp "./firmware/partitions.bin" "ss:///ossm-firmware/$ALIAS/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+            [[ ! -f "./firmware/bootloader.bin" ]] || supabase storage cp "./firmware/bootloader.bin" "ss:///ossm-firmware/$ALIAS/bootloader.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+            sed "s/{{ branchName }}/$ALIAS/g" .github/artifacts/manifest.json > ./firmware/legacy-manifest.json
+            supabase storage cp ./firmware/legacy-manifest.json "ss:///ossm-firmware/$ALIAS/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
+            supabase storage cp ./firmware/version.json "ss:///ossm-firmware/$ALIAS/version.json" --content-type "application/json" --cache-control "no-cache" --experimental
+          done
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Mirror firmware to legacy CloudFront origin (S3)
-        run: |
-          # Old WiFi-OTA devices (e.g. 1.0.16) download from the legacy CloudFront
-          # path, not Supabase. Refresh it on every prod promotion so that fleet
-          # stays current. Bucket "ossm-update" is the origin behind
-          # d2sy3zdr3r1gt5.cloudfront.net (confirmed via matching x-amz-version-id).
-          aws s3 cp ./firmware/firmware.bin s3://ossm-update/firmware.bin --acl public-read
+      - name: Mirror verified application to CloudFront origin
+        run: aws s3 cp ./firmware/firmware.bin s3://ossm-update/firmware.bin --acl public-read
 
       - name: Summary
-        run: |
-          echo "✅ Released v${{ steps.get_version.outputs.version }} to production channel"
-          echo ""
-          echo "Supabase: https://acjajruwevyyatztbkdf.supabase.co/storage/v1/object/public/ossm-firmware/production/"
-          echo "Legacy:   https://d2sy3zdr3r1gt5.cloudfront.net/firmware.bin"
+        run: echo "master and production now point to validated release ${{ inputs.release_id }} (v${{ steps.release.outputs.version }})" >> "$GITHUB_STEP_SUMMARY"
+
+  rebuild-registry:
+    needs: alias
+    uses: ./.github/workflows/registry_rebuild.yml
+    secrets: inherit
