@@ -29,16 +29,16 @@ jobs:
       - name: Download and verify immutable release
         id: release
         run: |
-          python .github/scripts/download_verified_release.py \\
-            --release-id "${{ inputs.release_id }}" \\
-            --track staging \\
-            --device ossm \\
+          python .github/scripts/download_verified_release.py \
+            --release-id "${{ inputs.release_id }}" \
+            --track staging \
+            --device ossm \
             --output firmware
 
       - name: Replace explicit alpha alias
         run: |
-          supabase storage rm "ss:///ossm-firmware/alpha/firmware.bin" "ss:///ossm-firmware/alpha/partitions.bin" "ss:///ossm-firmware/alpha/bootloader.bin" \\
-            "ss:///ossm-firmware/alpha/manifest.json" \\
+          supabase storage rm "ss:///ossm-firmware/alpha/firmware.bin" "ss:///ossm-firmware/alpha/partitions.bin" "ss:///ossm-firmware/alpha/bootloader.bin" \
+            "ss:///ossm-firmware/alpha/manifest.json" \
             "ss:///ossm-firmware/alpha/version.json" --experimental --yes || true
           [[ ! -f "./firmware/firmware.bin" ]] || supabase storage cp "./firmware/firmware.bin" "ss:///ossm-firmware/alpha/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
           [[ ! -f "./firmware/partitions.bin" ]] || supabase storage cp "./firmware/partitions.bin" "ss:///ossm-firmware/alpha/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental

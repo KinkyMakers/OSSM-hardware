@@ -29,23 +29,25 @@ jobs:
       - name: Download and verify immutable release
         id: release
         run: |
-          python .github/scripts/download_verified_release.py \\
-            --release-id "${{ inputs.release_id }}" \\
-            --track main \\
-            --device ossm \\
+          python .github/scripts/download_verified_release.py \
+            --release-id "${{ inputs.release_id }}" \
+            --track main \
+            --device ossm \
             --output firmware
 
-      - name: Replace explicit production alias
+      - name: Replace production Supabase aliases
         run: |
-          supabase storage rm "ss:///ossm-firmware/production/firmware.bin" "ss:///ossm-firmware/production/partitions.bin" "ss:///ossm-firmware/production/bootloader.bin" \\
-            "ss:///ossm-firmware/production/manifest.json" \\
-            "ss:///ossm-firmware/production/version.json" --experimental --yes || true
-          [[ ! -f "./firmware/firmware.bin" ]] || supabase storage cp "./firmware/firmware.bin" "ss:///ossm-firmware/production/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-          [[ ! -f "./firmware/partitions.bin" ]] || supabase storage cp "./firmware/partitions.bin" "ss:///ossm-firmware/production/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-          [[ ! -f "./firmware/bootloader.bin" ]] || supabase storage cp "./firmware/bootloader.bin" "ss:///ossm-firmware/production/bootloader.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
-          sed "s/{{ branchName }}/production/g" .github/artifacts/manifest.json > ./firmware/legacy-manifest.json
-          supabase storage cp ./firmware/legacy-manifest.json "ss:///ossm-firmware/production/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
-          supabase storage cp ./firmware/version.json "ss:///ossm-firmware/production/version.json" --content-type "application/json" --cache-control "no-cache" --experimental
+          for ALIAS in master production; do
+            supabase storage rm "ss:///ossm-firmware/$ALIAS/firmware.bin" "ss:///ossm-firmware/$ALIAS/partitions.bin" "ss:///ossm-firmware/$ALIAS/bootloader.bin" \
+              "ss:///ossm-firmware/$ALIAS/manifest.json" \
+              "ss:///ossm-firmware/$ALIAS/version.json" --experimental --yes || true
+            [[ ! -f "./firmware/firmware.bin" ]] || supabase storage cp "./firmware/firmware.bin" "ss:///ossm-firmware/$ALIAS/firmware.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+            [[ ! -f "./firmware/partitions.bin" ]] || supabase storage cp "./firmware/partitions.bin" "ss:///ossm-firmware/$ALIAS/partitions.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+            [[ ! -f "./firmware/bootloader.bin" ]] || supabase storage cp "./firmware/bootloader.bin" "ss:///ossm-firmware/$ALIAS/bootloader.bin" --content-type "application/octet-stream" --cache-control "no-cache" --experimental
+            sed "s/{{ branchName }}/$ALIAS/g" .github/artifacts/manifest.json > ./firmware/legacy-manifest.json
+            supabase storage cp ./firmware/legacy-manifest.json "ss:///ossm-firmware/$ALIAS/manifest.json" --content-type "application/json" --cache-control "no-cache" --experimental
+            supabase storage cp ./firmware/version.json "ss:///ossm-firmware/$ALIAS/version.json" --content-type "application/json" --cache-control "no-cache" --experimental
+          done
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -58,4 +60,9 @@ jobs:
         run: aws s3 cp ./firmware/firmware.bin s3://ossm-update/firmware.bin --acl public-read
 
       - name: Summary
-        run: echo "production now points to validated release ${{ inputs.release_id }} (v${{ steps.release.outputs.version }})" >> "$GITHUB_STEP_SUMMARY"
+        run: echo "master and production now point to validated release ${{ inputs.release_id }} (v${{ steps.release.outputs.version }})" >> "$GITHUB_STEP_SUMMARY"
+
+  rebuild-registry:
+    needs: alias
+    uses: ./.github/workflows/registry_rebuild.yml
+    secrets: inherit
