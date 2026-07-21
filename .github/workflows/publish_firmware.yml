@@ -54,19 +54,10 @@ jobs:
     env:
       FIRMWARE_PUBLISH_TOKEN: ${{ secrets.FIRMWARE_PUBLISH_TOKEN }}
     steps:
-      - name: Generate version-control token
-        id: version_token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ vars.RAD_VERSION_CONTROL_APP_ID }}
-          private-key: ${{ secrets.RAD_VERSION_CONTROL_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: ${{ github.event.repository.name }}
-
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
-          token: ${{ steps.version_token.outputs.token }}
+          token: ${{ github.token }}
 
       - uses: actions/setup-python@v5
         with:
@@ -76,7 +67,7 @@ jobs:
         id: pull_request
         uses: actions/github-script@v7
         with:
-          github-token: ${{ steps.version_token.outputs.token }}
+          github-token: ${{ github.token }}
           script: |
             const { data: pulls } =
               await github.rest.repos.listPullRequestsAssociatedWithCommit({
