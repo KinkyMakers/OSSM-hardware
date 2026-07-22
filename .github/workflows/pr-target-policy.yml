@@ -1,0 +1,35 @@
+name: PR target policy
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+
+permissions: {}
+
+jobs:
+  validate-target:
+    name: PR target policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate source branch or hotfix title
+        env:
+          BASE_REPOSITORY: ${{ github.repository }}
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        shell: bash
+        run: |
+          if [[ "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" && "$HEAD_BRANCH" == "staging" ]]; then
+            echo "Same-repository staging promotion accepted."
+            exit 0
+          fi
+
+          shopt -s nocasematch
+          if [[ "$PR_TITLE" =~ ^hotfix([[:space:][:punct:]]|$) ]]; then
+            echo "Hotfix title accepted."
+            exit 0
+          fi
+
+          echo "::error::PRs into main must come from this repository's staging branch or begin with the standalone word 'hotfix'. Retarget feature work to staging, or rename a legitimate hotfix."
+          exit 1
