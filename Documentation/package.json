@@ -36,7 +36,7 @@
   "dependencies": {
     "@funboxteam/optimizt": "^5.0.2",
     "@inquirer/prompts": "^8.2.0",
-    "@oclif/core": "^4.8.0",
+    "@oclif/core": "^4.12.0",
     "gifsicle": "^7.0.1",
     "mint": "^4.2.348",
     "sharp": "^0.34.5"
