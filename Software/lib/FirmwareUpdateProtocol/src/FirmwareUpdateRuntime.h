@@ -72,13 +72,12 @@ inline bool postCheck(const char *apiBaseUrl, const DeviceReport &report,
 
     esp_http_client_close(client);
     esp_http_client_cleanup(client);
-    if (success &&
-        (decision.reportedTrack != report.reportedTrack ||
-         decision.currentVersion != report.currentVersion ||
-         decision.trackChanged !=
-             (decision.reportedTrack != decision.assignedTrack))) {
-        error = "firmware response does not match device report";
-        return false;
+    if (success) {
+        std::string validationError;
+        if (!validateDecisionForReport(report, decision, validationError)) {
+            error = validationError.c_str();
+            return false;
+        }
     }
     return success;
 }

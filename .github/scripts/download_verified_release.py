@@ -17,6 +17,26 @@ CONTROL_PLANE = "https://dashboard.researchanddesire.com"
 REQUIRED_GATES = {"build", "unit", "integration", "artifact", "hardware"}
 
 
+def legacy_version_document(
+    version: str, build_sha: str, release_id: str
+) -> dict[str, Any]:
+    """Build the metadata shape consumed by every legacy OSSM updater."""
+    match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", version)
+    if match is None:
+        raise RuntimeError(
+            f"release version is not numeric semantic version: {version}"
+        )
+    major, minor, patch = (int(part) for part in match.groups())
+    return {
+        "version": version,
+        "major": major,
+        "minor": minor,
+        "patch": patch,
+        "buildSha": build_sha,
+        "releaseId": release_id,
+    }
+
+
 def fetch(url: str, token: str | None = None) -> bytes:
     headers = {"User-Agent": "rad-firmware-alias/1"}
     if token:
@@ -67,7 +87,13 @@ def download_release(release_id: str, track: str, device: str, output: Path) -> 
         if hashlib.sha256(content).hexdigest() != artifact.get("sha256"):
             raise RuntimeError(f"SHA-256 mismatch for {filename}")
         (output / filename).write_bytes(content)
-    (output / "version.json").write_text(json.dumps({"version": status["version"], "buildSha": build_sha, "releaseId": release_id}, indent=2) + "\n")
+    (output / "version.json").write_text(
+        json.dumps(
+            legacy_version_document(status["version"], build_sha, release_id),
+            indent=2,
+        )
+        + "\n"
+    )
     return status["version"]
 
 

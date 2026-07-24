@@ -13,6 +13,7 @@
 #include "services/led.h"
 #include "services/stepper.h"
 #include "services/wm.h"
+#include "utils/update.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -36,6 +37,12 @@ using namespace sml;
 
 OneButton button(Pins::Remote::encoderSwitch, false);
 
+#ifdef CONFIG_APP_ROLLBACK_ENABLE
+// Keep Arduino core startup from accepting a pending image before OSSM has
+// initialized enough of the application to confirm it explicitly.
+extern "C" bool verifyRollbackLater() { return true; }
+#endif
+
 void __attribute__((weak)) setup() {
     // Suppress verbose GPIO configuration logs
     esp_log_level_set("gpio", ESP_LOG_WARN);
@@ -56,6 +63,10 @@ void __attribute__((weak)) setup() {
 
     // Initialize state machine after global state is set up
     initStateMachine();
+
+    // The board, display, and state machine initialized successfully. Confirm
+    // the running image if a rollback-capable bootloader marked it pending.
+    ossmConfirmRunningImage();
 
     // ialize LED for BLE and machine status indication
     ESP_LOGI("MAIN", "LED initialized for BLE and machine status indication");

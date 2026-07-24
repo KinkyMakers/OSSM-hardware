@@ -3,7 +3,10 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <esp_heap_caps.h>
+#include <esp_flash.h>
 #include <esp_log.h>
+#include <esp_ota_ops.h>
+#include <esp_partition.h>
 #include <esp_system.h>
 
 #include "FirmwareUpdateRuntime.h"
@@ -24,19 +27,46 @@
 
 namespace {
 
+std::uint32_t physicalFlashSizeBytes() {
+    std::uint32_t size = 0;
+    if (esp_flash_get_physical_size(nullptr, &size) == ESP_OK && size > 0) {
+        return size;
+    }
+    return ESP.getFlashChipSize();
+}
+
+std::uint32_t otaSlotSizeBytes() {
+    const esp_partition_t *partition =
+        esp_ota_get_next_update_partition(nullptr);
+    return partition == nullptr ? 0 : partition->size;
+}
+
+std::string runningFirmwareHash() {
+    const esp_partition_t *running = esp_ota_get_running_partition();
+    unsigned char digest[32] = {};
+    if (running == nullptr || esp_partition_get_sha256(running, digest) != ESP_OK) {
+        return "";
+    }
+    return firmware::sha256Hex(digest);
+}
+
 firmware::DeviceReport makeDeviceReport() {
-    return {
-        .deviceType = "ossm",
-        .deviceId = std::string(WiFi.macAddress().c_str()),
-        .reportedTrack = FIRMWARE_TRACK,
-        .currentVersion = VERSION,
-        .currentBuild = FIRMWARE_BUILD_SHA,
-        .firmwareHash = "",
-        .chip = std::string(ESP.getChipModel()),
-        .hardwareRevision = "ossm-v1",
-        .flashSizeBytes = ESP.getFlashChipSize(),
-        .partitionLayout = "ossm-ota-v1",
-    };
+    firmware::DeviceReport report;
+    report.deviceType = "ossm";
+    report.deviceId = std::string(WiFi.macAddress().c_str());
+    report.reportedTrack = FIRMWARE_TRACK;
+    report.currentVersion = VERSION;
+    report.currentBuild = FIRMWARE_BUILD_SHA;
+    report.firmwareHash = runningFirmwareHash();
+    report.chip = std::string(ESP.getChipModel());
+    report.chipRevision = ESP.getChipRevision();
+    report.chipCores = ESP.getChipCores();
+    report.hardwareRevision = "ossm-v1";
+    report.flashSizeBytes = physicalFlashSizeBytes();
+    report.psramSizeBytes = ESP.getPsramSize();
+    report.otaSlotSizeBytes = otaSlotSizeBytes();
+    report.partitionLayout = "ossm-ota-v1";
+    return report;
 }
 
 void finishWithoutUpdate(bool mqttStopped, const String &reason) {
@@ -81,11 +111,12 @@ void updateTask(void *pvParameters) {
     }
 
     ESP_LOGW(UPDATE_TAG,
-             "Resolver assigned track=%s update=%s target=%s next=%s",
+             "Resolver assigned track=%s shouldUpdate=%s target=%s next=%s reason=%s",
              decision.assignedTrack.c_str(),
-             decision.updateAvailable ? "true" : "false",
-             decision.targetVersion.c_str(), decision.nextHopVersion.c_str());
-    if (!decision.updateAvailable) {
+             decision.shouldUpdate ? "true" : "false",
+             decision.targetVersion.c_str(), decision.nextHopVersion.c_str(),
+             decision.reason.c_str());
+    if (!decision.shouldUpdate) {
         finishWithoutUpdate(mqttStopped, "");
         return;
     }
@@ -101,6 +132,24 @@ void updateTask(void *pvParameters) {
 }
 
 }  // namespace
+
+void ossmConfirmRunningImage() {
+    const esp_partition_t *running = esp_ota_get_running_partition();
+    esp_ota_img_states_t state;
+    if (running == nullptr ||
+        esp_ota_get_state_partition(running, &state) != ESP_OK ||
+        state != ESP_OTA_IMG_PENDING_VERIFY) {
+        return;
+    }
+
+    const esp_err_t result = esp_ota_mark_app_valid_cancel_rollback();
+    if (result == ESP_OK) {
+        ESP_LOGW(UPDATE_TAG, "Confirmed pending OTA application");
+    } else {
+        ESP_LOGE(UPDATE_TAG, "Failed to confirm pending OTA application: %s",
+                 esp_err_to_name(result));
+    }
+}
 
 void ossmStartUpdate() {
     xTaskCreatePinnedToCore(updateTask, "updateTask",
