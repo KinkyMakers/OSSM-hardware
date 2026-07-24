@@ -14,6 +14,7 @@ constexpr int PROTOCOL_VERSION = 1;
 constexpr std::size_t MAX_ARTIFACTS = 8;
 
 struct DeviceReport {
+    int protocolVersion = PROTOCOL_VERSION;
     std::string deviceType;
     std::string deviceId;
     std::string reportedTrack;
@@ -21,8 +22,12 @@ struct DeviceReport {
     std::string currentBuild;
     std::string firmwareHash;
     std::string chip;
+    std::uint32_t chipRevision = 0;
+    std::uint32_t chipCores = 0;
     std::string hardwareRevision;
     std::uint32_t flashSizeBytes = 0;
+    std::uint32_t psramSizeBytes = 0;
+    std::uint32_t otaSlotSizeBytes = 0;
     std::string partitionLayout;
 };
 
@@ -35,7 +40,9 @@ struct Artifact {
 };
 
 struct Decision {
-    bool updateAvailable = false;
+    int protocolVersion = PROTOCOL_VERSION;
+    bool shouldUpdate = false;
+    std::string reason;
     std::string reportedTrack;
     std::string assignedTrack;
     bool trackChanged = false;
@@ -43,6 +50,7 @@ struct Decision {
     std::string targetVersion;
     std::string nextHopVersion;
     std::string releaseId;
+    std::string buildSha;
     std::string kind;
     std::array<Artifact, MAX_ARTIFACTS> artifacts{};
     std::size_t artifactCount = 0;
@@ -78,6 +86,34 @@ inline bool isSha256(const std::string &value) {
            });
 }
 
+inline bool isBuildSha(const std::string &value) {
+    return value.size() >= 7 && value.size() <= 64 &&
+           std::all_of(value.begin(), value.end(), [](const char character) {
+               return std::isxdigit(static_cast<unsigned char>(character));
+           });
+}
+
+inline bool isDecisionReason(const std::string &value) {
+    return value == "update-available" || value == "already-current" ||
+           value == "no-target" || value == "updates-disabled" ||
+           value == "release-paused" || value == "rollout-denied" ||
+           value == "incompatible-device";
+}
+
+// Repository build IDs may be reported as either full or abbreviated Git SHAs.
+// Treat either prefix as the same build and compare without case sensitivity.
+inline bool isSameBuild(const std::string &left, const std::string &right) {
+    if (!isBuildSha(left) || !isBuildSha(right)) return false;
+    const std::size_t length = std::min(left.size(), right.size());
+    for (std::size_t index = 0; index < length; ++index) {
+        if (std::tolower(static_cast<unsigned char>(left[index])) !=
+            std::tolower(static_cast<unsigned char>(right[index]))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 inline bool isArtifactRole(const std::string &role) {
     return role == "application" || role == "filesystem" ||
            role == "bootloader" || role == "partitions" ||
@@ -109,6 +145,7 @@ inline bool isHttpsArtifactUrl(const std::string &url,
 
 inline std::string serializeReport(const DeviceReport &report) {
     JsonDocument document;
+    document["protocolVersion"] = report.protocolVersion;
     document["deviceType"] = report.deviceType;
     document["deviceId"] = report.deviceId;
     document["reportedTrack"] = report.reportedTrack;
@@ -118,10 +155,15 @@ inline std::string serializeReport(const DeviceReport &report) {
     if (!report.firmwareHash.empty())
         document["firmwareHash"] = report.firmwareHash;
     if (!report.chip.empty()) document["chip"] = report.chip;
+    document["chipRevision"] = report.chipRevision;
+    if (report.chipCores > 0) document["chipCores"] = report.chipCores;
     if (!report.hardwareRevision.empty())
         document["hardwareRevision"] = report.hardwareRevision;
     if (report.flashSizeBytes > 0)
         document["flashSizeBytes"] = report.flashSizeBytes;
+    document["psramSizeBytes"] = report.psramSizeBytes;
+    if (report.otaSlotSizeBytes > 0)
+        document["otaSlotSizeBytes"] = report.otaSlotSizeBytes;
     if (!report.partitionLayout.empty())
         document["partitionLayout"] = report.partitionLayout;
     std::string output;
@@ -154,8 +196,42 @@ inline bool parseDecision(const std::string &payload,
     }
 
     Decision parsed;
-    if (!document["updateAvailable"].is<bool>() ||
-        !document["trackChanged"].is<bool>() ||
+    const JsonVariantConst protocolVersion = document["protocolVersion"];
+    if (!protocolVersion.isNull()) {
+        if (!protocolVersion.is<int>() ||
+            protocolVersion.as<int>() != PROTOCOL_VERSION) {
+            error = "unsupported protocol version";
+            return false;
+        }
+        parsed.protocolVersion = protocolVersion.as<int>();
+    }
+
+    const bool hasShouldUpdate = document["shouldUpdate"].is<bool>();
+    const bool hasUpdateAvailable = document["updateAvailable"].is<bool>();
+    if ((!hasShouldUpdate && !hasUpdateAvailable) ||
+        (hasShouldUpdate && hasUpdateAvailable &&
+         document["shouldUpdate"].as<bool>() !=
+             document["updateAvailable"].as<bool>())) {
+        error = "missing or conflicting update decision";
+        return false;
+    }
+    parsed.shouldUpdate = hasShouldUpdate
+                              ? document["shouldUpdate"].as<bool>()
+                              : document["updateAvailable"].as<bool>();
+
+    const JsonVariantConst reason = document["reason"];
+    const bool canonicalResponse = !protocolVersion.isNull() ||
+                                   hasShouldUpdate || !reason.isNull();
+    if (canonicalResponse) {
+        if (!hasShouldUpdate || !readRequiredString(reason, parsed.reason) ||
+            !isDecisionReason(parsed.reason) ||
+            parsed.shouldUpdate != (parsed.reason == "update-available")) {
+            error = "invalid canonical update reason";
+            return false;
+        }
+    }
+
+    if (!document["trackChanged"].is<bool>() ||
         !document["nextCheckSeconds"].is<std::uint32_t>() ||
         !readRequiredString(document["reportedTrack"], parsed.reportedTrack) ||
         !readRequiredString(document["assignedTrack"], parsed.assignedTrack) ||
@@ -168,10 +244,9 @@ inline bool parseDecision(const std::string &payload,
         return false;
     }
 
-    parsed.updateAvailable = document["updateAvailable"].as<bool>();
     parsed.trackChanged = document["trackChanged"].as<bool>();
     parsed.nextCheckSeconds = document["nextCheckSeconds"].as<std::uint32_t>();
-    if (!parsed.updateAvailable) {
+    if (!parsed.shouldUpdate) {
         if (!document["update"].isNull()) {
             error = "no-update response contains update data";
             return false;
@@ -189,6 +264,17 @@ inline bool parseDecision(const std::string &payload,
         (parsed.kind != "firmware" && parsed.kind != "migration") ||
         parsed.nextHopVersion.empty()) {
         error = "invalid update metadata";
+        return false;
+    }
+
+    if (!update["buildSha"].isNull()) {
+        if (!readRequiredString(update["buildSha"], parsed.buildSha) ||
+            !isBuildSha(parsed.buildSha)) {
+            error = "invalid update build SHA";
+            return false;
+        }
+    } else if (canonicalResponse) {
+        error = "canonical update response is missing build SHA";
         return false;
     }
 
@@ -224,6 +310,33 @@ inline bool parseDecision(const std::string &payload,
                   return left.installOrder < right.installOrder;
               });
     decision = parsed;
+    return true;
+}
+
+inline bool validateDecisionForReport(const DeviceReport &report,
+                                      const Decision &decision,
+                                      std::string &error) {
+    if (decision.reportedTrack != report.reportedTrack ||
+        decision.currentVersion != report.currentVersion ||
+        decision.trackChanged !=
+            (decision.reportedTrack != decision.assignedTrack)) {
+        error = "firmware response does not match device report";
+        return false;
+    }
+    if (decision.shouldUpdate &&
+        decision.assignedTrack == report.reportedTrack) {
+        if (isSameBuild(report.currentBuild, decision.buildSha)) {
+            error = "firmware response selected the running build";
+            return false;
+        }
+        // Legacy responses do not identify the build. On the same track, a
+        // same-version offer cannot be distinguished from the running image.
+        if (decision.buildSha.empty() &&
+            decision.nextHopVersion == report.currentVersion) {
+            error = "firmware response selected the running version";
+            return false;
+        }
+    }
     return true;
 }
 

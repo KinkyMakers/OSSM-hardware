@@ -7,6 +7,8 @@ on:
       - "Software/**"
       - "scripts/release_version.py"
       - "scripts/test_release_version.py"
+      - ".github/scripts/download_verified_release.py"
+      - ".github/scripts/test_download_verified_release.py"
       - ".github/scripts/publish_immutable_firmware.py"
       - ".github/scripts/test_publish_immutable_firmware.py"
       - ".github/scripts/release_workflow.py"
@@ -133,6 +135,7 @@ jobs:
 
       - name: Test publisher
         run: |
+          python .github/scripts/test_download_verified_release.py
           python .github/scripts/test_publish_immutable_firmware.py
           python .github/scripts/test_release_workflow.py
 
