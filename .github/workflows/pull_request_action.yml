@@ -58,6 +58,7 @@ jobs:
 
       - name: Test immutable publisher
         run: |
+          python .github/scripts/test_download_verified_release.py
           python .github/scripts/test_publish_immutable_firmware.py
           python .github/scripts/test_release_workflow.py
 
