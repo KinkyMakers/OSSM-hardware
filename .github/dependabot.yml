@@ -1,0 +1,8 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /Documentation
+    target-branch: staging
+    schedule:
+      interval: weekly
