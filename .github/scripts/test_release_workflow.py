@@ -7,6 +7,18 @@ from release_workflow import branch_configuration, main, tag_action
 
 
 class ReleaseWorkflowTests(unittest.TestCase):
+    def test_publisher_uses_scoped_deploy_key_for_git_writes(self):
+        workflow = (
+            Path(__file__).resolve().parents[1] / "workflows" / "publish_firmware.yml"
+        ).read_text()
+        self.assertIn(
+            "ssh-key: ${{ secrets.RAD_VERSION_CONTROL_DEPLOY_KEY }}", workflow
+        )
+        self.assertNotRegex(
+            workflow, r"(?m)^\s+token:\s+\$\{\{ github\.token \}\}$"
+        )
+        self.assertIn("github-token: ${{ github.token }}", workflow)
+
     def test_branch_configuration_maps_tracks_and_projects(self):
         self.assertEqual(branch_configuration("main")["PIO_ENV"], "production")
         self.assertEqual(branch_configuration("staging")["PIO_ENV"], "staging")
