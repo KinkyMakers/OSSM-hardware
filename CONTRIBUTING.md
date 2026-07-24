@@ -66,17 +66,18 @@ smooth as possible.
 
 ## 🌳 Branching & Pull Requests
 
-- **Branching:**
-  - Follow the
-    [Git Branching Strategy](Software/docs/Git%20Branching%20Strategy) if
-    contributing regularly.
-  - For small fixes, branch from `main` or the latest development branch.
-- **Pull Requests:**
-  1. Ensure your branch is up to date with the latest `main`.
-  2. Run all tests and ensure they pass.
-  3. Open a pull request with a clear description of your changes and reference
-     any related issues.
-  4. Be responsive to code review feedback.
+- Fetch `origin`, branch feature work from `origin/staging`, and open the pull
+  request back into `staging`.
+- Reserve direct production hotfixes for branches created from `origin/main`.
+  Open those pull requests into `main` and begin the PR title with the standalone
+  word `hotfix` (case-insensitive).
+- Run the relevant tests and reference related issues in the PR description.
+- Keep commits focused. Feature and hotfix PRs are squash-merged into one commit
+  with a concise, imperative title.
+- Promotions from `staging` to `main` and hotfix synchronization from `main` to
+  `staging` use merge commits so the long-lived branches retain shared ancestry;
+  never squash or rebase these synchronization PRs.
+- Be responsive to code review feedback.
 
 ## 🛟 Getting Help
 

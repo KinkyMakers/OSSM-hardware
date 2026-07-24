@@ -1,0 +1,65 @@
+name: Hotfix sync
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  open-sync-pr:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Identify a direct hotfix
+        id: policy
+        env:
+          BASE_REPOSITORY: ${{ github.repository }}
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        shell: bash
+        run: |
+          if [[ "$HEAD_REPOSITORY" == "$BASE_REPOSITORY" && "$HEAD_BRANCH" == "staging" ]]; then
+            echo "sync=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          shopt -s nocasematch
+          if [[ "$PR_TITLE" =~ ^hotfix([[:space:][:punct:]]|$) ]]; then
+            echo "sync=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "sync=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open or update main-to-staging synchronization
+        if: steps.policy.outputs.sync == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.HOTFIX_SYNC_TOKEN }}
+        shell: bash
+        run: |
+          if [[ -z "$GH_TOKEN" ]]; then
+            echo "::error::HOTFIX_SYNC_TOKEN is not configured."
+            exit 1
+          fi
+
+          ahead_by="$(gh api "repos/${GITHUB_REPOSITORY}/compare/staging...main" --jq '.ahead_by')"
+          if [[ "$ahead_by" == "0" ]]; then
+            echo "staging already contains main."
+            exit 0
+          fi
+
+          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --base staging --head main --state open --json url --jq '.[0].url')"
+          if [[ -n "$existing" ]]; then
+            echo "Synchronization PR already open: $existing"
+            exit 0
+          fi
+
+          gh pr create \
+            --repo "$GITHUB_REPOSITORY" \
+            --base staging \
+            --head main \
+            --title "Sync main hotfixes back to staging" \
+            --body "Carries production hotfix commits back into staging. Merge this PR with a merge commit after all required checks pass; do not squash or rebase it."

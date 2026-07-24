@@ -1,0 +1,14 @@
+---
+alwaysApply: true
+description: Required branch, pull request, and merge workflow
+---
+
+# Branch and pull request workflow
+
+- Fetch `origin` before branching.
+- Feature and release work starts from `origin/staging` and opens a pull request into `staging`.
+- Urgent hotfix work starts from `origin/main` and opens a pull request into `main`. The first word of the PR title must be the standalone word `hotfix`, case-insensitively.
+- Normal production promotion is a same-repository `staging` to `main` pull request.
+- After a hotfix lands in `main`, immediately open or update a `main` to `staging` synchronization pull request.
+- Squash feature and hotfix PRs into one focused commit with a concise, imperative title.
+- Merge `staging` to `main` and `main` to `staging` synchronization PRs with merge commits. Never squash or rebase long-lived branch synchronization PRs.
