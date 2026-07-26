@@ -5,6 +5,8 @@ namespace pages {
 
 void checkPairing();
 void drawPairingSuccess();
+bool isOssmPaired();
+void startPairingStatusCheck();
 
 }  // namespace pages
 

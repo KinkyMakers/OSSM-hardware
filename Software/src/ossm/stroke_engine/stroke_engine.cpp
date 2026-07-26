@@ -4,6 +4,7 @@
 
 #include "constants/UserConfig.h"
 #include "ossm/OSSM.h"
+#include "ossm/pages/pairing.h"
 #include "ossm/state/ble.h"
 #include "ossm/state/calibration.h"
 #include "ossm/state/settings.h"
@@ -163,7 +164,7 @@ static void publishStateTask(void *pvParameters) {
     TickType_t lastWakeTime = xTaskGetTickCount();
 
     while (isInCorrectState()) {
-        if (!mqttConnected) {
+        if (!mqttConnected || !pages::isOssmPaired()) {
             vTaskDelay(pdMS_TO_TICKS(1000));
             lastWakeTime = xTaskGetTickCount();
             continue;
