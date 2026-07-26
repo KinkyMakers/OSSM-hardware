@@ -4,6 +4,7 @@
 #include "esp_log.h"
 #include "ossm/Events.h"
 #include "ossm/OSSM.h"
+#include "ossm/pages/pairing.h"
 #include "ossm/state/state.h"
 #include "services/board.h"
 #include "services/communication/mqtt.h"
@@ -101,6 +102,7 @@ void __attribute__((weak)) setup() {
                     initNimble();
                     initWM();
                     initMQTT();
+                    pages::startPairingStatusCheck();
                     initialized = true;
                     vTaskDelete(nullptr);
                 }
