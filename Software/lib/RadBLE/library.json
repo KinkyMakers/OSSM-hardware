@@ -1,0 +1,10 @@
+{
+  "name": "RadBLE",
+  "version": "1.0.0",
+  "description": "Universal RAD BLE Control Protocol v1 server",
+  "frameworks": "arduino",
+  "platforms": "espressif32",
+  "build": {
+    "srcDir": "src"
+  }
+}
