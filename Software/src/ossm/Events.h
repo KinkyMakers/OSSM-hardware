@@ -43,6 +43,7 @@ static auto doublePress = sml::event<DoublePress>;
 static auto done = sml::event<Done>;
 static auto error = sml::event<Error>;
 static auto home = sml::event<Home>;
+static auto emergencyStopEvent = sml::event<EmergencyStop>;
 static auto returnToMenu = sml::event<ReturnToMenu>;
 static auto updateUnavailable = sml::event<UpdateUnavailable>;
 #endif  // OSSM_SOFTWARE_EVENTS_H

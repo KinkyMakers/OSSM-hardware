@@ -14,6 +14,7 @@
 #include "ossm/OSSM.h"
 #include "pairing.hpp"
 #include "patterns.hpp"
+#include "rad_ble.h"
 #include "rename.hpp"
 #include "services/led.h"
 #include "state.hpp"
@@ -48,6 +49,7 @@ class ServerCallbacks : public NimBLEServerCallbacks {
         if (ossm) {
             ossm->setBLEConnectionStatus(true);
         }
+        radBleServer.onConnect(connInfo.getConnHandle());
 
         lostConnectionTime = 0;
     }
@@ -64,6 +66,7 @@ class ServerCallbacks : public NimBLEServerCallbacks {
             ossm->setBLEConnectionStatus(false);
             ossm->ble_click("go:menu");
         }
+        radBleServer.onDisconnect(connInfo.getConnHandle());
 
         // Capture current speed when connection is lost
         speedOnLostConnection = ossm->getSpeed();
@@ -282,7 +285,7 @@ void initNimble() {
     /** Initialize NimBLE and set the device name */
     NimBLEDevice::init(getDeviceName());
 
-    NimBLEDevice::setSecurityAuth(BLE_SM_PAIR_AUTHREQ_SC);
+    NimBLEDevice::setSecurityAuth(false, false, false);
     pServer = NimBLEDevice::createServer();
     pServer->setCallbacks(&serverCallbacks);
 
@@ -319,9 +322,6 @@ void initNimble() {
     initPairingCharacteristic(pService,
                               NimBLEUUID(CHARACTERISTIC_PAIRING_UUID));
 
-    // Start the services
-    pService->start();
-
     // Add Device Information Service
     NimBLEService* pDeviceInfoService =
         pServer->createService(DEVICE_INFO_SERVICE_UUID);
@@ -339,8 +339,11 @@ void initNimble() {
     uint8_t systemId[] = {0x88, 0x1A, 0x14, 0xFF, 0xFE, 0x34, 0x29, 0x63};
     pSystemId->setValue(systemId, 8);
 
-    // Start the device info service
-    pDeviceInfoService->start();
+    if (!initRadBle(pServer)) {
+        ESP_LOGE(NIMBLE_TAG, "Universal RAD BLE service failed to initialize");
+    }
+
+    // NimBLE 2 starts every registered service when advertising begins.
 
 #ifdef PRETEND_TO_BE_FLESHY_THRUST_SYNC
     // if this is true, then we'll start a service for the FTS
