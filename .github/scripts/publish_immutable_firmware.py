@@ -70,6 +70,21 @@ def read_version(path: Path) -> str:
     return match.group(1)
 
 
+def positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("value must be a positive integer")
+    return parsed
+
+
+def compatibility_rules(min_flash_size_bytes: int | None) -> list[dict[str, int]]:
+    return (
+        [{"minFlashSizeBytes": min_flash_size_bytes}]
+        if min_flash_size_bytes is not None
+        else []
+    )
+
+
 def json_bytes(value: Any) -> bytes:
     return (json.dumps(value, sort_keys=True, separators=(",", ":")) + "\n").encode()
 
@@ -246,6 +261,7 @@ def publish(args: argparse.Namespace) -> str:
         "storageProjectRef": PROJECT_REFS[args.track],
         "bucketId": f"{args.device_type}-firmware",
         "objectPrefix": signed["objectPrefix"],
+        "compatibilityRules": compatibility_rules(args.min_flash_size_bytes),
         "artifacts": [
             {
                 "role": artifact.role,
@@ -289,6 +305,7 @@ def main() -> int:
     parser.add_argument("--build-sha", required=True)
     parser.add_argument("--version-file", required=True, type=Path)
     parser.add_argument("--kind", default="firmware", choices=("firmware", "migration"))
+    parser.add_argument("--min-flash-size-bytes", type=positive_int)
     parser.add_argument("--artifact", action="append", required=True, type=parse_artifact)
     args = parser.parse_args()
     try:

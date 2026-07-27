@@ -674,6 +674,7 @@ bool initRadBle(NimBLEServer* server) {
         .leaseReleaseHandler = releaseDiagnosticOutputs,
         .createSurfaceCharacteristics = false,
         .streamSafetyHandler = nullptr,
+        .partitionLayout = "ossm-ota-16mb-v1",
     };
     return radBleServer.begin(server, config);
 }
