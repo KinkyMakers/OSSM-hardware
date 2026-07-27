@@ -1,5 +1,6 @@
 #include "RadBle.h"
 
+#include <Preferences.h>
 #include <Update.h>
 #include <WiFi.h>
 #include <ctype.h>
@@ -17,6 +18,7 @@ namespace {
 
 enum QueueKind : uint8_t {
     QUEUE_REQUEST = 0,
+    QUEUE_DEVICE_NAME,
     QUEUE_BUTTON,
     QUEUE_ENCODER,
     QUEUE_INDICATOR,
@@ -73,6 +75,8 @@ uint8_t queueKindForSurface(Surface surface) {
 
 const char* operationForKind(uint8_t kind) {
     switch (kind) {
+        case QUEUE_DEVICE_NAME:
+            return "setting.write";
         case QUEUE_BUTTON:
             return "input.emit";
         case QUEUE_ENCODER:
@@ -173,6 +177,23 @@ void characteristicUuid(const char* serviceUuid, const char* suffix,
 
 }  // namespace
 
+String loadDeviceName(const char* fallback) {
+    const String defaultName = fallback == nullptr ? "RAD" : fallback;
+    Preferences preferences;
+    if (!preferences.begin("radble", true)) return defaultName;
+    const String value = preferences.getString("deviceName", defaultName);
+    preferences.end();
+    return value.isEmpty() ? defaultName : value;
+}
+
+bool persistDeviceName(const String& name) {
+    Preferences preferences;
+    if (!preferences.begin("radble", false)) return false;
+    const bool stored = preferences.putString("deviceName", name) == name.length();
+    preferences.end();
+    return stored;
+}
+
 struct Server::QueueMessage {
     uint8_t kind;
     uint16_t connectionHandle;
@@ -200,6 +221,9 @@ bool Server::begin(NimBLEServer* server, const Config& config) {
 
     server_ = server;
     config_ = config;
+    deviceName_ = loadDeviceName(config_.deviceName == nullptr
+                                     ? config_.deviceType
+                                     : config_.deviceName);
     for (size_t index = 0; index < RESPONSE_CACHE_SIZE; ++index)
         responseCacheConnections_[index] = 0xffff;
     queue_ = xQueueCreate(16, sizeof(QueueMessage));
@@ -212,13 +236,37 @@ bool Server::begin(NimBLEServer* server, const Config& config) {
 
     char characteristicUuidValue[37];
     characteristicUuid(config_.serviceUuid, "0002", characteristicUuidValue);
-    auto* protocolInfo = service_->getCharacteristic(characteristicUuidValue);
-    if (protocolInfo == nullptr)
-        protocolInfo = service_->createCharacteristic(
+    protocolInfoCharacteristic_ =
+        service_->getCharacteristic(characteristicUuidValue);
+    if (protocolInfoCharacteristic_ == nullptr)
+        protocolInfoCharacteristic_ = service_->createCharacteristic(
             characteristicUuidValue, NIMBLE_PROPERTY::READ, MAX_MESSAGE_BYTES);
     const String protocolInfoValue = protocolInfoJson();
     if (protocolInfoValue.length() > MAX_MESSAGE_BYTES) return false;
-    protocolInfo->setValue(protocolInfoValue.c_str());
+    protocolInfoCharacteristic_->setValue(protocolInfoValue.c_str());
+
+    characteristicUuid(config_.serviceUuid, "0004", characteristicUuidValue);
+    deviceNameCharacteristic_ =
+        service_->getCharacteristic(characteristicUuidValue);
+    if (deviceNameCharacteristic_ == nullptr) {
+        deviceNameCharacteristic_ = service_->createCharacteristic(
+            characteristicUuidValue,
+            NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE |
+                NIMBLE_PROPERTY::NOTIFY,
+            MAX_MESSAGE_BYTES);
+        deviceNameCharacteristic_->setCallbacks(
+            new WriteCallbacks(this, QUEUE_DEVICE_NAME));
+    }
+    deviceNameCharacteristic_->setValue(deviceNameJson().c_str());
+
+    characteristicUuid(config_.serviceUuid, "0005", characteristicUuidValue);
+    deviceIdentityCharacteristic_ =
+        service_->getCharacteristic(characteristicUuidValue);
+    if (deviceIdentityCharacteristic_ == nullptr)
+        deviceIdentityCharacteristic_ = service_->createCharacteristic(
+            characteristicUuidValue, NIMBLE_PROPERTY::READ,
+            MAX_MESSAGE_BYTES);
+    deviceIdentityCharacteristic_->setValue(deviceIdentityJson().c_str());
 
     characteristicUuid(config_.serviceUuid, "0003", characteristicUuidValue);
     auto* catalog = service_->getCharacteristic(characteristicUuidValue);
@@ -396,6 +444,22 @@ bool Server::begin(NimBLEServer* server, const Config& config) {
             ->setValue(config_.firmwareVersion == nullptr
                            ? "unknown"
                            : config_.firmwareVersion);
+    if (deviceInfo->getCharacteristic("2A25") == nullptr) {
+        const uint64_t efuseMac = ESP.getEfuseMac();
+        char serial[13];
+        snprintf(serial, sizeof(serial), "%04lx%08lx",
+                 static_cast<unsigned long>((efuseMac >> 32) & 0xffffU),
+                 static_cast<unsigned long>(efuseMac & 0xffffffffU));
+        deviceInfo->createCharacteristic("2A25", NIMBLE_PROPERTY::READ)
+            ->setValue(serial);
+    }
+    if (deviceInfo->getCharacteristic("2A27") == nullptr)
+        deviceInfo->createCharacteristic("2A27", NIMBLE_PROPERTY::READ)
+            ->setValue(String(ESP.getChipModel()) + " rev " +
+                       String(ESP.getChipRevision()));
+    if (deviceInfo->getCharacteristic("2A28") == nullptr)
+        deviceInfo->createCharacteristic("2A28", NIMBLE_PROPERTY::READ)
+            ->setValue(config_.build == nullptr ? "unknown" : config_.build);
 
     if (config_.capabilities & CAP_POWER) {
         auto* batteryService = server_->getServiceByUUID("180F");
@@ -424,6 +488,16 @@ bool Server::begin(NimBLEServer* server, const Config& config) {
     Serial.printf("[RAD BLE] v1 service ready for %s (%u resources)\n",
                   config_.deviceType,
                   static_cast<unsigned>(config_.resourceCount));
+    Serial.printf("[RAD BLE] device name loaded name=\"%s\" source=%s\n",
+                  deviceName_.c_str(),
+                  deviceName_ == config_.deviceType ? "default" : "custom");
+    Serial.printf(
+        "[RAD BLE] identity manufacturer=\"Research and Desire\" "
+        "website=https://www.researchanddesire.com model=%s firmware=%s "
+        "hardware=%s flashSizeBytes=%u\n",
+        config_.deviceType,
+        config_.firmwareVersion == nullptr ? "unknown" : config_.firmwareVersion,
+        ESP.getChipModel(), static_cast<unsigned>(ESP.getFlashChipSize()));
     return true;
 }
 
@@ -459,6 +533,130 @@ NimBLECharacteristic* Server::createSurfaceCharacteristic(
     surfaces_[static_cast<size_t>(surface)] = characteristic;
     return characteristic;
 }
+
+String Server::deviceNameJson() const {
+    JsonDocument document;
+    document["name"] = deviceName_;
+    document["default"] = config_.deviceType;
+    document["custom"] = deviceName_ != config_.deviceType;
+    document["maxBytes"] = DEVICE_NAME_MAX_BYTES;
+    String value;
+    serializeJson(document, value);
+    return value;
+}
+
+String Server::deviceIdentityJson() const {
+    const uint64_t efuseMac = ESP.getEfuseMac();
+    char serial[13];
+    snprintf(serial, sizeof(serial), "%04lx%08lx",
+             static_cast<unsigned long>((efuseMac >> 32) & 0xffffU),
+             static_cast<unsigned long>(efuseMac & 0xffffffffU));
+    JsonDocument document;
+    document["manufacturer"] = "Research and Desire";
+    document["website"] = "https://www.researchanddesire.com";
+    document["model"] = config_.deviceType;
+    document["name"] = deviceName_;
+    document["serial"] = serial;
+    document["firmwareVersion"] = config_.firmwareVersion == nullptr
+                                      ? "unknown"
+                                      : config_.firmwareVersion;
+    document["build"] = config_.build == nullptr ? "unknown" : config_.build;
+    document["hardware"] = ESP.getChipModel();
+    document["hardwareRevision"] = ESP.getChipRevision();
+    document["flashSizeBytes"] = ESP.getFlashChipSize();
+    String value;
+    serializeJson(document, value);
+    return value;
+}
+
+void Server::refreshDeviceNameCharacteristics(bool notify) {
+    if (deviceNameCharacteristic_ != nullptr) {
+        deviceNameCharacteristic_->setValue(deviceNameJson().c_str());
+        if (notify) deviceNameCharacteristic_->notify();
+    }
+    if (protocolInfoCharacteristic_ != nullptr)
+        protocolInfoCharacteristic_->setValue(protocolInfoJson().c_str());
+    if (deviceIdentityCharacteristic_ != nullptr)
+        deviceIdentityCharacteristic_->setValue(deviceIdentityJson().c_str());
+}
+
+Result Server::handleDeviceName(JsonObjectConst request) {
+    const String operation = request["op"] | "";
+    if (operation == "setting.read") return Result::success(deviceNameJson());
+
+    String requested;
+    if (operation == "setting.reset") {
+        requested = config_.deviceType;
+    } else {
+        if (!request["args"]["value"].is<const char*>()) {
+            Serial.println(
+                "[RAD BLE] device name rejected code=invalid_value reason=missing_string");
+            return Result::failure("invalid_value",
+                                   "Device name value must be a string");
+        }
+        requested = request["args"]["value"].as<const char*>();
+        requested.trim();
+        if (requested.isEmpty()) requested = config_.deviceType;
+    }
+
+    if (requested.length() > DEVICE_NAME_MAX_BYTES) {
+        Serial.printf(
+            "[RAD BLE] device name rejected code=invalid_value bytes=%u max=%u\n",
+            static_cast<unsigned>(requested.length()),
+            static_cast<unsigned>(DEVICE_NAME_MAX_BYTES));
+        return Result::failure("invalid_value",
+                               "Device name exceeds the 24-byte limit");
+    }
+    for (size_t index = 0; index < requested.length(); ++index) {
+        const unsigned char value = requested[index];
+        if (!(isalnum(value) || value == ' ' || value == '-' || value == '_' ||
+              value == '.')) {
+            Serial.printf(
+                "[RAD BLE] device name rejected code=invalid_value byte=%u\n",
+                static_cast<unsigned>(value));
+            return Result::failure(
+                "invalid_value",
+                "Device name allows letters, numbers, spaces, dot, dash, and underscore");
+        }
+    }
+
+    const String previous = deviceName_;
+    if (requested != previous) {
+        if (!persistDeviceName(requested)) {
+            Serial.println(
+                "[RAD BLE] device name rejected code=storage_failed");
+            return Result::failure("storage_failed",
+                                   "Could not persist the device name");
+        }
+        deviceName_ = requested;
+        NimBLEDevice::setDeviceName(deviceName_.c_str());
+        auto* advertising = NimBLEDevice::getAdvertising();
+        if (advertising != nullptr) advertising->setName(deviceName_.c_str());
+        refreshDeviceNameCharacteristics(true);
+        Serial.printf(
+            "[RAD BLE] device name changed old=\"%s\" new=\"%s\" source=ble\n",
+            previous.c_str(), deviceName_.c_str());
+
+        JsonDocument event;
+        event["event"] = "device.name.changed";
+        event["name"] = deviceName_;
+        String eventJson;
+        serializeJson(event, eventJson);
+        publishEvent(eventJson);
+    }
+
+    JsonDocument result;
+    result["name"] = deviceName_;
+    result["default"] = config_.deviceType;
+    result["custom"] = deviceName_ != config_.deviceType;
+    result["changed"] = deviceName_ != previous;
+    result["maxBytes"] = DEVICE_NAME_MAX_BYTES;
+    String resultJson;
+    serializeJson(result, resultJson);
+    return Result::success(resultJson);
+}
+
+
 
 bool Server::enqueue(uint8_t kind, uint16_t connectionHandle,
                      const uint8_t* data, size_t length) {
@@ -538,6 +736,14 @@ void Server::dispatchRequest(const QueueMessage& message) {
     if (!document["id"].is<uint32_t>()) document["id"] = esp_random();
     if (document["v"].isNull()) document["v"] = PROTOCOL_VERSION;
     if (document["op"].isNull()) document["op"] = operationForKind(message.kind);
+    if (message.kind == QUEUE_DEVICE_NAME) {
+        if (document["path"].isNull()) document["path"] = "device.name";
+        JsonObject args = document["args"].is<JsonObject>()
+                              ? document["args"].as<JsonObject>()
+                              : document["args"].to<JsonObject>();
+        if (args["value"].isNull() && !document["name"].isNull())
+            args["value"] = document["name"];
+    }
 
     if (message.kind == QUEUE_OTA_CONTROL &&
         String(document["op"] | "") == "ota.control") {
@@ -907,6 +1113,11 @@ void Server::dispatchRequest(const QueueMessage& message) {
         } else if (result.ok) {
             result = Result::success(R"({"requested":true})");
         }
+    } else if (String(document["path"] | "") == "device.name" &&
+               (operation == "setting.read" ||
+                operation == "setting.write" ||
+                operation == "setting.reset")) {
+        result = handleDeviceName(document.as<JsonObjectConst>());
     } else
         result = config_.commandHandler(document.as<JsonObjectConst>(),
                                         config_.context);
@@ -1577,9 +1788,7 @@ String Server::protocolInfoJson(bool compact) const {
     document["directOta"] = config_.directOta;
     document["directFilesystemOta"] = config_.directFilesystemOta;
     if (!compact) {
-        document["deviceName"] = config_.deviceName == nullptr
-                                     ? config_.deviceType
-                                     : config_.deviceName;
+        document["deviceName"] = deviceName_;
         document["firmwareVersion"] = config_.firmwareVersion == nullptr
                                           ? "unknown"
                                           : config_.firmwareVersion;

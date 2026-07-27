@@ -25,6 +25,10 @@ inline constexpr uint8_t PROTOCOL_VERSION = 1;
 // long-read behavior for asynchronous responses.
 inline constexpr size_t MAX_MESSAGE_BYTES = 509;
 inline constexpr size_t STREAM_HEADER_BYTES = 20;
+inline constexpr size_t DEVICE_NAME_MAX_BYTES = 24;
+
+String loadDeviceName(const char* fallback);
+bool persistDeviceName(const String& name);
 
 enum class Surface : uint8_t {
     State,
@@ -154,6 +158,10 @@ class Server {
     void dispatch(const QueueMessage& message);
     void dispatchRequest(const QueueMessage& message);
     void dispatchOtaData(const QueueMessage& message);
+    Result handleDeviceName(JsonObjectConst request);
+    void refreshDeviceNameCharacteristics(bool notify);
+    String deviceNameJson() const;
+    String deviceIdentityJson() const;
     Result beginOta(JsonObjectConst request, uint16_t connectionHandle);
     Result finishOta(JsonObjectConst request, uint16_t connectionHandle);
     Result abortOta(const char* code, const char* message,
@@ -187,6 +195,9 @@ class Server {
     Config config_{};
     NimBLEServer* server_ = nullptr;
     NimBLEService* service_ = nullptr;
+    NimBLECharacteristic* protocolInfoCharacteristic_ = nullptr;
+    NimBLECharacteristic* deviceNameCharacteristic_ = nullptr;
+    NimBLECharacteristic* deviceIdentityCharacteristic_ = nullptr;
     NimBLECharacteristic* responseCharacteristic_ = nullptr;
     NimBLECharacteristic* eventCharacteristic_ = nullptr;
     NimBLECharacteristic* streamCharacteristic_ = nullptr;
@@ -209,6 +220,7 @@ class Server {
     uint32_t lastStateHeartbeatAt_ = 0;
     uint32_t stateSequence_ = 0;
     String lastDeviceStateSnapshot_;
+    String deviceName_;
     String activeOperation_;
     bool streamActive_ = false;
     Surface streamSurface_ = Surface::State;

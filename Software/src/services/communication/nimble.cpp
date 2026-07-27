@@ -33,6 +33,23 @@ static int speedOnLostConnection = 0;
 static const unsigned long RAMP_DURATION_MS =
     2000;  // Duration for speed ramp to zero
 
+void restartAdvertisingWithCurrentName() {
+    const std::string deviceName = getDeviceName();
+    NimBLEAdvertising* advertising = NimBLEDevice::getAdvertising();
+    advertising->stop();
+    advertising->clearData();
+    advertising->enableScanResponse(true);
+    advertising->setName(deviceName);
+    advertising->addServiceUUID(SERVICE_UUID);
+    advertising->addServiceUUID(DEVICE_INFO_SERVICE_UUID);
+#ifdef PRETEND_TO_BE_FLESHY_THRUST_SYNC
+    advertising->addServiceUUID("0000ffe0-0000-1000-8000-00805f9b34fb");
+#endif
+    NimBLEDevice::setDeviceName(deviceName);
+    ESP_LOGI(NIMBLE_TAG, "Advertising as: %s", deviceName.c_str());
+    advertising->start();
+}
+
 double easeInOutSine(double t) {
     return 0.5 * (1 + sin(3.1415926 * (t - 0.5)));
 }
@@ -76,8 +93,7 @@ class ServerCallbacks : public NimBLEServerCallbacks {
         if (pServer->getConnectedCount() == 0) {
             ESP_LOGI(NIMBLE_TAG,
                      "No connections remaining, restarting advertising");
-            NimBLEDevice::setDeviceName(getDeviceName());
-            pServer->startAdvertising();
+            restartAdvertisingWithCurrentName();
         }
 
         lostConnectionTime = millis();
@@ -162,7 +178,7 @@ void nimbleLoop(void* pvParameters) {
                 ESP_LOGI(NIMBLE_TAG,
                          "No connections and not advertising, restarting "
                          "advertising");
-                pServer->startAdvertising();
+                restartAdvertisingWithCurrentName();
             }
 
             if (lostConnectionTime > 0) {
@@ -359,21 +375,11 @@ void initNimble() {
     pFTS->start();
 #endif
 
-    // Update advertising to include new services
-    NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
-    pAdvertising->setName(getDeviceName());
-    pAdvertising->addServiceUUID(pService->getUUID());
-    pAdvertising->addServiceUUID(pDeviceInfoService->getUUID());
-#ifdef PRETEND_TO_BE_FLESHY_THRUST_SYNC
-    pAdvertising->addServiceUUID(pFTS->getUUID());
-#endif
-    pAdvertising->enableScanResponse(true);
-
     // // Configure advertising parameters for better reliability
     // pAdvertising->setMinInterval(0x20);  // 20ms minimum interval
     // pAdvertising->setMaxInterval(0x40);  // 40ms maximum interval
 
-    pAdvertising->start();
+    restartAdvertisingWithCurrentName();
 
     xTaskCreatePinnedToCore(
         nimbleLoop, "nimbleLoop", 5 * configMINIMAL_STACK_SIZE, pServer,
