@@ -137,7 +137,7 @@ void writeU32(uint8_t* target, uint32_t value) {
 
 const char* surfaceName(Surface surface) {
     static const char* names[] = {
-        "state",       "button", "encoder", "imu",     "power",
+        "state",       "essential", "button", "encoder", "imu",     "power",
         "analog",      "magnetic", "motion", "connectivity",
         "indicator",   "haptic", "audio", "display",
     };
@@ -307,6 +307,20 @@ bool Server::begin(NimBLEServer* server, const Config& config) {
         service_->getCharacteristic(characteristicUuidValue);
     if (surfaces_[static_cast<size_t>(Surface::State)] == nullptr)
         surfaces_[static_cast<size_t>(Surface::State)] =
+            service_->createCharacteristic(
+                characteristicUuidValue,
+                NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY,
+                MAX_MESSAGE_BYTES);
+
+    // One stable, common subscription for the user-facing state that matters
+    // most. Product adapters keep this compact and change-driven so clients do
+    // not need to discover several category characteristics just to render a
+    // useful live status view.
+    characteristicUuid(config_.serviceUuid, "2010", characteristicUuidValue);
+    surfaces_[static_cast<size_t>(Surface::Essential)] =
+        service_->getCharacteristic(characteristicUuidValue);
+    if (surfaces_[static_cast<size_t>(Surface::Essential)] == nullptr)
+        surfaces_[static_cast<size_t>(Surface::Essential)] =
             service_->createCharacteristic(
                 characteristicUuidValue,
                 NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY,
@@ -931,6 +945,15 @@ void Server::dispatchRequest(const QueueMessage& message) {
         return;
     }
 
+    if (operation == "sensor.read" &&
+        String(document["path"] | "") == "essential.live") {
+        const String essential =
+            config_.snapshotHandler(Surface::Essential, config_.context);
+        sendStage(message.connectionHandle, id, "completed", true, "", "",
+                  essential, currentStateName(), currentStateName());
+        return;
+    }
+
     if (operation == "wifi.status") {
         const String status =
             config_.snapshotHandler(Surface::Connectivity, config_.context);
@@ -1373,6 +1396,7 @@ bool Server::streamSurfaceFor(const String& path, Surface& surface) const {
     const int separator = category.indexOf('.');
     if (separator >= 0) category = category.substring(0, separator);
     if (category == "state") surface = Surface::State;
+    else if (category == "essential") surface = Surface::Essential;
     else if (category == "button") surface = Surface::Button;
     else if (category == "encoder") surface = Surface::Encoder;
     else if (category == "imu") surface = Surface::Imu;
@@ -1798,6 +1822,7 @@ String Server::protocolInfoJson(bool compact) const {
         document["maxMtu"] = 512;
         document["maxMessageBytes"] = MAX_MESSAGE_BYTES;
         document["stateHeartbeatMs"] = 1000;
+        document["essentialState"] = "2010";
         document["otaResumeTtlMs"] = 60000;
         document["streamHeaderBytes"] = STREAM_HEADER_BYTES;
     }
