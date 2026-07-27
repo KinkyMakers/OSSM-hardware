@@ -3,6 +3,9 @@
 #include <Update.h>
 #include <WiFi.h>
 #include <ctype.h>
+#include <esp_flash.h>
+#include <esp_heap_caps.h>
+#include <esp_ota_ops.h>
 #include <esp_system.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
@@ -411,7 +414,7 @@ bool Server::begin(NimBLEServer* server, const Config& config) {
     refreshSnapshots();
     running_ = true;
     TaskHandle_t taskHandle = nullptr;
-    if (xTaskCreate(taskEntry, "rad-ble-v1", 8192, this, 2, &taskHandle) !=
+    if (xTaskCreate(taskEntry, "rad-ble-v1", 12288, this, 2, &taskHandle) !=
         pdPASS) {
         running_ = false;
         return false;
@@ -577,6 +580,7 @@ void Server::dispatchRequest(const QueueMessage& message) {
             args["r"] = 0;
             args["g"] = 0;
             args["b"] = 0;
+            args["rgb565"] = 0;
         }
         if (path.startsWith("indicator.")) operation = "indicator.set";
         else if (path.startsWith("haptic.")) operation = "haptic.set";
@@ -584,6 +588,12 @@ void Server::dispatchRequest(const QueueMessage& message) {
         else if (path.startsWith("display.")) operation = "display.set";
     }
     document["op"] = operation;
+
+    Serial.printf("[RAD BLE] request conn=%u id=%lu op=%s path=%s\n",
+                  message.connectionHandle, static_cast<unsigned long>(id),
+                  operation.c_str(), String(document["path"] | "").c_str());
+    Serial.printf("[RAD BLE] receipt id=%lu\n",
+                  static_cast<unsigned long>(id));
 
     if (operation == "control.acquire") {
         const uint32_t now = millis();
@@ -667,10 +677,24 @@ void Server::dispatchRequest(const QueueMessage& message) {
     }
 
     if (operation == "ota.capabilities") {
+        uint32_t flashSizeBytes = 0;
+        if (esp_flash_get_physical_size(nullptr, &flashSizeBytes) != ESP_OK)
+            flashSizeBytes = ESP.getFlashChipSize();
+        const esp_partition_t* nextPartition =
+            esp_ota_get_next_update_partition(nullptr);
+        const uint32_t otaSlotSizeBytes =
+            nextPartition == nullptr ? 0 : nextPartition->size;
         const String result = String("{\"direct\":") +
                               (config_.directOta ? "true" : "false") +
                               ",\"network\":true,\"verified\":true,"
                               "\"framing\":\"v1\",\"chunkMax\":480,"
+                              "\"flashSizeBytes\":" + String(flashSizeBytes) +
+                              ",\"otaSlotSizeBytes\":" + String(otaSlotSizeBytes) +
+                              ",\"partitionLayout\":\"" +
+                              (config_.partitionLayout == nullptr
+                                   ? "unknown"
+                                   : config_.partitionLayout) +
+                              "\","
                               "\"components\":[\"application\"" +
                               (config_.directFilesystemOta
                                    ? ",\"filesystem\"]}"
@@ -693,8 +717,11 @@ void Server::dispatchRequest(const QueueMessage& message) {
     if (operation == "state.read") {
         const String state = stateSnapshotJson(
             config_.snapshotHandler(Surface::State, config_.context));
+        // The state is already present in result. Repeating it as stateBefore
+        // and stateAfter can push a valid response beyond conservative ATT
+        // payloads used by some centrals.
         sendStage(message.connectionHandle, id, "completed", true, "", "", state,
-                  currentStateName(), currentStateName());
+                  "", "");
         return;
     }
 
@@ -924,8 +951,11 @@ void Server::dispatchOtaData(const QueueMessage& message) {
             result = Result::failure("image_too_large", "OTA data exceeds declared size");
         else if (crc32(payload, payloadLength) != expectedCrc)
             result = Result::failure("crc_mismatch", "OTA frame CRC32 did not match");
-        else if (Update.write(const_cast<uint8_t*>(payload), payloadLength) !=
-                 payloadLength) {
+        else if ((otaUsesIdf_ &&
+                  esp_ota_write(otaHandle_, payload, payloadLength) != ESP_OK) ||
+                 (!otaUsesIdf_ &&
+                  Update.write(const_cast<uint8_t*>(payload), payloadLength) !=
+                      payloadLength)) {
             result = abortOta("write_failed", "Flash write failed", false);
         } else if (mbedtls_sha256_update_ret(
                        static_cast<mbedtls_sha256_context*>(otaShaContext_),
@@ -976,9 +1006,19 @@ Result Server::beginOta(JsonObjectConst request, uint16_t connectionHandle) {
             true, component.c_str(), config_.context);
         if (!safety.ok) return safety;
     }
-    const int updateCommand =
-        component == "filesystem" ? U_SPIFFS : U_FLASH;
-    if (!Update.begin(size, updateCommand)) {
+    bool updateStarted = false;
+    if (component == "application") {
+        otaPartition_ = esp_ota_get_next_update_partition(nullptr);
+        otaUsesIdf_ = otaPartition_ != nullptr && size <= otaPartition_->size &&
+                      esp_ota_begin(otaPartition_, size, &otaHandle_) == ESP_OK;
+        updateStarted = otaUsesIdf_;
+    } else {
+        updateStarted = Update.begin(size, U_SPIFFS);
+    }
+    if (!updateStarted) {
+        otaPartition_ = nullptr;
+        otaHandle_ = 0;
+        otaUsesIdf_ = false;
         if (config_.otaSafetyHandler != nullptr)
             config_.otaSafetyHandler(false, component.c_str(), config_.context);
         return Result::failure("begin_failed", "OTA partition rejected the image size");
@@ -987,7 +1027,10 @@ Result Server::beginOta(JsonObjectConst request, uint16_t connectionHandle) {
 
     otaShaContext_ = malloc(sizeof(mbedtls_sha256_context));
     if (otaShaContext_ == nullptr) {
-        Update.abort();
+        if (otaUsesIdf_)
+            esp_ota_abort(otaHandle_);
+        else
+            Update.abort();
         resetOta(true);
         return Result::failure("out_of_memory", "Could not create SHA-256 context");
     }
@@ -995,7 +1038,10 @@ Result Server::beginOta(JsonObjectConst request, uint16_t connectionHandle) {
         static_cast<mbedtls_sha256_context*>(otaShaContext_);
     mbedtls_sha256_init(shaContext);
     if (mbedtls_sha256_starts_ret(shaContext, 0) != 0) {
-        Update.abort();
+        if (otaUsesIdf_)
+            esp_ota_abort(otaHandle_);
+        else
+            Update.abort();
         resetOta(true);
         return Result::failure("sha_failed", "Could not initialize SHA-256");
     }
@@ -1035,8 +1081,16 @@ Result Server::finishOta(JsonObjectConst request, uint16_t connectionHandle) {
     const String actualSha256 = digestHex(digest, sizeof(digest));
     if (actualSha256 != otaExpectedSha256_)
         return abortOta("sha_mismatch", "OTA image SHA-256 did not match", false);
-    if (!Update.end(false))
+    if (otaUsesIdf_) {
+        const esp_ota_handle_t completedHandle = otaHandle_;
+        otaHandle_ = 0;
+        if (esp_ota_end(completedHandle) != ESP_OK ||
+            esp_ota_set_boot_partition(otaPartition_) != ESP_OK) {
+            return abortOta("verify_failed", "OTA image validation failed", false);
+        }
+    } else if (!Update.end(false)) {
         return abortOta("verify_failed", "OTA image validation failed", false);
+    }
 
     const size_t completedSize = otaReceivedSize_;
     const String completedComponent = otaComponent_;
@@ -1053,9 +1107,10 @@ Result Server::finishOta(JsonObjectConst request, uint16_t connectionHandle) {
 
 Result Server::abortOta(const char* code, const char* message,
                         bool publishStatus) {
-    const bool wasActive = otaActive_ || Update.isRunning() ||
+    const bool wasActive = otaActive_ || otaHandle_ != 0 || Update.isRunning() ||
                            otaShaContext_ != nullptr;
-    if (otaActive_ || Update.isRunning()) Update.abort();
+    if (otaHandle_ != 0) esp_ota_abort(otaHandle_);
+    if (!otaUsesIdf_ && (otaActive_ || Update.isRunning())) Update.abort();
     resetOta(wasActive);
     if (publishStatus) {
         JsonDocument status;
@@ -1085,6 +1140,9 @@ void Server::resetOta(bool restoreSafety) {
     otaExpectedSize_ = 0;
     otaReceivedSize_ = 0;
     otaExpectedSha256_.clear();
+    otaPartition_ = nullptr;
+    otaHandle_ = 0;
+    otaUsesIdf_ = false;
     otaResumeExpiresAt_ = 0;
     if (restoreSafety && config_.otaSafetyHandler != nullptr)
         config_.otaSafetyHandler(false, otaComponent_.c_str(), config_.context);
@@ -1191,26 +1249,81 @@ Result Server::handleWifi(JsonObjectConst request) {
     const String operation = request["op"] | "";
     const JsonObjectConst args = request["args"].as<JsonObjectConst>();
     if (operation == "wifi.scan") {
-        int count = WiFi.scanComplete();
-        if (count == WIFI_SCAN_RUNNING)
+        if (WiFi.scanComplete() == WIFI_SCAN_RUNNING)
             return Result::success(R"({"running":true})");
-        if (count < 0) {
-            if (WiFi.scanNetworks(true, true) == WIFI_SCAN_FAILED)
-                return Result::failure("network_failed",
-                                       "Could not start Wi-Fi scan");
-            return Result::success(R"({"running":true,"started":true})");
+        WiFi.scanDelete();
+
+        constexpr size_t kMinimumScanBlockBytes = 6U * 1024U;
+        constexpr uint8_t kLastWifiChannel = 13;
+        String ssids[4];
+        int32_t rssis[4] = {INT32_MIN, INT32_MIN, INT32_MIN, INT32_MIN};
+        bool secure[4] = {false, false, false, false};
+        size_t stored = 0;
+        int total = 0;
+        bool scanned = false;
+        bool partial = false;
+        bool memoryBlocked = false;
+
+        for (uint8_t channel = 1; channel <= kLastWifiChannel; ++channel) {
+            const size_t freeHeap = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+            const size_t largestBlock =
+                heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+            Serial.printf(
+                "[RAD BLE] wifi scan preflight channel=%u free=%u largest=%u minimum=%u\n",
+                static_cast<unsigned>(channel),
+                static_cast<unsigned>(freeHeap),
+                static_cast<unsigned>(largestBlock),
+                static_cast<unsigned>(kMinimumScanBlockBytes));
+            if (largestBlock < kMinimumScanBlockBytes) {
+                memoryBlocked = true;
+                partial = scanned;
+                break;
+            }
+
+            // Arduino allocates one result array when a scan completes. Scan
+            // one channel at a time so that allocation stays bounded even on
+            // memory-constrained ESP32 controllers.
+            const int count =
+                WiFi.scanNetworks(false, true, false, 120, channel);
+            if (count == WIFI_SCAN_FAILED) continue;
+            scanned = true;
+            total += count;
+            for (int index = 0; index < count; ++index) {
+                const int32_t rssi = WiFi.RSSI(index);
+                size_t slot = stored;
+                if (stored < 4) {
+                    ++stored;
+                } else {
+                    slot = 0;
+                    for (size_t candidate = 1; candidate < 4; ++candidate) {
+                        if (rssis[candidate] < rssis[slot]) slot = candidate;
+                    }
+                    if (rssi <= rssis[slot]) continue;
+                }
+                ssids[slot] = WiFi.SSID(index);
+                rssis[slot] = rssi;
+                secure[slot] = WiFi.encryptionType(index) != WIFI_AUTH_OPEN;
+            }
+            WiFi.scanDelete();
         }
+        if (!scanned)
+            return Result::failure(
+                memoryBlocked ? "resource_unavailable" : "network_failed",
+                memoryBlocked
+                    ? "Wi-Fi scan requires a larger contiguous heap block"
+                    : "Could not complete Wi-Fi scan");
+
         JsonDocument document;
         document["running"] = false;
-        document["count"] = count;
+        document["count"] = total;
+        if (partial) document["partial"] = true;
         JsonArray networks = document["networks"].to<JsonArray>();
-        for (int index = 0; index < min(count, 4); ++index) {
+        for (size_t index = 0; index < stored; ++index) {
             JsonObject network = networks.add<JsonObject>();
-            network["ssid"] = WiFi.SSID(index);
-            network["rssi"] = WiFi.RSSI(index);
-            network["secure"] = WiFi.encryptionType(index) != WIFI_AUTH_OPEN;
+            network["ssid"] = ssids[index];
+            network["rssi"] = rssis[index];
+            network["secure"] = secure[index];
         }
-        WiFi.scanDelete();
         String output;
         serializeJson(document, output);
         return Result::success(output);
@@ -1365,7 +1478,9 @@ void Server::refreshSnapshots() {
             memcmp(previous.data(), value.c_str(), value.length()) != 0;
         if (!changed && !forceNotify) continue;
         characteristic->setValue(value.c_str());
-        characteristic->notify();
+        if (server_ != nullptr && server_->getConnectedCount() > 0 &&
+            characteristic->getHandle() != 0)
+            characteristic->notify();
 
         if (index == static_cast<size_t>(Surface::Power) &&
             batteryCharacteristic_ != nullptr) {
@@ -1381,7 +1496,9 @@ void Server::refreshSnapshots() {
                 const auto prior = batteryCharacteristic_->getValue();
                 if (prior.size() != 1 || prior[0] != level) {
                     batteryCharacteristic_->setValue(&level, 1);
-                    batteryCharacteristic_->notify();
+                    if (server_ != nullptr && server_->getConnectedCount() > 0 &&
+                        batteryCharacteristic_->getHandle() != 0)
+                        batteryCharacteristic_->notify();
                 }
             }
         }
@@ -1554,16 +1671,21 @@ void Server::sendStage(uint16_t connectionHandle, uint32_t id,
     else if (ok && strcmp(stage, "completed") == 0)
         document["code"] = "ok";
     if (message != nullptr && message[0] != '\0') document["message"] = message;
-    if (!resultJson.isEmpty()) {
-        JsonDocument result;
-        if (!deserializeJson(result, resultJson))
-            document["result"] = result.as<JsonVariantConst>();
-    }
     if (!stateBefore.isEmpty()) document["stateBefore"] = stateBefore;
     if (!stateAfter.isEmpty()) document["stateAfter"] = stateAfter;
 
     String payload;
     serializeJson(document, payload);
+    if (!resultJson.isEmpty() && payload.endsWith("}")) {
+        // Result JSON is produced by trusted firmware handlers and is already
+        // serialized. Embedding it avoids a second dynamic JsonDocument, which
+        // can fail on memory-constrained devices and silently omit lease or
+        // catalog data from an otherwise successful response.
+        payload.remove(payload.length() - 1);
+        payload += ",\"result\":";
+        payload += resultJson;
+        payload += "}";
+    }
     if (payload.length() > MAX_MESSAGE_BYTES) {
         payload = "{\"v\":1,\"id\":" + String(id) +
                   ",\"stage\":\"failed\",\"ok\":false,"
@@ -1572,6 +1694,11 @@ void Server::sendStage(uint16_t connectionHandle, uint32_t id,
     sendSerialized(connectionHandle, payload,
                    strcmp(stage, "completed") == 0 ||
                        strcmp(stage, "failed") == 0);
+    if (strcmp(stage, "completed") == 0 || strcmp(stage, "failed") == 0)
+        Serial.printf("[RAD BLE] terminal id=%lu stage=%s ok=%u code=%s\n",
+                      static_cast<unsigned long>(id), stage, ok ? 1U : 0U,
+                      code != nullptr && code[0] != '\0' ? code
+                                                         : (ok ? "ok" : ""));
 }
 
 void Server::sendSerialized(uint16_t connectionHandle, const String& payload,

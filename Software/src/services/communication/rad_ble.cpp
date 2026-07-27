@@ -278,6 +278,14 @@ radble::Result handleCommand(JsonObjectConst request, void*) {
             document["value"] = encoder.readEncoder();
         else if (path == "connectivity.bleConnections")
             document["value"] = pServer == nullptr ? 0 : pServer->getConnectedCount();
+        else if (path == "connectivity.wifi") {
+            const bool connected = WiFi.status() == WL_CONNECTED;
+            document["connected"] = connected;
+            if (connected) {
+                document["rssi"] = WiFi.RSSI();
+                document["ip"] = WiFi.localIP().toString();
+            }
+        }
         else
             return radble::Result::failure("unknown_path", "Unknown sensor path");
         String output;
@@ -474,8 +482,9 @@ radble::Result handleCommand(JsonObjectConst request, void*) {
         } else if (path == "target.help") {
             handled = selectMenuTarget(Menu::Help);
         } else if (path == "target.restart") {
-            handled = (state.startsWith("menu") || returnToMenuSafely()) &&
-                      xTaskCreate(requestRestartTask, "rad-restart", 2048,
+            // Restart is a recovery action and must remain available when
+            // homing cannot complete because motor power is absent.
+            handled = xTaskCreate(requestRestartTask, "rad-restart", 2048,
                                   nullptr, 1, nullptr) == pdPASS;
         } else if (path == "target.home") {
             handled = stateMachine->process_event(Home{});
@@ -549,8 +558,16 @@ String snapshot(radble::Surface surface, void*) {
     if (ossm == nullptr) return R"({"state":"starting"})";
     JsonDocument document;
     switch (surface) {
-        case radble::Surface::State:
-            return ossm->getCurrentState();
+        case radble::Surface::State: {
+            // Keep the unsolicited state heartbeat and state.read response below
+            // the smallest ATT payload observed on supported centrals. Detailed
+            // motion values remain available through the motion.* resources.
+            JsonDocument current;
+            if (deserializeJson(current, ossm->getCurrentState()))
+                return R"({"state":"unknown"})";
+            document["state"] = current["state"] | "unknown";
+            break;
+        }
         case radble::Surface::Button:
             document.add(JsonObject());
             document[0]["id"] = "enter";
@@ -657,6 +674,7 @@ bool initRadBle(NimBLEServer* server) {
         .leaseReleaseHandler = releaseDiagnosticOutputs,
         .createSurfaceCharacteristics = false,
         .streamSafetyHandler = nullptr,
+        .partitionLayout = "ossm-ota-16mb-v1",
     };
     return radBleServer.begin(server, config);
 }

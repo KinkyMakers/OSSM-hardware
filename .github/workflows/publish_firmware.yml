@@ -161,6 +161,7 @@ jobs:
             --track "$TRACK" \
             --build-sha "$RELEASE_BUILD_SHA" \
             --version-file Software/src/constants/Version.h \
+            --min-flash-size-bytes 16777216 \
             --artifact "application:Software/.pio/build/$PIO_ENV/firmware.bin:1:true" \
             --artifact "bootloader:Software/.pio/build/$PIO_ENV/bootloader.bin:2:false" \
             --artifact "partitions:Software/.pio/build/$PIO_ENV/partitions.bin:3:false"

@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <NimBLEDevice.h>
+#include <esp_ota_ops.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -122,6 +123,9 @@ struct Config {
     bool createSurfaceCharacteristics;
     // Optional product radio/sensor arbitration before a stream starts.
     StreamSafetyHandler streamSafetyHandler;
+    // Stable identifier for the partition table currently compiled into the
+    // factory image. Runtime capacity is still read from the ESP itself.
+    const char* partitionLayout;
 };
 
 class Server {
@@ -222,6 +226,9 @@ class Server {
     size_t otaReceivedSize_ = 0;
     String otaExpectedSha256_;
     String otaComponent_;
+    const esp_partition_t* otaPartition_ = nullptr;
+    esp_ota_handle_t otaHandle_ = 0;
+    bool otaUsesIdf_ = false;
     void* otaShaContext_ = nullptr;
     uint32_t otaResumeExpiresAt_ = 0;
 };

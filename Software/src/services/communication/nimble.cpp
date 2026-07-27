@@ -284,6 +284,7 @@ void nimbleLoop(void* pvParameters) {
 void initNimble() {
     /** Initialize NimBLE and set the device name */
     NimBLEDevice::init(getDeviceName());
+    NimBLEDevice::setMTU(512);
 
     NimBLEDevice::setSecurityAuth(false, false, false);
     pServer = NimBLEDevice::createServer();
