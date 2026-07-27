@@ -83,7 +83,7 @@ const radble::Resource RESOURCES[] = {
     {"mqtt_rate", "setting.mqttPublishFrequency", "setting", "float", "Hz",
      RW, "{\"min\":1,\"max\":100}"},
     {"device_name", "device.name", "setting", "string", "", RWP,
-     "{\"maxLength\":8}"},
+     "{\"maxBytes\":24,\"emptyResets\":true}"},
     {"calibration_offset", "motion.currentOffset", "motion", "float", "raw",
      R, ""},
     {"calibration_stroke", "motion.measuredStroke", "motion", "float", "steps",
