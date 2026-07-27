@@ -32,6 +32,7 @@ bool persistDeviceName(const String& name);
 
 enum class Surface : uint8_t {
     State,
+    Essential,
     Button,
     Encoder,
     Imu,

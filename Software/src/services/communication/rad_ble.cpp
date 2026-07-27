@@ -36,6 +36,8 @@ constexpr uint16_t RWST = RWS | radble::RESOURCE_STREAMABLE;
 constexpr uint16_t RWP = RW | radble::RESOURCE_PERSISTENT;
 
 const radble::Resource RESOURCES[] = {
+    {"essential", "essential.live", "essential", "object", "", RS,
+     "{\"characteristic\":\"2010\",\"changeDriven\":true,\"maxRateHz\":4}"},
     {"enter", "button.enter", "button", "bool", "", R,
      "{\"events\":[\"click\",\"double\",\"long\"]}"},
     {"encoder", "encoder.main", "encoder", "int", "ticks", RWT,
@@ -566,6 +568,23 @@ String snapshot(radble::Surface surface, void*) {
             if (deserializeJson(current, ossm->getCurrentState()))
                 return R"({"state":"unknown"})";
             document["state"] = current["state"] | "unknown";
+            break;
+        }
+        case radble::Surface::Essential: {
+            JsonDocument current;
+            if (deserializeJson(current, ossm->getCurrentState()))
+                document["state"] = "unknown";
+            else
+                document["state"] = current["state"] | "unknown";
+            document["powered"] = true;
+            document["batteryPercent"] = nullptr;
+            document["charging"] = nullptr;
+            document["positionMm"] =
+                stepper == nullptr ? 0.0f
+                                   : static_cast<float>(stepper->getCurrentPosition()) /
+                                         static_cast<float>(1_mm);
+            document["sessionDistanceMeters"] = session.distanceMeters;
+            document["sessionStrokeCount"] = session.strokeCount;
             break;
         }
         case radble::Surface::Button:
