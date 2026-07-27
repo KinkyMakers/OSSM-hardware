@@ -411,7 +411,7 @@ bool Server::begin(NimBLEServer* server, const Config& config) {
     refreshSnapshots();
     running_ = true;
     TaskHandle_t taskHandle = nullptr;
-    if (xTaskCreate(taskEntry, "rad-ble-v1", 8192, this, 2, &taskHandle) !=
+    if (xTaskCreate(taskEntry, "rad-ble-v1", 12288, this, 2, &taskHandle) !=
         pdPASS) {
         running_ = false;
         return false;
@@ -577,6 +577,7 @@ void Server::dispatchRequest(const QueueMessage& message) {
             args["r"] = 0;
             args["g"] = 0;
             args["b"] = 0;
+            args["rgb565"] = 0;
         }
         if (path.startsWith("indicator.")) operation = "indicator.set";
         else if (path.startsWith("haptic.")) operation = "haptic.set";
@@ -584,6 +585,12 @@ void Server::dispatchRequest(const QueueMessage& message) {
         else if (path.startsWith("display.")) operation = "display.set";
     }
     document["op"] = operation;
+
+    Serial.printf("[RAD BLE] request conn=%u id=%lu op=%s path=%s\n",
+                  message.connectionHandle, static_cast<unsigned long>(id),
+                  operation.c_str(), String(document["path"] | "").c_str());
+    Serial.printf("[RAD BLE] receipt id=%lu\n",
+                  static_cast<unsigned long>(id));
 
     if (operation == "control.acquire") {
         const uint32_t now = millis();
@@ -693,8 +700,11 @@ void Server::dispatchRequest(const QueueMessage& message) {
     if (operation == "state.read") {
         const String state = stateSnapshotJson(
             config_.snapshotHandler(Surface::State, config_.context));
+        // The state is already present in result. Repeating it as stateBefore
+        // and stateAfter can push a valid response beyond conservative ATT
+        // payloads used by some centrals.
         sendStage(message.connectionHandle, id, "completed", true, "", "", state,
-                  currentStateName(), currentStateName());
+                  "", "");
         return;
     }
 
@@ -1365,7 +1375,9 @@ void Server::refreshSnapshots() {
             memcmp(previous.data(), value.c_str(), value.length()) != 0;
         if (!changed && !forceNotify) continue;
         characteristic->setValue(value.c_str());
-        characteristic->notify();
+        if (server_ != nullptr && server_->getConnectedCount() > 0 &&
+            characteristic->getHandle() != 0)
+            characteristic->notify();
 
         if (index == static_cast<size_t>(Surface::Power) &&
             batteryCharacteristic_ != nullptr) {
@@ -1381,7 +1393,9 @@ void Server::refreshSnapshots() {
                 const auto prior = batteryCharacteristic_->getValue();
                 if (prior.size() != 1 || prior[0] != level) {
                     batteryCharacteristic_->setValue(&level, 1);
-                    batteryCharacteristic_->notify();
+                    if (server_ != nullptr && server_->getConnectedCount() > 0 &&
+                        batteryCharacteristic_->getHandle() != 0)
+                        batteryCharacteristic_->notify();
                 }
             }
         }
@@ -1554,16 +1568,21 @@ void Server::sendStage(uint16_t connectionHandle, uint32_t id,
     else if (ok && strcmp(stage, "completed") == 0)
         document["code"] = "ok";
     if (message != nullptr && message[0] != '\0') document["message"] = message;
-    if (!resultJson.isEmpty()) {
-        JsonDocument result;
-        if (!deserializeJson(result, resultJson))
-            document["result"] = result.as<JsonVariantConst>();
-    }
     if (!stateBefore.isEmpty()) document["stateBefore"] = stateBefore;
     if (!stateAfter.isEmpty()) document["stateAfter"] = stateAfter;
 
     String payload;
     serializeJson(document, payload);
+    if (!resultJson.isEmpty() && payload.endsWith("}")) {
+        // Result JSON is produced by trusted firmware handlers and is already
+        // serialized. Embedding it avoids a second dynamic JsonDocument, which
+        // can fail on memory-constrained devices and silently omit lease or
+        // catalog data from an otherwise successful response.
+        payload.remove(payload.length() - 1);
+        payload += ",\"result\":";
+        payload += resultJson;
+        payload += "}";
+    }
     if (payload.length() > MAX_MESSAGE_BYTES) {
         payload = "{\"v\":1,\"id\":" + String(id) +
                   ",\"stage\":\"failed\",\"ok\":false,"
@@ -1572,6 +1591,11 @@ void Server::sendStage(uint16_t connectionHandle, uint32_t id,
     sendSerialized(connectionHandle, payload,
                    strcmp(stage, "completed") == 0 ||
                        strcmp(stage, "failed") == 0);
+    if (strcmp(stage, "completed") == 0 || strcmp(stage, "failed") == 0)
+        Serial.printf("[RAD BLE] terminal id=%lu stage=%s ok=%u code=%s\n",
+                      static_cast<unsigned long>(id), stage, ok ? 1U : 0U,
+                      code != nullptr && code[0] != '\0' ? code
+                                                         : (ok ? "ok" : ""));
 }
 
 void Server::sendSerialized(uint16_t connectionHandle, const String& payload,
