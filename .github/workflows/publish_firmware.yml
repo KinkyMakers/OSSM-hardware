@@ -93,6 +93,9 @@ jobs:
           SOURCE_VERSION="$(python scripts/release_version.py read --header Software/src/constants/Version.h)"
           BUMP_TYPE="$(python scripts/release_version.py bump-type --title "$PR_TITLE")"
           RESPONSE="$(curl --fail --silent --show-error \
+            --retry 5 \
+            --retry-delay 2 \
+            --retry-max-time 60 \
             --header "Authorization: Bearer $FIRMWARE_PUBLISH_TOKEN" \
             --header "Content-Type: application/json" \
             --data "$(jq -n \
