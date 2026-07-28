@@ -672,28 +672,31 @@ radble::Server radBleServer;
 
 bool initRadBle(NimBLEServer* server) {
     const radble::Config config = {
-        .deviceType = "OSSM",
-        .deviceName = "OSSM",
-        .serviceUuid = radble::OSSM_SERVICE_UUID,
-        .firmwareVersion = VERSION,
-        .build = FIRMWARE_BUILD_SHA,
+        .identity = {
+            .deviceType = "OSSM",
+            .deviceName = "OSSM",
+            .serviceUuid = radble::OSSM_SERVICE_UUID,
+            .firmwareVersion = VERSION,
+            .build = FIRMWARE_BUILD_SHA,
+            .partitionLayout = "ossm-ota-16mb-v1",
+        },
         .capabilities = radble::CAP_BUTTON | radble::CAP_ENCODER |
                         radble::CAP_ANALOG | radble::CAP_MOTION |
                         radble::CAP_CONNECTIVITY | radble::CAP_INDICATOR |
                         radble::CAP_SENSOR_STREAM,
+        .channels = radble::CHANNEL_SENSOR_STREAM |
+                    radble::CHANNEL_APPLICATION_OTA,
         .resources = RESOURCES,
         .resourceCount = sizeof(RESOURCES) / sizeof(RESOURCES[0]),
-        .commandHandler = handleCommand,
-        .snapshotHandler = snapshot,
-        .otaDataHandler = nullptr,
+        .callbacks = {
+            .commandHandler = handleCommand,
+            .snapshotHandler = snapshot,
+            .otaDataHandler = nullptr,
+            .otaSafetyHandler = prepareOta,
+            .leaseReleaseHandler = releaseDiagnosticOutputs,
+            .streamSafetyHandler = nullptr,
+        },
         .context = nullptr,
-        .directOta = true,
-        .directFilesystemOta = false,
-        .otaSafetyHandler = prepareOta,
-        .leaseReleaseHandler = releaseDiagnosticOutputs,
-        .createSurfaceCharacteristics = false,
-        .streamSafetyHandler = nullptr,
-        .partitionLayout = "ossm-ota-16mb-v1",
     };
     return radBleServer.begin(server, config);
 }
