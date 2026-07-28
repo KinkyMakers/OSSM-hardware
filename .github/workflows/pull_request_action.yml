@@ -100,7 +100,6 @@ jobs:
           cd Software
           pio check --skip-packages --fail-on-defect high -e production -f src
 
-
   test:
     needs: check_changes
     if: needs.check_changes.outputs.changes_detected == 'true'
