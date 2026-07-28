@@ -27,6 +27,11 @@ inline void resetLastSpeedCommandWasFromBLE() {
     bleState.lastSpeedCommandWasFromBLE = false;
 }
 
+inline bool speedKnobMoved(float previous, float current) {
+    constexpr float releaseThreshold = 2.0f;
+    return abs(current - previous) > releaseThreshold;
+}
+
 inline bool hasActiveBLE() {
     return bleState.hasActiveConnection;
 }

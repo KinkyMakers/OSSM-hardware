@@ -86,8 +86,11 @@ static void drawPlayControlsTask(void *pvParameters) {
         next.speedKnob =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
 #endif
-        if (abs(next.speedKnob - settings.speedKnob) > 2 &&
-            next.speedKnob < settings.speed) {
+        // Direct BLE speed remains authoritative until the operator actually
+        // moves the physical knob. Comparing the knob with the effective
+        // speed canceled every direct override on the following refresh when
+        // the stationary knob was below the commanded speed.
+        if (::speedKnobMoved(settings.speedKnob, next.speedKnob)) {
             ::resetLastSpeedCommandWasFromBLE();
         }
 
