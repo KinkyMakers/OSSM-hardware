@@ -1,6 +1,7 @@
 #include <unity.h>
 
 #include <cmath>
+#include <cstdio>
 #include <cstdint>
 #include <limits>
 #include <vector>
@@ -14,6 +15,33 @@ namespace {
     constexpr uint32_t kSliceTicks =
         timed_streaming::kSliceMilliseconds * (kTicksPerSecond / 1000);
     constexpr timed_streaming::Limits kLimits{20000.0, 1000000.0};
+
+    struct MotionMetrics {
+        double maximumAccelerationStepsPerSecondSquared = 0.0;
+        double maximumJerkStepsPerSecondCubed = 0.0;
+        int32_t minimumPositionSteps = std::numeric_limits<int32_t>::max();
+        int32_t maximumPositionSteps = std::numeric_limits<int32_t>::min();
+
+        void includePosition(int32_t positionSteps) {
+            minimumPositionSteps =
+                std::min(minimumPositionSteps, positionSteps);
+            maximumPositionSteps =
+                std::max(maximumPositionSteps, positionSteps);
+        }
+
+        void observe(const timed_streaming::State &before,
+                     const timed_streaming::State &after, double dt) {
+            maximumAccelerationStepsPerSecondSquared = std::max(
+                maximumAccelerationStepsPerSecondSquared,
+                std::abs(after.accelerationStepsPerSecondSquared));
+            maximumJerkStepsPerSecondCubed = std::max(
+                maximumJerkStepsPerSecondCubed,
+                std::abs(after.accelerationStepsPerSecondSquared -
+                         before.accelerationStepsPerSecondSquared) /
+                    dt);
+            includePosition(after.positionSteps);
+        }
+    };
 
     double nominalSineJitterPowerPercent(
         const std::vector<double> &sliceTimes,
@@ -130,7 +158,7 @@ namespace {
     }
 
     void acceptWaypoint(timed_streaming::Planner &planner, int32_t target,
-                        uint32_t durationMs) {
+                        uint32_t durationMs, MotionMetrics *metrics = nullptr) {
         planner.beginWaypoint(target, static_cast<uint64_t>(durationMs) *
                                           (kTicksPerSecond / 1000));
         while (planner.hasWaypoint()) {
@@ -138,6 +166,12 @@ namespace {
             const auto slice = planner.preview(kLimits, kSliceTicks);
             planner.commit(slice, slice.requestedTicks);
             assertLimits(before, planner.state());
+            if (metrics) {
+                metrics->observe(
+                    before, planner.state(),
+                    static_cast<double>(slice.requestedTicks) /
+                        kTicksPerSecond);
+            }
         }
     }
 
@@ -179,6 +213,7 @@ namespace {
         }
         size_t appended = 0;
         size_t completed = 0;
+        MotionMetrics metrics;
         while (completed < targets.size()) {
             while (appended < targets.size() && planner.waypointCount() < 20) {
                 TEST_ASSERT_TRUE(planner.appendWaypoint(
@@ -188,6 +223,9 @@ namespace {
             const auto slice = planner.preview(kLimits, kSliceTicks);
             planner.commit(slice, slice.requestedTicks);
             assertLimits(before, planner.state());
+            metrics.observe(before, planner.state(),
+                            static_cast<double>(slice.requestedTicks) /
+                                kTicksPerSecond);
             if (slice.finishesWaypoint) {
                 requested.push_back(targets[completed++]);
                 measured.push_back(planner.state().positionSteps);
@@ -216,6 +254,15 @@ namespace {
 
         TEST_ASSERT_LESS_THAN_DOUBLE(50.0, bestRmseSteps);  // 20 steps/mm
         TEST_ASSERT_LESS_THAN(50, bestLagSamples);          // 500 ms
+        char metric[256];
+        std::snprintf(
+            metric, sizeof(metric),
+            "PLANNER_METRIC suite=nominal_sine rmse_mm=%.6f lag_ms=%d "
+            "max_accel_mm_s2=%.6f max_jerk_mm_s3=%.6f",
+            bestRmseSteps / 20.0, bestLagSamples * 10,
+            metrics.maximumAccelerationStepsPerSecondSquared / 20.0,
+            metrics.maximumJerkStepsPerSecondCubed / 20.0);
+        TEST_MESSAGE(metric);
     }
 
     void test_nominal_twenty_hertz_sine_restores_smooth_baseline(void) {
@@ -236,6 +283,7 @@ namespace {
         double maximumPacketReferenceJump = 0.0;
         bool previousSliceFinishedWaypoint = false;
         bool safetyClampActivated = false;
+        MotionMetrics metrics;
 
         for (int point = 1; point <= 300; ++point) {
             const double timeSeconds = point * 0.05;
@@ -267,6 +315,7 @@ namespace {
                 elapsedSeconds += dt;
                 times.push_back(elapsedSeconds);
                 positions.push_back(planner.state().continuousPositionSteps);
+                metrics.observe(before, planner.state(), dt);
 
                 const double jerkLimit =
                     kHardwareLimits.accelerationStepsPerSecondSquared /
@@ -291,19 +340,43 @@ namespace {
 
         TEST_ASSERT_FALSE(safetyClampActivated);
         TEST_ASSERT_LESS_THAN_DOUBLE(2500.0, maximumPacketReferenceJump);
-        TEST_ASSERT_LESS_THAN_DOUBLE(
-            1.5, nominalSineJitterPowerPercent(times, positions));
+        const double jitterPowerPercent =
+            nominalSineJitterPowerPercent(times, positions);
+        TEST_ASSERT_LESS_THAN_DOUBLE(1.5, jitterPowerPercent);
+        char metric[256];
+        std::snprintf(
+            metric, sizeof(metric),
+            "PLANNER_METRIC suite=buffered_sine jitter_power_percent=%.9f "
+            "max_accel_mm_s2=%.6f max_jerk_mm_s3=%.6f "
+            "safety_clamp=%d",
+            jitterPowerPercent,
+            metrics.maximumAccelerationStepsPerSecondSquared / 20.0,
+            metrics.maximumJerkStepsPerSecondCubed / 20.0,
+            safetyClampActivated ? 1 : 0);
+        TEST_MESSAGE(metric);
     }
 
     void test_triangle_reversal_is_jerk_limited(void) {
         timed_streaming::Planner planner(kTicksPerSecond);
         planner.reset(0);
+        MotionMetrics metrics;
         for (int cycle = 0; cycle < 10; ++cycle) {
-            for (int i = 1; i <= 50; ++i) acceptWaypoint(planner, i * 20, 10);
-            for (int i = 49; i >= -50; --i) acceptWaypoint(planner, i * 20, 10);
-            for (int i = -49; i <= 0; ++i) acceptWaypoint(planner, i * 20, 10);
+            for (int i = 1; i <= 50; ++i)
+                acceptWaypoint(planner, i * 20, 10, &metrics);
+            for (int i = 49; i >= -50; --i)
+                acceptWaypoint(planner, i * 20, 10, &metrics);
+            for (int i = -49; i <= 0; ++i)
+                acceptWaypoint(planner, i * 20, 10, &metrics);
         }
         TEST_ASSERT_INT32_WITHIN(100, 0, planner.state().positionSteps);
+        char metric[256];
+        std::snprintf(
+            metric, sizeof(metric),
+            "PLANNER_METRIC suite=triangle_reversal max_accel_mm_s2=%.6f "
+            "max_jerk_mm_s3=%.6f",
+            metrics.maximumAccelerationStepsPerSecondSquared / 20.0,
+            metrics.maximumJerkStepsPerSecondCubed / 20.0);
+        TEST_MESSAGE(metric);
     }
 
     void test_physically_possible_random_sequence(void) {
@@ -430,13 +503,18 @@ namespace {
         timed_streaming::Planner planner(kTicksPerSecond);
         planner.reset(900);
         planner.setRange(0, 1000, 100);
-        acceptWaypoint(planner, 800, 80);
+        MotionMetrics metrics;
+        metrics.includePosition(planner.state().positionSteps);
+        acceptWaypoint(planner, 800, 80, &metrics);
 
         for (int index = 0; index < 250 && !planner.isStationary(); ++index) {
             const auto before = planner.state();
             const auto slice = planner.previewHold(kLimits, kSliceTicks);
             planner.commit(slice, slice.requestedTicks);
             assertLimits(before, planner.state());
+            metrics.observe(before, planner.state(),
+                            static_cast<double>(slice.requestedTicks) /
+                                kTicksPerSecond);
         }
         TEST_ASSERT_TRUE(planner.isStationary());
 
@@ -449,19 +527,35 @@ namespace {
                 timed_streaming::centerRecoveryDurationMilliseconds(
                     planner.state().positionSteps, center,
                     kLimits.speedStepsPerSecond);
-            acceptWaypoint(planner, center, durationMs);
+            acceptWaypoint(planner, center, durationMs, &metrics);
             for (int index = 0; index < 250 && !planner.isStationary();
                  ++index) {
                 const auto before = planner.state();
                 const auto slice = planner.previewHold(kLimits, kSliceTicks);
                 planner.commit(slice, slice.requestedTicks);
                 assertLimits(before, planner.state());
+                metrics.observe(before, planner.state(),
+                                static_cast<double>(slice.requestedTicks) /
+                                    kTicksPerSecond);
             }
         }
 
         TEST_ASSERT_INT32_WITHIN(20, center, planner.state().positionSteps);
         TEST_ASSERT_GREATER_OR_EQUAL_INT32(0, planner.state().positionSteps);
         TEST_ASSERT_LESS_OR_EQUAL_INT32(1000, planner.state().positionSteps);
+        char metric[256];
+        std::snprintf(
+            metric, sizeof(metric),
+            "PLANNER_METRIC suite=dropout_recovery center_error_mm=%.6f "
+            "raw_min_margin_mm=%.6f max_accel_mm_s2=%.6f "
+            "max_jerk_mm_s3=%.6f",
+            std::abs(planner.state().positionSteps - center) / 20.0,
+            std::min(metrics.minimumPositionSteps,
+                     1000 - metrics.maximumPositionSteps) /
+                20.0,
+            metrics.maximumAccelerationStepsPerSecondSquared / 20.0,
+            metrics.maximumJerkStepsPerSecondCubed / 20.0);
+        TEST_MESSAGE(metric);
     }
 
     void test_center_recovery_duration_is_bounded_and_distance_aware(void) {
