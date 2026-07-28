@@ -745,10 +745,22 @@ namespace streaming {
         clearTargetQueue();
         immediateStopRequested.store(false, std::memory_order_release);
         immediateStopMicros.store(0, std::memory_order_release);
-        constexpr int stackSize = 10 * configMINIMAL_STACK_SIZE;
-        xTaskCreatePinnedToCore(startStreamingTask, "startStreamingTask",
-                                stackSize, nullptr, configMAX_PRIORITIES - 1,
-                                nullptr, Tasks::operationTaskCore);
+        // The planner owns about 1 KiB of fixed waypoint storage. A 7.5 KiB
+        // task stack was unnecessary and could fail after Wi-Fi/TLS heap
+        // fragmentation, leaving the UI in streaming.idle with no consumer
+        // for incoming targets. Keep enough margin for planner/FAS call
+        // frames, and fail stopped instead of silently accepting commands.
+        constexpr int stackSize = 5 * configMINIMAL_STACK_SIZE;
+        const BaseType_t created = xTaskCreatePinnedToCore(
+            startStreamingTask, "startStreamingTask", stackSize, nullptr,
+            configMAX_PRIORITIES - 1, nullptr, Tasks::operationTaskCore);
+        if (created != pdPASS) {
+            forceSpeedZero();
+            clearTargetQueue();
+            ESP_LOGE("Streaming",
+                     "STREAM_ERROR type=task_start stack_bytes=%d",
+                     stackSize);
+        }
     }
 
 }  // namespace streaming
