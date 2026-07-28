@@ -19,6 +19,25 @@ using namespace sml;
 
 namespace homing {
 
+namespace {
+
+constexpr int kHomingTaskStackSize = 5 * configMINIMAL_STACK_SIZE;
+
+void failHomingStopped(const char* reason) {
+    if (stepper != nullptr) {
+        stepper->forceStop();
+        stepper->disableOutputs();
+    }
+    calibration.isHomed = false;
+    setHomingActive(false);
+    errorState.message = ui::strings::homingTookTooLong;
+    ESP_LOGE("Homing", "HOMING_ERROR type=%s stack_bytes=%d", reason,
+             kHomingTaskStackSize);
+    stateMachine->process_event(Error{});
+}
+
+}  // namespace
+
 void clearHoming() {
     ESP_LOGD("Homing", "Homing started");
 
@@ -82,12 +101,7 @@ static void startHomingTask(void *pvParameters) {
 
         if (homing_logic::isHomingTimedOut(msPassed, 40000)) {
             ESP_LOGE("Homing", "Homing took too long. Check power and restart");
-            errorState.message = ui::strings::homingTookTooLong;
-
-            // Clear homing active flag for LED indication
-            setHomingActive(false);
-
-            stateMachine->process_event(Error{});
+            failHomingStopped("timeout");
             break;
         }
 
@@ -139,14 +153,27 @@ static void startHomingTask(void *pvParameters) {
         break;
     };
 
+    if (Tasks::runHomingTaskH == xTaskGetCurrentTaskHandle()) {
+        Tasks::runHomingTaskH = nullptr;
+    }
     vTaskDelete(nullptr);
 }
 
 void startHoming() {
-    int stackSize = 10 * configMINIMAL_STACK_SIZE;
-    xTaskCreatePinnedToCore(startHomingTask, "startHomingTask", stackSize,
-                            nullptr, configMAX_PRIORITIES - 1,
-                            &Tasks::runHomingTaskH, Tasks::operationTaskCore);
+    // Forward completion transitions directly into backward homing before the
+    // first task has deleted itself. Two 7.5 KiB stacks therefore had to
+    // coexist briefly; the second allocation could fail and strand the state
+    // machine in homing.backward. Use the measured-safe 3.8 KiB stack and
+    // fail with motor outputs disabled when allocation is unavailable.
+    TaskHandle_t task = nullptr;
+    const BaseType_t created = xTaskCreatePinnedToCore(
+        startHomingTask, "startHomingTask", kHomingTaskStackSize, nullptr,
+        configMAX_PRIORITIES - 1, &task, Tasks::operationTaskCore);
+    if (created != pdPASS) {
+        failHomingStopped("task_start");
+        return;
+    }
+    Tasks::runHomingTaskH = task;
 }
 
 bool isStrokeTooShort() {
