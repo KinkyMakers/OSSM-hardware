@@ -1,7 +1,8 @@
 /**
  * Open-loop Streaming stress suite.
  *
- * Run: pio test -e hw_test -f test_hw_streaming_stress
+ * Full run: pio test -e hw_test -f test_hw_streaming_stress
+ * Four-case run: pio test -e hw_streaming_quick
  *
  * WARNING: This suite homes the machine and commands approximately nine
  * minutes of bounded motion. Clear the rail, remove attachments, keep the
@@ -58,6 +59,8 @@ struct CaseResult {
     bool safe;
     bool smoothnessValid;
     float jitterPowerPercent;
+    float accelerationRmsMmPerSecondSquared;
+    float accelerationP95MmPerSecondSquared;
     float jerkRmsMmPerSecondCubed;
     float jerkP95MmPerSecondCubed;
     float amplitudeRatio;
@@ -95,6 +98,18 @@ constexpr float kSGJerk[31] = {
     -0.00035021087007f, -0.000271394835617f, -0.000155401426422f,
     0.00000148709499f, 0.000202988466091f, 0.000452820424357f,
     0.000754700707262f};
+constexpr float kSGAcceleration[31] = {
+    0.00183284457478f, 0.00146627565982f, 0.00112498735969f,
+    0.000808979674386f, 0.000518252603903f, 0.000252806148246f,
+    0.0000126403074123f, -0.000202244918596f, -0.000391849529781f,
+    -0.00055617352614f, -0.000695216907675f, -0.000808979674386f,
+    -0.000897461826272f, -0.000960663363333f, -0.00099858428557f,
+    -0.00101122459298f, -0.00099858428557f, -0.000960663363333f,
+    -0.000897461826272f, -0.000808979674386f, -0.000695216907675f,
+    -0.00055617352614f, -0.000391849529781f, -0.000202244918596f,
+    0.0000126403074123f, 0.000252806148246f, 0.000518252603903f,
+    0.000808979674386f, 0.00112498735969f, 0.00146627565982f,
+    0.00183284457478f};
 
 void fft4096() {
     for (size_t index = 1, reversed = 0; index < kFFTSize; ++index) {
@@ -251,11 +266,13 @@ CaseResult analyzeSamples(size_t count, const Profile& profile) {
         alignedMaximum = std::max(alignedMaximum, measured);
         requestedMinimum = std::min(requestedMinimum, requested);
         requestedMaximum = std::max(requestedMaximum, requested);
-        const float margin = std::min(measured - legalMinimum,
-                                      legalMaximum - measured);
+        const float physical = samples[requestedIndex].measuredSteps /
+                               Config::Driver::stepsPerMM;
+        const float margin = std::min(physical - legalMinimum,
+                                      legalMaximum - physical);
         minimumMargin = std::min(minimumMargin, margin);
         const float violation = std::max(
-            0.0f, std::max(legalMinimum - measured, measured - legalMaximum));
+            0.0f, std::max(legalMinimum - physical, physical - legalMaximum));
         maximumViolation = std::max(maximumViolation, violation);
         outsideCount += violation > 0;
         measuredSum += measured;
@@ -267,24 +284,53 @@ CaseResult analyzeSamples(size_t count, const Profile& profile) {
 
     const float sampleRate = 1000.0f / kSamplePeriodMs;
     double velocitySquared = 0;
-    double jerkSquared = 0;
+    double accelerationSquared = 0;
     for (size_t local = 0; local < scoredCount; ++local) {
         double velocity = 0;
+        double acceleration = 0;
+        for (int tap = -15; tap <= 15; ++tap) {
+            const size_t source = static_cast<size_t>(std::max<int>(
+                0, std::min<int>(scoredCount - 1,
+                                 static_cast<int>(local) + tap)));
+            const int measuredIndex = static_cast<int>(scoreStart + source) +
+                                      bestShift;
+            const float position =
+                (samples[measuredIndex].measuredSteps - bestOffset) /
+                Config::Driver::stepsPerMM;
+            velocity += kSGVelocity[tap + 15] * position * sampleRate;
+            acceleration += kSGAcceleration[tap + 15] * position *
+                            sampleRate * sampleRate;
+        }
+        fftImag[local] = static_cast<float>(std::abs(acceleration));
+        fftReal[local] = static_cast<float>(velocity);
+        velocitySquared += velocity * velocity;
+        accelerationSquared += acceleration * acceleration;
+    }
+    const float velocityRms = std::sqrt(velocitySquared / scoredCount);
+    const float accelerationRms =
+        std::sqrt(accelerationSquared / scoredCount);
+    std::sort(fftImag, fftImag + scoredCount);
+    const float accelerationP95 = fftImag[std::min(
+        scoredCount - 1, static_cast<size_t>(std::ceil(scoredCount * 0.95)) - 1)];
+
+    double jerkSquared = 0;
+    for (size_t local = 0; local < scoredCount; ++local) {
         double jerk = 0;
         for (int tap = -15; tap <= 15; ++tap) {
             const size_t source = static_cast<size_t>(std::max<int>(
                 0, std::min<int>(scoredCount - 1,
                                  static_cast<int>(local) + tap)));
-            velocity += kSGVelocity[tap + 15] * fftReal[source] * sampleRate;
-            jerk += kSGJerk[tap + 15] * fftReal[source] *
-                    sampleRate * sampleRate * sampleRate;
+            const int measuredIndex = static_cast<int>(scoreStart + source) +
+                                      bestShift;
+            const float position =
+                (samples[measuredIndex].measuredSteps - bestOffset) /
+                Config::Driver::stepsPerMM;
+            jerk += kSGJerk[tap + 15] * position * sampleRate * sampleRate *
+                    sampleRate;
         }
         fftImag[local] = static_cast<float>(std::abs(jerk));
-        fftReal[local] = static_cast<float>(velocity);
-        velocitySquared += velocity * velocity;
         jerkSquared += jerk * jerk;
     }
-    const float velocityRms = std::sqrt(velocitySquared / scoredCount);
     const float jerkRms = std::sqrt(jerkSquared / scoredCount);
     std::sort(fftImag, fftImag + scoredCount);
     const float jerkP95 = fftImag[std::min(
@@ -332,7 +378,8 @@ CaseResult analyzeSamples(size_t count, const Profile& profile) {
     return {rawRmse, bestRmse, bestShift * static_cast<int32_t>(kSamplePeriodMs),
             measuredMaximum - measuredMinimum, count,
             finite && moved && maximumViolation <= 0.5f,
-            smoothnessValid, jitterPercent, jerkRms, jerkP95,
+            smoothnessValid, jitterPercent, accelerationRms, accelerationP95,
+            jerkRms, jerkP95,
             amplitudeRatio, correlation, minimumMargin, maximumViolation,
             outsideCount / sampleRate};
 }
@@ -384,15 +431,13 @@ CaseResult runScenario(const Scenario& scenario) {
                     uint32_t targetTime = nextCommandMs + offset * interval;
                     uint8_t position = static_cast<uint8_t>(
                         std::lround(requestedPosition(scenario, targetTime)));
-                    if (position != lastPosition) {
-                        uint16_t duration = lastPosition == 255
-                            ? interval
-                            : static_cast<uint16_t>(std::max<uint32_t>(
-                                  20, targetTime - lastCommandTargetMs));
-                        sendCommand(position, duration);
-                        lastPosition = position;
-                        lastCommandTargetMs = targetTime;
-                    }
+                    uint16_t duration = lastPosition == 255
+                        ? interval
+                        : static_cast<uint16_t>(std::max<uint32_t>(
+                              20, targetTime - lastCommandTargetMs));
+                    sendCommand(position, duration);
+                    lastPosition = position;
+                    lastCommandTargetMs = targetTime;
                 }
                 nextCommandMs += interval * 5;
                 commandIndex += 5;
@@ -400,7 +445,7 @@ CaseResult runScenario(const Scenario& scenario) {
             } else {
                 uint8_t position = static_cast<uint8_t>(
                     std::lround(requestedPosition(scenario, nextCommandMs)));
-                if (!inDeliveryGap(scenario, nextCommandMs) && position != lastPosition) {
+                if (!inDeliveryGap(scenario, nextCommandMs)) {
                     uint16_t duration = lastPosition == 255
                         ? interval
                         : static_cast<uint16_t>(std::max<uint32_t>(
@@ -432,6 +477,8 @@ void emitResult(size_t index, const Scenario& scenario, const CaseResult& result
         "\"rawRmseMm\":%.4f,\"alignedRmseMm\":%.4f,\"lagMs\":%ld,"
         "\"measuredRangeMm\":%.4f,\"samples\":%u,\"safe\":%s,"
         "\"smoothnessValid\":%s,\"jitterPowerPercent\":%.6f,"
+        "\"accelerationRmsMmPerSecondSquared\":%.4f,"
+        "\"accelerationP95MmPerSecondSquared\":%.4f,"
         "\"jerkRmsMmPerSecondCubed\":%.4f,"
         "\"jerkP95MmPerSecondCubed\":%.4f,\"amplitudeRatio\":%.6f,"
         "\"waveformCorrelation\":%.6f,\"minimumBoundaryMarginMm\":%.4f,"
@@ -443,6 +490,8 @@ void emitResult(size_t index, const Scenario& scenario, const CaseResult& result
         result.measuredRangeSteps / Config::Driver::stepsPerMM,
         static_cast<unsigned>(result.sampleCount), result.safe ? "true" : "false",
         result.smoothnessValid ? "true" : "false", result.jitterPowerPercent,
+        result.accelerationRmsMmPerSecondSquared,
+        result.accelerationP95MmPerSecondSquared,
         result.jerkRmsMmPerSecondCubed, result.jerkP95MmPerSecondCubed,
         result.amplitudeRatio, result.waveformCorrelation,
         result.minimumBoundaryMarginMm, result.maximumBoundaryViolationMm,
@@ -456,7 +505,19 @@ void tearDown() {}
 
 void test_all_streaming_stress_conditions() {
     bool allSafe = true;
-    for (size_t index = 0; index < kCaseCount; ++index) {
+#ifdef STREAM_STRESS_QUICK
+    constexpr size_t kSelectedCases[] = {0, 8, 16, 25};
+    constexpr size_t kSelectedCaseCount =
+        sizeof(kSelectedCases) / sizeof(kSelectedCases[0]);
+#else
+    constexpr size_t kSelectedCaseCount = kCaseCount;
+#endif
+    for (size_t selection = 0; selection < kSelectedCaseCount; ++selection) {
+#ifdef STREAM_STRESS_QUICK
+        const size_t index = kSelectedCases[selection];
+#else
+        const size_t index = selection;
+#endif
         Scenario scenario = scenarioAt(index);
         Serial.printf("STREAM_STRESS_CASE {\"index\":%u,\"id\":\"%s\","
                       "\"pattern\":\"%s\",\"profile\":\"%s\"}\n",
