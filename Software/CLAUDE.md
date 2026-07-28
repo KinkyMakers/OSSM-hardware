@@ -10,7 +10,8 @@ OSSM (Open Source Sex Machine) is an ESP32-based stepper motor device firmware. 
 - **Framework:** Arduino + FreeRTOS
 - **C++ Standard:** C++17 (gnu++17)
 - **State Machine:** Boost.SML (header-only, `include/boost/sml.hpp`)
-- **Motor:** FastAccelStepper (stepper motor with trapezoidal acceleration)
+- **Motor:** FastAccelStepper (pattern modes use its ramp generator; timed
+  streaming submits `moveTimed()` queue entries directly)
 - **Display:** U8g2 (128x64 SSD1306 OLED)
 - **BLE:** NimBLE-Arduino 2.1.2
 - **LED:** FastLED (WS2812B status indicator)
@@ -212,7 +213,7 @@ Uses `min_spiffs.csv` (PlatformIO built-in minimal SPIFFS partition).
 | Library                        | Version  | Purpose                    |
 |--------------------------------|----------|----------------------------|
 | NimBLE-Arduino                 | ^2.1.2   | BLE stack                  |
-| FastAccelStepper               | ^0.30.13 | Stepper motor control      |
+| FastAccelStepper               | 1.2.7    | Stepper motor control      |
 | U8g2                           | ^2.35.8  | OLED display (SSD1306)     |
 | FastLED                        | ^3.6.0   | RGB LED status             |
 | ArduinoJson                    | latest   | JSON parsing               |
@@ -235,8 +236,13 @@ Uses `min_spiffs.csv` (PlatformIO built-in minimal SPIFFS partition).
 - Environment: `hw_test` (extends `development`, builds full `src/`)
 - Run all: `pio test -e hw_test`
 - Run one: `pio test -e hw_test -f test_hw_smoke`
-- Available suites: `test_hw_smoke`, `test_hw_homing`, `test_hw_homing_error`, `test_hw_pairing`, `test_hw_state_machine`, `test_hw_wifi`
+- Available suites: `test_hw_smoke`, `test_hw_homing`, `test_hw_homing_error`, `test_hw_pairing`, `test_hw_state_machine`, `test_hw_streaming_stress`, `test_hw_wifi`
 - `test_hw_homing` moves the motor — keep the rail clear
+- `hw_streaming_quick` inherits `hw_test` and runs four motion cases. Treat it
+  as motion-capable even though it is a separate environment name.
+- Long-running hardware tests must emit a serial phase marker before homing or
+  motion and keep Unity assertions inside `RUN_TEST`, so allocation, homing,
+  and state-transition failures remain observable to the host runner.
 
 ## Important Rules
 
