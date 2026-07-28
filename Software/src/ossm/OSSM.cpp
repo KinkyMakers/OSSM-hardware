@@ -7,6 +7,7 @@
 #include "ossm/state/session.h"
 #include "ossm/state/settings.h"
 #include "ossm/state/state.h"
+#include "ossm/streaming/streaming.h"
 #include "services/communication/mqtt.h"
 #include "services/communication/queue.h"
 #include "services/encoder.h"
@@ -72,6 +73,10 @@ void OSSM::ble_click(String commandString) {
             // Use speed knob config to determine how to handle BLE speed
             // command
             settings.speedBLE = command.value;
+            if (command.value == 0 && currentState.startsWith("streaming")) {
+                settings.speed = 0;
+                streaming::requestImmediateStop();
+            }
             break;
         case Commands::setStroke:
             session.playControl = PlayControls::STROKE;
@@ -98,10 +103,12 @@ void OSSM::ble_click(String commandString) {
             break;
         case Commands::streamPosition:
             // Position (0-100)
-            targetQueue.push({
-                static_cast<uint8_t>(command.value),
-                static_cast<uint16_t>(command.time),
-                std::chrono::steady_clock::now()});
+            if (!enqueueTarget({static_cast<uint8_t>(command.value),
+                                static_cast<uint16_t>(command.time),
+                                std::chrono::steady_clock::now()})) {
+                ESP_LOGE("Streaming",
+                         "STREAM_ERROR type=input_overflow source=command");
+            }
             break;
         case Commands::setWifi:
         case Commands::ignore:
@@ -172,6 +179,6 @@ String OSSM::getCurrentState() {
            ",\"depth\":" + String((int)settings.depth) +
            ",\"buffer\":" + String((int)settings.buffer) +
            ",\"pattern\":" + String(static_cast<int>(settings.pattern)) +
-           ",\"position\":" + String(positionMm, 2) +
-           ",\"sessionId\":\"" + sessionId + "\"}";
+           ",\"position\":" + String(positionMm, 2) + ",\"sessionId\":\"" +
+           sessionId + "\"}";
 }

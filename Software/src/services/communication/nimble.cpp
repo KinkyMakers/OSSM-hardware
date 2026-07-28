@@ -5,6 +5,7 @@
 #include <services/board.h>
 #include <services/tasks.h>
 
+#include <algorithm>
 #include <queue>
 
 #include "command.hpp"
@@ -115,12 +116,19 @@ class FTSCallbacks : public NimBLECharacteristicCallbacks {
         // position: uint8 (0-180), convert to 100
         // time: uint16 big-endian (MSB first)
         if (value.length() >= 3) {
-            uint8_t position = static_cast<uint8_t>(value[0]/1.8);
+            const uint8_t rawPosition = static_cast<uint8_t>(value[0]);
+            const uint8_t position = static_cast<uint8_t>(std::min<uint16_t>(
+                100, (static_cast<uint16_t>(rawPosition) * 100 + 90) / 180));
             uint16_t time = (static_cast<uint8_t>(value[1]) << 8) |
                             static_cast<uint8_t>(value[2]);
 
-            ESP_LOGI("NIMBLE", "FTS Command - Position: %d, Time: %d ms", position, time);
-            targetQueue.push({position, time, std::chrono::steady_clock::now()});
+            ESP_LOGI("NIMBLE", "FTS Command - Position: %d, Time: %d ms",
+                     position, time);
+            if (!enqueueTarget(
+                    {position, time, std::chrono::steady_clock::now()})) {
+                ESP_LOGE("Streaming",
+                         "STREAM_ERROR type=input_overflow source=fts");
+            }
 
         } else {
             ESP_LOGW("NIMBLE", "FTS write - Invalid data length: %d bytes",
@@ -315,14 +323,16 @@ void initNimble() {
     pSpeedKnobConfigCharacteristic = initSpeedKnobConfigCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_SPEED_KNOB_CONFIG_UUID));
 
-    pLatencyCompensationConfigCharacteristic = initLatencyCompensationConfigCharacteristic(
-        pService, NimBLEUUID(CHARACTERISTIC_LATENCY_COMPENSATION_CONFIG_UUID));
+    pLatencyCompensationConfigCharacteristic =
+        initLatencyCompensationConfigCharacteristic(
+            pService,
+            NimBLEUUID(CHARACTERISTIC_LATENCY_COMPENSATION_CONFIG_UUID));
 
     initWiFiConfigCharacteristic(pService,
                                  NimBLEUUID(CHARACTERISTIC_WIFI_CONFIG_UUID));
 
-    initRenameConfigCharacteristic(pService,
-                                 NimBLEUUID(CHARACTERISTIC_RENAME_CONFIG_UUID));
+    initRenameConfigCharacteristic(
+        pService, NimBLEUUID(CHARACTERISTIC_RENAME_CONFIG_UUID));
 
     pStateCharacteristic = initStateCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_STATE_UUID));

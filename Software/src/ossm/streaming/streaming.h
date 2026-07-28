@@ -9,6 +9,10 @@ namespace streaming {
      */
     void startStreaming();
 
+    // Stops Streaming's timed queue immediately without disabling the motor.
+    // Safe to call from the BLE command task; it is a no-op for other modes.
+    void requestImmediateStop();
+
 }  // namespace simple_penetration
 
 #endif  // OSSM_STREAMING_H
