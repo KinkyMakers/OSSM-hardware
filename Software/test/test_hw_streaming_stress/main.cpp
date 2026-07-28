@@ -504,6 +504,16 @@ void setUp() {}
 void tearDown() {}
 
 void test_all_streaming_stress_conditions() {
+    TEST_MESSAGE("STREAM_STRESS_PHASE awaiting_menu");
+    TEST_ASSERT_TRUE_MESSAGE(waitForMenu(), "OSSM did not home into menu.idle");
+    TEST_MESSAGE("STREAM_STRESS_PHASE homing_complete");
+
+    menuState.currentOption = Menu::Streaming;
+    stateMachine->process_event(ButtonPress{});
+    TEST_ASSERT_TRUE_MESSAGE(waitForStreaming(),
+                             "Streaming did not reach idle; keep the speed knob at zero");
+    TEST_MESSAGE("STREAM_STRESS_PHASE streaming_ready");
+
     bool allSafe = true;
 #ifdef STREAM_STRESS_QUICK
     constexpr size_t kSelectedCases[] = {0, 8, 16, 25};
@@ -536,14 +546,18 @@ void setup() {
     initBoard();
     initDisplay();
     ossm = new OSSM();
-    initStateMachine();
 
     UNITY_BEGIN();
-    TEST_ASSERT_TRUE_MESSAGE(waitForMenu(), "OSSM did not home into menu.idle");
-    menuState.currentOption = Menu::Streaming;
-    stateMachine->process_event(ButtonPress{});
-    TEST_ASSERT_TRUE_MESSAGE(waitForStreaming(),
-                             "Streaming did not reach idle; keep the speed knob at zero");
+    Serial.printf("STREAM_STRESS_BOOT {\"phase\":\"before_state_machine\","
+                  "\"freeHeapBytes\":%u}\n",
+                  static_cast<unsigned>(ESP.getFreeHeap()));
+    Serial.flush();
+    initStateMachine();
+    Serial.printf("STREAM_STRESS_BOOT {\"phase\":\"state_machine_started\","
+                  "\"freeHeapBytes\":%u}\n",
+                  static_cast<unsigned>(ESP.getFreeHeap()));
+    Serial.flush();
+
     RUN_TEST(test_all_streaming_stress_conditions);
     ossm->ble_click("set:speed:0");
     stateMachine->process_event(ReturnToMenu{});
