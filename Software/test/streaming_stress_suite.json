@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "durationMs": 15000,
+  "settlingMs": 5000,
+  "alignmentGuardMs": 750,
+  "samplePeriodMs": 4,
+  "maximumLagMs": 750,
+  "profiles": [
+    {"id":"nominal","minimum":25,"maximum":75,"frequencyMilliHz":500,"cadenceHz":20,"speed":40,"stroke":50,"depth":60,"sensation":50,"buffer":50,"latencyCompensation":true},
+    {"id":"gentle","minimum":40,"maximum":60,"frequencyMilliHz":250,"cadenceHz":10,"speed":20,"stroke":30,"depth":40,"sensation":20,"buffer":0,"latencyCompensation":true},
+    {"id":"large_slow","minimum":10,"maximum":90,"frequencyMilliHz":250,"cadenceHz":20,"speed":45,"stroke":70,"depth":80,"sensation":50,"buffer":50,"latencyCompensation":true},
+    {"id":"near_limit","minimum":20,"maximum":80,"frequencyMilliHz":1000,"cadenceHz":25,"speed":85,"stroke":70,"depth":80,"sensation":90,"buffer":50,"latencyCompensation":true},
+    {"id":"soft_offset","minimum":25,"maximum":75,"frequencyMilliHz":350,"cadenceHz":20,"speed":55,"stroke":30,"depth":85,"sensation":15,"buffer":50,"latencyCompensation":true},
+    {"id":"compensation_off","minimum":25,"maximum":75,"frequencyMilliHz":500,"cadenceHz":20,"speed":40,"stroke":50,"depth":60,"sensation":50,"buffer":50,"latencyCompensation":false},
+    {"id":"zero_buffer","minimum":25,"maximum":75,"frequencyMilliHz":500,"cadenceHz":20,"speed":40,"stroke":50,"depth":60,"sensation":50,"buffer":0,"latencyCompensation":true},
+    {"id":"maximum_buffer","minimum":25,"maximum":75,"frequencyMilliHz":500,"cadenceHz":20,"speed":40,"stroke":50,"depth":60,"sensation":50,"buffer":100,"latencyCompensation":true}
+  ],
+  "faults": [
+    {"id":"sine_jitter","pattern":"sine","delivery":"jitter","profile":"nominal","seed":6101},
+    {"id":"sine_gaps","pattern":"sine","delivery":"gaps","profile":"nominal","seed":6102},
+    {"id":"triangle_bursts","pattern":"triangle","delivery":"bursts","profile":"nominal","seed":6103},
+    {"id":"triangle_cadence_pressure","pattern":"triangle","delivery":"cadence_pressure","profile":"near_limit","seed":6104},
+    {"id":"random_irregular_durations","pattern":"random","delivery":"irregular","profile":"nominal","seed":6105},
+    {"id":"random_micro_macro","pattern":"random","delivery":"micro_macro","profile":"near_limit","seed":6106}
+  ],
+  "randomSeed": 20260719
+}
