@@ -94,14 +94,8 @@ static void drawPlayControlsTask(void *pvParameters) {
             ::resetLastSpeedCommandWasFromBLE();
         }
 
-        next.speed = next.speedKnob;
-        if (settings.speedBLE.has_value()) {
-            if (USE_SPEED_KNOB_AS_LIMIT) {
-                next.speed = next.speedKnob * settings.speedBLE.value() / 100;
-            } else if (::wasLastSpeedCommandFromBLE()) {
-                next.speed = settings.speedBLE.value();
-            }
-        }
+        next.speed = ::resolveBLESpeed(next.speedKnob, settings.speedBLE,
+                                       USE_SPEED_KNOB_AS_LIMIT);
 
         if (next.speed != settings.speed) {
             shouldUpdateDisplay = true;
