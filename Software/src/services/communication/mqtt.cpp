@@ -5,6 +5,8 @@
 #include <utils/getEfuseMac.h>
 #include <utils/random.h>
 
+#include "communication_priority_policy.h"
+
 // Define the global variables here
 bool mqttConnected = false;
 esp_mqtt_client_handle_t mqttClient = nullptr;
@@ -75,6 +77,8 @@ void initMQTT() {
         .lwt_qos = 2,
         .lwt_retain = true,
         .keepalive = 15,
+        .task_prio = communication_priority_policy::kMqttTaskPriority,
+        .task_stack = communication_priority_policy::kMqttTaskStackBytes,
         .buffer_size = 1024,
         .cert_pem = root_ca};
 

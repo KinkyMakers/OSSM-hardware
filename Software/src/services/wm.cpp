@@ -5,6 +5,7 @@
 #include "WiFi.h"
 #include "esp_log.h"
 #include "esp_wifi.h"
+#include "services/communication/priority.h"
 
 WiFiManager wm;
 Preferences wifiPrefs;
@@ -22,6 +23,11 @@ void initWM() {
 #else
     WiFi.begin();
 #endif
+
+    // Wi-Fi remains initialized in every mode. Reapply the current
+    // coexistence preference because Streaming may have become active while
+    // the communication startup task was still bringing Wi-Fi online.
+    communication_priority::refreshRadioPreference();
 
     ESP_LOGI("WM", "WiFi initialization complete, status: %d", WiFi.status());
 }

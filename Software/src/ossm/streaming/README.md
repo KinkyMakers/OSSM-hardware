@@ -40,6 +40,14 @@ reconciled against `getCurrentPosition()`. Queue overflow and negative
 speed to zero. An underrun retains the unplanned remainder and re-primes before
 motion resumes.
 
+Wi-Fi and MQTT remain initialized and connected in Streaming. While the
+Streaming task is active, ESP32 radio coexistence prefers Bluetooth and
+nonessential HTTP/Wi-Fi reconfiguration work waits for a balanced-mode window.
+MQTT stays online on a lower-priority task, so keepalives and connectivity are
+retained without competing with the BLE waypoint path. The legacy text
+`stream:` characteristic parses directly into the fixed target queue instead
+of allocating in the general command queue.
+
 FastAccelStepper is pinned to 1.2.7 for its corrected `actual_duration`. Its
 timed API otherwise leaves queue writes blocked after `forceStop()`, because
 only the trapezoidal ramp filler clears that internal flag. The audited

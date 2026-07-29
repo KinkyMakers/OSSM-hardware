@@ -14,6 +14,7 @@
 #include "ossm/state/state.h"
 #include "services/board.h"
 #include "services/communication/queue.h"
+#include "services/communication/priority.h"
 #include "services/stepper.h"
 #include "services/tasks.h"
 #include "streaming_logic.h"
@@ -914,6 +915,7 @@ namespace streaming {
             }
 
             streamingTaskActive.store(false, std::memory_order_release);
+            communication_priority::setStreamingActive(false);
 #ifdef OSSM_STREAM_TUNING
             resetTuningParameters();
 #endif
@@ -1032,6 +1034,7 @@ namespace streaming {
     }
 
     void startStreaming() {
+        communication_priority::setStreamingActive(true);
         clearTargetQueue();
         immediateStopRequested.store(false, std::memory_order_release);
         immediateStopMicros.store(0, std::memory_order_release);
@@ -1045,6 +1048,7 @@ namespace streaming {
             startStreamingTask, "startStreamingTask", stackSize, nullptr,
             configMAX_PRIORITIES - 1, nullptr, Tasks::operationTaskCore);
         if (created != pdPASS) {
+            communication_priority::setStreamingActive(false);
             forceSpeedZero();
             clearTargetQueue();
             ESP_LOGE("Streaming",

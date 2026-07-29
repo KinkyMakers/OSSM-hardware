@@ -11,6 +11,7 @@
 #include "queue.h"
 #include "rad_ble.h"
 #include "services/led.h"
+#include "stream_command_parser.h"
 
 static const std::regex commandRegex(
     R"(go:(simplePenetration|strokeEngine|streaming|menu)|set:(speed|stroke|depth|sensation|buffer|pattern):\d+|set:wifi:[^|]+\|.+|stream:\d+:\d+)");
@@ -33,6 +34,28 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
                     0, connInfo.getConnHandle(),
                     reinterpret_cast<const uint8_t*>(cmd.data()), cmd.size()))
                 ESP_LOGW("NIMBLE_COMMAND", "RAD BLE command queue is full");
+            return;
+        }
+
+        // Streaming waypoints dominate the command rate. Parse and enqueue
+        // them directly from the NimBLE callback so they never allocate in
+        // the general String queue or wait for the notification loop.
+        if (cmd.compare(0, 7, "stream:") == 0) {
+            stream_command_parser::Command command;
+            if (!stream_command_parser::parse(cmd.data(), cmd.size(), command)) {
+                ESP_LOGD("NIMBLE_COMMAND", "Invalid stream command");
+                pCharacteristic->setValue("fail:stream:invalid_format");
+                return;
+            }
+            if (!enqueueTarget({command.position,
+                                command.durationMilliseconds,
+                                std::chrono::steady_clock::now()})) {
+                ESP_LOGE("Streaming",
+                         "STREAM_ERROR type=input_overflow source=command");
+                pCharacteristic->setValue("fail:stream:overflow");
+                return;
+            }
+            pulseForCommunication();
             return;
         }
 
