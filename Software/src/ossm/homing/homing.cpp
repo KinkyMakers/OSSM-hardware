@@ -22,16 +22,21 @@ namespace homing {
 namespace {
 
 constexpr int kHomingTaskStackSize = 5 * configMINIMAL_STACK_SIZE;
-constexpr int32_t kProbeDistanceSteps = 0.5_mm;
+constexpr int32_t kSeedProbeDistanceSteps = 0.5_mm;
+constexpr int32_t kWiggleDistanceSteps = 5_mm;
 constexpr int32_t kEscapeDistanceSteps = 5_mm;
-constexpr uint32_t kProbeTimeoutMs = 500;
+constexpr uint32_t kSeedProbeTimeoutMs = 500;
+constexpr uint32_t kWiggleTimeoutMs = 3500;
 constexpr uint32_t kEscapeTimeoutMs = 1500;
 constexpr float kProbeSpeedStepsPerSecond = 2_mm;
 constexpr float kEscapeSpeedStepsPerSecond = 5_mm;
 constexpr float kProbeAccelerationStepsPerSecondSquared = 100_mm;
-constexpr float kMinimumProbeSignal = 0.15f;
-constexpr float kProbeTieMargin = 0.25f;
-constexpr float kRequiredContactRise = 1.5f;
+constexpr float kSafeHomingSpeedStepsPerSecond = 5_mm;
+constexpr float kSafeHomingAccelerationStepsPerSecondSquared = 100_mm;
+constexpr float kMinimumProbeSignal = 0.05f;
+constexpr float kProbeTieMargin = 0.05f;
+constexpr float kRequiredContactRise = 0.05f;
+constexpr uint8_t kContactConfirmationSamples = 3;
 
 float homingCurrentLimit = Config::Driver::sensorlessCurrentLimit;
 
@@ -56,7 +61,9 @@ void stopAtReportedPosition() {
 }
 
 CurrentProbe runCurrentProbe(int8_t sign, int32_t distanceSteps,
-                             float speedStepsPerSecond, uint32_t timeoutMs) {
+                             float speedStepsPerSecond, uint32_t timeoutMs,
+                             float currentLimit,
+                             uint8_t confirmationSamples = 1) {
     CurrentProbe result;
     stepper->setAcceleration(kProbeAccelerationStepsPerSecondSquared);
     stepper->setSpeedInHz(speedStepsPerSecond);
@@ -66,6 +73,7 @@ CurrentProbe runCurrentProbe(int8_t sign, int32_t distanceSteps,
 
     const uint32_t started = millis();
     uint32_t sampleCount = 0;
+    uint8_t samplesOverLimit = 0;
     double loadTotal = 0;
     while (true) {
         const float load = readMotorLoadPercent();
@@ -73,9 +81,13 @@ CurrentProbe runCurrentProbe(int8_t sign, int32_t distanceSteps,
         ++sampleCount;
         result.peakLoad = std::max(result.peakLoad, load);
 
-        if (load >= Config::Driver::sensorlessCurrentLimit) {
-            result.hitHardLimit = true;
-            break;
+        if (load >= currentLimit) {
+            if (++samplesOverLimit >= confirmationSamples) {
+                result.hitHardLimit = true;
+                break;
+            }
+        } else {
+            samplesOverLimit = 0;
         }
         if (!stepper->isRunning()) break;
         if (millis() - started >= timeoutMs) {
@@ -106,38 +118,72 @@ void failHomingStopped(
 }
 
 bool probeAndEscapeHardStopImpl(ProbeDiagnostics* diagnostics) {
-    const CurrentProbe negative = runCurrentProbe(
-        -1, kProbeDistanceSteps, kProbeSpeedStepsPerSecond, kProbeTimeoutMs);
-    const CurrentProbe positive = runCurrentProbe(
-        1, kProbeDistanceSteps, kProbeSpeedStepsPerSecond, kProbeTimeoutMs);
-    const homing_logic::ProbeDirection direction =
+    // Use short seed probes to learn this unit's current scale before asking
+    // either direction to travel far enough for an unmistakable wiggle.
+    const CurrentProbe seedNegative = runCurrentProbe(
+        -1, kSeedProbeDistanceSteps, kProbeSpeedStepsPerSecond,
+        kSeedProbeTimeoutMs, Config::Driver::sensorlessCurrentLimit);
+    const CurrentProbe seedPositive = runCurrentProbe(
+        1, kSeedProbeDistanceSteps, kProbeSpeedStepsPerSecond,
+        kSeedProbeTimeoutMs, Config::Driver::sensorlessCurrentLimit);
+    const homing_logic::ProbeDirection seedDirection =
         homing_logic::chooseProbeEscapeDirection(
-            negative.averageLoad, positive.averageLoad,
+            seedNegative.averageLoad, seedPositive.averageLoad,
             Config::Driver::sensorlessCurrentLimit, kMinimumProbeSignal,
             kProbeTieMargin);
     homingCurrentLimit = homing_logic::adaptiveCurrentLimit(
-        negative.averageLoad, positive.averageLoad,
+        seedNegative.averageLoad, seedPositive.averageLoad,
         Config::Driver::sensorlessCurrentLimit, kRequiredContactRise);
+
+    if (diagnostics != nullptr) {
+        diagnostics->seedNegativeAverageLoad = seedNegative.averageLoad;
+        diagnostics->seedNegativePeakLoad = seedNegative.peakLoad;
+        diagnostics->seedPositiveAverageLoad = seedPositive.averageLoad;
+        diagnostics->seedPositivePeakLoad = seedPositive.peakLoad;
+        diagnostics->adaptiveCurrentLimit = homingCurrentLimit;
+    }
+
+    if (seedNegative.timedOut || seedPositive.timedOut ||
+        seedDirection == homing_logic::ProbeDirection::Unsafe) {
+        return false;
+    }
+
+    const CurrentProbe negative = runCurrentProbe(
+        -1, kWiggleDistanceSteps, kProbeSpeedStepsPerSecond,
+        kWiggleTimeoutMs, homingCurrentLimit, kContactConfirmationSamples);
+    const CurrentProbe positive = runCurrentProbe(
+        1, kWiggleDistanceSteps, kProbeSpeedStepsPerSecond,
+        kWiggleTimeoutMs, homingCurrentLimit, kContactConfirmationSamples);
+    const homing_logic::ProbeDirection direction =
+        homing_logic::chooseWiggleEscapeDirection(
+            negative.averageLoad, positive.averageLoad, negative.hitHardLimit,
+            positive.hitHardLimit, kMinimumProbeSignal, kProbeTieMargin);
 
     if (diagnostics != nullptr) {
         diagnostics->negativeAverageLoad = negative.averageLoad;
         diagnostics->negativePeakLoad = negative.peakLoad;
         diagnostics->positiveAverageLoad = positive.averageLoad;
         diagnostics->positivePeakLoad = positive.peakLoad;
-        diagnostics->adaptiveCurrentLimit = homingCurrentLimit;
         diagnostics->direction = static_cast<int8_t>(direction);
+        diagnostics->negativeHitHardLimit = negative.hitHardLimit;
+        diagnostics->positiveHitHardLimit = positive.hitHardLimit;
         diagnostics->negativeTimedOut = negative.timedOut;
         diagnostics->positiveTimedOut = positive.timedOut;
     }
 
     ESP_LOGI(
         "Homing",
-        "HOMING_PROBE negative_avg=%.3f negative_peak=%.3f "
-        "positive_avg=%.3f positive_peak=%.3f direction=%d limit=%.3f "
-        "negative_timeout=%d positive_timeout=%d",
+        "HOMING_PROBE seed_negative=%.3f seed_positive=%.3f "
+        "adaptive_limit=%.3f "
+        "negative_avg=%.3f negative_peak=%.3f "
+        "positive_avg=%.3f positive_peak=%.3f direction=%d "
+        "negative_blocked=%d positive_blocked=%d negative_timeout=%d "
+        "positive_timeout=%d",
+        seedNegative.averageLoad, seedPositive.averageLoad, homingCurrentLimit,
         negative.averageLoad, negative.peakLoad, positive.averageLoad,
-        positive.peakLoad, static_cast<int>(direction), homingCurrentLimit,
-        negative.timedOut, positive.timedOut);
+        positive.peakLoad, static_cast<int>(direction),
+        negative.hitHardLimit, positive.hitHardLimit, negative.timedOut,
+        positive.timedOut);
 
     if (negative.timedOut || positive.timedOut ||
         direction == homing_logic::ProbeDirection::Unsafe) {
@@ -147,7 +193,7 @@ bool probeAndEscapeHardStopImpl(ProbeDiagnostics* diagnostics) {
     const int8_t sign = static_cast<int8_t>(direction);
     const CurrentProbe escape = runCurrentProbe(
         sign, kEscapeDistanceSteps, kEscapeSpeedStepsPerSecond,
-        kEscapeTimeoutMs);
+        kEscapeTimeoutMs, homingCurrentLimit, kContactConfirmationSamples);
     if (diagnostics != nullptr) {
         diagnostics->escapeAverageLoad = escape.averageLoad;
         diagnostics->escapePeakLoad = escape.peakLoad;
@@ -159,8 +205,7 @@ bool probeAndEscapeHardStopImpl(ProbeDiagnostics* diagnostics) {
              "hard_limit=%d timeout=%d",
              sign, escape.averageLoad, escape.peakLoad, escape.hitHardLimit,
              escape.timedOut);
-    return !escape.hitHardLimit && !escape.timedOut &&
-           escape.averageLoad < homingCurrentLimit;
+    return !escape.hitHardLimit && !escape.timedOut;
 }
 
 }  // namespace
@@ -179,9 +224,9 @@ void clearHoming() {
     homingCurrentLimit = Config::Driver::sensorlessCurrentLimit;
 
     // Set acceleration and deceleration in steps/s^2
-    stepper->setAcceleration(1000_mm);
+    stepper->setAcceleration(kSafeHomingAccelerationStepsPerSecondSquared);
     // Set speed in steps/s
-    stepper->setSpeedInHz(25_mm);
+    stepper->setSpeedInHz(kSafeHomingSpeedStepsPerSecond);
 
     // Clear the stored values.
     calibration.measuredStrokeSteps = 0;
@@ -215,8 +260,8 @@ static void startHomingTask(void *pvParameters) {
         vTaskDelete(nullptr);
         return;
     }
-    stepper->setAcceleration(1000_mm);
-    stepper->setSpeedInHz(25_mm);
+    stepper->setAcceleration(kSafeHomingAccelerationStepsPerSecondSquared);
+    stepper->setSpeedInHz(kSafeHomingSpeedStepsPerSecond);
     int16_t sign = stateMachine->is("homing.backward"_s) ? 1 : -1;
 
     int32_t targetPositionInSteps =
@@ -232,7 +277,9 @@ static void startHomingTask(void *pvParameters) {
                stateMachine->is("homing.backward"_s);
     };
 
-    // run loop for 15second or until loop exits
+    // Require a sustained current rise so a single ADC transient cannot be
+    // mistaken for a hard stop.
+    uint8_t currentSamplesOverLimit = 0;
     while (isInCorrectState()) {
         TickType_t xCurrentTickCount = xTaskGetTickCount();
         // Calculate the time in ticks that the task has been running.
@@ -256,7 +303,12 @@ static void startHomingTask(void *pvParameters) {
             current, 0, homingCurrentLimit);
 
         if (!isCurrentOverLimit) {
+            currentSamplesOverLimit = 0;
             vTaskDelay(10);  // Increased from 1ms to 10ms to reduce CPU load
+            continue;
+        }
+        if (++currentSamplesOverLimit < kContactConfirmationSamples) {
+            vTaskDelay(10);
             continue;
         }
 

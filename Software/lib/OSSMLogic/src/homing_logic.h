@@ -1,8 +1,9 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <algorithm>
+#include <limits>
 
 // Pure logic extracted from src/ossm/homing/homing.cpp.
 // No hardware dependencies — testable on native platform.
@@ -51,13 +52,31 @@ inline ProbeDirection chooseProbeEscapeDirection(
                                        : ProbeDirection::Positive;
 }
 
+/// Resolve two longer current-limited wiggles. A direction that reached the
+/// adaptive current limit is treated as blocked even when its partial-run
+/// average is diluted by low-current startup samples.
+inline ProbeDirection chooseWiggleEscapeDirection(
+    float negativeLoad, float positiveLoad, bool negativeBlocked,
+    bool positiveBlocked, float minimumSignal, float tieMargin) {
+    if (negativeBlocked && positiveBlocked) return ProbeDirection::Unsafe;
+    if (negativeBlocked) return ProbeDirection::Positive;
+    if (positiveBlocked) return ProbeDirection::Negative;
+    return chooseProbeEscapeDirection(
+        negativeLoad, positiveLoad, std::numeric_limits<float>::max(),
+        minimumSignal, tieMargin);
+}
+
 /// Derive a contact threshold from the lower-current (freer) probe while
 /// retaining the configured absolute ceiling.
 inline float adaptiveCurrentLimit(float negativeLoad, float positiveLoad,
                                   float hardLimit, float requiredRise) {
     const float freeLoad =
         std::min(std::abs(negativeLoad), std::abs(positiveLoad));
-    return std::min(hardLimit, std::max(requiredRise, freeLoad + requiredRise));
+    const float loadedDirection =
+        std::max(std::abs(negativeLoad), std::abs(positiveLoad));
+    const float midpoint = (freeLoad + loadedDirection) * 0.5f;
+    return std::min(hardLimit,
+                    std::max(freeLoad + requiredRise, midpoint));
 }
 
 /// Calculate the measured stroke from the stepper's current position,

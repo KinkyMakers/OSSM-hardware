@@ -241,8 +241,9 @@ Uses `min_spiffs.csv` (PlatformIO built-in minimal SPIFFS partition).
 - Run one: `pio test -e hw_test -f test_hw_smoke`
 - Available suites: `test_hw_smoke`, `test_hw_homing`, `test_hw_homing_error`, `test_hw_homing_probe`, `test_hw_pairing`, `test_hw_state_machine`, `test_hw_streaming_stress`, `test_hw_wifi`
 - `test_hw_homing` moves the motor — keep the rail clear
-- `test_hw_homing_probe` moves at most 6 mm and validates the current-based
-  escape direction without starting full-stroke homing.
+- `test_hw_homing_probe` seeds the current threshold with 0.5 mm samples,
+  attempts a current-limited 5 mm wiggle per direction, then escapes 5 mm
+  toward the unblocked side without starting full-stroke homing.
 - `hw_streaming_quick` inherits `hw_test` and runs four motion cases. Treat it
   as motion-capable even though it is a separate environment name.
 - Long-running hardware tests must emit a serial phase marker before homing or

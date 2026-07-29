@@ -42,6 +42,13 @@ void test_probe_selects_lower_current_direction(void) {
             3.0f, 1.0f, 6.0f, 0.15f, 0.25f)));
 }
 
+void test_probe_selects_measured_lower_current_direction(void) {
+    TEST_ASSERT_EQUAL_INT(
+        static_cast<int>(homing_logic::ProbeDirection::Negative),
+        static_cast<int>(homing_logic::chooseProbeEscapeDirection(
+            0.138f, 0.267f, 6.0f, 0.05f, 0.05f)));
+}
+
 void test_probe_rejects_ambiguous_direction(void) {
     TEST_ASSERT_EQUAL_INT(
         static_cast<int>(homing_logic::ProbeDirection::Unsafe),
@@ -63,11 +70,32 @@ void test_probe_rejects_missing_current_feedback(void) {
             0.01f, 0.02f, 6.0f, 0.15f, 0.25f)));
 }
 
+void test_wiggle_escapes_the_current_limited_direction(void) {
+    TEST_ASSERT_EQUAL_INT(
+        static_cast<int>(homing_logic::ProbeDirection::Positive),
+        static_cast<int>(homing_logic::chooseWiggleEscapeDirection(
+            0.25f, 0.12f, true, false, 0.05f, 0.05f)));
+    TEST_ASSERT_EQUAL_INT(
+        static_cast<int>(homing_logic::ProbeDirection::Negative),
+        static_cast<int>(homing_logic::chooseWiggleEscapeDirection(
+            0.12f, 0.25f, false, true, 0.05f, 0.05f)));
+}
+
+void test_wiggle_rejects_two_current_limited_directions(void) {
+    TEST_ASSERT_EQUAL_INT(
+        static_cast<int>(homing_logic::ProbeDirection::Unsafe),
+        static_cast<int>(homing_logic::chooseWiggleEscapeDirection(
+            0.25f, 0.25f, true, true, 0.05f, 0.05f)));
+}
+
 void test_adaptive_current_limit_uses_free_direction(void) {
     TEST_ASSERT_EQUAL_FLOAT(
-        2.5f, homing_logic::adaptiveCurrentLimit(7.0f, 1.0f, 6.0f, 1.5f));
+        4.0f, homing_logic::adaptiveCurrentLimit(7.0f, 1.0f, 6.0f, 1.5f));
     TEST_ASSERT_EQUAL_FLOAT(
         6.0f, homing_logic::adaptiveCurrentLimit(5.0f, 7.0f, 6.0f, 1.5f));
+    TEST_ASSERT_FLOAT_WITHIN(
+        0.001f, 0.2025f,
+        homing_logic::adaptiveCurrentLimit(0.138f, 0.267f, 6.0f, 0.05f));
 }
 
 // ─── calculateMeasuredStroke ───
@@ -142,9 +170,12 @@ int main(int argc, char **argv) {
     RUN_TEST(test_probe_escapes_negative_hard_stop);
     RUN_TEST(test_probe_escapes_positive_hard_stop);
     RUN_TEST(test_probe_selects_lower_current_direction);
+    RUN_TEST(test_probe_selects_measured_lower_current_direction);
     RUN_TEST(test_probe_rejects_ambiguous_direction);
     RUN_TEST(test_probe_rejects_both_directions_blocked);
     RUN_TEST(test_probe_rejects_missing_current_feedback);
+    RUN_TEST(test_wiggle_escapes_the_current_limited_direction);
+    RUN_TEST(test_wiggle_rejects_two_current_limited_directions);
     RUN_TEST(test_adaptive_current_limit_uses_free_direction);
 
     RUN_TEST(test_calculateMeasuredStroke_positive_position);
