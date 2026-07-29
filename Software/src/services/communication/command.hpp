@@ -24,6 +24,7 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
 
     void onWrite(NimBLECharacteristic* pCharacteristic,
                  NimBLEConnInfo& connInfo) override {
+        const auto receivedAt = std::chrono::steady_clock::now();
         std::string cmd = pCharacteristic->getValue();
 
         // RAD BLE v1 deliberately multiplexes OSSM's established command
@@ -49,7 +50,7 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
             }
             if (!enqueueTarget({command.position,
                                 command.durationMilliseconds,
-                                std::chrono::steady_clock::now()})) {
+                                receivedAt})) {
                 ESP_LOGE("Streaming",
                          "STREAM_ERROR type=input_overflow source=command");
                 pCharacteristic->setValue("fail:stream:overflow");

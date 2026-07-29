@@ -48,6 +48,15 @@ retained without competing with the BLE waypoint path. The legacy text
 `stream:` characteristic parses directly into the fixed target queue instead
 of allocating in the general command queue.
 
+Each streaming waypoint carries the monotonic timestamp and sequence at which
+the BLE callback received it. If the fixed input queue grows beyond 250 ms of
+requested motion or its oldest waypoint waits more than 250 ms, the consumer
+discards obsolete intermediate waypoints while retaining the newest request.
+A full queue likewise replaces its oldest entry instead of stopping the motor.
+The retained target still passes through the jerk-limited planner, acceleration
+limits, stopping envelope, and absolute play-range guard. Compaction counts and
+maximum receive age are included in `STREAM_DIAG` output.
+
 FastAccelStepper is pinned to 1.2.7 for its corrected `actual_duration`. Its
 timed API otherwise leaves queue writes blocked after `forceStop()`, because
 only the trapezoidal ramp filler clears that internal flag. The audited

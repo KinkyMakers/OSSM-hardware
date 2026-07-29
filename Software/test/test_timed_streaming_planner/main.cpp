@@ -800,9 +800,10 @@ namespace {
 
         const auto overflow = timed_streaming::resetPolicy(
             timed_streaming::ResetCause::InputOverflow);
-        TEST_ASSERT_TRUE(overflow.forceStop);
-        TEST_ASSERT_TRUE(overflow.clearInputQueue);
-        TEST_ASSERT_FALSE(overflow.preserveActiveWaypoint);
+        TEST_ASSERT_FALSE(overflow.forceStop);
+        TEST_ASSERT_FALSE(overflow.clearInputQueue);
+        TEST_ASSERT_TRUE(overflow.preserveActiveWaypoint);
+        TEST_ASSERT_FALSE(overflow.rebuffer);
 
         const auto underrun =
             timed_streaming::resetPolicy(timed_streaming::ResetCause::Underrun);

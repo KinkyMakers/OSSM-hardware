@@ -149,6 +149,7 @@ class ServerCallbacks : public NimBLEServerCallbacks {
 class FTSCallbacks : public NimBLECharacteristicCallbacks {
     void onWrite(NimBLECharacteristic* pCharacteristic,
                  NimBLEConnInfo& connInfo) override {
+        const auto receivedAt = std::chrono::steady_clock::now();
         std::string value = pCharacteristic->getValue();
 
         // Expected format: [position, timeHigh, timeLow]
@@ -161,10 +162,12 @@ class FTSCallbacks : public NimBLECharacteristicCallbacks {
             uint16_t time = (static_cast<uint8_t>(value[1]) << 8) |
                             static_cast<uint8_t>(value[2]);
 
-            ESP_LOGI("NIMBLE", "FTS Command - Position: %d, Time: %d ms",
+            // Per-packet INFO logging can itself create BLE backpressure at
+            // streaming cadence. Freshness is retained in PositionTime and
+            // summarized only when compaction or session diagnostics run.
+            ESP_LOGV("NIMBLE", "FTS Command - Position: %d, Time: %d ms",
                      position, time);
-            if (!enqueueTarget(
-                    {position, time, std::chrono::steady_clock::now()})) {
+            if (!enqueueTarget({position, time, receivedAt})) {
                 ESP_LOGE("Streaming",
                          "STREAM_ERROR type=input_overflow source=fts");
             }

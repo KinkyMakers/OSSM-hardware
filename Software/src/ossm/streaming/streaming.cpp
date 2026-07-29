@@ -17,6 +17,7 @@
 #include "services/communication/priority.h"
 #include "services/stepper.h"
 #include "services/tasks.h"
+#include "stream_backlog_policy.h"
 #include "streaming_logic.h"
 #include "timed_streaming_planner.h"
 #include "timed_streaming_runtime.h"
@@ -111,6 +112,10 @@ namespace streaming {
             uint32_t holdSlices = 0;
             uint32_t centerRecoveryEvents = 0;
             uint32_t centerRecoveryCompletions = 0;
+            uint32_t backlogCompactions = 0;
+            uint32_t droppedWaypoints = 0;
+            uint32_t maximumInputAgeMilliseconds = 0;
+            uint32_t maximumDiscardedAgeMilliseconds = 0;
         };
 
         uint32_t requiredPrimeMilliseconds(
@@ -127,7 +132,7 @@ namespace streaming {
 
         uint32_t waypointAgeMilliseconds(const PositionTime &waypoint) {
             const auto age =
-                std::chrono::steady_clock::now() - waypoint.setTime;
+                std::chrono::steady_clock::now() - waypoint.receivedAt;
             const auto millis =
                 std::chrono::duration_cast<std::chrono::milliseconds>(age)
                     .count();
@@ -183,7 +188,9 @@ namespace streaming {
                 "boundary_envelope=%u safety_clamp=%u reconcile_errors=%u "
                 "max_reconcile_steps=%d max_reference_error_steps=%d "
                 "min_legal_margin_steps=%d starvation_events=%u hold_slices=%u "
-                "center_recoveries=%u center_recovery_completions=%u",
+                "center_recoveries=%u center_recovery_completions=%u "
+                "backlog_compactions=%u dropped_waypoints=%u "
+                "max_input_age_ms=%u max_discarded_age_ms=%u",
                 diagnostics.submittedSlices, diagnostics.retries,
                 diagnostics.underruns, diagnostics.rebuffers,
                 diagnostics.overflows, diagnostics.fatalErrors,
@@ -200,7 +207,11 @@ namespace streaming {
                     : diagnostics.minimumLegalRangeMarginSteps,
                 diagnostics.starvationEvents, diagnostics.holdSlices,
                 diagnostics.centerRecoveryEvents,
-                diagnostics.centerRecoveryCompletions);
+                diagnostics.centerRecoveryCompletions,
+                diagnostics.backlogCompactions,
+                diagnostics.droppedWaypoints,
+                diagnostics.maximumInputAgeMilliseconds,
+                diagnostics.maximumDiscardedAgeMilliseconds);
         }
 
         void forceSpeedZero() {
@@ -254,7 +265,41 @@ namespace streaming {
                     static_cast<uint64_t>(kMaximumPlannerBufferMilliseconds) *
                         kTicksPerMillisecond) {
                 PositionTime candidate{};
-                if (!dequeueTarget(candidate)) break;
+                TargetQueueRead queueRead{};
+                if (!dequeueFreshTarget(
+                        candidate,
+                        stream_backlog_policy::
+                            kMaximumWaypointAgeMilliseconds,
+                        stream_backlog_policy::
+                            kMaximumQueuedDurationMilliseconds,
+                        queueRead))
+                    break;
+                diagnostics.maximumInputAgeMilliseconds = std::max(
+                    diagnostics.maximumInputAgeMilliseconds,
+                    queueRead.selectedAgeMilliseconds);
+                if (queueRead.droppedWaypoints != 0) {
+                    ++diagnostics.backlogCompactions;
+                    diagnostics.droppedWaypoints +=
+                        queueRead.droppedWaypoints;
+                    diagnostics.maximumDiscardedAgeMilliseconds = std::max(
+                        diagnostics.maximumDiscardedAgeMilliseconds,
+                        queueRead.oldestAgeMilliseconds);
+                    if (diagnostics.backlogCompactions <= 3 ||
+                        diagnostics.backlogCompactions % 25 == 0) {
+                        ESP_LOGW(
+                            "Streaming",
+                            "STREAM_DIAG event=backlog_compacted dropped=%u "
+                            "oldest_age_ms=%u selected_age_ms=%u "
+                            "buffered_before_ms=%u selected_sequence=%u "
+                            "count=%u",
+                            queueRead.droppedWaypoints,
+                            queueRead.oldestAgeMilliseconds,
+                            queueRead.selectedAgeMilliseconds,
+                            queueRead.bufferedDurationBeforeMilliseconds,
+                            queueRead.selectedSequence,
+                            diagnostics.backlogCompactions);
+                    }
+                }
                 if (candidate.inTime == 0) {
                     ++diagnostics.zeroDurationWaypoints;
                     ESP_LOGW(
@@ -553,13 +598,24 @@ namespace streaming {
 
             while (isInCorrectState()) {
                 if (targetQueueOverflowCount() != observedOverflowCount) {
-                    observedOverflowCount = targetQueueOverflowCount();
-                    ++diagnostics.overflows;
-                    fatalStop("input_overflow", 0, diagnostics);
-                    queueStarted = false;
-                    waitingForStop = true;
-                    preserveWaypointOnStop = false;
-                    hasActiveWaypoint = false;
+                    const uint32_t currentOverflowCount =
+                        targetQueueOverflowCount();
+                    const uint32_t replacements =
+                        currentOverflowCount - observedOverflowCount;
+                    observedOverflowCount = currentOverflowCount;
+                    diagnostics.overflows += replacements;
+                    diagnostics.droppedWaypoints += replacements;
+                    if (diagnostics.overflows <= 3 ||
+                        diagnostics.overflows % 25 == 0) {
+                        ESP_LOGW(
+                            "Streaming",
+                            "STREAM_DIAG event=input_overflow_recovered "
+                            "replaced_oldest=%u total=%u queue_size=%u "
+                            "buffered_ms=%u",
+                            replacements, diagnostics.overflows,
+                            static_cast<unsigned>(targetQueueSize()),
+                            targetQueueBufferedDurationMs());
+                    }
                 }
 
                 if (immediateStopRequested.exchange(

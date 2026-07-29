@@ -145,6 +145,10 @@ Three operation modes:
 - Timed streaming is an on-device feed-forward velocity follower. Positional
   lag and vertical translation are fitted only by the external Motion Lab
   analysis; do not add a proportional position-correction term to firmware.
+- Streaming waypoints are timestamped in the BLE callback. The fixed input
+  queue preserves the newest request and discards obsolete intermediate
+  waypoints when receive age or queued duration exceeds 250 ms; range,
+  stopping-envelope, acceleration, and jerk constraints still apply.
 
 ### StrokeEngine Library (`lib/StrokeEngine/`)
 

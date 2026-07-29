@@ -78,10 +78,14 @@ namespace timed_streaming {
 
     inline ResetPolicy resetPolicy(ResetCause cause) {
         switch (cause) {
+            case ResetCause::InputOverflow:
+                // The fixed input queue replaces only its oldest entry. Keep
+                // the active jerk-limited trajectory running toward the
+                // retained, newer request.
+                return {false, false, true, false};
             case ResetCause::Underrun:
                 return {true, false, true, true};
             case ResetCause::SpeedZero:
-            case ResetCause::InputOverflow:
             case ResetCause::FatalError:
                 return {true, true, false, false};
         }
