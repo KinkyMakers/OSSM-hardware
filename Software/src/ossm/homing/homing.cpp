@@ -27,9 +27,10 @@ constexpr int32_t kWiggleDistanceSteps = 5_mm;
 constexpr int32_t kEscapeDistanceSteps = 5_mm;
 constexpr uint32_t kSeedProbeTimeoutMs = 500;
 constexpr uint32_t kWiggleTimeoutMs = 3500;
-constexpr uint32_t kEscapeTimeoutMs = 1500;
+constexpr uint32_t kEscapeTimeoutMs = 3500;
+constexpr uint32_t kCurrentLimitSettleMs = 100;
 constexpr float kProbeSpeedStepsPerSecond = 2_mm;
-constexpr float kEscapeSpeedStepsPerSecond = 5_mm;
+constexpr float kEscapeSpeedStepsPerSecond = 2_mm;
 constexpr float kProbeAccelerationStepsPerSecondSquared = 100_mm;
 constexpr float kSafeHomingSpeedStepsPerSecond = 5_mm;
 constexpr float kSafeHomingAccelerationStepsPerSecondSquared = 100_mm;
@@ -63,7 +64,8 @@ void stopAtReportedPosition() {
 CurrentProbe runCurrentProbe(int8_t sign, int32_t distanceSteps,
                              float speedStepsPerSecond, uint32_t timeoutMs,
                              float currentLimit,
-                             uint8_t confirmationSamples = 1) {
+                             uint8_t confirmationSamples = 1,
+                             uint32_t currentLimitSettleMs = 0) {
     CurrentProbe result;
     stepper->setAcceleration(kProbeAccelerationStepsPerSecondSquared);
     stepper->setSpeedInHz(speedStepsPerSecond);
@@ -79,9 +81,12 @@ CurrentProbe runCurrentProbe(int8_t sign, int32_t distanceSteps,
         const float load = readMotorLoadPercent();
         loadTotal += load;
         ++sampleCount;
-        result.peakLoad = std::max(result.peakLoad, load);
 
-        if (load >= currentLimit) {
+        const uint32_t elapsedMs = millis() - started;
+        if (elapsedMs >= currentLimitSettleMs) {
+            result.peakLoad = std::max(result.peakLoad, load);
+        }
+        if (elapsedMs >= currentLimitSettleMs && load >= currentLimit) {
             if (++samplesOverLimit >= confirmationSamples) {
                 result.hitHardLimit = true;
                 break;
@@ -90,7 +95,7 @@ CurrentProbe runCurrentProbe(int8_t sign, int32_t distanceSteps,
             samplesOverLimit = 0;
         }
         if (!stepper->isRunning()) break;
-        if (millis() - started >= timeoutMs) {
+        if (elapsedMs >= timeoutMs) {
             result.timedOut = true;
             break;
         }
@@ -150,10 +155,12 @@ bool probeAndEscapeHardStopImpl(ProbeDiagnostics* diagnostics) {
 
     const CurrentProbe negative = runCurrentProbe(
         -1, kWiggleDistanceSteps, kProbeSpeedStepsPerSecond,
-        kWiggleTimeoutMs, homingCurrentLimit, kContactConfirmationSamples);
+        kWiggleTimeoutMs, homingCurrentLimit, kContactConfirmationSamples,
+        kCurrentLimitSettleMs);
     const CurrentProbe positive = runCurrentProbe(
         1, kWiggleDistanceSteps, kProbeSpeedStepsPerSecond,
-        kWiggleTimeoutMs, homingCurrentLimit, kContactConfirmationSamples);
+        kWiggleTimeoutMs, homingCurrentLimit, kContactConfirmationSamples,
+        kCurrentLimitSettleMs);
     const homing_logic::ProbeDirection direction =
         homing_logic::chooseWiggleEscapeDirection(
             negative.averageLoad, positive.averageLoad, negative.hitHardLimit,
@@ -193,7 +200,8 @@ bool probeAndEscapeHardStopImpl(ProbeDiagnostics* diagnostics) {
     const int8_t sign = static_cast<int8_t>(direction);
     const CurrentProbe escape = runCurrentProbe(
         sign, kEscapeDistanceSteps, kEscapeSpeedStepsPerSecond,
-        kEscapeTimeoutMs, homingCurrentLimit, kContactConfirmationSamples);
+        kEscapeTimeoutMs, homingCurrentLimit, kContactConfirmationSamples,
+        kCurrentLimitSettleMs);
     if (diagnostics != nullptr) {
         diagnostics->escapeAverageLoad = escape.averageLoad;
         diagnostics->escapePeakLoad = escape.peakLoad;
@@ -269,6 +277,7 @@ static void startHomingTask(void *pvParameters) {
 
     ESP_LOGD("Homing", "Target position in steps: %d", targetPositionInSteps);
     stepper->moveTo(targetPositionInSteps, false);
+    const uint32_t homingMoveStartedMs = millis();
 
     auto isInCorrectState = []() {
         // Add any states that you want to support here.
@@ -299,6 +308,10 @@ static void startHomingTask(void *pvParameters) {
         float current = readMotorLoadPercent();
 
         ESP_LOGV("Homing", "Current: %f", current);
+        if (millis() - homingMoveStartedMs < kCurrentLimitSettleMs) {
+            vTaskDelay(10);
+            continue;
+        }
         bool isCurrentOverLimit = homing_logic::isCurrentOverLimit(
             current, 0, homingCurrentLimit);
 
