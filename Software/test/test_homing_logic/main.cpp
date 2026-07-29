@@ -96,7 +96,15 @@ void test_wiggle_escapes_the_current_limited_direction(void) {
             0.12f, 0.25f, false, true, 0.05f, 0.05f)));
 }
 
-void test_wiggle_rejects_two_current_limited_directions(void) {
+void test_wiggle_uses_lower_load_when_both_directions_are_current_limited(void) {
+    TEST_ASSERT_EQUAL_INT(
+        static_cast<int>(homing_logic::ProbeDirection::Negative),
+        static_cast<int>(homing_logic::chooseWiggleEscapeDirection(
+            4.399f, 10.476f, true, true, 0.05f, 0.05f,
+            homing_logic::ProbeDirection::Negative)));
+}
+
+void test_wiggle_rejects_ambiguous_two_sided_jam_without_fallback(void) {
     TEST_ASSERT_EQUAL_INT(
         static_cast<int>(homing_logic::ProbeDirection::Unsafe),
         static_cast<int>(homing_logic::chooseWiggleEscapeDirection(
@@ -205,7 +213,9 @@ int main(int argc, char **argv) {
     RUN_TEST(test_probe_signal_distinguishes_valid_tie_from_missing_feedback);
     RUN_TEST(test_wiggle_targets_span_fifteen_millimeters_of_travel);
     RUN_TEST(test_wiggle_escapes_the_current_limited_direction);
-    RUN_TEST(test_wiggle_rejects_two_current_limited_directions);
+    RUN_TEST(
+        test_wiggle_uses_lower_load_when_both_directions_are_current_limited);
+    RUN_TEST(test_wiggle_rejects_ambiguous_two_sided_jam_without_fallback);
     RUN_TEST(test_wiggle_uses_seed_direction_when_both_sides_complete);
     RUN_TEST(test_adaptive_current_limit_uses_free_direction);
 

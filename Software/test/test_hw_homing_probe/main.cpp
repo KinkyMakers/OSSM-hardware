@@ -53,6 +53,8 @@ void test_bounded_probe_finds_escape_direction(void) {
         diagnostics.positiveCompletionRatio, diagnostics.positiveElapsedMs,
         diagnostics.positiveHitHardLimit, diagnostics.direction,
         diagnostics.negativeTimedOut, diagnostics.positiveTimedOut);
+    Serial.printf("HOMING_PROBE_RESULT %s\n", message);
+    Serial.flush();
     TEST_ASSERT_TRUE_MESSAGE(safeDirectionFound, message);
 }
 

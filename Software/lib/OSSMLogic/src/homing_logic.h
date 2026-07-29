@@ -65,8 +65,10 @@ inline ProbeDirection chooseProbeEscapeDirection(
     const bool negativeBlocked = negativeLoad >= hardLimit;
     const bool positiveBlocked = positiveLoad >= hardLimit;
     if (negativeBlocked && positiveBlocked) return ProbeDirection::Unsafe;
-    if (negativeBlocked) return ProbeDirection::Positive;
-    if (positiveBlocked) return ProbeDirection::Negative;
+    if (negativeBlocked != positiveBlocked) {
+        return negativeBlocked ? ProbeDirection::Positive
+                               : ProbeDirection::Negative;
+    }
 
     if (std::abs(negativeLoad - positiveLoad) <= tieMargin) {
         return ProbeDirection::Unsafe;
@@ -82,9 +84,10 @@ inline ProbeDirection chooseWiggleEscapeDirection(
     float negativeLoad, float positiveLoad, bool negativeBlocked,
     bool positiveBlocked, float minimumSignal, float tieMargin,
     ProbeDirection tieFallback = ProbeDirection::Unsafe) {
-    if (negativeBlocked && positiveBlocked) return ProbeDirection::Unsafe;
-    if (negativeBlocked) return ProbeDirection::Positive;
-    if (positiveBlocked) return ProbeDirection::Negative;
+    if (negativeBlocked != positiveBlocked) {
+        return negativeBlocked ? ProbeDirection::Positive
+                               : ProbeDirection::Negative;
+    }
     const ProbeDirection measuredDirection = chooseProbeEscapeDirection(
         negativeLoad, positiveLoad, std::numeric_limits<float>::max(),
         minimumSignal, tieMargin);
