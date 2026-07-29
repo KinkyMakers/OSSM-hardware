@@ -34,7 +34,7 @@ static int speedOnLostConnection = 0;
 static const unsigned long RAMP_DURATION_MS =
     2000;  // Duration for speed ramp to zero
 static constexpr uint16_t STREAMING_CONNECTION_INTERVAL_MIN = 12;  // 15 ms
-static constexpr uint16_t STREAMING_CONNECTION_INTERVAL_MAX = 24;  // 30 ms
+static constexpr uint16_t STREAMING_CONNECTION_INTERVAL_MAX = 12;  // 15 ms
 static constexpr uint16_t STREAMING_CONNECTION_LATENCY = 0;
 static constexpr uint16_t STREAMING_CONNECTION_TIMEOUT = 200;  // 2 s
 static constexpr uint16_t STREAMING_DATA_LENGTH_OCTETS = 251;
