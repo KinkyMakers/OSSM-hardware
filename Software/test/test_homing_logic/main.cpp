@@ -21,6 +21,55 @@ void test_isCurrentOverLimit_exactly_at_threshold(void) {
     TEST_ASSERT_FALSE(homing_logic::isCurrentOverLimit(4.5f, 1.0f, 3.5f));
 }
 
+void test_probe_escapes_negative_hard_stop(void) {
+    TEST_ASSERT_EQUAL_INT(
+        static_cast<int>(homing_logic::ProbeDirection::Positive),
+        static_cast<int>(homing_logic::chooseProbeEscapeDirection(
+            7.0f, 1.0f, 6.0f, 0.15f, 0.25f)));
+}
+
+void test_probe_escapes_positive_hard_stop(void) {
+    TEST_ASSERT_EQUAL_INT(
+        static_cast<int>(homing_logic::ProbeDirection::Negative),
+        static_cast<int>(homing_logic::chooseProbeEscapeDirection(
+            1.0f, 7.0f, 6.0f, 0.15f, 0.25f)));
+}
+
+void test_probe_selects_lower_current_direction(void) {
+    TEST_ASSERT_EQUAL_INT(
+        static_cast<int>(homing_logic::ProbeDirection::Positive),
+        static_cast<int>(homing_logic::chooseProbeEscapeDirection(
+            3.0f, 1.0f, 6.0f, 0.15f, 0.25f)));
+}
+
+void test_probe_rejects_ambiguous_direction(void) {
+    TEST_ASSERT_EQUAL_INT(
+        static_cast<int>(homing_logic::ProbeDirection::Unsafe),
+        static_cast<int>(homing_logic::chooseProbeEscapeDirection(
+            1.0f, 1.2f, 6.0f, 0.15f, 0.25f)));
+}
+
+void test_probe_rejects_both_directions_blocked(void) {
+    TEST_ASSERT_EQUAL_INT(
+        static_cast<int>(homing_logic::ProbeDirection::Unsafe),
+        static_cast<int>(homing_logic::chooseProbeEscapeDirection(
+            7.0f, 8.0f, 6.0f, 0.15f, 0.25f)));
+}
+
+void test_probe_rejects_missing_current_feedback(void) {
+    TEST_ASSERT_EQUAL_INT(
+        static_cast<int>(homing_logic::ProbeDirection::Unsafe),
+        static_cast<int>(homing_logic::chooseProbeEscapeDirection(
+            0.01f, 0.02f, 6.0f, 0.15f, 0.25f)));
+}
+
+void test_adaptive_current_limit_uses_free_direction(void) {
+    TEST_ASSERT_EQUAL_FLOAT(
+        2.5f, homing_logic::adaptiveCurrentLimit(7.0f, 1.0f, 6.0f, 1.5f));
+    TEST_ASSERT_EQUAL_FLOAT(
+        6.0f, homing_logic::adaptiveCurrentLimit(5.0f, 7.0f, 6.0f, 1.5f));
+}
+
 // ─── calculateMeasuredStroke ───
 
 void test_calculateMeasuredStroke_positive_position(void) {
@@ -90,6 +139,13 @@ int main(int argc, char **argv) {
     RUN_TEST(test_isCurrentOverLimit_above_threshold);
     RUN_TEST(test_isCurrentOverLimit_below_threshold);
     RUN_TEST(test_isCurrentOverLimit_exactly_at_threshold);
+    RUN_TEST(test_probe_escapes_negative_hard_stop);
+    RUN_TEST(test_probe_escapes_positive_hard_stop);
+    RUN_TEST(test_probe_selects_lower_current_direction);
+    RUN_TEST(test_probe_rejects_ambiguous_direction);
+    RUN_TEST(test_probe_rejects_both_directions_blocked);
+    RUN_TEST(test_probe_rejects_missing_current_feedback);
+    RUN_TEST(test_adaptive_current_limit_uses_free_direction);
 
     RUN_TEST(test_calculateMeasuredStroke_positive_position);
     RUN_TEST(test_calculateMeasuredStroke_negative_position);

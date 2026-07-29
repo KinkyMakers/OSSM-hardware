@@ -9,11 +9,55 @@
 
 namespace homing_logic {
 
+enum class ProbeDirection : int8_t {
+    Unsafe = 0,
+    Negative = -1,
+    Positive = 1,
+};
+
 /// Check if measured current exceeds the sensorless homing threshold.
 /// homing.cpp lines 98-99
 inline bool isCurrentOverLimit(float currentReading, float offset,
                                float threshold) {
     return (currentReading - offset) > threshold;
+}
+
+/// Select the direction that is least likely to be pushing into a hard stop.
+/// Probe loads are magnitudes relative to the motor-off sensor offset.
+inline ProbeDirection chooseProbeEscapeDirection(
+    float negativeLoad, float positiveLoad, float hardLimit,
+    float minimumSignal, float tieMargin) {
+    if (!std::isfinite(negativeLoad) || !std::isfinite(positiveLoad) ||
+        hardLimit <= 0 || minimumSignal < 0 || tieMargin < 0) {
+        return ProbeDirection::Unsafe;
+    }
+
+    negativeLoad = std::abs(negativeLoad);
+    positiveLoad = std::abs(positiveLoad);
+    if (std::max(negativeLoad, positiveLoad) < minimumSignal) {
+        return ProbeDirection::Unsafe;
+    }
+
+    const bool negativeBlocked = negativeLoad >= hardLimit;
+    const bool positiveBlocked = positiveLoad >= hardLimit;
+    if (negativeBlocked && positiveBlocked) return ProbeDirection::Unsafe;
+    if (negativeBlocked) return ProbeDirection::Positive;
+    if (positiveBlocked) return ProbeDirection::Negative;
+
+    if (std::abs(negativeLoad - positiveLoad) <= tieMargin) {
+        return ProbeDirection::Unsafe;
+    }
+    return negativeLoad < positiveLoad ? ProbeDirection::Negative
+                                       : ProbeDirection::Positive;
+}
+
+/// Derive a contact threshold from the lower-current (freer) probe while
+/// retaining the configured absolute ceiling.
+inline float adaptiveCurrentLimit(float negativeLoad, float positiveLoad,
+                                  float hardLimit, float requiredRise) {
+    const float freeLoad =
+        std::min(std::abs(negativeLoad), std::abs(positiveLoad));
+    return std::min(hardLimit, std::max(requiredRise, freeLoad + requiredRise));
 }
 
 /// Calculate the measured stroke from the stepper's current position,

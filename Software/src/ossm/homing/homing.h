@@ -16,6 +16,13 @@ void clearHoming();
 void startHoming();
 
 /**
+ * Perform only the bounded current probes and selected-direction escape.
+ * This is public so the probe-only hardware test can validate current sensing
+ * without beginning full-stroke homing.
+ */
+bool probeAndEscapeHardStop();
+
+/**
  * Check if the measured stroke is too short
  * @return true if stroke is below minimum threshold
  */

@@ -186,6 +186,9 @@ struct SettingPercents {
 - **BLE disconnect:** Speed ramps down over 2s (not instant stop)
 - **Keepout boundaries:** Soft endstops prevent travel beyond safe range
 - **Home switch:** Calibration required before any operation mode
+- **Hard-stop escape:** Homing begins with two bounded low-speed current probes,
+  escapes in the lower-current direction, and aborts before long travel when
+  current feedback is absent or both directions appear blocked.
 
 ## Build Configuration
 
@@ -236,8 +239,10 @@ Uses `min_spiffs.csv` (PlatformIO built-in minimal SPIFFS partition).
 - Environment: `hw_test` (extends `development`, builds full `src/`)
 - Run all: `pio test -e hw_test`
 - Run one: `pio test -e hw_test -f test_hw_smoke`
-- Available suites: `test_hw_smoke`, `test_hw_homing`, `test_hw_homing_error`, `test_hw_pairing`, `test_hw_state_machine`, `test_hw_streaming_stress`, `test_hw_wifi`
+- Available suites: `test_hw_smoke`, `test_hw_homing`, `test_hw_homing_error`, `test_hw_homing_probe`, `test_hw_pairing`, `test_hw_state_machine`, `test_hw_streaming_stress`, `test_hw_wifi`
 - `test_hw_homing` moves the motor — keep the rail clear
+- `test_hw_homing_probe` moves at most 6 mm and validates the current-based
+  escape direction without starting full-stroke homing.
 - `hw_streaming_quick` inherits `hw_test` and runs four motion cases. Treat it
   as motion-capable even though it is a separate environment name.
 - Long-running hardware tests must emit a serial phase marker before homing or

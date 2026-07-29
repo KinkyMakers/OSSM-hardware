@@ -54,6 +54,8 @@ namespace ui {
             "Decrease the speed to begin playing.";
         static const char homingTookTooLong[] PROGMEM =
             "Homing took too long. Please check your wiring and try again.";
+        static const char homingProbeFailed[] PROGMEM =
+            "Homing stopped safely. Check motor power and current sensing.";
         static const char strokeTooShort[] PROGMEM =
             "Stroke too short. Please check you drive belt.";
         static const char inDevelopment[] PROGMEM =
