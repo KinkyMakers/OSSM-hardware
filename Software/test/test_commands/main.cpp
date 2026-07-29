@@ -157,6 +157,50 @@ void test_streamFastParser_rejects_trailing_or_missing_data() {
         missingDuration, sizeof(missingDuration) - 1, command));
 }
 
+void test_streamPackedParser_accepts_ordered_waypoints() {
+    const uint8_t wire[] = {
+        stream_command_parser::packedMagic0,
+        stream_command_parser::packedMagic1,
+        stream_command_parser::packedVersion,
+        3,
+        20, 25, 0,
+        80, 50, 0,
+        100, 0xFF, 0xFF,
+    };
+    stream_command_parser::PackedCommands packed;
+    TEST_ASSERT_TRUE(stream_command_parser::parsePacked(
+        wire, sizeof(wire), packed));
+    TEST_ASSERT_EQUAL_UINT32(3, packed.count);
+    TEST_ASSERT_EQUAL_UINT8(20, packed.commands[0].position);
+    TEST_ASSERT_EQUAL_UINT16(25, packed.commands[0].durationMilliseconds);
+    TEST_ASSERT_EQUAL_UINT8(80, packed.commands[1].position);
+    TEST_ASSERT_EQUAL_UINT16(50, packed.commands[1].durationMilliseconds);
+    TEST_ASSERT_EQUAL_UINT8(100, packed.commands[2].position);
+    TEST_ASSERT_EQUAL_UINT16(65535, packed.commands[2].durationMilliseconds);
+}
+
+void test_streamPackedParser_rejects_invalid_payloads_atomically() {
+    const uint8_t wrongLength[] = {
+        stream_command_parser::packedMagic0,
+        stream_command_parser::packedMagic1,
+        stream_command_parser::packedVersion,
+        2,
+        50, 25, 0,
+    };
+    const uint8_t invalidPosition[] = {
+        stream_command_parser::packedMagic0,
+        stream_command_parser::packedMagic1,
+        stream_command_parser::packedVersion,
+        1,
+        101, 25, 0,
+    };
+    stream_command_parser::PackedCommands packed;
+    TEST_ASSERT_FALSE(stream_command_parser::parsePacked(
+        wrongLength, sizeof(wrongLength), packed));
+    TEST_ASSERT_FALSE(stream_command_parser::parsePacked(
+        invalidPosition, sizeof(invalidPosition), packed));
+}
+
 // ---------------------------------------------------------------------------
 // parseWiFiCommand tests
 // ---------------------------------------------------------------------------
@@ -213,6 +257,8 @@ int main(int argc, char** argv) {
     RUN_TEST(test_streamFastParser_accepts_bounded_wire_command);
     RUN_TEST(test_streamFastParser_rejects_out_of_range_values);
     RUN_TEST(test_streamFastParser_rejects_trailing_or_missing_data);
+    RUN_TEST(test_streamPackedParser_accepts_ordered_waypoints);
+    RUN_TEST(test_streamPackedParser_rejects_invalid_payloads_atomically);
 
     // parseWiFiCommand
     RUN_TEST(test_parseWiFiCommand_valid);

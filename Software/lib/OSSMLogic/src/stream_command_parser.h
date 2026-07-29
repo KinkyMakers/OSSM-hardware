@@ -11,6 +11,49 @@ namespace stream_command_parser {
         uint16_t durationMilliseconds = 0;
     };
 
+    constexpr uint8_t packedMagic0 = 0xA5;
+    constexpr uint8_t packedMagic1 = 0x5A;
+    constexpr uint8_t packedVersion = 1;
+    constexpr size_t packedHeaderLength = 4;
+    constexpr size_t packedCommandLength = 3;
+    constexpr size_t maximumPackedCommands = 16;
+
+    struct PackedCommands {
+        Command commands[maximumPackedCommands]{};
+        size_t count = 0;
+    };
+
+    inline bool hasPackedPrefix(const uint8_t *data, size_t length) {
+        return data != nullptr && length >= 2 && data[0] == packedMagic0 &&
+               data[1] == packedMagic1;
+    }
+
+    inline bool parsePacked(const uint8_t *data, size_t length,
+                            PackedCommands &result) {
+        result = {};
+        if (!hasPackedPrefix(data, length) || length < packedHeaderLength ||
+            data[2] != packedVersion)
+            return false;
+
+        const size_t count = data[3];
+        if (count == 0 || count > maximumPackedCommands ||
+            length != packedHeaderLength + count * packedCommandLength)
+            return false;
+
+        for (size_t commandIndex = 0; commandIndex < count; ++commandIndex) {
+            const size_t offset =
+                packedHeaderLength + commandIndex * packedCommandLength;
+            const uint8_t position = data[offset];
+            const uint16_t duration =
+                static_cast<uint16_t>(data[offset + 1]) |
+                static_cast<uint16_t>(data[offset + 2]) << 8;
+            if (position > 100) return false;
+            result.commands[commandIndex] = {position, duration};
+        }
+        result.count = count;
+        return true;
+    }
+
     inline bool parse(const char *data, size_t length, Command &result) {
         constexpr char prefix[] = "stream:";
         constexpr size_t prefixLength = sizeof(prefix) - 1;
