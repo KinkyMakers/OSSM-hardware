@@ -15,7 +15,7 @@
 
 namespace stream_tuning_ble {
 
-    constexpr uint32_t kSchemaVersion = 1;
+    constexpr uint32_t kSchemaVersion = 2;
 
     inline void writeParameters(
         JsonObject object,
@@ -29,6 +29,10 @@ namespace stream_tuning_ble {
         object["momentumDecayMilliseconds"] =
             parameters.momentumDecayMilliseconds;
         object["maximumCoastFraction"] = parameters.maximumCoastFraction;
+        object["edgeRepulsionStrength"] =
+            parameters.edgeRepulsionStrength;
+        object["centerSpringStrength"] =
+            parameters.centerSpringStrength;
     }
 
     inline String responseJSON(streaming::TuningApplyStatus status) {
@@ -51,7 +55,7 @@ namespace stream_tuning_ble {
     }
 
     inline bool hasExactParameterKeys(JsonObjectConst object) {
-        static constexpr std::array<const char *, 7> keys = {
+        static constexpr std::array<const char *, 9> keys = {
             "schemaVersion",
             "jerkRampMilliseconds",
             "primeMilliseconds",
@@ -59,6 +63,8 @@ namespace stream_tuning_ble {
             "accelerationScale",
             "momentumDecayMilliseconds",
             "maximumCoastFraction",
+            "edgeRepulsionStrength",
+            "centerSpringStrength",
         };
         if (object.size() != keys.size()) return false;
         for (const char *key : keys)
@@ -81,7 +87,9 @@ namespace stream_tuning_ble {
             !object["executionHorizonMilliseconds"].is<uint32_t>() ||
             !object["accelerationScale"].is<double>() ||
             !object["momentumDecayMilliseconds"].is<uint32_t>() ||
-            !object["maximumCoastFraction"].is<double>())
+            !object["maximumCoastFraction"].is<double>() ||
+            !object["edgeRepulsionStrength"].is<double>() ||
+            !object["centerSpringStrength"].is<double>())
             return false;
         parameters.jerkRampMilliseconds =
             object["jerkRampMilliseconds"].as<uint32_t>();
@@ -95,6 +103,10 @@ namespace stream_tuning_ble {
             object["momentumDecayMilliseconds"].as<uint32_t>();
         parameters.maximumCoastFraction =
             object["maximumCoastFraction"].as<double>();
+        parameters.edgeRepulsionStrength =
+            object["edgeRepulsionStrength"].as<double>();
+        parameters.centerSpringStrength =
+            object["centerSpringStrength"].as<double>();
         return timed_streaming::validateTuningParameters(parameters) ==
                timed_streaming::TuningValidationError::None;
     }

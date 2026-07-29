@@ -201,6 +201,15 @@ struct SettingPercents {
 - **Emergency stop:** Long button press kills motor immediately
 - **BLE disconnect:** Speed ramps down over 2s (not instant stop)
 - **Keepout boundaries:** Soft endstops prevent travel beyond safe range
+- **Streaming edge barrier:** The 10%-guarded stroke/depth play range has a
+  tunable inward repulsion field plus a non-tunable jerk-aware stopping
+  envelope. Outward requests become subordinate to the field and reach zero
+  velocity before the guarded edge; the absolute clamp remains a final fault
+  containment layer.
+- **Streaming virtual mass:** Live direction reversals first dissipate the
+  current virtual momentum. During packet loss, the last four-point velocity
+  estimate evolves as a damped mass with bounded coast, the same edge field,
+  and a tunable spring toward the play-range center.
 - **Home switch:** Calibration required before any operation mode
 - **Hard-stop escape:** Homing begins with a current-limited move from 5 mm
   behind to 5 mm ahead of one fixed origin and aborts before long travel when

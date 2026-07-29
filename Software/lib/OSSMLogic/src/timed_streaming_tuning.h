@@ -16,6 +16,8 @@ namespace timed_streaming {
         double accelerationScale = 1.0;
         uint32_t momentumDecayMilliseconds = 200;
         double maximumCoastFraction = 0.08;
+        double edgeRepulsionStrength = 2.0;
+        double centerSpringStrength = 0.35;
     };
 
     struct TuningBounds {
@@ -31,6 +33,10 @@ namespace timed_streaming {
         static constexpr uint32_t maximumMomentumDecayMilliseconds = 500;
         static constexpr double minimumMaximumCoastFraction = 0.03;
         static constexpr double maximumMaximumCoastFraction = 0.09;
+        static constexpr double minimumEdgeRepulsionStrength = 0.5;
+        static constexpr double maximumEdgeRepulsionStrength = 4.0;
+        static constexpr double minimumCenterSpringStrength = 0.05;
+        static constexpr double maximumCenterSpringStrength = 1.0;
     };
 
     enum class TuningValidationError {
@@ -41,6 +47,8 @@ namespace timed_streaming {
         AccelerationScale,
         MomentumDecay,
         MaximumCoast,
+        EdgeRepulsion,
+        CenterSpring,
     };
 
     inline TuningValidationError validateTuningParameters(
@@ -77,6 +85,18 @@ namespace timed_streaming {
             parameters.maximumCoastFraction >
                 TuningBounds::maximumMaximumCoastFraction)
             return TuningValidationError::MaximumCoast;
+        if (!std::isfinite(parameters.edgeRepulsionStrength) ||
+            parameters.edgeRepulsionStrength <
+                TuningBounds::minimumEdgeRepulsionStrength ||
+            parameters.edgeRepulsionStrength >
+                TuningBounds::maximumEdgeRepulsionStrength)
+            return TuningValidationError::EdgeRepulsion;
+        if (!std::isfinite(parameters.centerSpringStrength) ||
+            parameters.centerSpringStrength <
+                TuningBounds::minimumCenterSpringStrength ||
+            parameters.centerSpringStrength >
+                TuningBounds::maximumCenterSpringStrength)
+            return TuningValidationError::CenterSpring;
         return TuningValidationError::None;
     }
 
@@ -89,14 +109,16 @@ namespace timed_streaming {
                left.accelerationScale == right.accelerationScale &&
                left.momentumDecayMilliseconds ==
                    right.momentumDecayMilliseconds &&
-               left.maximumCoastFraction == right.maximumCoastFraction;
+               left.maximumCoastFraction == right.maximumCoastFraction &&
+               left.edgeRepulsionStrength == right.edgeRepulsionStrength &&
+               left.centerSpringStrength == right.centerSpringStrength;
     }
 
     inline uint64_t tuningParametersHash(const TuningParameters &parameters) {
         // Hash a canonical fixed-point representation so the host and device
         // can identify an exact configuration without depending on JSON float
         // formatting or structure padding.
-        const std::array<uint64_t, 6> values = {
+        const std::array<uint64_t, 8> values = {
             parameters.jerkRampMilliseconds,
             parameters.primeMilliseconds,
             parameters.executionHorizonMilliseconds,
@@ -105,6 +127,10 @@ namespace timed_streaming {
             parameters.momentumDecayMilliseconds,
             static_cast<uint64_t>(
                 std::llround(parameters.maximumCoastFraction * 1000000.0)),
+            static_cast<uint64_t>(
+                std::llround(parameters.edgeRepulsionStrength * 1000000.0)),
+            static_cast<uint64_t>(
+                std::llround(parameters.centerSpringStrength * 1000000.0)),
         };
         uint64_t hash = 1469598103934665603ULL;
         for (uint64_t value : values) {

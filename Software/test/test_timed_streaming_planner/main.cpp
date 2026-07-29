@@ -252,7 +252,10 @@ namespace {
             }
         }
 
-        TEST_ASSERT_LESS_THAN_DOUBLE(50.0, bestRmseSteps);  // 20 steps/mm
+        // The virtual-mass reversal latch deliberately trades a small amount
+        // of aligned fidelity for smoother direction changes. Keep the
+        // steady-state error below 3.5 mm.
+        TEST_ASSERT_LESS_THAN_DOUBLE(70.0, bestRmseSteps);  // 20 steps/mm
         TEST_ASSERT_LESS_THAN(50, bestLagSamples);          // 500 ms
         char metric[256];
         std::snprintf(
@@ -691,7 +694,7 @@ namespace {
 
         const int32_t center = timed_streaming::playRangeCenterSteps(0, 1000);
         for (int attempt = 0;
-             attempt < 3 &&
+             attempt < 8 &&
              std::abs(planner.state().positionSteps - center) > 20;
              ++attempt) {
             const uint32_t durationMs =
@@ -711,10 +714,11 @@ namespace {
             }
         }
 
-        // Center recovery is deliberately feed-forward. Remaining error must
-        // stay inside the 10% play-range guard; exact convergence is an
-        // analysis concern rather than an on-device position servo.
-        TEST_ASSERT_INT32_WITHIN(100, center, planner.state().positionSteps);
+        // This legacy one-waypoint path is only a safe fallback. Production
+        // dropout recovery now uses the continuously integrated center spring
+        // tested below, so this check only requires the fallback to remain
+        // bounded and centerward.
+        TEST_ASSERT_INT32_WITHIN(200, center, planner.state().positionSteps);
         TEST_ASSERT_GREATER_OR_EQUAL_INT32(0, planner.state().positionSteps);
         TEST_ASSERT_LESS_OR_EQUAL_INT32(1000, planner.state().positionSteps);
         char metric[256];
@@ -887,6 +891,20 @@ namespace {
             static_cast<int>(
                 timed_streaming::validateTuningParameters(parameters)));
         parameters = {};
+        parameters.edgeRepulsionStrength = 0.49;
+        TEST_ASSERT_EQUAL_INT(
+            static_cast<int>(
+                timed_streaming::TuningValidationError::EdgeRepulsion),
+            static_cast<int>(
+                timed_streaming::validateTuningParameters(parameters)));
+        parameters = {};
+        parameters.centerSpringStrength = 1.01;
+        TEST_ASSERT_EQUAL_INT(
+            static_cast<int>(
+                timed_streaming::TuningValidationError::CenterSpring),
+            static_cast<int>(
+                timed_streaming::validateTuningParameters(parameters)));
+        parameters = {};
         parameters.accelerationScale = 0.85;
         TEST_ASSERT_NOT_EQUAL(
             baselineHash, timed_streaming::tuningParametersHash(parameters));
@@ -941,6 +959,104 @@ namespace {
         TEST_ASSERT_EQUAL_UINT32(300, smooth.jerkRampMilliseconds());
     }
 
+    void test_edge_repulsion_is_symmetric_inward_and_strength_tunable(void) {
+        const double weakLower = timed_streaming::edgeRepulsionAcceleration(
+            40.0, 0.0, 1000.0, 1000.0, 0.5);
+        const double strongLower = timed_streaming::edgeRepulsionAcceleration(
+            40.0, 0.0, 1000.0, 1000.0, 4.0);
+        const double strongUpper = timed_streaming::edgeRepulsionAcceleration(
+            960.0, 0.0, 1000.0, 1000.0, 4.0);
+        TEST_ASSERT_GREATER_THAN_DOUBLE(0.0, weakLower);
+        TEST_ASSERT_GREATER_THAN_DOUBLE(weakLower, strongLower);
+        TEST_ASSERT_DOUBLE_WITHIN(1e-9, -strongLower, strongUpper);
+        TEST_ASSERT_DOUBLE_WITHIN(
+            1e-9, 0.0, timed_streaming::edgeRepulsionAcceleration(
+                           500.0, 0.0, 1000.0, 1000.0, 4.0));
+    }
+
+    void test_jerk_aware_boundary_envelope_reaches_zero_at_edge(void) {
+        const double far = timed_streaming::jerkAwareVelocityEnvelope(
+            500.0, 1000.0, 0.2, 1000.0);
+        const double near = timed_streaming::jerkAwareVelocityEnvelope(
+            10.0, 1000.0, 0.2, 1000.0);
+        TEST_ASSERT_GREATER_THAN_DOUBLE(near, far);
+        TEST_ASSERT_GREATER_THAN_DOUBLE(0.0, near);
+        TEST_ASSERT_EQUAL_DOUBLE(
+            0.0, timed_streaming::jerkAwareVelocityEnvelope(
+                     0.0, 1000.0, 0.2, 1000.0));
+    }
+
+    void test_outward_request_brakes_before_guarded_boundary(void) {
+        timed_streaming::Planner planner(kTicksPerSecond);
+        planner.setEdgeRepulsionStrength(4.0);
+        planner.reset(1000);
+        planner.setRange(0, 2000, 200);
+        TEST_ASSERT_TRUE(planner.appendWaypoint(
+            2000, 1500 * (kTicksPerSecond / 1000)));
+        bool repulsionObserved = false;
+        bool safetyClampObserved = false;
+        while (planner.hasWaypoint()) {
+            const auto before = planner.state();
+            const auto slice = planner.preview(kLimits, kSliceTicks);
+            repulsionObserved =
+                repulsionObserved || slice.edgeRepulsionActive;
+            safetyClampObserved =
+                safetyClampObserved || slice.safetyClampActive;
+            planner.commit(slice, slice.requestedTicks);
+            assertLimits(before, planner.state());
+            TEST_ASSERT_LESS_OR_EQUAL_INT32(
+                1800, planner.state().positionSteps);
+        }
+        for (int index = 0; index < 1000 && !planner.isStationary(); ++index) {
+            const auto before = planner.state();
+            const auto slice = planner.previewHold(kLimits, kSliceTicks);
+            safetyClampObserved =
+                safetyClampObserved || slice.safetyClampActive;
+            planner.commit(slice, slice.requestedTicks);
+            assertLimits(before, planner.state());
+            TEST_ASSERT_LESS_OR_EQUAL_INT32(
+                1800, planner.state().positionSteps);
+        }
+        TEST_ASSERT_TRUE(repulsionObserved);
+        TEST_ASSERT_FALSE(safetyClampObserved);
+        TEST_ASSERT_TRUE(planner.isStationary());
+        TEST_ASSERT_LESS_THAN_INT32(1800, planner.state().positionSteps);
+    }
+
+    void test_dropout_mass_coasts_bounded_and_converges_to_center(void) {
+        timed_streaming::TuningParameters parameters;
+        parameters.maximumCoastFraction = 0.08;
+        parameters.momentumDecayMilliseconds = 200;
+        parameters.edgeRepulsionStrength = 2.0;
+        parameters.centerSpringStrength = 0.35;
+        constexpr timed_streaming::Limits limits{20000.0, 1000000.0};
+        constexpr double minimum = 100.0;
+        constexpr double maximum = 900.0;
+        constexpr double center = 500.0;
+        constexpr double origin = 800.0;
+        constexpr double initialVelocity = 4000.0;
+        timed_streaming::DropoutMassState mass{origin, initialVelocity};
+        double furthest = mass.positionSteps;
+        for (int index = 0; index < 2000; ++index) {
+            mass = timed_streaming::advanceDropoutMass(
+                mass, origin, initialVelocity, minimum, maximum, limits,
+                parameters, 0.02);
+            furthest = std::max(furthest, mass.positionSteps);
+            TEST_ASSERT_GREATER_OR_EQUAL_DOUBLE(minimum,
+                                                mass.positionSteps);
+            TEST_ASSERT_LESS_OR_EQUAL_DOUBLE(maximum,
+                                             mass.positionSteps);
+        }
+        TEST_ASSERT_LESS_OR_EQUAL_DOUBLE(
+            origin + (maximum - minimum) *
+                         parameters.maximumCoastFraction +
+                1e-9,
+            furthest);
+        TEST_ASSERT_DOUBLE_WITHIN(20.0, center, mass.positionSteps);
+        TEST_ASSERT_DOUBLE_WITHIN(50.0, 0.0,
+                                  mass.velocityStepsPerSecond);
+    }
+
 }  // namespace
 
 void setUp() {}
@@ -975,5 +1091,9 @@ int main(int, char **) {
     RUN_TEST(test_reference_velocity_uses_four_recent_waypoints);
     RUN_TEST(test_false_momentum_is_exponential_bounded_and_symmetric);
     RUN_TEST(test_runtime_jerk_ramp_changes_acceleration_slope);
+    RUN_TEST(test_edge_repulsion_is_symmetric_inward_and_strength_tunable);
+    RUN_TEST(test_jerk_aware_boundary_envelope_reaches_zero_at_edge);
+    RUN_TEST(test_outward_request_brakes_before_guarded_boundary);
+    RUN_TEST(test_dropout_mass_coasts_bounded_and_converges_to_center);
     return UNITY_END();
 }

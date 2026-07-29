@@ -37,7 +37,6 @@ namespace streaming {
         constexpr uint32_t kMinimumPrimeMilliseconds =
             2 * timed_streaming::kSliceMilliseconds;
         constexpr uint32_t kMomentumWaypointMilliseconds = 20;
-        constexpr uint32_t kFixedCenterBlendMilliseconds = 1000;
         constexpr uint32_t kFixedResumeBlendMilliseconds = 100;
 
         std::atomic<bool> streamingTaskActive{false};
@@ -70,24 +69,23 @@ namespace streaming {
 
         struct MomentumRecovery {
             bool active = false;
-            bool returningToCenter = false;
             uint32_t elapsedMilliseconds = 0;
-            uint32_t centerElapsedMilliseconds = 0;
             double originSteps = 0.0;
-            double coastEndpointSteps = 0.0;
             double initialVelocityStepsPerSecond = 0.0;
+            double virtualPositionSteps = 0.0;
+            double virtualVelocityStepsPerSecond = 0.0;
 
             void reset() { *this = {}; }
 
             void begin(double positionSteps,
                        double referenceVelocityStepsPerSecond) {
                 active = true;
-                returningToCenter = false;
                 elapsedMilliseconds = 0;
-                centerElapsedMilliseconds = 0;
                 originSteps = positionSteps;
-                coastEndpointSteps = positionSteps;
                 initialVelocityStepsPerSecond =
+                    referenceVelocityStepsPerSecond;
+                virtualPositionSteps = positionSteps;
+                virtualVelocityStepsPerSecond =
                     referenceVelocityStepsPerSecond;
             }
         };
@@ -337,7 +335,8 @@ namespace streaming {
         bool appendMomentumWaypoint(
             timed_streaming::Planner &planner, MomentumRecovery &momentum,
             const timed_streaming::Range &range,
-            const timed_streaming::TuningParameters &parameters) {
+            const timed_streaming::TuningParameters &parameters,
+            const timed_streaming::Limits &limits) {
             if (!momentum.active || !planner.canBufferWaypoint()) return false;
 
             const int32_t innerMinimum =
@@ -347,46 +346,36 @@ namespace streaming {
             const double center =
                 timed_streaming::playRangeCenterSteps(innerMinimum,
                                                       innerMaximum);
-            double target = momentum.coastEndpointSteps;
-            if (!momentum.returningToCenter) {
-                momentum.elapsedMilliseconds += kMomentumWaypointMilliseconds;
-                const double maximumCoastSteps =
-                    std::max(0, innerMaximum - innerMinimum) *
-                    parameters.maximumCoastFraction;
-                const double displacement =
-                    timed_streaming::boundedCoastDisplacement(
-                        momentum.initialVelocityStepsPerSecond,
-                        momentum.elapsedMilliseconds,
-                        parameters.momentumDecayMilliseconds,
-                        maximumCoastSteps);
-                target = momentum.originSteps + displacement;
-                target = std::max<double>(innerMinimum,
-                                          std::min<double>(innerMaximum,
-                                                           target));
-                momentum.coastEndpointSteps = target;
-                const uint32_t coastDuration =
-                    5 * parameters.momentumDecayMilliseconds;
-                if (momentum.elapsedMilliseconds >= coastDuration ||
-                    std::abs(displacement) >= maximumCoastSteps - 0.5) {
-                    momentum.returningToCenter = true;
-                    momentum.centerElapsedMilliseconds = 0;
-                }
-            } else {
-                momentum.centerElapsedMilliseconds +=
-                    kMomentumWaypointMilliseconds;
-                const double blend = timed_streaming::quinticBlend(
-                    momentum.centerElapsedMilliseconds /
-                    static_cast<double>(kFixedCenterBlendMilliseconds));
-                target = momentum.coastEndpointSteps +
-                         (center - momentum.coastEndpointSteps) * blend;
-                if (momentum.centerElapsedMilliseconds >=
-                    kFixedCenterBlendMilliseconds) {
-                    target = center;
-                    momentum.active = false;
-                }
+            const double dt = kMomentumWaypointMilliseconds / 1000.0;
+            momentum.elapsedMilliseconds += kMomentumWaypointMilliseconds;
+
+            // Dropout motion is a damped mass in a center-seeking potential.
+            // Its initial velocity carries the last four-point reference
+            // estimate forward, while exponential drag, the center spring,
+            // and the edge field continuously reshape the trajectory.
+            const auto nextMass = timed_streaming::advanceDropoutMass(
+                {momentum.virtualPositionSteps,
+                 momentum.virtualVelocityStepsPerSecond},
+                momentum.originSteps,
+                momentum.initialVelocityStepsPerSecond,
+                innerMinimum, innerMaximum, limits, parameters, dt);
+            momentum.virtualPositionSteps = nextMass.positionSteps;
+            momentum.virtualVelocityStepsPerSecond =
+                nextMass.velocityStepsPerSecond;
+            const double centerTolerance =
+                std::max(1.0, static_cast<double>(Config::Driver::stepsPerMM));
+            const double velocityTolerance = centerTolerance * 2.0;
+            if (std::abs(momentum.virtualPositionSteps - center) <=
+                    centerTolerance &&
+                std::abs(momentum.virtualVelocityStepsPerSecond) <=
+                    velocityTolerance) {
+                momentum.virtualPositionSteps = center;
+                momentum.virtualVelocityStepsPerSecond = 0.0;
+                momentum.active = false;
             }
             return planner.appendWaypoint(
-                static_cast<int32_t>(std::lround(target)),
+                static_cast<int32_t>(
+                    std::lround(momentum.virtualPositionSteps)),
                 static_cast<uint64_t>(kMomentumWaypointMilliseconds) *
                     kTicksPerMillisecond);
         }
@@ -659,6 +648,10 @@ namespace streaming {
                 tuning = currentTuningParameters();
                 planner.setJerkRampMilliseconds(
                     tuning.jerkRampMilliseconds);
+                planner.setMomentumDecayMilliseconds(
+                    tuning.momentumDecayMilliseconds);
+                planner.setEdgeRepulsionStrength(
+                    tuning.edgeRepulsionStrength);
 
                 const uint32_t speedLimit =
                     streaming_logic::calculateStreamingSpeedLimit(
@@ -794,7 +787,7 @@ namespace streaming {
                 while (momentum.active && planner.canBufferWaypoint() &&
                        planner.bufferedTicks() < syntheticBufferTarget) {
                     if (!appendMomentumWaypoint(planner, momentum, legalRange,
-                                                tuning))
+                                                tuning, limits))
                         break;
                 }
                 hasWaypoints = planner.hasWaypoint();
@@ -1054,7 +1047,7 @@ namespace streaming {
             "Streaming",
             "STREAM_TUNING event=applied revision=%u hash=%llu jerk_ms=%u "
             "prime_ms=%u horizon_ms=%u accel_scale=%.4f decay_ms=%u "
-            "max_coast=%.4f",
+            "max_coast=%.4f edge_strength=%.4f center_strength=%.4f",
             revision,
             static_cast<unsigned long long>(
                 timed_streaming::tuningParametersHash(parameters)),
@@ -1062,7 +1055,9 @@ namespace streaming {
             parameters.executionHorizonMilliseconds,
             parameters.accelerationScale,
             parameters.momentumDecayMilliseconds,
-            parameters.maximumCoastFraction);
+            parameters.maximumCoastFraction,
+            parameters.edgeRepulsionStrength,
+            parameters.centerSpringStrength);
         return TuningApplyStatus::Applied;
 #endif
     }

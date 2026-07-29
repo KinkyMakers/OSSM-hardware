@@ -37,6 +37,7 @@ namespace timed_streaming {
         double accelerationStepsPerSecondSquared = 0.0;
         double fractionalSteps = 0.0;
         int64_t timingCarryTicks = 0;
+        int8_t pendingVelocityDirection = 0;
     };
 
     struct Reference {
@@ -55,11 +56,122 @@ namespace timed_streaming {
         bool finishesWaypoint = false;
         bool holdSlice = false;
         bool boundaryEnvelopeActive = false;
+        bool edgeRepulsionActive = false;
         bool inwardRecoveryActive = false;
         bool safetyClampActive = false;
         double referenceErrorSteps = 0.0;
         double minimumRangeMarginSteps = 0.0;
     };
+
+    inline double jerkAwareVelocityEnvelope(
+        double distanceSteps, double accelerationStepsPerSecondSquared,
+        double jerkRampSeconds, double speedLimitStepsPerSecond) {
+        if (distanceSteps <= 0.0 ||
+            accelerationStepsPerSecondSquared <= 0.0 ||
+            speedLimitStepsPerSecond <= 0.0)
+            return 0.0;
+        const double acceleration = accelerationStepsPerSecondSquared;
+        const double ramp = std::max(0.0, jerkRampSeconds);
+        // Conservatively reserve one complete jerk-ramp interval before full
+        // braking. Solving d = v*t + v^2/(2*a) produces an envelope that
+        // continuously reaches zero at the boundary.
+        const double velocity = acceleration *
+            (std::sqrt(ramp * ramp + 2.0 * distanceSteps / acceleration) -
+             ramp);
+        return std::max(0.0,
+                        std::min(speedLimitStepsPerSecond, velocity));
+    }
+
+    inline double edgeRepulsionAcceleration(
+        double positionSteps, double innerMinimumSteps,
+        double innerMaximumSteps,
+        double accelerationLimitStepsPerSecondSquared, double strength) {
+        const double span = innerMaximumSteps - innerMinimumSteps;
+        if (span <= 0.0 || accelerationLimitStepsPerSecondSquared <= 0.0 ||
+            strength <= 0.0)
+            return 0.0;
+        // Begin the soft field inside the outer 15% of the guarded span. The
+        // separate stopping envelope can engage earlier when dynamics demand
+        // it, while ordinary mid-range tracking remains undistorted.
+        const double influenceDistance = std::max(1.0, span * 0.15);
+        const auto magnitude = [&](double distance) {
+            const double proximity = std::max(
+                0.0, std::min(1.0,
+                              1.0 - distance / influenceDistance));
+            return accelerationLimitStepsPerSecondSquared *
+                   (1.0 - std::exp(-3.0 * strength * proximity * proximity));
+        };
+        const double lowerDistance = positionSteps - innerMinimumSteps;
+        const double upperDistance = innerMaximumSteps - positionSteps;
+        return std::max(
+            -accelerationLimitStepsPerSecondSquared,
+            std::min(accelerationLimitStepsPerSecondSquared,
+                     magnitude(lowerDistance) - magnitude(upperDistance)));
+    }
+
+    struct DropoutMassState {
+        double positionSteps = 0.0;
+        double velocityStepsPerSecond = 0.0;
+    };
+
+    inline DropoutMassState advanceDropoutMass(
+        DropoutMassState state, double originSteps,
+        double initialVelocityStepsPerSecond, double innerMinimumSteps,
+        double innerMaximumSteps, const Limits &limits,
+        const TuningParameters &parameters, double dtSeconds) {
+        const double span =
+            std::max(1.0, innerMaximumSteps - innerMinimumSteps);
+        const double center =
+            (innerMinimumSteps + innerMaximumSteps) * 0.5;
+        const double halfSpan = span * 0.5;
+        const double dt = std::max(0.0, dtSeconds);
+        if (dt == 0.0) return state;
+        const double decaySeconds = std::max(
+            dt, parameters.momentumDecayMilliseconds / 1000.0);
+        const double dragAcceleration =
+            -state.velocityStepsPerSecond / decaySeconds;
+        const double springAcceleration =
+            parameters.centerSpringStrength *
+            limits.accelerationStepsPerSecondSquared *
+            (center - state.positionSteps) / halfSpan;
+        const double barrierAcceleration = edgeRepulsionAcceleration(
+            state.positionSteps, innerMinimumSteps, innerMaximumSteps,
+            limits.accelerationStepsPerSecondSquared,
+            parameters.edgeRepulsionStrength);
+        const double acceleration = std::max(
+            -limits.accelerationStepsPerSecondSquared,
+            std::min(limits.accelerationStepsPerSecondSquared,
+                     dragAcceleration + springAcceleration +
+                         barrierAcceleration));
+        state.velocityStepsPerSecond = std::max(
+            -limits.speedStepsPerSecond,
+            std::min(limits.speedStepsPerSecond,
+                     state.velocityStepsPerSecond + acceleration * dt));
+        state.positionSteps += state.velocityStepsPerSecond * dt;
+
+        const double maximumCoastSteps =
+            span * parameters.maximumCoastFraction;
+        const double displacement = state.positionSteps - originSteps;
+        if (initialVelocityStepsPerSecond * displacement > 0.0 &&
+            std::abs(displacement) > maximumCoastSteps) {
+            state.positionSteps = originSteps +
+                std::copysign(maximumCoastSteps, displacement);
+            if (initialVelocityStepsPerSecond *
+                    state.velocityStepsPerSecond >
+                0.0)
+                state.velocityStepsPerSecond = 0.0;
+        }
+        if (state.positionSteps <= innerMinimumSteps) {
+            state.positionSteps = innerMinimumSteps;
+            if (state.velocityStepsPerSecond < 0.0)
+                state.velocityStepsPerSecond = 0.0;
+        } else if (state.positionSteps >= innerMaximumSteps) {
+            state.positionSteps = innerMaximumSteps;
+            if (state.velocityStepsPerSecond > 0.0)
+                state.velocityStepsPerSecond = 0.0;
+        }
+        return state;
+    }
 
     // Sequential transactional follower for FastAccelStepper::moveTimed().
     // A preview never mutates state, so driver retries cannot duplicate motion
@@ -73,6 +185,14 @@ namespace timed_streaming {
 
         void setJerkRampMilliseconds(uint32_t value) {
             jerkRampMilliseconds_ = std::max<uint32_t>(1, value);
+        }
+
+        void setMomentumDecayMilliseconds(uint32_t value) {
+            momentumDecayMilliseconds_ = std::max<uint32_t>(1, value);
+        }
+
+        void setEdgeRepulsionStrength(double value) {
+            edgeRepulsionStrength_ = std::max(0.0, value);
         }
 
         uint32_t jerkRampMilliseconds() const {
@@ -290,8 +410,9 @@ namespace timed_streaming {
             // Lag and translation are fitted by the host analysis; firmware
             // only applies feed-forward, jerk/acceleration limits, and the hard
             // stopping envelope.
-            double desiredVelocity = hold ? 0.0 : feedforwardVelocity;
-            desiredVelocity = clamp(desiredVelocity, -speedLimit, speedLimit);
+            double requestedVelocity = hold ? 0.0 : feedforwardVelocity;
+            requestedVelocity =
+                clamp(requestedVelocity, -speedLimit, speedLimit);
 
             // Position is open-loop, but it can still begin outside the
             // guarded play range after a re-home, frame transition, or a
@@ -301,6 +422,7 @@ namespace timed_streaming {
             // final protection against any additional outward step.
             const bool belowInnerRange = position < innerMinimum;
             const bool aboveInnerRange = position > innerMaximum;
+            double desiredVelocity = requestedVelocity;
             if (belowInnerRange || aboveInnerRange) {
                 const double penetration =
                     belowInnerRange ? innerMinimum - position
@@ -311,6 +433,36 @@ namespace timed_streaming {
                 desiredVelocity = belowInnerRange ? recoverySpeed
                                                   : -recoverySpeed;
                 result.inwardRecoveryActive = true;
+            } else if (!hold) {
+                // A direction request cannot flip the virtual mass. Latch the
+                // reversal, dissipate the old momentum, and only then release
+                // motion in the newly requested direction. Persisting the
+                // latch in planner state prevents alternating short BLE
+                // segments from chattering around zero velocity.
+                int8_t pendingDirection =
+                    state_.pendingVelocityDirection;
+                if (pendingDirection == 0 &&
+                    state_.velocityStepsPerSecond * requestedVelocity < 0.0) {
+                    pendingDirection =
+                        requestedVelocity > 0.0 ? 1 : -1;
+                }
+                if (pendingDirection != 0) {
+                    const double releaseVelocity =
+                        std::max(0.5, speedLimit * 0.04);
+                    if (std::abs(state_.velocityStepsPerSecond) >
+                        releaseVelocity) {
+                        const double momentumSeconds =
+                            momentumDecayMilliseconds_ / 1000.0;
+                        desiredVelocity =
+                            state_.velocityStepsPerSecond *
+                            std::exp(-dt /
+                                     std::max(dt, momentumSeconds));
+                    } else {
+                        pendingDirection = 0;
+                        desiredVelocity = requestedVelocity;
+                    }
+                }
+                result.next.pendingVelocityDirection = pendingDirection;
             }
 
             // The stopping-distance envelope is normally inactive. It only
@@ -318,15 +470,42 @@ namespace timed_streaming {
             // that the configured acceleration could not stop in time.
             const double upperDistance = std::max(0.0, innerMaximum - position);
             const double lowerDistance = std::max(0.0, position - innerMinimum);
-            const double upperEnvelope = std::min(
-                speedLimit, std::sqrt(2.0 * accelerationLimit * upperDistance));
-            const double lowerEnvelope = std::min(
-                speedLimit, std::sqrt(2.0 * accelerationLimit * lowerDistance));
+            const double jerkRampSeconds =
+                jerkRampMilliseconds_ / 1000.0;
+            const double upperEnvelope = jerkAwareVelocityEnvelope(
+                upperDistance, accelerationLimit, jerkRampSeconds,
+                speedLimit);
+            const double lowerEnvelope = jerkAwareVelocityEnvelope(
+                lowerDistance, accelerationLimit, jerkRampSeconds,
+                speedLimit);
             const double unboundedVelocity = desiredVelocity;
             desiredVelocity =
                 clamp(desiredVelocity, -lowerEnvelope, upperEnvelope);
-            result.boundaryEnvelopeActive =
-                result.inwardRecoveryActive ||
+            const double repulsionAcceleration =
+                edgeRepulsionAcceleration(
+                    position, innerMinimum, innerMaximum, accelerationLimit,
+                    edgeRepulsionStrength_);
+            result.edgeRepulsionActive =
+                std::abs(repulsionAcceleration) > 1e-9;
+            if (result.edgeRepulsionActive && !result.inwardRecoveryActive) {
+                // Convert the potential gradient into a single-valued inward
+                // velocity field. Giving the field directional priority
+                // prevents a persistent outward request from fighting it on
+                // alternating 4 ms slices and producing edge chatter.
+                const double repulsionVelocity =
+                    std::copysign(
+                        speedLimit * 0.25 *
+                            std::abs(repulsionAcceleration) /
+                            accelerationLimit,
+                        repulsionAcceleration);
+                desiredVelocity = repulsionAcceleration > 0.0
+                    ? std::max(desiredVelocity, repulsionVelocity)
+                    : std::min(desiredVelocity, repulsionVelocity);
+                desiredVelocity =
+                    clamp(desiredVelocity, -lowerEnvelope, upperEnvelope);
+            }
+            result.boundaryEnvelopeActive = result.inwardRecoveryActive ||
+                result.edgeRepulsionActive ||
                 desiredVelocity != unboundedVelocity;
 
             double desiredAcceleration =
@@ -342,6 +521,14 @@ namespace timed_streaming {
             double nextVelocity =
                 clamp(state_.velocityStepsPerSecond + nextAcceleration * dt,
                       -speedLimit, speedLimit);
+            if (!belowInnerRange && !aboveInnerRange) {
+                // The force field supplies the smooth behavior. This
+                // independent velocity barrier is the non-tunable guarantee:
+                // no outward state can retain speed that cannot stop before
+                // the guarded play-range edge.
+                nextVelocity = clamp(nextVelocity, -lowerEnvelope,
+                                     upperEnvelope);
+            }
 
             // A hold is terminal: do not let braking acceleration create a
             // tiny reverse motion while its jerk-limited value returns to zero.
@@ -436,6 +623,8 @@ namespace timed_streaming {
 
         uint32_t ticksPerSecond_;
         uint32_t jerkRampMilliseconds_ = 200;
+        uint32_t momentumDecayMilliseconds_ = 200;
+        double edgeRepulsionStrength_ = 2.0;
         State state_{};
         Range range_{};
         std::array<Waypoint, kWaypointCapacity> waypoints_{};
