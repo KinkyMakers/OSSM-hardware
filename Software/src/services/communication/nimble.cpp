@@ -33,6 +33,11 @@ static long lostConnectionTime = 0;
 static int speedOnLostConnection = 0;
 static const unsigned long RAMP_DURATION_MS =
     2000;  // Duration for speed ramp to zero
+static constexpr uint16_t STREAMING_CONNECTION_INTERVAL_MIN = 12;  // 15 ms
+static constexpr uint16_t STREAMING_CONNECTION_INTERVAL_MAX = 24;  // 30 ms
+static constexpr uint16_t STREAMING_CONNECTION_LATENCY = 0;
+static constexpr uint16_t STREAMING_CONNECTION_TIMEOUT = 200;  // 2 s
+static constexpr uint16_t STREAMING_DATA_LENGTH_OCTETS = 251;
 
 void restartAdvertisingWithCurrentName() {
     const std::string deviceName = getDeviceName();
@@ -62,6 +67,20 @@ class ServerCallbacks : public NimBLEServerCallbacks {
                  connInfo.getAddress().toString().c_str());
         ESP_LOGI(NIMBLE_TAG, "Connection count: %d",
                  pServer->getConnectedCount());
+        ESP_LOGI(
+            NIMBLE_TAG,
+            "BLE_LINK event=connected handle=%u interval_units=%u "
+            "interval_ms=%.2f latency=%u timeout_ms=%u free_heap=%u",
+            connInfo.getConnHandle(), connInfo.getConnInterval(),
+            connInfo.getConnInterval() * 1.25f, connInfo.getConnLatency(),
+            connInfo.getConnTimeout() * 10,
+            static_cast<unsigned>(ESP.getFreeHeap()));
+        pServer->setDataLen(connInfo.getConnHandle(),
+                            STREAMING_DATA_LENGTH_OCTETS);
+        pServer->updateConnParams(
+            connInfo.getConnHandle(), STREAMING_CONNECTION_INTERVAL_MIN,
+            STREAMING_CONNECTION_INTERVAL_MAX,
+            STREAMING_CONNECTION_LATENCY, STREAMING_CONNECTION_TIMEOUT);
 
         // Set BLE connection status to true
         if (ossm) {
@@ -103,6 +122,20 @@ class ServerCallbacks : public NimBLEServerCallbacks {
     void onMTUChange(uint16_t MTU, NimBLEConnInfo& connInfo) override {
         ESP_LOGD(NIMBLE_TAG, "MTU changed to: %d for connection: %s", MTU,
                  connInfo.getAddress().toString().c_str());
+    }
+
+    void onConnParamsUpdate(NimBLEConnInfo& connInfo) override {
+        ESP_LOGI(
+            NIMBLE_TAG,
+            "BLE_LINK event=params_updated handle=%u interval_units=%u "
+            "interval_ms=%.2f latency=%u timeout_ms=%u mtu=%u free_heap=%u",
+            connInfo.getConnHandle(), connInfo.getConnInterval(),
+            connInfo.getConnInterval() * 1.25f, connInfo.getConnLatency(),
+            connInfo.getConnTimeout() * 10,
+            pServer == nullptr
+                ? 0
+                : pServer->getPeerMTU(connInfo.getConnHandle()),
+            static_cast<unsigned>(ESP.getFreeHeap()));
     }
 } serverCallbacks;
 
@@ -309,6 +342,13 @@ void initNimble() {
     /** Initialize NimBLE and set the device name */
     NimBLEDevice::init(getDeviceName());
     NimBLEDevice::setMTU(512);
+    ESP_LOGI(
+        NIMBLE_TAG,
+        "BLE_LINK event=initialized host_stack_bytes=%u msys_blocks=%u "
+        "preferred_mtu=%u free_heap=%u",
+        static_cast<unsigned>(CONFIG_BT_NIMBLE_HOST_TASK_STACK_SIZE),
+        static_cast<unsigned>(CONFIG_BT_NIMBLE_MSYS1_BLOCK_COUNT), 512U,
+        static_cast<unsigned>(ESP.getFreeHeap()));
 
     NimBLEDevice::setSecurityAuth(false, false, false);
     pServer = NimBLEDevice::createServer();
