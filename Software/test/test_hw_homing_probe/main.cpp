@@ -29,13 +29,26 @@ void tearDown(void) {
 void test_bounded_probe_finds_escape_direction(void) {
     homing::clearHoming();
     stepper->enableOutputs();
-    const bool safeDirectionFound = homing::probeAndEscapeHardStop();
+    homing::ProbeDiagnostics diagnostics;
+    const bool safeDirectionFound =
+        homing::probeAndEscapeHardStop(&diagnostics);
     stepper->forceStop();
     stepper->disableOutputs();
 
-    TEST_ASSERT_TRUE_MESSAGE(
-        safeDirectionFound,
-        "Direction probe was ambiguous, timed out, or lacked current feedback");
+    char message[384];
+    snprintf(
+        message, sizeof(message),
+        "negative_avg=%.3f negative_peak=%.3f positive_avg=%.3f "
+        "positive_peak=%.3f direction=%d limit=%.3f "
+        "negative_timeout=%d positive_timeout=%d escape_avg=%.3f "
+        "escape_peak=%.3f escape_hard_limit=%d escape_timeout=%d",
+        diagnostics.negativeAverageLoad, diagnostics.negativePeakLoad,
+        diagnostics.positiveAverageLoad, diagnostics.positivePeakLoad,
+        diagnostics.direction, diagnostics.adaptiveCurrentLimit,
+        diagnostics.negativeTimedOut, diagnostics.positiveTimedOut,
+        diagnostics.escapeAverageLoad, diagnostics.escapePeakLoad,
+        diagnostics.escapeHitHardLimit, diagnostics.escapeTimedOut);
+    TEST_ASSERT_TRUE_MESSAGE(safeDirectionFound, message);
 }
 
 void setup() {

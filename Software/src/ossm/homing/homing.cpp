@@ -105,7 +105,7 @@ void failHomingStopped(
     stateMachine->process_event(Error{});
 }
 
-bool probeAndEscapeHardStopImpl() {
+bool probeAndEscapeHardStopImpl(ProbeDiagnostics* diagnostics) {
     const CurrentProbe negative = runCurrentProbe(
         -1, kProbeDistanceSteps, kProbeSpeedStepsPerSecond, kProbeTimeoutMs);
     const CurrentProbe positive = runCurrentProbe(
@@ -118,6 +118,17 @@ bool probeAndEscapeHardStopImpl() {
     homingCurrentLimit = homing_logic::adaptiveCurrentLimit(
         negative.averageLoad, positive.averageLoad,
         Config::Driver::sensorlessCurrentLimit, kRequiredContactRise);
+
+    if (diagnostics != nullptr) {
+        diagnostics->negativeAverageLoad = negative.averageLoad;
+        diagnostics->negativePeakLoad = negative.peakLoad;
+        diagnostics->positiveAverageLoad = positive.averageLoad;
+        diagnostics->positivePeakLoad = positive.peakLoad;
+        diagnostics->adaptiveCurrentLimit = homingCurrentLimit;
+        diagnostics->direction = static_cast<int8_t>(direction);
+        diagnostics->negativeTimedOut = negative.timedOut;
+        diagnostics->positiveTimedOut = positive.timedOut;
+    }
 
     ESP_LOGI(
         "Homing",
@@ -137,6 +148,12 @@ bool probeAndEscapeHardStopImpl() {
     const CurrentProbe escape = runCurrentProbe(
         sign, kEscapeDistanceSteps, kEscapeSpeedStepsPerSecond,
         kEscapeTimeoutMs);
+    if (diagnostics != nullptr) {
+        diagnostics->escapeAverageLoad = escape.averageLoad;
+        diagnostics->escapePeakLoad = escape.peakLoad;
+        diagnostics->escapeTimedOut = escape.timedOut;
+        diagnostics->escapeHitHardLimit = escape.hitHardLimit;
+    }
     ESP_LOGI("Homing",
              "HOMING_ESCAPE direction=%d average=%.3f peak=%.3f "
              "hard_limit=%d timeout=%d",
@@ -148,7 +165,9 @@ bool probeAndEscapeHardStopImpl() {
 
 }  // namespace
 
-bool probeAndEscapeHardStop() { return probeAndEscapeHardStopImpl(); }
+bool probeAndEscapeHardStop(ProbeDiagnostics* diagnostics) {
+    return probeAndEscapeHardStopImpl(diagnostics);
+}
 
 void clearHoming() {
     ESP_LOGD("Homing", "Homing started");

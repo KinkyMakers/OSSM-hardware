@@ -1,7 +1,24 @@
 #ifndef OSSM_HOMING_HOMING_H
 #define OSSM_HOMING_HOMING_H
 
+#include <cstdint>
+
 namespace homing {
+
+struct ProbeDiagnostics {
+    float negativeAverageLoad = 0;
+    float negativePeakLoad = 0;
+    float positiveAverageLoad = 0;
+    float positivePeakLoad = 0;
+    float escapeAverageLoad = 0;
+    float escapePeakLoad = 0;
+    float adaptiveCurrentLimit = 0;
+    int8_t direction = 0;
+    bool negativeTimedOut = false;
+    bool positiveTimedOut = false;
+    bool escapeTimedOut = false;
+    bool escapeHitHardLimit = false;
+};
 
 /**
  * Clear and prepare for homing
@@ -20,7 +37,7 @@ void startHoming();
  * This is public so the probe-only hardware test can validate current sensing
  * without beginning full-stroke homing.
  */
-bool probeAndEscapeHardStop();
+bool probeAndEscapeHardStop(ProbeDiagnostics* diagnostics = nullptr);
 
 /**
  * Check if the measured stroke is too short
