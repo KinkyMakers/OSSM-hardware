@@ -618,8 +618,14 @@ namespace streaming {
 #endif
                 );
                 if (speedLimit == 0 || accelerationLimit == 0) {
+                    // A speed-zero command is an explicit stop boundary. BLE
+                    // writes already in flight can still arrive afterward;
+                    // discard them instead of letting the fixed input queue
+                    // fill and turn a safe stop into an input-overflow fault.
+                    // New waypoints are accepted normally as soon as both
+                    // limits become nonzero again.
+                    if (targetQueueSize() != 0) clearTargetQueue();
                     if (queueStarted || stepper->isRunning()) {
-                        clearTargetQueue();
                         stopTimedQueueImmediately();
                         waitingForStop = true;
                         preserveWaypointOnStop = false;

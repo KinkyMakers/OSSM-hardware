@@ -444,5 +444,5 @@ void initNimble() {
 
     xTaskCreatePinnedToCore(
         nimbleLoop, "nimbleLoop", 5 * configMINIMAL_STACK_SIZE, pServer,
-        configMAX_PRIORITIES - 1, nullptr, Tasks::stepperCore);
+        configMAX_PRIORITIES - 1, nullptr, Tasks::operationTaskCore);
 }
