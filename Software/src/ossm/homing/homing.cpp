@@ -23,15 +23,15 @@ namespace {
 
 constexpr int kHomingTaskStackSize = 5 * configMINIMAL_STACK_SIZE;
 constexpr int32_t kWiggleDistanceSteps = 5_mm;
-constexpr uint32_t kWiggleTimeoutMs = 3500;
-constexpr uint32_t kCurrentLimitSettleMs = 100;
-constexpr float kProbeSpeedStepsPerSecond = 2_mm;
-constexpr float kProbeAccelerationStepsPerSecondSquared = 100_mm;
+constexpr uint32_t kWiggleTimeoutMs = 1500;
+constexpr uint32_t kCurrentLimitSettleMs = 50;
+constexpr float kProbeSpeedStepsPerSecond = 10_mm;
+constexpr float kProbeAccelerationStepsPerSecondSquared = 1000_mm;
 constexpr float kSafeHomingSpeedStepsPerSecond = 5_mm;
 constexpr float kSafeHomingAccelerationStepsPerSecondSquared = 100_mm;
 constexpr float kMinimumProbeSignal = 0.05f;
 constexpr float kProbeTieMargin = 0.05f;
-constexpr float kWiggleCurrentLimit = 0.25f;
+constexpr float kWiggleCurrentLimit = 0.75f;
 constexpr uint8_t kContactConfirmationSamples = 3;
 
 float homingCurrentLimit = Config::Driver::sensorlessCurrentLimit;
@@ -39,6 +39,8 @@ float homingCurrentLimit = Config::Driver::sensorlessCurrentLimit;
 struct CurrentProbe {
     float averageLoad = 0;
     float peakLoad = 0;
+    float completionRatio = 0;
+    uint32_t elapsedMs = 0;
     bool hitHardLimit = false;
     bool timedOut = false;
 };
@@ -64,8 +66,9 @@ CurrentProbe runCurrentProbe(int8_t sign, int32_t distanceSteps,
     CurrentProbe result;
     stepper->setAcceleration(kProbeAccelerationStepsPerSecondSquared);
     stepper->setSpeedInHz(speedStepsPerSecond);
-    const int32_t target =
-        stepper->getCurrentPosition() + sign * distanceSteps;
+    const int32_t startedPosition = stepper->getCurrentPosition();
+    const int32_t target = startedPosition + sign * distanceSteps;
+    const int32_t requestedDistance = std::abs(target - startedPosition);
     stepper->moveTo(target, false);
 
     const uint32_t started = millis();
@@ -96,6 +99,15 @@ CurrentProbe runCurrentProbe(int8_t sign, int32_t distanceSteps,
         }
         vTaskDelay(pdMS_TO_TICKS(5));
     }
+    const int32_t reportedDistance =
+        std::abs(stepper->getCurrentPosition() - startedPosition);
+    result.completionRatio =
+        requestedDistance > 0
+            ? std::min(1.0f,
+                       static_cast<float>(reportedDistance) /
+                           static_cast<float>(requestedDistance))
+            : 1.0f;
+    result.elapsedMs = millis() - started;
     stopAtReportedPosition();
     result.averageLoad = sampleCount > 0 ? loadTotal / sampleCount : 0;
     vTaskDelay(pdMS_TO_TICKS(50));
@@ -147,8 +159,12 @@ bool probeAndEscapeHardStopImpl(ProbeDiagnostics* diagnostics) {
     if (diagnostics != nullptr) {
         diagnostics->negativeAverageLoad = negative.averageLoad;
         diagnostics->negativePeakLoad = negative.peakLoad;
+        diagnostics->negativeCompletionRatio = negative.completionRatio;
+        diagnostics->negativeElapsedMs = negative.elapsedMs;
         diagnostics->positiveAverageLoad = positive.averageLoad;
         diagnostics->positivePeakLoad = positive.peakLoad;
+        diagnostics->positiveCompletionRatio = positive.completionRatio;
+        diagnostics->positiveElapsedMs = positive.elapsedMs;
         diagnostics->direction = static_cast<int8_t>(direction);
         diagnostics->adaptiveCurrentLimit = homingCurrentLimit;
         diagnostics->negativeHitHardLimit = negative.hitHardLimit;
@@ -160,13 +176,16 @@ bool probeAndEscapeHardStopImpl(ProbeDiagnostics* diagnostics) {
     ESP_LOGI(
         "Homing",
         "HOMING_PROBE origin=%d positive_target=%d limit=%.3f "
-        "negative_avg=%.3f negative_peak=%.3f "
-        "positive_avg=%.3f positive_peak=%.3f direction=%d "
+        "negative_avg=%.3f negative_peak=%.3f negative_completion=%.3f "
+        "negative_ms=%u positive_avg=%.3f positive_peak=%.3f "
+        "positive_completion=%.3f positive_ms=%u direction=%d "
         "negative_blocked=%d positive_blocked=%d negative_timeout=%d "
         "positive_timeout=%d",
         wiggleOrigin, wiggleTargets.positive, homingCurrentLimit,
-        negative.averageLoad, negative.peakLoad, positive.averageLoad,
-        positive.peakLoad, static_cast<int>(direction),
+        negative.averageLoad, negative.peakLoad, negative.completionRatio,
+        negative.elapsedMs, positive.averageLoad, positive.peakLoad,
+        positive.completionRatio, positive.elapsedMs,
+        static_cast<int>(direction),
         negative.hitHardLimit, positive.hitHardLimit, negative.timedOut,
         positive.timedOut);
 

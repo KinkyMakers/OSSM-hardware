@@ -8,8 +8,12 @@ namespace homing {
 struct ProbeDiagnostics {
     float negativeAverageLoad = 0;
     float negativePeakLoad = 0;
+    float negativeCompletionRatio = 0;
+    uint32_t negativeElapsedMs = 0;
     float positiveAverageLoad = 0;
     float positivePeakLoad = 0;
+    float positiveCompletionRatio = 0;
+    uint32_t positiveElapsedMs = 0;
     float adaptiveCurrentLimit = 0;
     int8_t direction = 0;
     bool negativeHitHardLimit = false;

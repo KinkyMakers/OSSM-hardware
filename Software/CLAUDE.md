@@ -244,7 +244,8 @@ Uses `min_spiffs.csv` (PlatformIO built-in minimal SPIFFS partition).
 - Available suites: `test_hw_smoke`, `test_hw_homing`, `test_hw_homing_error`, `test_hw_homing_probe`, `test_hw_pairing`, `test_hw_state_machine`, `test_hw_streaming_stress`, `test_hw_wifi`
 - `test_hw_homing` moves the motor — keep the rail clear
 - `test_hw_homing_probe` travels from 5 mm behind to 5 mm ahead of one fixed
-  origin (15 mm total commanded travel) without starting full-stroke homing.
+  origin at 10 mm/s (15 mm total commanded travel) without starting
+  full-stroke homing.
 - `hw_streaming_quick` inherits `hw_test` and runs four motion cases. Treat it
   as motion-capable even though it is a separate environment name.
 - Long-running hardware tests must emit a serial phase marker before homing or
