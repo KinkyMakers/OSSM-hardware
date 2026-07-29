@@ -285,6 +285,7 @@ namespace timed_streaming {
             state_.accelerationStepsPerSecondSquared = 0.0;
             state_.fractionalSteps = 0.0;
             state_.timingCarryTicks = 0;
+            state_.pendingVelocityDirection = 0;
             referenceStartPositionSteps_ = actualPositionSteps;
             elapsedWaypointTicks_ = 0;
         }

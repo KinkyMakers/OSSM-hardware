@@ -494,6 +494,24 @@ namespace {
         TEST_MESSAGE(metric);
     }
 
+    void test_resynchronization_clears_pending_reversal(void) {
+        timed_streaming::Planner planner(kTicksPerSecond);
+        planner.reset(0);
+        planner.setRange(-20000, 20000, 0);
+        acceptWaypoint(planner, 10000, 1000);
+        TEST_ASSERT_GREATER_THAN_DOUBLE(
+            0.04 * kLimits.speedStepsPerSecond,
+            planner.state().velocityStepsPerSecond);
+
+        planner.beginWaypoint(-10000, kTicksPerSecond);
+        const auto reversal = planner.preview(kLimits, kSliceTicks);
+        planner.commit(reversal, reversal.requestedTicks);
+        TEST_ASSERT_NOT_EQUAL(0, planner.state().pendingVelocityDirection);
+
+        planner.stopAndResynchronize(planner.state().positionSteps);
+        TEST_ASSERT_EQUAL(0, planner.state().pendingVelocityDirection);
+    }
+
     void test_physically_possible_random_sequence(void) {
         timed_streaming::Planner planner(kTicksPerSecond);
         planner.reset(0);
@@ -1070,6 +1088,7 @@ int main(int, char **) {
     RUN_TEST(test_nominal_twenty_hertz_sine_restores_smooth_baseline);
     RUN_TEST(test_motion_lab_startup_sine_does_not_chatter);
     RUN_TEST(test_triangle_reversal_is_jerk_limited);
+    RUN_TEST(test_resynchronization_clears_pending_reversal);
     RUN_TEST(test_physically_possible_random_sequence);
     RUN_TEST(test_repeated_position_consumes_hold_without_snap);
     RUN_TEST(test_short_and_long_waypoints);
