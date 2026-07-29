@@ -142,6 +142,10 @@ Three operation modes:
 
 **Streaming Mode** — Real-time position from BLE (`stream:POS:TIME`)
 
+- Timed streaming is an on-device feed-forward velocity follower. Positional
+  lag and vertical translation are fitted only by the external Motion Lab
+  analysis; do not add a proportional position-correction term to firmware.
+
 ### StrokeEngine Library (`lib/StrokeEngine/`)
 
 Custom motion control library with its own state machine:

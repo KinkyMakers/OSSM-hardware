@@ -30,20 +30,65 @@ namespace streaming {
         constexpr uint32_t kSliceTicks =
             timed_streaming::kSliceMilliseconds * kTicksPerMillisecond;
         constexpr uint32_t kMaximumStepperQueueMilliseconds = 80;
-        // ticksInQueue() excludes the command currently executing. Keeping
-        // two slices of margin prevents a final append plus that active slice
-        // from exceeding the 80 ms cap.
-        constexpr uint32_t kStepperPendingTargetMilliseconds =
-            kMaximumStepperQueueMilliseconds -
-            2 * timed_streaming::kSliceMilliseconds;
         constexpr uint32_t kMaximumPrimeMilliseconds = 200;
         constexpr uint32_t kMaximumPlannerBufferMilliseconds = 200;
         constexpr uint32_t kMinimumPrimeMilliseconds =
             2 * timed_streaming::kSliceMilliseconds;
+        constexpr uint32_t kMomentumWaypointMilliseconds = 20;
+        constexpr uint32_t kFixedCenterBlendMilliseconds = 1000;
+        constexpr uint32_t kFixedResumeBlendMilliseconds = 100;
 
         std::atomic<bool> streamingTaskActive{false};
         std::atomic<bool> immediateStopRequested{false};
         std::atomic<uint32_t> immediateStopMicros{0};
+
+        portMUX_TYPE tuningMux = portMUX_INITIALIZER_UNLOCKED;
+        timed_streaming::TuningParameters activeTuning{};
+        uint32_t tuningRevision = 0;
+
+        timed_streaming::TuningParameters currentTuningParameters() {
+            portENTER_CRITICAL(&tuningMux);
+            const auto snapshot = activeTuning;
+            portEXIT_CRITICAL(&tuningMux);
+            return snapshot;
+        }
+
+        uint32_t executionHorizonMilliseconds(
+            const timed_streaming::TuningParameters &parameters) {
+#ifdef OSSM_STREAM_TUNING
+            return parameters.executionHorizonMilliseconds;
+#else
+            (void)parameters;
+            // ticksInQueue() excludes the command currently executing. Keep
+            // two slices of margin below the fixed 80 ms driver cap.
+            return kMaximumStepperQueueMilliseconds -
+                   2 * timed_streaming::kSliceMilliseconds;
+#endif
+        }
+
+        struct MomentumRecovery {
+            bool active = false;
+            bool returningToCenter = false;
+            uint32_t elapsedMilliseconds = 0;
+            uint32_t centerElapsedMilliseconds = 0;
+            double originSteps = 0.0;
+            double coastEndpointSteps = 0.0;
+            double initialVelocityStepsPerSecond = 0.0;
+
+            void reset() { *this = {}; }
+
+            void begin(double positionSteps,
+                       double referenceVelocityStepsPerSecond) {
+                active = true;
+                returningToCenter = false;
+                elapsedMilliseconds = 0;
+                centerElapsedMilliseconds = 0;
+                originSteps = positionSteps;
+                coastEndpointSteps = positionSteps;
+                initialVelocityStepsPerSecond =
+                    referenceVelocityStepsPerSecond;
+            }
+        };
 
         struct Diagnostics {
             uint32_t submittedSlices = 0;
@@ -67,10 +112,16 @@ namespace streaming {
             uint32_t centerRecoveryCompletions = 0;
         };
 
-        uint32_t requiredPrimeMilliseconds() {
+        uint32_t requiredPrimeMilliseconds(
+            const timed_streaming::TuningParameters &parameters) {
+#ifdef OSSM_STREAM_TUNING
+            return parameters.primeMilliseconds;
+#else
+            (void)parameters;
             return timed_streaming::requiredPrimeMilliseconds(
                 USE_LATENCY_COMPENSATION, settings.buffer,
                 kMinimumPrimeMilliseconds, kMaximumPrimeMilliseconds);
+#endif
         }
 
         uint32_t waypointAgeMilliseconds(const PositionTime &waypoint) {
@@ -174,6 +225,9 @@ namespace streaming {
             forceSpeedZero();
             clearTargetQueue();
             stopTimedQueueImmediately();
+#ifdef OSSM_STREAM_TUNING
+            resetTuningParameters();
+#endif
             ESP_LOGE(
                 "Streaming",
                 "STREAM_ERROR type=fatal reason=%s result=%d fatal_count=%u",
@@ -188,6 +242,9 @@ namespace streaming {
                                      PositionTime &oldestWaypoint,
                                      bool &hasOldestWaypoint,
                                      bool &acceptedInput,
+                                     bool &resumeBlendPending,
+                                     timed_streaming::ReferenceVelocityEstimator
+                                         &velocityEstimator,
                                      Diagnostics &diagnostics) {
             acceptedInput = false;
             while (
@@ -210,9 +267,18 @@ namespace streaming {
                     oldestWaypoint = candidate;
                     hasOldestWaypoint = true;
                 }
+                const int32_t mappedPosition =
+                    mapTargetPosition(candidate.position);
+                velocityEstimator.record(mappedPosition, candidate.inTime);
+                const uint32_t durationMilliseconds =
+                    resumeBlendPending
+                        ? std::max<uint32_t>(candidate.inTime,
+                                             kFixedResumeBlendMilliseconds)
+                        : candidate.inTime;
+                resumeBlendPending = false;
                 if (!planner.appendWaypoint(
-                        mapTargetPosition(candidate.position),
-                        static_cast<uint64_t>(candidate.inTime) *
+                        mappedPosition,
+                        static_cast<uint64_t>(durationMilliseconds) *
                             kTicksPerMillisecond)) {
                     fatalStop("planner_overflow", 0, diagnostics);
                     return false;
@@ -220,6 +286,63 @@ namespace streaming {
                 acceptedInput = true;
             }
             return planner.hasWaypoint();
+        }
+
+        bool appendMomentumWaypoint(
+            timed_streaming::Planner &planner, MomentumRecovery &momentum,
+            const timed_streaming::Range &range,
+            const timed_streaming::TuningParameters &parameters) {
+            if (!momentum.active || !planner.canBufferWaypoint()) return false;
+
+            const int32_t innerMinimum =
+                range.minimumSteps + range.guardSteps;
+            const int32_t innerMaximum =
+                range.maximumSteps - range.guardSteps;
+            const double center =
+                timed_streaming::playRangeCenterSteps(innerMinimum,
+                                                      innerMaximum);
+            double target = momentum.coastEndpointSteps;
+            if (!momentum.returningToCenter) {
+                momentum.elapsedMilliseconds += kMomentumWaypointMilliseconds;
+                const double maximumCoastSteps =
+                    std::max(0, innerMaximum - innerMinimum) *
+                    parameters.maximumCoastFraction;
+                const double displacement =
+                    timed_streaming::boundedCoastDisplacement(
+                        momentum.initialVelocityStepsPerSecond,
+                        momentum.elapsedMilliseconds,
+                        parameters.momentumDecayMilliseconds,
+                        maximumCoastSteps);
+                target = momentum.originSteps + displacement;
+                target = std::max<double>(innerMinimum,
+                                          std::min<double>(innerMaximum,
+                                                           target));
+                momentum.coastEndpointSteps = target;
+                const uint32_t coastDuration =
+                    5 * parameters.momentumDecayMilliseconds;
+                if (momentum.elapsedMilliseconds >= coastDuration ||
+                    std::abs(displacement) >= maximumCoastSteps - 0.5) {
+                    momentum.returningToCenter = true;
+                    momentum.centerElapsedMilliseconds = 0;
+                }
+            } else {
+                momentum.centerElapsedMilliseconds +=
+                    kMomentumWaypointMilliseconds;
+                const double blend = timed_streaming::quinticBlend(
+                    momentum.centerElapsedMilliseconds /
+                    static_cast<double>(kFixedCenterBlendMilliseconds));
+                target = momentum.coastEndpointSteps +
+                         (center - momentum.coastEndpointSteps) * blend;
+                if (momentum.centerElapsedMilliseconds >=
+                    kFixedCenterBlendMilliseconds) {
+                    target = center;
+                    momentum.active = false;
+                }
+            }
+            return planner.appendWaypoint(
+                static_cast<int32_t>(std::lround(target)),
+                static_cast<uint64_t>(kMomentumWaypointMilliseconds) *
+                    kTicksPerMillisecond);
         }
 
         uint32_t bufferedMilliseconds(const timed_streaming::Planner &planner) {
@@ -404,7 +527,9 @@ namespace streaming {
                        stateMachine->is("streaming.idle"_s);
             };
 
-            timed_streaming::Planner planner(TICKS_PER_S);
+            auto tuning = currentTuningParameters();
+            timed_streaming::Planner planner(
+                TICKS_PER_S, tuning.jerkRampMilliseconds);
             planner.reset(stepper->getCurrentPosition());
             auto legalRange = activeLegalRange();
             planner.setRange(legalRange.minimumSteps, legalRange.maximumSteps,
@@ -419,6 +544,9 @@ namespace streaming {
             bool waitingForStop = false;
             bool preserveWaypointOnStop = false;
             bool rebuffering = false;
+            bool resumeBlendPending = false;
+            timed_streaming::ReferenceVelocityEstimator velocityEstimator;
+            MomentumRecovery momentum;
             uint32_t observedOverflowCount = targetQueueOverflowCount();
             Diagnostics diagnostics{};
 
@@ -442,6 +570,9 @@ namespace streaming {
                     drainingToHold = false;
                     starvationActive = false;
                     recoveringToCenter = false;
+                    resumeBlendPending = false;
+                    velocityEstimator.reset();
+                    momentum.reset();
                 }
 
                 if (waitingForStop) {
@@ -468,6 +599,10 @@ namespace streaming {
                     waitingForStop = false;
                 }
 
+                tuning = currentTuningParameters();
+                planner.setJerkRampMilliseconds(
+                    tuning.jerkRampMilliseconds);
+
                 const uint32_t speedLimit = static_cast<uint32_t>(
                     Config::Driver::maxSpeedMmPerSecond *
                     Config::Driver::stepsPerMM *
@@ -475,7 +610,13 @@ namespace streaming {
                 const uint32_t accelerationLimit = static_cast<uint32_t>(
                     Config::Driver::maxAcceleration *
                     Config::Driver::stepsPerMM *
-                    std::max(0.0f, settings.sensation) / 100.0f);
+                    std::max(0.0f, settings.sensation) / 100.0f *
+#ifdef OSSM_STREAM_TUNING
+                    tuning.accelerationScale
+#else
+                    1.0
+#endif
+                );
                 if (speedLimit == 0 || accelerationLimit == 0) {
                     if (queueStarted || stepper->isRunning()) {
                         clearTargetQueue();
@@ -524,9 +665,13 @@ namespace streaming {
                 }
 
                 bool acceptedInput = false;
-                const bool hasWaypoints = fillSequentialWaypoints(
+#ifdef OSSM_STREAM_TUNING
+                if (momentum.active && targetQueueSize() != 0)
+                    resumeBlendPending = true;
+#endif
+                bool hasWaypoints = fillSequentialWaypoints(
                     planner, activeWaypoint, hasActiveWaypoint, acceptedInput,
-                    diagnostics);
+                    resumeBlendPending, velocityEstimator, diagnostics);
                 if (acceptedInput) {
                     hasEverStreamed = true;
                     if (starvationActive || drainingToHold) {
@@ -538,12 +683,52 @@ namespace streaming {
                     starvationActive = false;
                     drainingToHold = false;
                     recoveringToCenter = false;
+#ifdef OSSM_STREAM_TUNING
+                    momentum.reset();
+#endif
                 } else if (hasEverStreamed && targetQueueSize() == 0 &&
                            !hasWaypoints && !planner.isStationary()) {
+#ifdef OSSM_STREAM_TUNING
+                    if (!momentum.active) {
+                        momentum.begin(
+                            planner.state().continuousPositionSteps,
+                            velocityEstimator.velocityStepsPerSecond());
+                        starvationActive = true;
+                        ++diagnostics.starvationEvents;
+                        ESP_LOGI(
+                            "Streaming",
+                            "STREAM_DIAG event=momentum_start position=%d "
+                            "velocity_steps_s=%.3f decay_ms=%u coast_fraction=%.4f "
+                            "count=%u",
+                            planner.state().positionSteps,
+                            momentum.initialVelocityStepsPerSecond,
+                            tuning.momentumDecayMilliseconds,
+                            tuning.maximumCoastFraction,
+                            diagnostics.starvationEvents);
+                    }
+#else
                     // No reference remains. Append a single smooth braking
                     // tail behind already queued motion, then stop generating.
                     drainingToHold = true;
+#endif
                 }
+
+#ifdef OSSM_STREAM_TUNING
+                const uint64_t syntheticBufferTarget =
+                    static_cast<uint64_t>(
+                        executionHorizonMilliseconds(tuning)) *
+                    kTicksPerMillisecond;
+                while (momentum.active && planner.canBufferWaypoint() &&
+                       planner.bufferedTicks() < syntheticBufferTarget) {
+                    if (!appendMomentumWaypoint(planner, momentum, legalRange,
+                                                tuning))
+                        break;
+                }
+                hasWaypoints = planner.hasWaypoint();
+                if (starvationActive && !momentum.active && !hasWaypoints &&
+                    !planner.isStationary())
+                    drainingToHold = true;
+#endif
 
                 bool useHold = drainingToHold && !planner.hasWaypoint();
                 bool hasWork = planner.hasWaypoint() || useHold;
@@ -621,7 +806,8 @@ namespace streaming {
                     }
                     queueStarted = false;
 
-                    const uint32_t primeMs = requiredPrimeMilliseconds();
+                    const uint32_t primeMs =
+                        requiredPrimeMilliseconds(tuning);
                     if (!useHold && bufferedMilliseconds(planner) < primeMs &&
                         waypointAgeMilliseconds(activeWaypoint) < primeMs) {
                         vTaskDelay(1);
@@ -640,7 +826,7 @@ namespace streaming {
                     bool primingFatal = false;
                     bool primingStopped = false;
                     while (stepper->ticksInQueue() <
-                           kStepperPendingTargetMilliseconds *
+                           executionHorizonMilliseconds(tuning) *
                                kTicksPerMillisecond) {
                         if (useHold && planner.isStationary()) break;
                         const SubmitResult result = submitOneSlice(
@@ -688,7 +874,7 @@ namespace streaming {
                 }
 
                 while (stepper->ticksInQueue() <
-                       kStepperPendingTargetMilliseconds *
+                       executionHorizonMilliseconds(tuning) *
                            kTicksPerMillisecond) {
                     useHold = drainingToHold && !planner.hasWaypoint();
                     if (!planner.hasWaypoint() && !useHold) break;
@@ -722,11 +908,109 @@ namespace streaming {
             }
 
             streamingTaskActive.store(false, std::memory_order_release);
+#ifdef OSSM_STREAM_TUNING
+            resetTuningParameters();
+#endif
             logSummary(diagnostics);
             vTaskDelete(nullptr);
         }
 
     }  // namespace
+
+    const char *tuningApplyStatusName(TuningApplyStatus status) {
+        switch (status) {
+            case TuningApplyStatus::Applied:
+                return "applied";
+            case TuningApplyStatus::Unsupported:
+                return "unsupported";
+            case TuningApplyStatus::Invalid:
+                return "invalid";
+            case TuningApplyStatus::NotStreamingIdle:
+                return "not_streaming_idle";
+            case TuningApplyStatus::SpeedNotZero:
+                return "speed_not_zero";
+            case TuningApplyStatus::InputQueueNotEmpty:
+                return "input_queue_not_empty";
+            case TuningApplyStatus::StepperQueueNotEmpty:
+                return "stepper_queue_not_empty";
+        }
+        return "unknown";
+    }
+
+    TuningSnapshot tuningSnapshot() {
+        TuningSnapshot snapshot{};
+#ifdef OSSM_STREAM_TUNING
+        portENTER_CRITICAL(&tuningMux);
+        snapshot.parameters = activeTuning;
+        snapshot.revision = tuningRevision;
+        portEXIT_CRITICAL(&tuningMux);
+        snapshot.hash =
+            timed_streaming::tuningParametersHash(snapshot.parameters);
+        snapshot.supported = true;
+#endif
+        return snapshot;
+    }
+
+    TuningApplyStatus applyTuningParameters(
+        const timed_streaming::TuningParameters &parameters) {
+#ifndef OSSM_STREAM_TUNING
+        (void)parameters;
+        return TuningApplyStatus::Unsupported;
+#else
+        if (timed_streaming::validateTuningParameters(parameters) !=
+            timed_streaming::TuningValidationError::None)
+            return TuningApplyStatus::Invalid;
+        if (stateMachine == nullptr ||
+            !stateMachine->is("streaming.idle"_s))
+            return TuningApplyStatus::NotStreamingIdle;
+        if (settings.speed != 0 || settings.speedBLE.value_or(0) != 0)
+            return TuningApplyStatus::SpeedNotZero;
+        if (targetQueueSize() != 0)
+            return TuningApplyStatus::InputQueueNotEmpty;
+        if (stepper == nullptr || stepper->isRunning() ||
+            !stepper->isQueueEmpty())
+            return TuningApplyStatus::StepperQueueNotEmpty;
+
+        portENTER_CRITICAL(&tuningMux);
+        activeTuning = parameters;
+        ++tuningRevision;
+        const uint32_t revision = tuningRevision;
+        portEXIT_CRITICAL(&tuningMux);
+        ESP_LOGI(
+            "Streaming",
+            "STREAM_TUNING event=applied revision=%u hash=%llu jerk_ms=%u "
+            "prime_ms=%u horizon_ms=%u accel_scale=%.4f decay_ms=%u "
+            "max_coast=%.4f",
+            revision,
+            static_cast<unsigned long long>(
+                timed_streaming::tuningParametersHash(parameters)),
+            parameters.jerkRampMilliseconds, parameters.primeMilliseconds,
+            parameters.executionHorizonMilliseconds,
+            parameters.accelerationScale,
+            parameters.momentumDecayMilliseconds,
+            parameters.maximumCoastFraction);
+        return TuningApplyStatus::Applied;
+#endif
+    }
+
+    void resetTuningParameters() {
+#ifdef OSSM_STREAM_TUNING
+        const timed_streaming::TuningParameters defaults{};
+        portENTER_CRITICAL(&tuningMux);
+        const bool changed =
+            !timed_streaming::tuningParametersEqual(activeTuning, defaults);
+        activeTuning = defaults;
+        if (changed) ++tuningRevision;
+        const uint32_t revision = tuningRevision;
+        portEXIT_CRITICAL(&tuningMux);
+        if (changed)
+            ESP_LOGI("Streaming",
+                     "STREAM_TUNING event=reset revision=%u hash=%llu",
+                     revision,
+                     static_cast<unsigned long long>(
+                         timed_streaming::tuningParametersHash(defaults)));
+#endif
+    }
 
     void requestImmediateStop() {
         // Clearing here establishes ordering: waypoints received after the

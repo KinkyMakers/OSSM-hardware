@@ -5,9 +5,11 @@ and the three-byte Fleshlight Launch/FTS characteristic. Both producers write
 the same 64-entry static FreeRTOS queue.
 
 The Streaming task follows buffered waypoints sequentially and converts the
-reference into 4 ms `moveTimed()` slices. Position correction is limited by
-configured speed, sensation-scaled acceleration, a 40 ms jerk ramp, and a
-stopping-distance boundary envelope. Sub-step position and duration rounding
+feed-forward reference into 4 ms `moveTimed()` slices. Configured speed,
+sensation-scaled acceleration, a jerk ramp, and a stopping-distance boundary
+envelope limit that reference. Positional lag and vertical offset are measured
+and aligned only by the external analysis tooling; the firmware does not apply
+proportional position correction. Sub-step position and duration rounding
 errors are carried, and a slice is committed only after FastAccelStepper
 accepts it.
 
@@ -24,7 +26,10 @@ normal re-priming.
 
 With latency compensation enabled, execution waits for `buffer * 2` ms of
 future waypoints, clamped to 8–200 ms. Without compensation it waits for two
-slices. No more than 80 ms is submitted to FastAccelStepper at once.
+slices. Normal builds submit no more than 72 ms to FastAccelStepper at once.
+The temporary `OSSM_STREAM_TUNING` build can alter the prime duration,
+execution horizon, jerk ramp, acceleration scale, momentum decay, and maximum
+coast while stopped; hard range and stopping constraints remain fixed.
 
 `set:speed:0` signals `forceStop()` directly from the BLE command handler,
 flushes the timed queue while retaining motor hold, clears older waypoints, and

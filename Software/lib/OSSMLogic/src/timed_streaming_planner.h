@@ -7,11 +7,11 @@
 #include <cstdint>
 #include <limits>
 
+#include "timed_streaming_tuning.h"
+
 namespace timed_streaming {
 
     constexpr uint32_t kSliceMilliseconds = 4;
-    constexpr uint32_t kJerkRampMilliseconds = 200;
-    constexpr uint32_t kPositionCorrectionMilliseconds = 400;
     constexpr size_t kWaypointCapacity = 64;
 
     struct Limits {
@@ -65,8 +65,18 @@ namespace timed_streaming {
     // or consume reference time.
     class Planner {
       public:
-        explicit Planner(uint32_t ticksPerSecond)
-            : ticksPerSecond_(ticksPerSecond) {}
+        explicit Planner(uint32_t ticksPerSecond,
+                         uint32_t jerkRampMilliseconds = 200)
+            : ticksPerSecond_(ticksPerSecond),
+              jerkRampMilliseconds_(jerkRampMilliseconds) {}
+
+        void setJerkRampMilliseconds(uint32_t value) {
+            jerkRampMilliseconds_ = std::max<uint32_t>(1, value);
+        }
+
+        uint32_t jerkRampMilliseconds() const {
+            return jerkRampMilliseconds_;
+        }
 
         void reset(int32_t positionSteps) {
             state_ = {};
@@ -272,19 +282,14 @@ namespace timed_streaming {
                     ticksToSeconds(std::max<uint64_t>(
                         1, waypoints_[0].durationTicks));
             }
-            const double error = referencePosition - position;
-            result.referenceErrorSteps = error;
+            result.referenceErrorSteps = referencePosition - position;
 
-            // Follow the source trajectory independently of actuator lag.
-            // Feed-forward carries the requested segment velocity while a
-            // deliberately soft position term removes accumulated error.
-            // This avoids treating every short BLE waypoint as a deadline and
-            // repeatedly reversing around it.
-            const double correctionSeconds =
-                kPositionCorrectionMilliseconds / 1000.0;
-            double desiredVelocity =
-                hold ? 0.0
-                     : feedforwardVelocity + error / correctionSeconds;
+            // Streaming intentionally follows reference velocity rather than
+            // closing a proportional position loop on every short BLE segment.
+            // Lag and translation are fitted by the host analysis; firmware
+            // only applies feed-forward, jerk/acceleration limits, and the hard
+            // stopping envelope.
+            double desiredVelocity = hold ? 0.0 : feedforwardVelocity;
             desiredVelocity = clamp(desiredVelocity, -speedLimit, speedLimit);
 
             // The stopping-distance envelope is normally inactive. It only
@@ -307,7 +312,7 @@ namespace timed_streaming {
             desiredAcceleration = clamp(desiredAcceleration, -accelerationLimit,
                                         accelerationLimit);
             const double jerkLimit =
-                accelerationLimit / (kJerkRampMilliseconds / 1000.0);
+                accelerationLimit / (jerkRampMilliseconds_ / 1000.0);
             double nextAcceleration =
                 clamp(moveToward(state_.accelerationStepsPerSecondSquared,
                                  desiredAcceleration, jerkLimit * dt),
@@ -407,6 +412,7 @@ namespace timed_streaming {
         }
 
         uint32_t ticksPerSecond_;
+        uint32_t jerkRampMilliseconds_ = 200;
         State state_{};
         Range range_{};
         std::array<Waypoint, kWaypointCapacity> waypoints_{};

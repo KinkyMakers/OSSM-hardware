@@ -19,6 +19,9 @@
 #include "rename.hpp"
 #include "services/led.h"
 #include "state.hpp"
+#ifdef OSSM_STREAM_TUNING
+#include "tuning.hpp"
+#endif
 #include "wifi.hpp"
 
 // Define the global variables
@@ -104,6 +107,9 @@ class ServerCallbacks : public NimBLEServerCallbacks {
             ossm->ble_click("go:menu");
         }
         radBleServer.onDisconnect(connInfo.getConnHandle());
+#ifdef OSSM_STREAM_TUNING
+        streaming::resetTuningParameters();
+#endif
 
         // Capture current speed when connection is lost
         speedOnLostConnection = ossm->getSpeed();
@@ -373,6 +379,11 @@ void initNimble() {
 
     initRenameConfigCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_RENAME_CONFIG_UUID));
+
+#ifdef OSSM_STREAM_TUNING
+    stream_tuning_ble::init(
+        pService, NimBLEUUID(CHARACTERISTIC_STREAM_TUNING_UUID));
+#endif
 
     pStateCharacteristic = initStateCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_STATE_UUID));
