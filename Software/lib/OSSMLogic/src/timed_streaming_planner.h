@@ -10,7 +10,8 @@
 namespace timed_streaming {
 
     constexpr uint32_t kSliceMilliseconds = 4;
-    constexpr uint32_t kJerkRampMilliseconds = 40;
+    constexpr uint32_t kJerkRampMilliseconds = 200;
+    constexpr uint32_t kPositionCorrectionMilliseconds = 400;
     constexpr size_t kWaypointCapacity = 64;
 
     struct Limits {
@@ -71,6 +72,7 @@ namespace timed_streaming {
             state_ = {};
             state_.positionSteps = positionSteps;
             state_.continuousPositionSteps = positionSteps;
+            referenceStartPositionSteps_ = positionSteps;
             elapsedWaypointTicks_ = 0;
             waypointCount_ = 0;
         }
@@ -152,17 +154,27 @@ namespace timed_streaming {
             state_.accelerationStepsPerSecondSquared = 0.0;
             state_.fractionalSteps = 0.0;
             state_.timingCarryTicks = 0;
+            referenceStartPositionSteps_ = actualPositionSteps;
+            elapsedWaypointTicks_ = 0;
         }
 
         Reference referenceAt(uint64_t) const {
             if (!hasWaypoint())
                 return {state_.continuousPositionSteps, 0.0, 0.0};
-            const double remainingSeconds =
-                ticksToSeconds(std::max<uint64_t>(1, remainingWaypointTicks()));
-            const double error =
-                waypoints_[0].positionSteps - state_.continuousPositionSteps;
-            return {static_cast<double>(waypoints_[0].positionSteps),
-                    error / remainingSeconds, 0.0};
+            const double durationTicks =
+                static_cast<double>(waypoints_[0].durationTicks);
+            const double progress =
+                durationTicks > 0
+                    ? std::min(1.0, elapsedWaypointTicks_ / durationTicks)
+                    : 1.0;
+            const double distance =
+                waypoints_[0].positionSteps - referenceStartPositionSteps_;
+            return {
+                referenceStartPositionSteps_ + distance * progress,
+                distance /
+                    ticksToSeconds(
+                        std::max<uint64_t>(1, waypoints_[0].durationTicks)),
+                0.0};
         }
 
         Slice preview(const Limits &limits,
@@ -181,6 +193,8 @@ namespace timed_streaming {
             state_.timingCarryTicks = slice.next.timingCarryTicks +
                                       slice.nominalTicks - actualDurationTicks;
             if (slice.finishesWaypoint && hasWaypoint()) {
+                referenceStartPositionSteps_ =
+                    waypoints_[0].positionSteps;
                 for (size_t index = 1; index < waypointCount_; ++index)
                     waypoints_[index - 1] = waypoints_[index];
                 --waypointCount_;
@@ -236,22 +250,41 @@ namespace timed_streaming {
                 hold ? position
                      : clamp(static_cast<double>(waypoints_[0].positionSteps),
                              innerMinimum, innerMaximum);
-            const double remainingSeconds =
-                hold ? dt
-                     : ticksToSeconds(std::max<uint64_t>(
-                           result.nominalTicks, remainingWaypointTicks()));
-            const double error = target - position;
+            double referencePosition = position;
+            double feedforwardVelocity = 0.0;
+            if (!hold) {
+                const double durationTicks =
+                    static_cast<double>(waypoints_[0].durationTicks);
+                const double endProgress =
+                    durationTicks > 0
+                        ? std::min(
+                              1.0,
+                              (elapsedWaypointTicks_ + result.nominalTicks) /
+                                  durationTicks)
+                        : 1.0;
+                const double referenceDistance =
+                    target - referenceStartPositionSteps_;
+                referencePosition =
+                    referenceStartPositionSteps_ +
+                    referenceDistance * endProgress;
+                feedforwardVelocity =
+                    referenceDistance /
+                    ticksToSeconds(std::max<uint64_t>(
+                        1, waypoints_[0].durationTicks));
+            }
+            const double error = referencePosition - position;
             result.referenceErrorSteps = error;
 
-            // Preserve the smooth July 20 16:05 follower: once a waypoint has
-            // less than one jerk-ramp remaining, carry its residual forward
-            // instead of demanding an increasingly large velocity correction
-            // at the BLE packet cadence.
+            // Follow the source trajectory independently of actuator lag.
+            // Feed-forward carries the requested segment velocity while a
+            // deliberately soft position term removes accumulated error.
+            // This avoids treating every short BLE waypoint as a deadline and
+            // repeatedly reversing around it.
             const double correctionSeconds =
-                hold ? dt
-                     : std::max(remainingSeconds,
-                                kJerkRampMilliseconds / 1000.0);
-            double desiredVelocity = hold ? 0.0 : error / correctionSeconds;
+                kPositionCorrectionMilliseconds / 1000.0;
+            double desiredVelocity =
+                hold ? 0.0
+                     : feedforwardVelocity + error / correctionSeconds;
             desiredVelocity = clamp(desiredVelocity, -speedLimit, speedLimit);
 
             // The stopping-distance envelope is normally inactive. It only
@@ -296,13 +329,11 @@ namespace timed_streaming {
                 (state_.velocityStepsPerSecond + nextVelocity) * 0.5 * dt;
             const double desiredContinuousPosition = position + continuousDelta;
             double boundedContinuousPosition = desiredContinuousPosition;
-            if (position >= range_.minimumSteps &&
-                position <= range_.maximumSteps) {
+            if (position >= innerMinimum && position <= innerMaximum) {
                 boundedContinuousPosition =
                     clamp(desiredContinuousPosition,
-                          static_cast<double>(range_.minimumSteps),
-                          static_cast<double>(range_.maximumSteps));
-            } else if (position < range_.minimumSteps) {
+                          innerMinimum, innerMaximum);
+            } else if (position < innerMinimum) {
                 boundedContinuousPosition =
                     std::max(desiredContinuousPosition, position);
             } else {
@@ -316,17 +347,20 @@ namespace timed_streaming {
                 boundedContinuousPosition - position + state_.fractionalSteps;
             long roundedSteps = std::lround(stepAccumulator);
             const int64_t minimumAllowed =
-                static_cast<int64_t>(range_.minimumSteps) -
+                static_cast<int64_t>(range_.minimumSteps + range_.guardSteps) -
                 state_.positionSteps;
             const int64_t maximumAllowed =
-                static_cast<int64_t>(range_.maximumSteps) -
+                static_cast<int64_t>(range_.maximumSteps - range_.guardSteps) -
                 state_.positionSteps;
-            if (state_.positionSteps >= range_.minimumSteps &&
-                state_.positionSteps <= range_.maximumSteps) {
+            if (state_.positionSteps >=
+                    range_.minimumSteps + range_.guardSteps &&
+                state_.positionSteps <=
+                    range_.maximumSteps - range_.guardSteps) {
                 roundedSteps = static_cast<long>(std::max<int64_t>(
                     minimumAllowed,
                     std::min<int64_t>(maximumAllowed, roundedSteps)));
-            } else if (state_.positionSteps < range_.minimumSteps) {
+            } else if (state_.positionSteps <
+                       range_.minimumSteps + range_.guardSteps) {
                 roundedSteps = std::max<long>(0, roundedSteps);
             } else {
                 roundedSteps = std::min<long>(0, roundedSteps);
@@ -346,7 +380,8 @@ namespace timed_streaming {
                 result.next.velocityStepsPerSecond = 0.0;
                 result.next.accelerationStepsPerSecondSquared = 0.0;
             }
-            result.reference = {target, desiredVelocity, desiredAcceleration};
+            result.reference = {
+                referencePosition, feedforwardVelocity, 0.0};
             result.minimumRangeMarginSteps = std::min(
                 result.next.continuousPositionSteps - range_.minimumSteps,
                 range_.maximumSteps - result.next.continuousPositionSteps);
@@ -377,6 +412,7 @@ namespace timed_streaming {
         std::array<Waypoint, kWaypointCapacity> waypoints_{};
         size_t waypointCount_ = 0;
         uint64_t elapsedWaypointTicks_ = 0;
+        double referenceStartPositionSteps_ = 0.0;
     };
 
 }  // namespace timed_streaming

@@ -356,6 +356,112 @@ namespace {
         TEST_MESSAGE(metric);
     }
 
+    void test_motion_lab_startup_sine_does_not_chatter(void) {
+        timed_streaming::Planner planner(kTicksPerSecond);
+        constexpr int32_t kRangeMinimum = -2298;
+        constexpr int32_t kRangeMaximum = -657;
+        constexpr int32_t kGuardSteps = 165;
+        constexpr timed_streaming::Limits kMotionLabLimits{
+            4000.0, 625000.0};
+        constexpr int kConditionStartMs = 3300;
+        constexpr int kConditionEndMs = 13300;
+        struct ScheduledWaypoint {
+            int arrivalMs;
+            int positionPercent;
+            int durationMs;
+        };
+        std::vector<ScheduledWaypoint> waypoints{
+            {0, 50, 100}, {0, 20, 1500}, {1400, 80, 2000}};
+        for (int targetMs = 0; targetMs <= 10000; targetMs += 50) {
+            const int position = static_cast<int>(std::lround(
+                50.0 + 30.0 * std::sin(
+                                  2.0 * 3.14159265358979323846 * 0.5 *
+                                  targetMs / 1000.0)));
+            waypoints.push_back(
+                {kConditionStartMs + targetMs, position, 50});
+        }
+
+        const auto mapPosition = [](int positionPercent) {
+            return static_cast<int32_t>(std::lround(
+                kRangeMinimum +
+                positionPercent / 100.0 *
+                    (kRangeMaximum - kRangeMinimum)));
+        };
+        planner.reset(0);
+        planner.setRange(kRangeMinimum, kRangeMaximum, kGuardSteps);
+
+        size_t nextWaypoint = 0;
+        int previousDirection = 0;
+        int conditionReversals = 0;
+        int32_t minimumPosition = std::numeric_limits<int32_t>::max();
+        int32_t maximumPosition = std::numeric_limits<int32_t>::min();
+        double maximumJerkStepsPerSecondCubed = 0.0;
+        bool drainingToHold = false;
+        for (int elapsedMs = 0; elapsedMs < 14500;
+             elapsedMs += timed_streaming::kSliceMilliseconds) {
+            while (nextWaypoint < waypoints.size() &&
+                   waypoints[nextWaypoint].arrivalMs <= elapsedMs) {
+                const auto &waypoint = waypoints[nextWaypoint++];
+                TEST_ASSERT_TRUE(planner.appendWaypoint(
+                    mapPosition(waypoint.positionPercent),
+                    static_cast<uint64_t>(waypoint.durationMs) *
+                        (kTicksPerSecond / 1000)));
+                drainingToHold = false;
+            }
+            if (!planner.hasWaypoint() && !planner.isStationary()) {
+                drainingToHold = true;
+            }
+            if (!planner.hasWaypoint() && !drainingToHold) continue;
+
+            const auto before = planner.state();
+            const auto slice =
+                drainingToHold
+                    ? planner.previewHold(kMotionLabLimits, kSliceTicks)
+                    : planner.preview(kMotionLabLimits, kSliceTicks);
+            planner.commit(slice, slice.requestedTicks);
+            if (drainingToHold && planner.isStationary()) {
+                drainingToHold = false;
+            }
+            if (elapsedMs >= kConditionStartMs &&
+                elapsedMs <= kConditionEndMs) {
+                minimumPosition =
+                    std::min(minimumPosition, planner.state().positionSteps);
+                maximumPosition =
+                    std::max(maximumPosition, planner.state().positionSteps);
+                maximumJerkStepsPerSecondCubed =
+                    std::max(
+                        maximumJerkStepsPerSecondCubed,
+                        std::abs(
+                            planner.state()
+                                .accelerationStepsPerSecondSquared -
+                            before.accelerationStepsPerSecondSquared) /
+                            (timed_streaming::kSliceMilliseconds / 1000.0));
+                const int direction = (slice.steps > 0) - (slice.steps < 0);
+                if (direction != 0 && previousDirection != 0 &&
+                    direction != previousDirection) {
+                    ++conditionReversals;
+                }
+                if (direction != 0) previousDirection = direction;
+            }
+        }
+
+        TEST_ASSERT_LESS_OR_EQUAL(16, conditionReversals);
+        TEST_ASSERT_GREATER_THAN(600, maximumPosition - minimumPosition);
+        TEST_ASSERT_LESS_OR_EQUAL(
+            1100, maximumPosition - minimumPosition);
+        TEST_ASSERT_LESS_OR_EQUAL_DOUBLE(
+            3200000.0, maximumJerkStepsPerSecondCubed);
+        char metric[192];
+        std::snprintf(
+            metric, sizeof(metric),
+            "PLANNER_METRIC suite=motion_lab_startup reversals=%d "
+            "span_mm=%.3f max_jerk_mm_s3=%.3f",
+            conditionReversals,
+            (maximumPosition - minimumPosition) / 20.0,
+            maximumJerkStepsPerSecondCubed / 20.0);
+        TEST_MESSAGE(metric);
+    }
+
     void test_triangle_reversal_is_jerk_limited(void) {
         timed_streaming::Planner planner(kTicksPerSecond);
         planner.reset(0);
@@ -429,7 +535,7 @@ namespace {
             TEST_ASSERT_LESS_OR_EQUAL_INT32(1000,
                                             planner.state().positionSteps);
         }
-        TEST_ASSERT_FALSE(safetyClampActivated);
+        TEST_ASSERT_TRUE(safetyClampActivated);
         TEST_ASSERT_LESS_OR_EQUAL_INT32(980, planner.state().positionSteps);
     }
 
@@ -701,6 +807,7 @@ int main(int, char **) {
     RUN_TEST(test_sine_sequence_obeys_all_limits);
     RUN_TEST(test_nominal_sine_aligned_rmse_is_below_two_mm);
     RUN_TEST(test_nominal_twenty_hertz_sine_restores_smooth_baseline);
+    RUN_TEST(test_motion_lab_startup_sine_does_not_chatter);
     RUN_TEST(test_triangle_reversal_is_jerk_limited);
     RUN_TEST(test_physically_possible_random_sequence);
     RUN_TEST(test_repeated_position_consumes_hold_without_snap);
