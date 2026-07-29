@@ -55,6 +55,7 @@ namespace timed_streaming {
         bool finishesWaypoint = false;
         bool holdSlice = false;
         bool boundaryEnvelopeActive = false;
+        bool inwardRecoveryActive = false;
         bool safetyClampActive = false;
         double referenceErrorSteps = 0.0;
         double minimumRangeMarginSteps = 0.0;
@@ -292,6 +293,26 @@ namespace timed_streaming {
             double desiredVelocity = hold ? 0.0 : feedforwardVelocity;
             desiredVelocity = clamp(desiredVelocity, -speedLimit, speedLimit);
 
+            // Position is open-loop, but it can still begin outside the
+            // guarded play range after a re-home, frame transition, or a
+            // safety stop. In that state the request is subordinate to a
+            // smooth inward restoring force. Acceleration and jerk limiting
+            // below make the recovery elastic; the hard clamp remains the
+            // final protection against any additional outward step.
+            const bool belowInnerRange = position < innerMinimum;
+            const bool aboveInnerRange = position > innerMaximum;
+            if (belowInnerRange || aboveInnerRange) {
+                const double penetration =
+                    belowInnerRange ? innerMinimum - position
+                                    : position - innerMaximum;
+                const double recoverySpeed = std::min(
+                    speedLimit,
+                    std::sqrt(2.0 * accelerationLimit * penetration));
+                desiredVelocity = belowInnerRange ? recoverySpeed
+                                                  : -recoverySpeed;
+                result.inwardRecoveryActive = true;
+            }
+
             // The stopping-distance envelope is normally inactive. It only
             // removes outward velocity close enough to an interior boundary
             // that the configured acceleration could not stop in time.
@@ -305,6 +326,7 @@ namespace timed_streaming {
             desiredVelocity =
                 clamp(desiredVelocity, -lowerEnvelope, upperEnvelope);
             result.boundaryEnvelopeActive =
+                result.inwardRecoveryActive ||
                 desiredVelocity != unboundedVelocity;
 
             double desiredAcceleration =
@@ -323,7 +345,8 @@ namespace timed_streaming {
 
             // A hold is terminal: do not let braking acceleration create a
             // tiny reverse motion while its jerk-limited value returns to zero.
-            if (hold && state_.velocityStepsPerSecond * nextVelocity <= 0.0) {
+            if (hold && !result.inwardRecoveryActive &&
+                state_.velocityStepsPerSecond * nextVelocity <= 0.0) {
                 nextVelocity = 0.0;
                 nextAcceleration =
                     moveToward(state_.accelerationStepsPerSecondSquared, 0.0,

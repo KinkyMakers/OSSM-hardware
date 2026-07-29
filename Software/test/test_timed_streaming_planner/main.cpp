@@ -552,6 +552,58 @@ namespace {
         TEST_ASSERT_GREATER_THAN_INT32(500, planner.state().positionSteps);
     }
 
+    void test_hold_outside_lower_guard_recovers_inward_elastically(void) {
+        timed_streaming::Planner planner(kTicksPerSecond);
+        planner.reset(50);
+        planner.setRange(0, 1000, 100);
+        bool recoveryObserved = false;
+        int32_t previousPosition = planner.state().positionSteps;
+        for (int index = 0; index < 1000 &&
+                            planner.state().positionSteps < 100;
+             ++index) {
+            const auto before = planner.state();
+            const auto slice = planner.previewHold(kLimits, kSliceTicks);
+            recoveryObserved =
+                recoveryObserved || slice.inwardRecoveryActive;
+            planner.commit(slice, slice.requestedTicks);
+            assertLimits(before, planner.state());
+            TEST_ASSERT_GREATER_OR_EQUAL_INT32(
+                previousPosition, planner.state().positionSteps);
+            previousPosition = planner.state().positionSteps;
+        }
+        TEST_ASSERT_TRUE(recoveryObserved);
+        TEST_ASSERT_GREATER_OR_EQUAL_INT32(
+            100, planner.state().positionSteps);
+        TEST_ASSERT_LESS_OR_EQUAL_INT32(1000,
+                                        planner.state().positionSteps);
+    }
+
+    void test_hold_outside_upper_guard_recovers_inward_elastically(void) {
+        timed_streaming::Planner planner(kTicksPerSecond);
+        planner.reset(950);
+        planner.setRange(0, 1000, 100);
+        bool recoveryObserved = false;
+        int32_t previousPosition = planner.state().positionSteps;
+        for (int index = 0; index < 1000 &&
+                            planner.state().positionSteps > 900;
+             ++index) {
+            const auto before = planner.state();
+            const auto slice = planner.previewHold(kLimits, kSliceTicks);
+            recoveryObserved =
+                recoveryObserved || slice.inwardRecoveryActive;
+            planner.commit(slice, slice.requestedTicks);
+            assertLimits(before, planner.state());
+            TEST_ASSERT_LESS_OR_EQUAL_INT32(
+                previousPosition, planner.state().positionSteps);
+            previousPosition = planner.state().positionSteps;
+        }
+        TEST_ASSERT_TRUE(recoveryObserved);
+        TEST_ASSERT_LESS_OR_EQUAL_INT32(900,
+                                        planner.state().positionSteps);
+        TEST_ASSERT_GREATER_OR_EQUAL_INT32(0,
+                                           planner.state().positionSteps);
+    }
+
     void test_future_waypoint_does_not_change_active_sequential_slice(void) {
         timed_streaming::Planner left(kTicksPerSecond);
         timed_streaming::Planner right(kTicksPerSecond);
@@ -906,6 +958,8 @@ int main(int, char **) {
     RUN_TEST(test_repeated_position_consumes_hold_without_snap);
     RUN_TEST(test_short_and_long_waypoints);
     RUN_TEST(test_range_envelope_never_emits_out_of_bounds_endpoint);
+    RUN_TEST(test_hold_outside_lower_guard_recovers_inward_elastically);
+    RUN_TEST(test_hold_outside_upper_guard_recovers_inward_elastically);
     RUN_TEST(test_future_waypoint_does_not_change_active_sequential_slice);
     RUN_TEST(test_starvation_tail_stops_and_holds_without_seeking_center);
     RUN_TEST(test_new_waypoint_resumes_from_hold_state_without_reset);

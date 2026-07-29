@@ -660,20 +660,18 @@ namespace streaming {
                 planner.setJerkRampMilliseconds(
                     tuning.jerkRampMilliseconds);
 
-                const uint32_t speedLimit = static_cast<uint32_t>(
-                    Config::Driver::maxSpeedMmPerSecond *
-                    Config::Driver::stepsPerMM *
-                    std::max(0.0f, settings.speed) / 100.0f);
-                const uint32_t accelerationLimit = static_cast<uint32_t>(
-                    Config::Driver::maxAcceleration *
-                    Config::Driver::stepsPerMM *
-                    std::max(0.0f, settings.sensation) / 100.0f *
+                const uint32_t speedLimit =
+                    streaming_logic::calculateStreamingSpeedLimit(
+                        settings.speed, Config::Driver::stepsPerMM);
+                const uint32_t accelerationLimit =
+                    streaming_logic::calculateStreamingAccelerationLimit(
+                        settings.sensation,
 #ifdef OSSM_STREAM_TUNING
-                    tuning.accelerationScale
+                        tuning.accelerationScale,
 #else
-                    1.0
+                        1.0f,
 #endif
-                );
+                        Config::Driver::stepsPerMM);
                 if (speedLimit == 0 || accelerationLimit == 0) {
                     // A speed-zero command is an explicit stop boundary. BLE
                     // writes already in flight can still arrive afterward;
@@ -689,6 +687,18 @@ namespace streaming {
                         queueStarted = false;
                         hasActiveWaypoint = false;
                     }
+                    // Speed zero starts a new streaming epoch. Do not let a
+                    // later nonzero speed resurrect starvation recovery from
+                    // the preceding case before a fresh waypoint arrives.
+                    hasEverStreamed = false;
+                    drainingToHold = false;
+                    starvationActive = false;
+                    recoveringToCenter = false;
+                    resumeBlendPending = false;
+                    velocityEstimator.reset();
+#ifdef OSSM_STREAM_TUNING
+                    momentum.reset();
+#endif
                     vTaskDelay(1);
                     continue;
                 }

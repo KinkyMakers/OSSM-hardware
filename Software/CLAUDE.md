@@ -149,6 +149,14 @@ Three operation modes:
   queue preserves the newest request and discards obsolete intermediate
   waypoints when receive age or queued duration exceeds 250 ms; range,
   stopping-envelope, acceleration, and jerk constraints still apply.
+- Explicit speed zero clears pending targets and starts a new dropout epoch.
+  A controller must therefore enable its bounded streaming speed immediately
+  before writing the fresh target; no prior starvation recovery is allowed to
+  resume between those writes.
+- Timed streaming has non-tunable 200 mm/s and 5,000 mm/s/s ceilings before
+  applying the speed, sensation, and acceleration-scale percentages. Positions
+  outside the guarded play range ignore the request and recover inward through
+  the same acceleration and jerk limits.
 
 ### StrokeEngine Library (`lib/StrokeEngine/`)
 
