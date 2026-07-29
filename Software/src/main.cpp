@@ -97,9 +97,14 @@ void __attribute__((weak)) setup() {
         [](void *pvParameters) {
             ESP_LOGD("MAIN", "Initializing communication services");
             initNimble();
+#ifndef OSSM_STREAM_TUNING
             initWM();
             initMQTT();
             pages::startPairingStatusCheck();
+#else
+            ESP_LOGI("MAIN",
+                     "STREAM_TUNING BLE-only transport; WiFi/MQTT disabled");
+#endif
             ESP_LOGI("MAIN",
                      "TASK_MEM name=initNimbleTask high_water_bytes=%u "
                      "free_heap=%u min_free_heap=%u",
