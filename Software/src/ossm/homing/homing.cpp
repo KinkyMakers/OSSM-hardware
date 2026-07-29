@@ -27,7 +27,9 @@ constexpr uint32_t kWiggleTimeoutMs = 1500;
 constexpr uint32_t kCurrentLimitSettleMs = 50;
 constexpr float kProbeSpeedStepsPerSecond = 10_mm;
 constexpr float kProbeAccelerationStepsPerSecondSquared = 1000_mm;
-constexpr float kSafeHomingSpeedStepsPerSecond = 5_mm;
+// Restore the established full-stroke homing speed. The current-limited
+// hard-stop wiggle remains independently capped at 10 mm/s.
+constexpr float kSafeHomingSpeedStepsPerSecond = 25_mm;
 constexpr float kSafeHomingAccelerationStepsPerSecondSquared = 100_mm;
 constexpr float kMinimumProbeSignal = 0.05f;
 constexpr float kProbeTieMargin = 0.05f;

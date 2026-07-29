@@ -193,6 +193,8 @@ struct SettingPercents {
 - **Hard-stop escape:** Homing begins with a current-limited move from 5 mm
   behind to 5 mm ahead of one fixed origin and aborts before long travel when
   current feedback is absent or both directions appear blocked.
+- **Homing speeds:** The current-limited hard-stop wiggle runs at 10 mm/s;
+  the subsequent full-stroke homing sweep runs at the established 25 mm/s.
 - **Ambiguous free-space tie:** If both 5 mm wiggles complete with valid but
   nearly equal current, continue in the normal negative homing direction.
 
