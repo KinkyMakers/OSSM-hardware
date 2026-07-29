@@ -64,6 +64,14 @@ void test_scaleStreamPosition_50_percent(void) {
     TEST_ASSERT_EQUAL_INT32(-4500, result);
 }
 
+void test_clampStreamPosition_keeps_targets_inside_inner_play_range(void) {
+    TEST_ASSERT_EQUAL_UINT8(10, streaming_logic::clampStreamPosition(0));
+    TEST_ASSERT_EQUAL_UINT8(10, streaming_logic::clampStreamPosition(10));
+    TEST_ASSERT_EQUAL_UINT8(50, streaming_logic::clampStreamPosition(50));
+    TEST_ASSERT_EQUAL_UINT8(90, streaming_logic::clampStreamPosition(90));
+    TEST_ASSERT_EQUAL_UINT8(90, streaming_logic::clampStreamPosition(100));
+}
+
 // ─── planMotion ───
 
 void test_planMotion_short_distance_plenty_of_time(void) {
@@ -154,6 +162,7 @@ int main(int argc, char **argv) {
     RUN_TEST(test_scaleStreamPosition_100_percent);
     RUN_TEST(test_scaleStreamPosition_0_percent);
     RUN_TEST(test_scaleStreamPosition_50_percent);
+    RUN_TEST(test_clampStreamPosition_keeps_targets_inside_inner_play_range);
 
     RUN_TEST(test_planMotion_short_distance_plenty_of_time);
     RUN_TEST(test_planMotion_distance_exceeds_max);

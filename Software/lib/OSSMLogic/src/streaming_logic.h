@@ -9,6 +9,15 @@
 
 namespace streaming_logic {
 
+constexpr uint8_t minimumSafeStreamPercent = 10;
+constexpr uint8_t maximumSafeStreamPercent = 90;
+
+inline uint8_t clampStreamPosition(uint8_t requestedPercent) {
+    return std::max<uint8_t>(
+        minimumSafeStreamPercent,
+        std::min<uint8_t>(maximumSafeStreamPercent, requestedPercent));
+}
+
 /// Compute max stroke in steps from user percentages and calibration.
 /// streaming.cpp line 88
 inline int32_t calculateMaxStroke(float strokePct, float depthPct,

@@ -165,7 +165,7 @@ namespace streaming {
 
         int32_t mapTargetPosition(uint8_t requestedPosition) {
             const uint8_t clampedPosition =
-                std::min<uint8_t>(100, requestedPosition);
+                streaming_logic::clampStreamPosition(requestedPosition);
             const int32_t maximumStroke = streaming_logic::calculateMaxStroke(
                 settings.stroke, settings.depth,
                 calibration.measuredStrokeSteps);
