@@ -16,6 +16,29 @@ enum class ProbeDirection : int8_t {
     Positive = 1,
 };
 
+struct WiggleTargets {
+    int32_t negative = 0;
+    int32_t positive = 0;
+    uint32_t totalTravel = 0;
+};
+
+inline WiggleTargets calculateWiggleTargets(int32_t origin,
+                                            uint32_t distance) {
+    return WiggleTargets{
+        origin - static_cast<int32_t>(distance),
+        origin + static_cast<int32_t>(distance),
+        distance * 3,
+    };
+}
+
+inline bool hasProbeSignal(float negativeLoad, float positiveLoad,
+                           float minimumSignal) {
+    return std::isfinite(negativeLoad) && std::isfinite(positiveLoad) &&
+           minimumSignal >= 0 &&
+           std::max(std::abs(negativeLoad), std::abs(positiveLoad)) >=
+               minimumSignal;
+}
+
 /// Check if measured current exceeds the sensorless homing threshold.
 /// homing.cpp lines 98-99
 inline bool isCurrentOverLimit(float currentReading, float offset,
@@ -57,13 +80,21 @@ inline ProbeDirection chooseProbeEscapeDirection(
 /// average is diluted by low-current startup samples.
 inline ProbeDirection chooseWiggleEscapeDirection(
     float negativeLoad, float positiveLoad, bool negativeBlocked,
-    bool positiveBlocked, float minimumSignal, float tieMargin) {
+    bool positiveBlocked, float minimumSignal, float tieMargin,
+    ProbeDirection tieFallback = ProbeDirection::Unsafe) {
     if (negativeBlocked && positiveBlocked) return ProbeDirection::Unsafe;
     if (negativeBlocked) return ProbeDirection::Positive;
     if (positiveBlocked) return ProbeDirection::Negative;
-    return chooseProbeEscapeDirection(
+    const ProbeDirection measuredDirection = chooseProbeEscapeDirection(
         negativeLoad, positiveLoad, std::numeric_limits<float>::max(),
         minimumSignal, tieMargin);
+    if (measuredDirection != ProbeDirection::Unsafe) {
+        return measuredDirection;
+    }
+    if (!hasProbeSignal(negativeLoad, positiveLoad, minimumSignal)) {
+        return ProbeDirection::Unsafe;
+    }
+    return tieFallback;
 }
 
 /// Derive a contact threshold from the lower-current (freer) probe while

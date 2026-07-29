@@ -22,21 +22,16 @@ namespace homing {
 namespace {
 
 constexpr int kHomingTaskStackSize = 5 * configMINIMAL_STACK_SIZE;
-constexpr int32_t kSeedProbeDistanceSteps = 0.5_mm;
 constexpr int32_t kWiggleDistanceSteps = 5_mm;
-constexpr int32_t kEscapeDistanceSteps = 5_mm;
-constexpr uint32_t kSeedProbeTimeoutMs = 500;
 constexpr uint32_t kWiggleTimeoutMs = 3500;
-constexpr uint32_t kEscapeTimeoutMs = 3500;
 constexpr uint32_t kCurrentLimitSettleMs = 100;
 constexpr float kProbeSpeedStepsPerSecond = 2_mm;
-constexpr float kEscapeSpeedStepsPerSecond = 2_mm;
 constexpr float kProbeAccelerationStepsPerSecondSquared = 100_mm;
 constexpr float kSafeHomingSpeedStepsPerSecond = 5_mm;
 constexpr float kSafeHomingAccelerationStepsPerSecondSquared = 100_mm;
 constexpr float kMinimumProbeSignal = 0.05f;
 constexpr float kProbeTieMargin = 0.05f;
-constexpr float kRequiredContactRise = 0.05f;
+constexpr float kWiggleCurrentLimit = 0.25f;
 constexpr uint8_t kContactConfirmationSamples = 3;
 
 float homingCurrentLimit = Config::Driver::sensorlessCurrentLimit;
@@ -123,48 +118,31 @@ void failHomingStopped(
 }
 
 bool probeAndEscapeHardStopImpl(ProbeDiagnostics* diagnostics) {
-    // Use short seed probes to learn this unit's current scale before asking
-    // either direction to travel far enough for an unmistakable wiggle.
-    const CurrentProbe seedNegative = runCurrentProbe(
-        -1, kSeedProbeDistanceSteps, kProbeSpeedStepsPerSecond,
-        kSeedProbeTimeoutMs, Config::Driver::sensorlessCurrentLimit);
-    const CurrentProbe seedPositive = runCurrentProbe(
-        1, kSeedProbeDistanceSteps, kProbeSpeedStepsPerSecond,
-        kSeedProbeTimeoutMs, Config::Driver::sensorlessCurrentLimit);
-    const homing_logic::ProbeDirection seedDirection =
-        homing_logic::chooseProbeEscapeDirection(
-            seedNegative.averageLoad, seedPositive.averageLoad,
-            Config::Driver::sensorlessCurrentLimit, kMinimumProbeSignal,
-            kProbeTieMargin);
-    homingCurrentLimit = homing_logic::adaptiveCurrentLimit(
-        seedNegative.averageLoad, seedPositive.averageLoad,
-        Config::Driver::sensorlessCurrentLimit, kRequiredContactRise);
-
-    if (diagnostics != nullptr) {
-        diagnostics->seedNegativeAverageLoad = seedNegative.averageLoad;
-        diagnostics->seedNegativePeakLoad = seedNegative.peakLoad;
-        diagnostics->seedPositiveAverageLoad = seedPositive.averageLoad;
-        diagnostics->seedPositivePeakLoad = seedPositive.peakLoad;
-        diagnostics->adaptiveCurrentLimit = homingCurrentLimit;
-    }
-
-    if (seedNegative.timedOut || seedPositive.timedOut ||
-        seedDirection == homing_logic::ProbeDirection::Unsafe) {
-        return false;
-    }
-
+    // Travel from -5 mm to +5 mm around one fixed origin. The first leg is
+    // 5 mm and the second is 10 mm, for exactly 15 mm of commanded wiggle
+    // travel when neither side is current-limited.
+    const int32_t wiggleOrigin = stepper->getCurrentPosition();
+    const homing_logic::WiggleTargets wiggleTargets =
+        homing_logic::calculateWiggleTargets(
+            wiggleOrigin, static_cast<uint32_t>(kWiggleDistanceSteps));
     const CurrentProbe negative = runCurrentProbe(
-        -1, kWiggleDistanceSteps, kProbeSpeedStepsPerSecond,
-        kWiggleTimeoutMs, homingCurrentLimit, kContactConfirmationSamples,
+        -1, wiggleOrigin - wiggleTargets.negative,
+        kProbeSpeedStepsPerSecond,
+        kWiggleTimeoutMs, kWiggleCurrentLimit, kContactConfirmationSamples,
         kCurrentLimitSettleMs);
+    const int32_t positiveDistance =
+        wiggleTargets.positive - stepper->getCurrentPosition();
     const CurrentProbe positive = runCurrentProbe(
-        1, kWiggleDistanceSteps, kProbeSpeedStepsPerSecond,
-        kWiggleTimeoutMs, homingCurrentLimit, kContactConfirmationSamples,
+        1, positiveDistance, kProbeSpeedStepsPerSecond,
+        kWiggleTimeoutMs * 2, kWiggleCurrentLimit,
+        kContactConfirmationSamples,
         kCurrentLimitSettleMs);
     const homing_logic::ProbeDirection direction =
         homing_logic::chooseWiggleEscapeDirection(
             negative.averageLoad, positive.averageLoad, negative.hitHardLimit,
-            positive.hitHardLimit, kMinimumProbeSignal, kProbeTieMargin);
+            positive.hitHardLimit, kMinimumProbeSignal, kProbeTieMargin,
+            homing_logic::ProbeDirection::Negative);
+    homingCurrentLimit = kWiggleCurrentLimit;
 
     if (diagnostics != nullptr) {
         diagnostics->negativeAverageLoad = negative.averageLoad;
@@ -172,6 +150,7 @@ bool probeAndEscapeHardStopImpl(ProbeDiagnostics* diagnostics) {
         diagnostics->positiveAverageLoad = positive.averageLoad;
         diagnostics->positivePeakLoad = positive.peakLoad;
         diagnostics->direction = static_cast<int8_t>(direction);
+        diagnostics->adaptiveCurrentLimit = homingCurrentLimit;
         diagnostics->negativeHitHardLimit = negative.hitHardLimit;
         diagnostics->positiveHitHardLimit = positive.hitHardLimit;
         diagnostics->negativeTimedOut = negative.timedOut;
@@ -180,13 +159,12 @@ bool probeAndEscapeHardStopImpl(ProbeDiagnostics* diagnostics) {
 
     ESP_LOGI(
         "Homing",
-        "HOMING_PROBE seed_negative=%.3f seed_positive=%.3f "
-        "adaptive_limit=%.3f "
+        "HOMING_PROBE origin=%d positive_target=%d limit=%.3f "
         "negative_avg=%.3f negative_peak=%.3f "
         "positive_avg=%.3f positive_peak=%.3f direction=%d "
         "negative_blocked=%d positive_blocked=%d negative_timeout=%d "
         "positive_timeout=%d",
-        seedNegative.averageLoad, seedPositive.averageLoad, homingCurrentLimit,
+        wiggleOrigin, wiggleTargets.positive, homingCurrentLimit,
         negative.averageLoad, negative.peakLoad, positive.averageLoad,
         positive.peakLoad, static_cast<int>(direction),
         negative.hitHardLimit, positive.hitHardLimit, negative.timedOut,
@@ -196,24 +174,7 @@ bool probeAndEscapeHardStopImpl(ProbeDiagnostics* diagnostics) {
         direction == homing_logic::ProbeDirection::Unsafe) {
         return false;
     }
-
-    const int8_t sign = static_cast<int8_t>(direction);
-    const CurrentProbe escape = runCurrentProbe(
-        sign, kEscapeDistanceSteps, kEscapeSpeedStepsPerSecond,
-        kEscapeTimeoutMs, homingCurrentLimit, kContactConfirmationSamples,
-        kCurrentLimitSettleMs);
-    if (diagnostics != nullptr) {
-        diagnostics->escapeAverageLoad = escape.averageLoad;
-        diagnostics->escapePeakLoad = escape.peakLoad;
-        diagnostics->escapeTimedOut = escape.timedOut;
-        diagnostics->escapeHitHardLimit = escape.hitHardLimit;
-    }
-    ESP_LOGI("Homing",
-             "HOMING_ESCAPE direction=%d average=%.3f peak=%.3f "
-             "hard_limit=%d timeout=%d",
-             sign, escape.averageLoad, escape.peakLoad, escape.hitHardLimit,
-             escape.timedOut);
-    return !escape.hitHardLimit && !escape.timedOut;
+    return true;
 }
 
 }  // namespace

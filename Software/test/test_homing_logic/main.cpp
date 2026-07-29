@@ -70,6 +70,21 @@ void test_probe_rejects_missing_current_feedback(void) {
             0.01f, 0.02f, 6.0f, 0.15f, 0.25f)));
 }
 
+void test_probe_signal_distinguishes_valid_tie_from_missing_feedback(void) {
+    TEST_ASSERT_TRUE(homing_logic::hasProbeSignal(
+        0.140f, 0.139f, 0.05f));
+    TEST_ASSERT_FALSE(homing_logic::hasProbeSignal(
+        0.01f, 0.02f, 0.05f));
+}
+
+void test_wiggle_targets_span_fifteen_millimeters_of_travel(void) {
+    const homing_logic::WiggleTargets targets =
+        homing_logic::calculateWiggleTargets(100, 50);
+    TEST_ASSERT_EQUAL_INT32(50, targets.negative);
+    TEST_ASSERT_EQUAL_INT32(150, targets.positive);
+    TEST_ASSERT_EQUAL_UINT32(150, targets.totalTravel);
+}
+
 void test_wiggle_escapes_the_current_limited_direction(void) {
     TEST_ASSERT_EQUAL_INT(
         static_cast<int>(homing_logic::ProbeDirection::Positive),
@@ -86,6 +101,19 @@ void test_wiggle_rejects_two_current_limited_directions(void) {
         static_cast<int>(homing_logic::ProbeDirection::Unsafe),
         static_cast<int>(homing_logic::chooseWiggleEscapeDirection(
             0.25f, 0.25f, true, true, 0.05f, 0.05f)));
+}
+
+void test_wiggle_uses_seed_direction_when_both_sides_complete(void) {
+    TEST_ASSERT_EQUAL_INT(
+        static_cast<int>(homing_logic::ProbeDirection::Positive),
+        static_cast<int>(homing_logic::chooseWiggleEscapeDirection(
+            0.140f, 0.139f, false, false, 0.05f, 0.05f,
+            homing_logic::ProbeDirection::Positive)));
+    TEST_ASSERT_EQUAL_INT(
+        static_cast<int>(homing_logic::ProbeDirection::Unsafe),
+        static_cast<int>(homing_logic::chooseWiggleEscapeDirection(
+            0.01f, 0.02f, false, false, 0.05f, 0.05f,
+            homing_logic::ProbeDirection::Positive)));
 }
 
 void test_adaptive_current_limit_uses_free_direction(void) {
@@ -174,8 +202,11 @@ int main(int argc, char **argv) {
     RUN_TEST(test_probe_rejects_ambiguous_direction);
     RUN_TEST(test_probe_rejects_both_directions_blocked);
     RUN_TEST(test_probe_rejects_missing_current_feedback);
+    RUN_TEST(test_probe_signal_distinguishes_valid_tie_from_missing_feedback);
+    RUN_TEST(test_wiggle_targets_span_fifteen_millimeters_of_travel);
     RUN_TEST(test_wiggle_escapes_the_current_limited_direction);
     RUN_TEST(test_wiggle_rejects_two_current_limited_directions);
+    RUN_TEST(test_wiggle_uses_seed_direction_when_both_sides_complete);
     RUN_TEST(test_adaptive_current_limit_uses_free_direction);
 
     RUN_TEST(test_calculateMeasuredStroke_positive_position);

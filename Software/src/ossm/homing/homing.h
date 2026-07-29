@@ -6,24 +6,16 @@
 namespace homing {
 
 struct ProbeDiagnostics {
-    float seedNegativeAverageLoad = 0;
-    float seedNegativePeakLoad = 0;
-    float seedPositiveAverageLoad = 0;
-    float seedPositivePeakLoad = 0;
     float negativeAverageLoad = 0;
     float negativePeakLoad = 0;
     float positiveAverageLoad = 0;
     float positivePeakLoad = 0;
-    float escapeAverageLoad = 0;
-    float escapePeakLoad = 0;
     float adaptiveCurrentLimit = 0;
     int8_t direction = 0;
     bool negativeHitHardLimit = false;
     bool positiveHitHardLimit = false;
     bool negativeTimedOut = false;
     bool positiveTimedOut = false;
-    bool escapeTimedOut = false;
-    bool escapeHitHardLimit = false;
 };
 
 /**
