@@ -7,6 +7,9 @@
 #include <WiFi.h>
 
 #include "constants/Version.h"
+#include "communication_priority_policy.h"
+#include "services/communication/priority.h"
+#include "services/tasks.h"
 #include "services/wm.h"
 
 /**
@@ -29,6 +32,12 @@ static TaskHandle_t s_wifiConnectTask = nullptr;
 static void wifiConnectTask(void* pvParameters) {
     NimBLECharacteristic* pChar =
         static_cast<NimBLECharacteristic*>(pvParameters);
+
+    while (!communication_priority::backgroundNetworkWorkAllowed()) {
+        vTaskDelay(pdMS_TO_TICKS(
+            communication_priority_policy::
+                kBackgroundDeferralPollMilliseconds));
+    }
 
     if (connectWiFi()) {
         ESP_LOGI("PAIRING_CHAR", "WiFi connected");
@@ -83,23 +92,31 @@ class PairingCallbacks : public NimBLECharacteristicCallbacks {
 
         ESP_LOGI("PAIRING_CHAR", "WiFi provisioning: ssid='%s'", ssid.c_str());
 
-        if (!setWiFiCredentials(ssid, password)) {
-            pCharacteristic->setValue("fail:wifi:save_failed");
-            return;
-        }
-
         if (s_wifiConnectTask != nullptr) {
             ESP_LOGW("PAIRING_CHAR", "WiFi connect already in progress");
             pCharacteristic->setValue("fail:wifi:busy");
             return;
         }
 
+        if (!setWiFiCredentials(ssid, password)) {
+            pCharacteristic->setValue("fail:wifi:save_failed");
+            return;
+        }
+
         // Return immediately so the NimBLE host task is not blocked.
         // wifiConnectTask will update the characteristic value when done.
-        pCharacteristic->setValue("ok:wifi:connecting");
-        xTaskCreate(wifiConnectTask, "wifiConnect",
-                    4 * configMINIMAL_STACK_SIZE, pCharacteristic, 1,
-                    &s_wifiConnectTask);
+        pCharacteristic->setValue(
+            communication_priority::isStreamingActive()
+                ? "ok:wifi:deferred"
+                : "ok:wifi:connecting");
+        const BaseType_t created = xTaskCreatePinnedToCore(
+            wifiConnectTask, "wifiConnect", 4 * configMINIMAL_STACK_SIZE,
+            pCharacteristic, 1, &s_wifiConnectTask,
+            Tasks::operationTaskCore);
+        if (created != pdPASS) {
+            s_wifiConnectTask = nullptr;
+            pCharacteristic->setValue("fail:wifi:task_start");
+        }
     }
 } inline pairingCallbacks;
 

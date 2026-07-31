@@ -9,7 +9,9 @@
 #include "ossm/Events.h"
 #include "ossm/state/state.h"
 #include "components/HeaderBar.h"
+#include "communication_priority_policy.h"
 #include "services/display.h"
+#include "services/communication/priority.h"
 #include "ui.h"
 
 namespace sml = boost::sml;
@@ -29,6 +31,7 @@ static int requestDeviceAuth(bool updatePairingCode) {
     HTTPClient http;
     String url = String(RAD_SERVER) + "/api/ossm/auth";
     http.begin(url);
+    http.setTimeout(3000);
     http.addHeader("Content-Type", "application/json");
 
     JsonDocument doc;
@@ -153,23 +156,46 @@ void checkPairing() {
                             0);
 }
 
+static TaskHandle_t pairingStatusRequestTaskHandle = nullptr;
+
+static void pairingStatusRequestTask(void *pvParameters) {
+    if (communication_priority::backgroundNetworkWorkAllowed() &&
+        WiFi.status() == WL_CONNECTED) {
+        const int httpCode = requestDeviceAuth(false);
+        if (httpCode != HTTP_CODE_OK) {
+            ESP_LOGW("PAIRING", "Pairing status check failed with HTTP %d",
+                     httpCode);
+        } else {
+            ESP_LOGI("PAIRING", "Pairing status: isPaired=%d", paired);
+        }
+    }
+    pairingStatusRequestTaskHandle = nullptr;
+    vTaskDelete(nullptr);
+}
+
 static void pairingStatusTask(void *pvParameters) {
     while (!paired) {
-        if (WiFi.status() == WL_CONNECTED) {
-            int httpCode = requestDeviceAuth(false);
-            if (httpCode != HTTP_CODE_OK) {
-                ESP_LOGW("PAIRING", "Pairing status check failed with HTTP %d",
-                         httpCode);
-            } else {
-                ESP_LOGI("PAIRING", "Pairing status: isPaired=%d", paired);
+        if (communication_priority::backgroundNetworkWorkAllowed() &&
+            WiFi.status() == WL_CONNECTED &&
+            pairingStatusRequestTaskHandle == nullptr) {
+            const BaseType_t created = xTaskCreatePinnedToCore(
+                pairingStatusRequestTask, "pairingStatusRequest",
+                20 * configMINIMAL_STACK_SIZE, nullptr, 1,
+                &pairingStatusRequestTaskHandle, 0);
+            if (created != pdPASS) {
+                pairingStatusRequestTaskHandle = nullptr;
+                ESP_LOGW("PAIRING",
+                         "Could not allocate pairing status request task");
             }
         }
 
-        if (!paired) {
-            vTaskDelay(pdMS_TO_TICKS(60000));
-        }
+        const uint32_t delayMilliseconds =
+            communication_priority::backgroundNetworkWorkAllowed()
+                ? communication_priority_policy::kPairingStatusPollMilliseconds
+                : communication_priority_policy::
+                      kBackgroundDeferralPollMilliseconds;
+        vTaskDelay(pdMS_TO_TICKS(delayMilliseconds));
     }
-
     vTaskDelete(nullptr);
 }
 
@@ -177,7 +203,7 @@ bool isOssmPaired() { return paired; }
 
 void startPairingStatusCheck() {
     xTaskCreatePinnedToCore(pairingStatusTask, "pairingStatusTask",
-                            20 * configMINIMAL_STACK_SIZE, nullptr, 1, nullptr,
+                            2 * configMINIMAL_STACK_SIZE, nullptr, 1, nullptr,
                             0);
 }
 

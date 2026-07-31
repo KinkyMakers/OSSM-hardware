@@ -5,6 +5,7 @@
 #include <services/board.h>
 #include <services/tasks.h>
 
+#include <algorithm>
 #include <queue>
 
 #include "command.hpp"
@@ -18,6 +19,9 @@
 #include "rename.hpp"
 #include "services/led.h"
 #include "state.hpp"
+#ifdef OSSM_STREAM_TUNING
+#include "tuning.hpp"
+#endif
 #include "wifi.hpp"
 
 // Define the global variables
@@ -32,6 +36,11 @@ static long lostConnectionTime = 0;
 static int speedOnLostConnection = 0;
 static const unsigned long RAMP_DURATION_MS =
     2000;  // Duration for speed ramp to zero
+static constexpr uint16_t STREAMING_CONNECTION_INTERVAL_MIN = 12;  // 15 ms
+static constexpr uint16_t STREAMING_CONNECTION_INTERVAL_MAX = 12;  // 15 ms
+static constexpr uint16_t STREAMING_CONNECTION_LATENCY = 0;
+static constexpr uint16_t STREAMING_CONNECTION_TIMEOUT = 200;  // 2 s
+static constexpr uint16_t STREAMING_DATA_LENGTH_OCTETS = 251;
 
 void restartAdvertisingWithCurrentName() {
     const std::string deviceName = getDeviceName();
@@ -61,6 +70,20 @@ class ServerCallbacks : public NimBLEServerCallbacks {
                  connInfo.getAddress().toString().c_str());
         ESP_LOGI(NIMBLE_TAG, "Connection count: %d",
                  pServer->getConnectedCount());
+        ESP_LOGI(
+            NIMBLE_TAG,
+            "BLE_LINK event=connected handle=%u interval_units=%u "
+            "interval_ms=%.2f latency=%u timeout_ms=%u free_heap=%u",
+            connInfo.getConnHandle(), connInfo.getConnInterval(),
+            connInfo.getConnInterval() * 1.25f, connInfo.getConnLatency(),
+            connInfo.getConnTimeout() * 10,
+            static_cast<unsigned>(ESP.getFreeHeap()));
+        pServer->setDataLen(connInfo.getConnHandle(),
+                            STREAMING_DATA_LENGTH_OCTETS);
+        pServer->updateConnParams(
+            connInfo.getConnHandle(), STREAMING_CONNECTION_INTERVAL_MIN,
+            STREAMING_CONNECTION_INTERVAL_MAX,
+            STREAMING_CONNECTION_LATENCY, STREAMING_CONNECTION_TIMEOUT);
 
         // Set BLE connection status to true
         if (ossm) {
@@ -84,6 +107,9 @@ class ServerCallbacks : public NimBLEServerCallbacks {
             ossm->ble_click("go:menu");
         }
         radBleServer.onDisconnect(connInfo.getConnHandle());
+#ifdef OSSM_STREAM_TUNING
+        streaming::resetTuningParameters();
+#endif
 
         // Capture current speed when connection is lost
         speedOnLostConnection = ossm->getSpeed();
@@ -103,24 +129,48 @@ class ServerCallbacks : public NimBLEServerCallbacks {
         ESP_LOGD(NIMBLE_TAG, "MTU changed to: %d for connection: %s", MTU,
                  connInfo.getAddress().toString().c_str());
     }
+
+    void onConnParamsUpdate(NimBLEConnInfo& connInfo) override {
+        ESP_LOGI(
+            NIMBLE_TAG,
+            "BLE_LINK event=params_updated handle=%u interval_units=%u "
+            "interval_ms=%.2f latency=%u timeout_ms=%u mtu=%u free_heap=%u",
+            connInfo.getConnHandle(), connInfo.getConnInterval(),
+            connInfo.getConnInterval() * 1.25f, connInfo.getConnLatency(),
+            connInfo.getConnTimeout() * 10,
+            pServer == nullptr
+                ? 0
+                : pServer->getPeerMTU(connInfo.getConnHandle()),
+            static_cast<unsigned>(ESP.getFreeHeap()));
+    }
 } serverCallbacks;
 
 #ifdef PRETEND_TO_BE_FLESHY_THRUST_SYNC
 class FTSCallbacks : public NimBLECharacteristicCallbacks {
     void onWrite(NimBLECharacteristic* pCharacteristic,
                  NimBLEConnInfo& connInfo) override {
+        const auto receivedAt = std::chrono::steady_clock::now();
         std::string value = pCharacteristic->getValue();
 
         // Expected format: [position, timeHigh, timeLow]
         // position: uint8 (0-180), convert to 100
         // time: uint16 big-endian (MSB first)
         if (value.length() >= 3) {
-            uint8_t position = static_cast<uint8_t>(value[0]/1.8);
+            const uint8_t rawPosition = static_cast<uint8_t>(value[0]);
+            const uint8_t position = static_cast<uint8_t>(std::min<uint16_t>(
+                100, (static_cast<uint16_t>(rawPosition) * 100 + 90) / 180));
             uint16_t time = (static_cast<uint8_t>(value[1]) << 8) |
                             static_cast<uint8_t>(value[2]);
 
-            ESP_LOGI("NIMBLE", "FTS Command - Position: %d, Time: %d ms", position, time);
-            targetQueue.push({position, time, std::chrono::steady_clock::now()});
+            // Per-packet INFO logging can itself create BLE backpressure at
+            // streaming cadence. Freshness is retained in PositionTime and
+            // summarized only when compaction or session diagnostics run.
+            ESP_LOGV("NIMBLE", "FTS Command - Position: %d, Time: %d ms",
+                     position, time);
+            if (!enqueueTarget({position, time, receivedAt})) {
+                ESP_LOGE("Streaming",
+                         "STREAM_ERROR type=input_overflow source=fts");
+            }
 
         } else {
             ESP_LOGW("NIMBLE", "FTS write - Invalid data length: %d bytes",
@@ -301,6 +351,13 @@ void initNimble() {
     /** Initialize NimBLE and set the device name */
     NimBLEDevice::init(getDeviceName());
     NimBLEDevice::setMTU(512);
+    ESP_LOGI(
+        NIMBLE_TAG,
+        "BLE_LINK event=initialized host_stack_bytes=%u msys_blocks=%u "
+        "preferred_mtu=%u free_heap=%u",
+        static_cast<unsigned>(CONFIG_BT_NIMBLE_HOST_TASK_STACK_SIZE),
+        static_cast<unsigned>(CONFIG_BT_NIMBLE_MSYS1_BLOCK_COUNT), 512U,
+        static_cast<unsigned>(ESP.getFreeHeap()));
 
     NimBLEDevice::setSecurityAuth(false, false, false);
     pServer = NimBLEDevice::createServer();
@@ -315,14 +372,21 @@ void initNimble() {
     pSpeedKnobConfigCharacteristic = initSpeedKnobConfigCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_SPEED_KNOB_CONFIG_UUID));
 
-    pLatencyCompensationConfigCharacteristic = initLatencyCompensationConfigCharacteristic(
-        pService, NimBLEUUID(CHARACTERISTIC_LATENCY_COMPENSATION_CONFIG_UUID));
+    pLatencyCompensationConfigCharacteristic =
+        initLatencyCompensationConfigCharacteristic(
+            pService,
+            NimBLEUUID(CHARACTERISTIC_LATENCY_COMPENSATION_CONFIG_UUID));
 
     initWiFiConfigCharacteristic(pService,
                                  NimBLEUUID(CHARACTERISTIC_WIFI_CONFIG_UUID));
 
-    initRenameConfigCharacteristic(pService,
-                                 NimBLEUUID(CHARACTERISTIC_RENAME_CONFIG_UUID));
+    initRenameConfigCharacteristic(
+        pService, NimBLEUUID(CHARACTERISTIC_RENAME_CONFIG_UUID));
+
+#ifdef OSSM_STREAM_TUNING
+    stream_tuning_ble::init(
+        pService, NimBLEUUID(CHARACTERISTIC_STREAM_TUNING_UUID));
+#endif
 
     pStateCharacteristic = initStateCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_STATE_UUID));
@@ -383,5 +447,5 @@ void initNimble() {
 
     xTaskCreatePinnedToCore(
         nimbleLoop, "nimbleLoop", 5 * configMINIMAL_STACK_SIZE, pServer,
-        configMAX_PRIORITIES - 1, nullptr, Tasks::stepperCore);
+        configMAX_PRIORITIES - 1, nullptr, Tasks::operationTaskCore);
 }

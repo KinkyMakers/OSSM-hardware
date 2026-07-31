@@ -2,6 +2,7 @@
 #define OSSM_STATE_BLE_H
 
 #include <Arduino.h>
+#include <optional>
 
 /**
  * BLE state - tracks Bluetooth Low Energy connection and command state
@@ -25,6 +26,19 @@ inline bool wasLastSpeedCommandFromBLE(bool andReset = false) {
 
 inline void resetLastSpeedCommandWasFromBLE() {
     bleState.lastSpeedCommandWasFromBLE = false;
+}
+
+inline bool speedKnobMoved(float previous, float current) {
+    constexpr float releaseThreshold = 2.0f;
+    return abs(current - previous) > releaseThreshold;
+}
+
+inline float resolveBLESpeed(float speedKnob,
+                             const std::optional<float> &speedBLE,
+                             bool useSpeedKnobAsLimit) {
+    if (!speedBLE.has_value()) return speedKnob;
+    if (useSpeedKnobAsLimit) return speedKnob * speedBLE.value() / 100.0f;
+    return speedBLE.value();
 }
 
 inline bool hasActiveBLE() {

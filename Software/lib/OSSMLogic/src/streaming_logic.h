@@ -9,6 +9,37 @@
 
 namespace streaming_logic {
 
+constexpr uint8_t minimumSafeStreamPercent = 10;
+constexpr uint8_t maximumSafeStreamPercent = 90;
+constexpr float maximumSafeStreamingSpeedMmPerSecond = 200.0f;
+constexpr float maximumSafeStreamingAccelerationMmPerSecondSquared = 5000.0f;
+
+inline uint8_t clampStreamPosition(uint8_t requestedPercent) {
+    return std::max<uint8_t>(
+        minimumSafeStreamPercent,
+        std::min<uint8_t>(maximumSafeStreamPercent, requestedPercent));
+}
+
+inline uint32_t calculateStreamingSpeedLimit(float speedPercent,
+                                             float stepsPerMillimeter) {
+    const float boundedPercent =
+        std::max(0.0f, std::min(100.0f, speedPercent));
+    return static_cast<uint32_t>(
+        maximumSafeStreamingSpeedMmPerSecond * stepsPerMillimeter *
+        boundedPercent / 100.0f);
+}
+
+inline uint32_t calculateStreamingAccelerationLimit(
+    float sensationPercent, float accelerationScale,
+    float stepsPerMillimeter) {
+    const float boundedSensation =
+        std::max(0.0f, std::min(100.0f, sensationPercent));
+    const float boundedScale = std::max(0.0f, accelerationScale);
+    return static_cast<uint32_t>(
+        maximumSafeStreamingAccelerationMmPerSecondSquared *
+        stepsPerMillimeter * boundedSensation / 100.0f * boundedScale);
+}
+
 /// Compute max stroke in steps from user percentages and calibration.
 /// streaming.cpp line 88
 inline int32_t calculateMaxStroke(float strokePct, float depthPct,

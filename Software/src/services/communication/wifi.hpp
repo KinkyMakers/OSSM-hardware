@@ -7,7 +7,32 @@
 #include <ArduinoJson.h>
 
 #include "Arduino.h"
+#include "communication_priority_policy.h"
+#include "services/communication/priority.h"
+#include "services/tasks.h"
 #include "services/wm.h"
+
+static TaskHandle_t s_legacyWifiConnectTask = nullptr;
+
+static void legacyWifiConnectTask(void* pvParameters) {
+    NimBLECharacteristic* pCharacteristic =
+        static_cast<NimBLECharacteristic*>(pvParameters);
+    while (!communication_priority::backgroundNetworkWorkAllowed()) {
+        vTaskDelay(pdMS_TO_TICKS(
+            communication_priority_policy::
+                kBackgroundDeferralPollMilliseconds));
+    }
+
+    if (connectWiFi()) {
+        ESP_LOGI("NIMBLE_WIFI", "WiFi connected successfully");
+        pCharacteristic->setValue("ok:wifi:connected");
+    } else {
+        ESP_LOGW("NIMBLE_WIFI", "WiFi connection failed");
+        pCharacteristic->setValue("fail:wifi:connection_failed");
+    }
+    s_legacyWifiConnectTask = nullptr;
+    vTaskDelete(nullptr);
+}
 
 /** Handler class for WiFi configuration characteristic */
 class WiFiConfigCallbacks : public NimBLECharacteristicCallbacks {
@@ -51,19 +76,27 @@ class WiFiConfigCallbacks : public NimBLECharacteristicCallbacks {
             return;
         }
 
-        ESP_LOGI("NIMBLE_WIFI", "Setting WiFi credentials - SSID: %s", ssid.c_str());
+        if (s_legacyWifiConnectTask != nullptr) {
+            ESP_LOGW("NIMBLE_WIFI", "WiFi connect already in progress");
+            pCharacteristic->setValue("fail:wifi:busy");
+            return;
+        }
 
-        // Save credentials and attempt connection
+        // Save immediately, then connect on a low-priority task. In Streaming,
+        // the task remains pending until BLE no longer owns the radio-priority
+        // window; the existing Wi-Fi connection remains online throughout.
         if (setWiFiCredentials(ssid, password)) {
-            pCharacteristic->setValue("ok:wifi:saved");
-            
-            // Attempt to connect
-            if (connectWiFi()) {
-                ESP_LOGI("NIMBLE_WIFI", "WiFi connected successfully");
-                pCharacteristic->setValue("ok:wifi:connected");
-            } else {
-                ESP_LOGW("NIMBLE_WIFI", "WiFi connection failed");
-                pCharacteristic->setValue("fail:wifi:connection_failed");
+            pCharacteristic->setValue(
+                communication_priority::isStreamingActive()
+                    ? "ok:wifi:deferred"
+                    : "ok:wifi:connecting");
+            const BaseType_t created = xTaskCreatePinnedToCore(
+                legacyWifiConnectTask, "legacyWifiConnect",
+                4 * configMINIMAL_STACK_SIZE, pCharacteristic, 1,
+                &s_legacyWifiConnectTask, Tasks::operationTaskCore);
+            if (created != pdPASS) {
+                s_legacyWifiConnectTask = nullptr;
+                pCharacteristic->setValue("fail:wifi:task_start");
             }
         } else {
             ESP_LOGE("NIMBLE_WIFI", "Failed to save WiFi credentials");

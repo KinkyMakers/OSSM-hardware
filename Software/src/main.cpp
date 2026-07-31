@@ -100,6 +100,15 @@ void __attribute__((weak)) setup() {
             initWM();
             initMQTT();
             pages::startPairingStatusCheck();
+            ESP_LOGI("MAIN",
+                     "Communication services active: BLE, WiFi, MQTT");
+            ESP_LOGI("MAIN",
+                     "TASK_MEM name=initNimbleTask high_water_bytes=%u "
+                     "free_heap=%u min_free_heap=%u",
+                     static_cast<unsigned>(
+                         uxTaskGetStackHighWaterMark(nullptr)),
+                     static_cast<unsigned>(ESP.getFreeHeap()),
+                     static_cast<unsigned>(ESP.getMinFreeHeap()));
             vTaskDelete(nullptr);
         },
         "initNimbleTask", 32 * configMINIMAL_STACK_SIZE, nullptr,

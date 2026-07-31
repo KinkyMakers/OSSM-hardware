@@ -10,7 +10,8 @@ OSSM (Open Source Sex Machine) is an ESP32-based stepper motor device firmware. 
 - **Framework:** Arduino + FreeRTOS
 - **C++ Standard:** C++17 (gnu++17)
 - **State Machine:** Boost.SML (header-only, `include/boost/sml.hpp`)
-- **Motor:** FastAccelStepper (stepper motor with trapezoidal acceleration)
+- **Motor:** FastAccelStepper (pattern modes use its ramp generator; timed
+  streaming submits `moveTimed()` queue entries directly)
 - **Display:** U8g2 (128x64 SSD1306 OLED)
 - **BLE:** NimBLE-Arduino 2.1.2
 - **LED:** FastLED (WS2812B status indicator)
@@ -141,6 +142,22 @@ Three operation modes:
 
 **Streaming Mode** — Real-time position from BLE (`stream:POS:TIME`)
 
+- Timed streaming is an on-device feed-forward velocity follower. Positional
+  lag and vertical translation are fitted only by the external Motion Lab
+  analysis; do not add a proportional position-correction term to firmware.
+- Streaming waypoints are timestamped in the BLE callback. The fixed input
+  queue preserves the newest request and discards obsolete intermediate
+  waypoints when receive age or queued duration exceeds 250 ms; range,
+  stopping-envelope, acceleration, and jerk constraints still apply.
+- Explicit speed zero clears pending targets and starts a new dropout epoch.
+  A controller must therefore enable its bounded streaming speed immediately
+  before writing the fresh target; no prior starvation recovery is allowed to
+  resume between those writes.
+- Timed streaming has non-tunable 200 mm/s and 5,000 mm/s/s ceilings before
+  applying the speed, sensation, and acceleration-scale percentages. Positions
+  outside the guarded play range ignore the request and recover inward through
+  the same acceleration and jerk limits.
+
 ### StrokeEngine Library (`lib/StrokeEngine/`)
 
 Custom motion control library with its own state machine:
@@ -184,7 +201,23 @@ struct SettingPercents {
 - **Emergency stop:** Long button press kills motor immediately
 - **BLE disconnect:** Speed ramps down over 2s (not instant stop)
 - **Keepout boundaries:** Soft endstops prevent travel beyond safe range
+- **Streaming edge barrier:** The 10%-guarded stroke/depth play range has a
+  tunable inward repulsion field plus a non-tunable jerk-aware stopping
+  envelope. Outward requests become subordinate to the field and reach zero
+  velocity before the guarded edge; the absolute clamp remains a final fault
+  containment layer.
+- **Streaming virtual mass:** Live direction reversals first dissipate the
+  current virtual momentum. During packet loss, the last four-point velocity
+  estimate evolves as a damped mass with bounded coast, the same edge field,
+  and a tunable spring toward the play-range center.
 - **Home switch:** Calibration required before any operation mode
+- **Hard-stop escape:** Homing begins with a current-limited move from 5 mm
+  behind to 5 mm ahead of one fixed origin and aborts before long travel when
+  current feedback is absent or both directions appear blocked.
+- **Homing speeds:** The current-limited hard-stop wiggle runs at 10 mm/s;
+  the subsequent full-stroke homing sweep runs at the established 25 mm/s.
+- **Ambiguous free-space tie:** If both 5 mm wiggles complete with valid but
+  nearly equal current, continue in the normal negative homing direction.
 
 ## Build Configuration
 
@@ -212,7 +245,7 @@ Uses `min_spiffs.csv` (PlatformIO built-in minimal SPIFFS partition).
 | Library                        | Version  | Purpose                    |
 |--------------------------------|----------|----------------------------|
 | NimBLE-Arduino                 | ^2.1.2   | BLE stack                  |
-| FastAccelStepper               | ^0.30.13 | Stepper motor control      |
+| FastAccelStepper               | 1.2.7    | Stepper motor control      |
 | U8g2                           | ^2.35.8  | OLED display (SSD1306)     |
 | FastLED                        | ^3.6.0   | RGB LED status             |
 | ArduinoJson                    | latest   | JSON parsing               |
@@ -235,8 +268,16 @@ Uses `min_spiffs.csv` (PlatformIO built-in minimal SPIFFS partition).
 - Environment: `hw_test` (extends `development`, builds full `src/`)
 - Run all: `pio test -e hw_test`
 - Run one: `pio test -e hw_test -f test_hw_smoke`
-- Available suites: `test_hw_smoke`, `test_hw_homing`, `test_hw_homing_error`, `test_hw_pairing`, `test_hw_state_machine`, `test_hw_wifi`
+- Available suites: `test_hw_smoke`, `test_hw_homing`, `test_hw_homing_error`, `test_hw_homing_probe`, `test_hw_pairing`, `test_hw_state_machine`, `test_hw_streaming_stress`, `test_hw_wifi`
 - `test_hw_homing` moves the motor — keep the rail clear
+- `test_hw_homing_probe` travels from 5 mm behind to 5 mm ahead of one fixed
+  origin at 10 mm/s (15 mm total commanded travel) without starting
+  full-stroke homing.
+- `hw_streaming_quick` inherits `hw_test` and runs four motion cases. Treat it
+  as motion-capable even though it is a separate environment name.
+- Long-running hardware tests must emit a serial phase marker before homing or
+  motion and keep Unity assertions inside `RUN_TEST`, so allocation, homing,
+  and state-transition failures remain observable to the host runner.
 
 ## Important Rules
 

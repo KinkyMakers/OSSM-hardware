@@ -64,6 +64,35 @@ void test_scaleStreamPosition_50_percent(void) {
     TEST_ASSERT_EQUAL_INT32(-4500, result);
 }
 
+void test_clampStreamPosition_keeps_targets_inside_inner_play_range(void) {
+    TEST_ASSERT_EQUAL_UINT8(10, streaming_logic::clampStreamPosition(0));
+    TEST_ASSERT_EQUAL_UINT8(10, streaming_logic::clampStreamPosition(10));
+    TEST_ASSERT_EQUAL_UINT8(50, streaming_logic::clampStreamPosition(50));
+    TEST_ASSERT_EQUAL_UINT8(90, streaming_logic::clampStreamPosition(90));
+    TEST_ASSERT_EQUAL_UINT8(90, streaming_logic::clampStreamPosition(100));
+}
+
+void test_streaming_speed_limit_is_bounded_and_percentage_scaled(void) {
+    TEST_ASSERT_EQUAL_UINT32(
+        0, streaming_logic::calculateStreamingSpeedLimit(-10.0f, 20.0f));
+    TEST_ASSERT_EQUAL_UINT32(
+        1600, streaming_logic::calculateStreamingSpeedLimit(40.0f, 20.0f));
+    TEST_ASSERT_EQUAL_UINT32(
+        4000, streaming_logic::calculateStreamingSpeedLimit(150.0f, 20.0f));
+}
+
+void test_streaming_acceleration_limit_preserves_tuning_scale(void) {
+    TEST_ASSERT_EQUAL_UINT32(
+        0, streaming_logic::calculateStreamingAccelerationLimit(
+               0.0f, 1.0f, 20.0f));
+    TEST_ASSERT_EQUAL_UINT32(
+        12500, streaming_logic::calculateStreamingAccelerationLimit(
+                   50.0f, 0.25f, 20.0f));
+    TEST_ASSERT_EQUAL_UINT32(
+        50000, streaming_logic::calculateStreamingAccelerationLimit(
+                   50.0f, 1.0f, 20.0f));
+}
+
 // ─── planMotion ───
 
 void test_planMotion_short_distance_plenty_of_time(void) {
@@ -154,6 +183,9 @@ int main(int argc, char **argv) {
     RUN_TEST(test_scaleStreamPosition_100_percent);
     RUN_TEST(test_scaleStreamPosition_0_percent);
     RUN_TEST(test_scaleStreamPosition_50_percent);
+    RUN_TEST(test_clampStreamPosition_keeps_targets_inside_inner_play_range);
+    RUN_TEST(test_streaming_speed_limit_is_bounded_and_percentage_scaled);
+    RUN_TEST(test_streaming_acceleration_limit_preserves_tuning_scale);
 
     RUN_TEST(test_planMotion_short_distance_plenty_of_time);
     RUN_TEST(test_planMotion_distance_exceeds_max);
