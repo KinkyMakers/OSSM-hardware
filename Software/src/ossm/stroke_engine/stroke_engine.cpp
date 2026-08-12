@@ -24,8 +24,8 @@ static void startStrokeEngineTask(void *pvParameters) {
     float measuredStrokeMm = calibration.measuredStrokeSteps / (1_mm);
 
     machineGeometry strokingMachine = {
-        .physicalTravel = abs(calibration.measuredStrokeSteps / (1_mm)),
-        .keepoutBoundary = 6.0};
+        .physicalTravel = abs(measuredStrokeMm),
+        .keepoutBoundary = 0.0}; // KeepoutBoundary controlled outside of StrokeEngine
     SettingPercents lastSetting = settings;
 
     // Adopt the StrokeEngine origin only when entering right after a real
@@ -33,9 +33,8 @@ static void startStrokeEngineTask(void *pvParameters) {
     // position (counter ~0). On a go:menu re-entry neither holds, so we
     // preserve the existing counter and skip the re-base that used to
     // accumulate ~6 mm of drift per entry.
-    constexpr int32_t HOME_TOL = 40;  // steps (~2 mm at 20 steps/mm)
     bool atHome = calibration.justHomed &&
-                  (abs(stepper->getCurrentPosition()) < HOME_TOL);
+                  (abs(stepper->getCurrentPosition()) < 2_mm);
     calibration.justHomed = false;
 
     if (atHome) {

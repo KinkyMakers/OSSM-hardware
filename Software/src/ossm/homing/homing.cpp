@@ -57,8 +57,9 @@ static void startHomingTask(void *pvParameters) {
     stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
     int16_t sign = stateMachine->is("homing.backward"_s) ? 1 : -1;
 
+    // Set target position as 50mm beyond the maximum stroke length to ensure hitting the hard stop.
     int32_t targetPositionInSteps =
-        round(sign * Config::Driver::maxStrokeSteps);
+        round(sign * (50_mm + Config::Driver::maxStrokeSteps));
 
     ESP_LOGD("Homing", "Target position in steps: %d", targetPositionInSteps);
     stepper->moveTo(targetPositionInSteps, false);
