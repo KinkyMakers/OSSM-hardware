@@ -25,6 +25,7 @@ static void startStrokeEngineTask(void *pvParameters) {
 
     machineGeometry strokingMachine = {
         .physicalTravel = abs(measuredStrokeMm),
+        // keepoutBoundary must match with stepperTranslateFrame in stepper.cpp
         .keepoutBoundary = 0.0}; // KeepoutBoundary controlled outside of StrokeEngine
     SettingPercents lastSetting = settings;
 
