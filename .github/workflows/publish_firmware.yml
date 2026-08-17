@@ -11,6 +11,8 @@ on:
       - ".github/scripts/test_download_verified_release.py"
       - ".github/scripts/publish_immutable_firmware.py"
       - ".github/scripts/test_publish_immutable_firmware.py"
+      - ".github/scripts/build_web_installer.py"
+      - ".github/scripts/test_build_web_installer.py"
       - ".github/scripts/release_workflow.py"
       - ".github/scripts/test_release_workflow.py"
       - ".github/workflows/finalize_release.yml"
@@ -139,6 +141,7 @@ jobs:
       - name: Test publisher
         run: |
           python .github/scripts/test_download_verified_release.py
+          python .github/scripts/test_build_web_installer.py
           python .github/scripts/test_publish_immutable_firmware.py
           python .github/scripts/test_release_workflow.py
 
@@ -156,6 +159,12 @@ jobs:
         working-directory: Software
         run: pio run -e "$PIO_ENV"
 
+      - name: Build merged web installer
+        run: |
+          python .github/scripts/build_web_installer.py \
+            --build-dir "Software/.pio/build/$PIO_ENV" \
+            --output "Software/.pio/build/$PIO_ENV/web-installer.bin"
+
       - name: Publish validating release
         id: publish
         run: |
@@ -167,7 +176,8 @@ jobs:
             --min-flash-size-bytes 16777216 \
             --artifact "application:Software/.pio/build/$PIO_ENV/firmware.bin:1:true" \
             --artifact "bootloader:Software/.pio/build/$PIO_ENV/bootloader.bin:2:false" \
-            --artifact "partitions:Software/.pio/build/$PIO_ENV/partitions.bin:3:false"
+            --artifact "partitions:Software/.pio/build/$PIO_ENV/partitions.bin:3:false" \
+            --artifact "web-installer:Software/.pio/build/$PIO_ENV/web-installer.bin:4:false"
 
       - name: Candidate summary
         run: |

@@ -4,10 +4,12 @@ import unittest
 from pathlib import Path
 
 from publish_immutable_firmware import (
+    Artifact,
     compatibility_rules,
     parse_artifact,
     positive_int,
     read_version,
+    select_release_artifacts,
 )
 
 
@@ -41,6 +43,49 @@ class PublisherTests(unittest.TestCase):
     def test_rejects_non_positive_flash_size(self):
         with self.assertRaises(argparse.ArgumentTypeError):
             positive_int("0")
+
+    def test_web_installer_is_published_but_not_installable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            firmware = root / "firmware.bin"
+            installer = root / "web-installer.bin"
+            firmware.write_bytes(b"firmware")
+            installer.write_bytes(b"installer")
+            installable, published = select_release_artifacts(
+                [
+                    Artifact("application", firmware, 1, True),
+                    Artifact("web-installer", installer, 4, False),
+                ]
+            )
+        self.assertEqual([artifact.role for artifact in installable], ["application"])
+        self.assertEqual(
+            [artifact.role for artifact in published],
+            ["application", "web-installer"],
+        )
+
+    def test_rejects_installable_web_installer(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            firmware = root / "firmware.bin"
+            installer = root / "web-installer.bin"
+            firmware.write_bytes(b"firmware")
+            installer.write_bytes(b"installer")
+            with self.assertRaisesRegex(RuntimeError, "non-installable"):
+                select_release_artifacts(
+                    [
+                        Artifact("application", firmware, 1, True),
+                        Artifact("web-installer", installer, 4, True),
+                    ]
+                )
+
+    def test_requires_one_web_installer(self):
+        with tempfile.TemporaryDirectory() as directory:
+            firmware = Path(directory) / "firmware.bin"
+            firmware.write_bytes(b"firmware")
+            with self.assertRaisesRegex(RuntimeError, "exactly one"):
+                select_release_artifacts(
+                    [Artifact("application", firmware, 1, True)]
+                )
 
 
 if __name__ == "__main__":
