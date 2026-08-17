@@ -56,9 +56,18 @@ jobs:
           pio run -e staging
           pio run -e production
 
+      - name: Build merged web installers
+        run: |
+          for environment in staging production; do
+            python .github/scripts/build_web_installer.py \
+              --build-dir "Software/.pio/build/$environment" \
+              --output "Software/.pio/build/$environment/web-installer.bin"
+          done
+
       - name: Test immutable publisher
         run: |
           python .github/scripts/test_download_verified_release.py
+          python .github/scripts/test_build_web_installer.py
           python .github/scripts/test_publish_immutable_firmware.py
           python .github/scripts/test_release_workflow.py
 
@@ -70,6 +79,7 @@ jobs:
             Software/.pio/build/production/firmware.bin
             Software/.pio/build/production/partitions.bin
             Software/.pio/build/production/bootloader.bin
+            Software/.pio/build/production/web-installer.bin
           retention-days: 1
 
   check:
@@ -127,3 +137,15 @@ jobs:
         run: |
           cd Software
           pio test -e test
+
+  check_docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify legacy documentation remains retired
+        run: |
+          if [[ -d Documentation ]]; then
+            echo "The retired in-repository documentation workspace was restored"
+            exit 1
+          fi

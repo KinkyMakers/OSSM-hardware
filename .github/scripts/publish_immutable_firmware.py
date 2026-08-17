@@ -21,7 +21,13 @@ PROJECT_REFS = {
     "main": "acjajruwevyyatztbkdf",
     "staging": "meuaxbjzqrszxdvmacug",
 }
-VALID_ROLES = {"application", "filesystem", "bootloader", "partitions"}
+VALID_ROLES = {
+    "application",
+    "filesystem",
+    "bootloader",
+    "partitions",
+    "web-installer",
+}
 
 
 @dataclass(frozen=True)
@@ -154,6 +160,41 @@ def validation_payload(release_id: str, layer: str, status: str, args: argparse.
     return payload
 
 
+def select_release_artifacts(
+    artifacts: list[Artifact],
+) -> tuple[list[Artifact], list[Artifact]]:
+    if len({artifact.filename for artifact in artifacts}) != len(artifacts):
+        raise RuntimeError("artifact filenames must be unique")
+    if len({artifact.install_order for artifact in artifacts}) != len(artifacts):
+        raise RuntimeError("artifact install orders must be unique")
+    installable = sorted(
+        (artifact for artifact in artifacts if artifact.installable),
+        key=lambda artifact: artifact.install_order,
+    )
+    applications = [
+        artifact for artifact in installable if artifact.role == "application"
+    ]
+    if len(applications) != 1:
+        raise RuntimeError("exactly one installable application artifact is required")
+    web_installers = [
+        artifact for artifact in artifacts if artifact.role == "web-installer"
+    ]
+    if len(web_installers) != 1 or any(
+        artifact.installable for artifact in web_installers
+    ):
+        raise RuntimeError(
+            "exactly one non-installable web-installer artifact is required"
+        )
+    if any(
+        artifact.role not in {"application", "filesystem"}
+        for artifact in installable
+    ):
+        raise RuntimeError("only application and filesystem may be installable")
+    return installable, sorted(
+        [*installable, *web_installers], key=lambda artifact: artifact.install_order
+    )
+
+
 def publish(args: argparse.Namespace) -> str:
     token = os.environ.get("FIRMWARE_PUBLISH_TOKEN", "").strip()
     if not token:
@@ -163,16 +204,7 @@ def publish(args: argparse.Namespace) -> str:
     if not re.fullmatch(r"[0-9a-fA-F]{7,64}", args.build_sha):
         raise RuntimeError("build SHA must contain 7 to 64 hexadecimal characters")
     version = read_version(args.version_file)
-    installable = sorted(
-        (artifact for artifact in args.artifact if artifact.installable),
-        key=lambda artifact: artifact.install_order,
-    )
-    if not any(artifact.role == "application" for artifact in installable):
-        raise RuntimeError("an installable application artifact is required")
-    if len({artifact.filename for artifact in args.artifact}) != len(args.artifact):
-        raise RuntimeError("artifact filenames must be unique")
-    if len({artifact.install_order for artifact in args.artifact}) != len(args.artifact):
-        raise RuntimeError("artifact install orders must be unique")
+    installable, release_artifacts = select_release_artifacts(args.artifact)
 
     metadata = [
         {
@@ -269,10 +301,10 @@ def publish(args: argparse.Namespace) -> str:
                 "publicUrl": uploads_by_name[artifact.filename]["publicUrl"],
                 "sha256": artifact.sha256,
                 "sizeBytes": artifact.size_bytes,
-                "required": True,
+                "required": artifact.installable,
                 "installOrder": artifact.install_order,
             }
-            for artifact in installable
+            for artifact in release_artifacts
         ],
     }
     published = request_json(f"{base_url}/api/internal/firmware/v1/releases", token, release_request)
