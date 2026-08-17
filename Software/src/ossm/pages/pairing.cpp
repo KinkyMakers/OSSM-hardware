@@ -5,6 +5,8 @@
 
 #include <ArduinoJson.h>
 
+#include "FirmwareProvenance.h"
+
 #include "constants/Version.h"
 #include "ossm/Events.h"
 #include "ossm/state/state.h"
@@ -30,6 +32,15 @@ static int requestDeviceAuth(bool updatePairingCode) {
     String url = String(RAD_SERVER) + "/api/ossm/auth";
     http.begin(url);
     http.addHeader("Content-Type", "application/json");
+    http.addHeader("X-RAD-Firmware-Provenance-Capability", "1");
+    const auto provenanceToken = firmware::provenance::currentToken();
+    if (!provenanceToken.empty()) {
+        http.addHeader("X-RAD-Firmware-Provenance", provenanceToken.c_str());
+        http.addHeader("X-RAD-Firmware-Provenance-ID",
+                       firmware::provenance::currentTokenId().c_str());
+        http.addHeader("X-RAD-Firmware-Image-SHA256",
+                       firmware::provenance::currentImageSha256().c_str());
+    }
 
     JsonDocument doc;
     doc["mac"] = macAddress;

@@ -3,6 +3,7 @@
 #include <Preferences.h>
 #include <WiFi.h>
 
+#include "FirmwareProvenance.h"
 #include "constants/Pins.h"
 #include "constants/UserConfig.h"
 #include "constants/Version.h"
@@ -86,6 +87,8 @@ const radble::Resource RESOURCES[] = {
      RW, "{\"min\":1,\"max\":100}"},
     {"device_name", "device.name", "setting", "string", "", RWP,
      "{\"maxBytes\":24,\"emptyResets\":true}"},
+    {"firmware_provenance", "device.firmwareProvenance", "setting", "object",
+     "", R, ""},
     {"calibration_offset", "motion.currentOffset", "motion", "float", "raw",
      R, ""},
     {"calibration_stroke", "motion.measuredStroke", "motion", "float", "steps",
@@ -190,6 +193,14 @@ radble::Result settingValue(const String& path) {
         preferences.begin("UserConfig", true);
         document["value"] = preferences.getString("DeviceName", "OSSM");
         preferences.end();
+    } else if (path == "device.firmwareProvenance") {
+        const auto snapshot = firmware::provenance::runningSnapshot(
+            FIRMWARE_TRACK, "ossm", VERSION, FIRMWARE_BUILD_SHA);
+        document["origin"] = snapshot.origin;
+        document["keyId"] = snapshot.keyId;
+        document["provenanceId"] = snapshot.provenanceId;
+        document["imageSha256"] = snapshot.imageSha256;
+        document["compactJws"] = snapshot.token;
     }
     else
         return radble::Result::failure("unknown_path", "Unknown setting path");

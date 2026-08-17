@@ -1,0 +1,21 @@
+{
+  "description": "Non-secret fixed ES256 vector shared across publisher, control-plane, and firmware tests.",
+  "keyId": "rd-fw-staging-2026-08-01",
+  "publicKeyFingerprintSha256": "35fb9c22de8d69e3a1bb999c69f110b53b4879cd884af10b92cc137013b1c2cc",
+  "claims": {
+    "schema": "rad.firmware.provenance.v1",
+    "issuer": "research-and-desire",
+    "track": "staging",
+    "deviceType": "ossm",
+    "hardwareVariant": "default",
+    "kind": "firmware",
+    "version": "9.8.7",
+    "buildSha": "0123456789abcdef0123456789abcdef01234567",
+    "manifestSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "applicationSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "runtimeImageSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "applicationSizeBytes": 123456,
+    "issuedAt": "2026-08-17T00:00:00Z"
+  },
+  "compactJws": "eyJhbGciOiJFUzI1NiIsImtpZCI6InJkLWZ3LXN0YWdpbmctMjAyNi0wOC0wMSIsInR5cCI6InJhZC1mdy1wcm92K2p3cyJ9.eyJhcHBsaWNhdGlvblNoYTI1NiI6IjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIiLCJhcHBsaWNhdGlvblNpemVCeXRlcyI6MTIzNDU2LCJidWlsZFNoYSI6IjAxMjM0NTY3ODlhYmNkZWYwMTIzNDU2Nzg5YWJjZGVmMDEyMzQ1NjciLCJkZXZpY2VUeXBlIjoib3NzbSIsImhhcmR3YXJlVmFyaWFudCI6ImRlZmF1bHQiLCJpc3N1ZWRBdCI6IjIwMjYtMDgtMTdUMDA6MDA6MDBaIiwiaXNzdWVyIjoicmVzZWFyY2gtYW5kLWRlc2lyZSIsImtpbmQiOiJmaXJtd2FyZSIsIm1hbmlmZXN0U2hhMjU2IjoiMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMSIsInJ1bnRpbWVJbWFnZVNoYTI1NiI6IjMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMiLCJzY2hlbWEiOiJyYWQuZmlybXdhcmUucHJvdmVuYW5jZS52MSIsInRyYWNrIjoic3RhZ2luZyIsInZlcnNpb24iOiI5LjguNyJ9.A4g5XsBzMzZNftjRTKR79HcnkTWYlL_FEV7hZ6hF4k_Pls3BaLa7SN-J1wjuMdKlmdEUWDF4PUqaUwQP1nxm5g"
+}

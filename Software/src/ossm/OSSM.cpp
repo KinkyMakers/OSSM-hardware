@@ -1,5 +1,7 @@
 #include "OSSM.h"
 
+#include "FirmwareProvenance.h"
+
 #include "command/commands.hpp"
 #include "ossm/state/ble.h"
 #include "ossm/state/calibration.h"
@@ -164,6 +166,8 @@ String OSSM::getCurrentState() {
     float positionMm = float(stepper->getCurrentPosition()) / float(1_mm);
     if (isnan(positionMm)) positionMm = 0.0f;
 
+    const String provenanceId =
+        firmware::provenance::currentTokenId().c_str();
     return "{\"timestamp\":" + String((unsigned long)millis()) +
            ",\"state\":\"" + currentState +
            "\",\"speed\":" + String((int)settings.speed) +
@@ -173,5 +177,6 @@ String OSSM::getCurrentState() {
            ",\"buffer\":" + String((int)settings.buffer) +
            ",\"pattern\":" + String(static_cast<int>(settings.pattern)) +
            ",\"position\":" + String(positionMm, 2) +
-           ",\"sessionId\":\"" + sessionId + "\"}";
+           ",\"sessionId\":\"" + sessionId +
+           "\",\"firmwareProvenanceId\":\"" + provenanceId + "\"}";
 }

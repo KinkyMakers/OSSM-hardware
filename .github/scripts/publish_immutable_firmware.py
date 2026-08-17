@@ -4,10 +4,13 @@
 from __future__ import annotations
 
 import argparse
+import base64
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 import urllib.error
@@ -27,6 +30,10 @@ VALID_ROLES = {
     "bootloader",
     "partitions",
     "web-installer",
+}
+PROVENANCE_KEYS = {
+    "staging": ("rd-fw-staging-2026-08-01", "35fb9c22de8d69e3a1bb999c69f110b53b4879cd884af10b92cc137013b1c2cc"),
+    "main": ("rd-fw-production-2026-08-01", "13f51408cd35f7925d9405e1b04d4e6ebdb57d2149f0eae522caaf3fc4d3aed6"),
 }
 
 
@@ -93,6 +100,108 @@ def compatibility_rules(min_flash_size_bytes: int | None) -> list[dict[str, int]
 
 def json_bytes(value: Any) -> bytes:
     return (json.dumps(value, sort_keys=True, separators=(",", ":")) + "\n").encode()
+
+
+def base64url(value: bytes) -> str:
+    return base64.urlsafe_b64encode(value).rstrip(b"=").decode("ascii")
+
+
+def read_der_length(value: bytes, offset: int) -> tuple[int, int]:
+    length = value[offset]
+    if length < 0x80:
+        return length, offset + 1
+    count = length & 0x7F
+    if count == 0 or count > 2:
+        raise RuntimeError("unsupported ECDSA DER length")
+    return int.from_bytes(value[offset + 1 : offset + 1 + count], "big"), offset + 1 + count
+
+
+def der_ecdsa_to_p1363(signature: bytes) -> bytes:
+    if not signature or signature[0] != 0x30:
+        raise RuntimeError("invalid ECDSA signature encoding")
+    sequence_length, offset = read_der_length(signature, 1)
+    if offset + sequence_length != len(signature):
+        raise RuntimeError("invalid ECDSA signature length")
+    values: list[bytes] = []
+    for _ in range(2):
+        if offset >= len(signature) or signature[offset] != 0x02:
+            raise RuntimeError("invalid ECDSA signature integer")
+        integer_length, offset = read_der_length(signature, offset + 1)
+        integer = signature[offset : offset + integer_length]
+        offset += integer_length
+        integer = integer.lstrip(b"\x00")
+        if len(integer) > 32:
+            raise RuntimeError("ECDSA signature integer is too large")
+        values.append(integer.rjust(32, b"\x00"))
+    return b"".join(values)
+
+
+def sign_provenance(track: str, claims: dict[str, Any]) -> str:
+    private_key = os.environ.get("FIRMWARE_PROVENANCE_SIGNING_KEY_PEM", "").strip()
+    if not private_key:
+        raise RuntimeError("FIRMWARE_PROVENANCE_SIGNING_KEY_PEM is required")
+    key_id, expected_fingerprint = PROVENANCE_KEYS[track]
+    public_der = subprocess.run(
+        ["openssl", "pkey", "-pubout", "-outform", "DER"],
+        input=private_key.encode(),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=True,
+    ).stdout
+    if hashlib.sha256(public_der).hexdigest() != expected_fingerprint:
+        raise RuntimeError("firmware provenance signing key does not match the selected track")
+    header = {"alg": "ES256", "kid": key_id, "typ": "rad-fw-prov+jws"}
+    signing_input = (
+        f"{base64url(json.dumps(header, sort_keys=True, separators=(',', ':')).encode())}."
+        f"{base64url(json.dumps(claims, sort_keys=True, separators=(',', ':')).encode())}"
+    )
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", prefix="rad-fw-key-", delete=True) as key_file:
+        os.chmod(key_file.name, 0o600)
+        key_file.write(private_key)
+        key_file.flush()
+        signature = subprocess.run(
+            ["openssl", "dgst", "-sha256", "-sign", key_file.name],
+            input=signing_input.encode(),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+        ).stdout
+    return f"{signing_input}.{base64url(der_ecdsa_to_p1363(signature))}"
+
+
+def runtime_image_sha256(application: Artifact) -> str:
+    content = application.content
+    if len(content) < 56 or content[0] != 0xE9:
+        raise RuntimeError("application is not an ESP app image")
+    if content[23] != 1:
+        return hashlib.sha256(content).hexdigest()
+    expected = content[-32:]
+    if hashlib.sha256(content[:-32]).digest() != expected:
+        raise RuntimeError("application has an invalid appended image digest")
+    return expected.hex()
+
+
+def create_provenance(args: argparse.Namespace, version: str, manifest: Artifact, application: Artifact, path: Path, order: int) -> tuple[Artifact, str]:
+    claims = {
+        "schema": "rad.firmware.provenance.v1",
+        "issuer": "research-and-desire",
+        "track": args.track,
+        "deviceType": args.device_type,
+        "hardwareVariant": getattr(args, "hardware_variant", "default"),
+        "kind": args.kind,
+        "version": version,
+        "buildSha": args.build_sha,
+        "manifestSha256": manifest.sha256,
+        "applicationSha256": application.sha256,
+        "runtimeImageSha256": runtime_image_sha256(application),
+        "applicationSizeBytes": application.size_bytes,
+        "issuedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+    }
+    token = sign_provenance(args.track, claims)
+    path.write_bytes(json_bytes({"provenance": token}))
+    return Artifact("provenance", path, order, False), token
 
 
 def request_json(url: str, token: str, payload: dict[str, Any]) -> dict[str, Any]:
@@ -273,10 +382,16 @@ def publish(args: argparse.Namespace) -> str:
             }
         )
     )
-    generated = [
-        Artifact("manifest", manifest_path, max(item.install_order for item in args.artifact) + 1, False),
-        Artifact("release", release_path, max(item.install_order for item in args.artifact) + 2, False),
-    ]
+    generated_order = max(item.install_order for item in args.artifact)
+    manifest_artifact = Artifact("manifest", manifest_path, generated_order + 1, False)
+    release_artifact = Artifact("release", release_path, generated_order + 2, False)
+    application = next(item for item in installable if item.role == "application")
+    provenance_artifact, provenance_token = create_provenance(
+        args, version, manifest_artifact, application,
+        generated_dir / "provenance.json", generated_order + 3,
+    )
+    generated = [manifest_artifact, release_artifact, provenance_artifact]
+    release_artifacts = [*release_artifacts, provenance_artifact]
     all_artifacts = [*args.artifact, *generated]
     upload_request = upload_request_payload(args, version, all_artifacts)
     base_url = os.environ.get("FIRMWARE_CONTROL_PLANE_BASE_URL", CONTROL_PLANE).rstrip("/")
@@ -303,6 +418,7 @@ def publish(args: argparse.Namespace) -> str:
         "bucketId": f"{args.device_type}-firmware",
         "objectPrefix": signed["objectPrefix"],
         "compatibilityRules": compatibility_rules(args.min_flash_size_bytes),
+        "provenance": provenance_token,
         "artifacts": [
             {
                 "role": artifact.role,
