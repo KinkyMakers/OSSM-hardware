@@ -195,6 +195,33 @@ def select_release_artifacts(
     )
 
 
+def upload_request_payload(
+    args: argparse.Namespace, version: str, artifacts: list[Artifact]
+) -> dict[str, Any]:
+    return {
+        "track": args.track,
+        "deviceType": args.device_type,
+        "version": version,
+        "buildSha": args.build_sha,
+        "kind": args.kind,
+        "storageProjectRef": PROJECT_REFS[args.track],
+        "bucketId": f"{args.device_type}-firmware",
+        "artifacts": [
+            {
+                "role": artifact.role,
+                "filename": artifact.filename,
+                "sha256": artifact.sha256,
+                "sizeBytes": artifact.size_bytes,
+                "installOrder": artifact.install_order,
+                "contentType": "application/json"
+                if artifact.path.suffix == ".json"
+                else "application/octet-stream",
+            }
+            for artifact in artifacts
+        ],
+    }
+
+
 def publish(args: argparse.Namespace) -> str:
     token = os.environ.get("FIRMWARE_PUBLISH_TOKEN", "").strip()
     if not token:
@@ -251,25 +278,7 @@ def publish(args: argparse.Namespace) -> str:
         Artifact("release", release_path, max(item.install_order for item in args.artifact) + 2, False),
     ]
     all_artifacts = [*args.artifact, *generated]
-    upload_request = {
-        "track": args.track,
-        "deviceType": args.device_type,
-        "version": version,
-        "buildSha": args.build_sha,
-        "storageProjectRef": PROJECT_REFS[args.track],
-        "bucketId": f"{args.device_type}-firmware",
-        "artifacts": [
-            {
-                "role": artifact.role,
-                "filename": artifact.filename,
-                "sha256": artifact.sha256,
-                "sizeBytes": artifact.size_bytes,
-                "installOrder": artifact.install_order,
-                "contentType": "application/json" if artifact.path.suffix == ".json" else "application/octet-stream",
-            }
-            for artifact in all_artifacts
-        ],
-    }
+    upload_request = upload_request_payload(args, version, all_artifacts)
     base_url = os.environ.get("FIRMWARE_CONTROL_PLANE_BASE_URL", CONTROL_PLANE).rstrip("/")
     upload_base_url = os.environ.get(
         "FIRMWARE_UPLOAD_BASE_URL",

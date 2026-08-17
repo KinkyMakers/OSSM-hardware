@@ -10,6 +10,7 @@ from publish_immutable_firmware import (
     positive_int,
     read_version,
     select_release_artifacts,
+    upload_request_payload,
 )
 
 
@@ -43,6 +44,22 @@ class PublisherTests(unittest.TestCase):
     def test_rejects_non_positive_flash_size(self):
         with self.assertRaises(argparse.ArgumentTypeError):
             positive_int("0")
+
+    def test_upload_request_includes_release_kind(self):
+        with tempfile.TemporaryDirectory() as directory:
+            firmware = Path(directory) / "firmware.bin"
+            firmware.write_bytes(b"firmware")
+            payload = upload_request_payload(
+                argparse.Namespace(
+                    track="staging",
+                    device_type="ossm",
+                    build_sha="abcdef0",
+                    kind="firmware",
+                ),
+                "1.2.3",
+                [Artifact("application", firmware, 1, True)],
+            )
+        self.assertEqual(payload["kind"], "firmware")
 
     def test_web_installer_is_published_but_not_installable(self):
         with tempfile.TemporaryDirectory() as directory:
