@@ -57,6 +57,7 @@ jobs:
       name: ${{ github.ref_name == 'main' && 'firmware-production' || 'firmware-staging' }}
     env:
       FIRMWARE_PUBLISH_TOKEN: ${{ secrets.FIRMWARE_PUBLISH_TOKEN }}
+      FIRMWARE_PROVENANCE_SIGNING_KEY_PEM: ${{ secrets.FIRMWARE_PROVENANCE_SIGNING_KEY_PEM }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -142,6 +143,7 @@ jobs:
         run: |
           python .github/scripts/test_download_verified_release.py
           python .github/scripts/test_build_web_installer.py
+          python .github/scripts/test_firmware_provenance.py
           python .github/scripts/test_publish_immutable_firmware.py
           python .github/scripts/test_release_workflow.py
 

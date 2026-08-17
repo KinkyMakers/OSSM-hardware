@@ -83,6 +83,7 @@ firmware::DeviceReport makeDeviceReport() {
     report.psramSizeBytes = ESP.getPsramSize();
     report.otaSlotSizeBytes = otaSlotSizeBytes();
     report.partitionLayout = currentPartitionLayout();
+    firmware::provenance::reconcile(report);
     return report;
 }
 
@@ -126,6 +127,8 @@ void updateTask(void *pvParameters) {
         finishWithoutUpdate(mqttStopped, error);
         return;
     }
+    firmware::provenance::observeCurrent(report, decision);
+    firmware::provenance::stageUpdate(report, decision);
 
     ESP_LOGW(UPDATE_TAG,
              "Resolver assigned track=%s shouldUpdate=%s target=%s next=%s reason=%s",
