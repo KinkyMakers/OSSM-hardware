@@ -61,6 +61,13 @@ class Artifact:
         return self.path.stat().st_size
 
 
+class ControlPlaneHttpError(RuntimeError):
+    def __init__(self, status: int, detail: str):
+        self.status = status
+        self.detail = detail
+        super().__init__(f"control plane returned HTTP {status}: {detail}")
+
+
 def parse_artifact(value: str) -> Artifact:
     try:
         role, path, order, installable = value.split(":", 3)
@@ -220,7 +227,7 @@ def request_json(url: str, token: str, payload: dict[str, Any]) -> dict[str, Any
             return json.load(response)
     except urllib.error.HTTPError as error:
         detail = error.read().decode(errors="replace")
-        raise RuntimeError(f"control plane returned HTTP {error.code}: {detail}") from error
+        raise ControlPlaneHttpError(error.code, detail) from error
 
 
 def upload_file(url: str, content: bytes, content_type: str) -> None:
@@ -331,6 +338,33 @@ def upload_request_payload(
     }
 
 
+def complete_release_artifacts(
+    payload_artifacts: list[Artifact],
+    manifest: Artifact,
+    provenance: Artifact,
+) -> list[Artifact]:
+    """Return the artifacts the control plane must bind to the release."""
+    return [*payload_artifacts, manifest, provenance]
+
+
+def requires_legacy_production_envelope(
+    track: str, error: ControlPlaneHttpError
+) -> bool:
+    """Recognize only the deployed production API's missing provenance role."""
+    if track != "main" or error.status != 400:
+        return False
+    try:
+        issues = json.loads(error.detail).get("issues", [])
+    except (AttributeError, json.JSONDecodeError):
+        return False
+    return any(
+        issue.get("code") == "invalid_value"
+        and issue.get("path", [])[-1:] == ["role"]
+        and "provenance" not in issue.get("values", [])
+        for issue in issues
+    )
+
+
 def publish(args: argparse.Namespace) -> str:
     token = os.environ.get("FIRMWARE_PUBLISH_TOKEN", "").strip()
     if not token:
@@ -391,7 +425,9 @@ def publish(args: argparse.Namespace) -> str:
         generated_dir / "provenance.json", generated_order + 3,
     )
     generated = [manifest_artifact, release_artifact, provenance_artifact]
-    release_artifacts = [*release_artifacts, provenance_artifact]
+    release_artifacts = complete_release_artifacts(
+        release_artifacts, manifest_artifact, provenance_artifact
+    )
     all_artifacts = [*args.artifact, *generated]
     upload_request = upload_request_payload(args, version, all_artifacts)
     base_url = os.environ.get("FIRMWARE_CONTROL_PLANE_BASE_URL", CONTROL_PLANE).rstrip("/")
@@ -399,7 +435,28 @@ def publish(args: argparse.Namespace) -> str:
         "FIRMWARE_UPLOAD_BASE_URL",
         "https://staging.researchanddesire.com" if args.track == "staging" else base_url,
     ).rstrip("/")
-    signed = request_json(f"{upload_base_url}/api/internal/firmware/v1/uploads", token, upload_request)
+    legacy_production_envelope = False
+    try:
+        signed = request_json(
+            f"{upload_base_url}/api/internal/firmware/v1/uploads", token, upload_request
+        )
+    except ControlPlaneHttpError as error:
+        if not requires_legacy_production_envelope(args.track, error):
+            raise
+        legacy_production_envelope = True
+        print(
+            "Production control plane has no provenance artifact role; "
+            "retrying with its legacy release envelope.",
+            file=sys.stderr,
+        )
+        upload_request["artifacts"] = [
+            artifact
+            for artifact in upload_request["artifacts"]
+            if artifact["role"] != "provenance"
+        ]
+        signed = request_json(
+            f"{upload_base_url}/api/internal/firmware/v1/uploads", token, upload_request
+        )
     by_name = {artifact.filename: artifact for artifact in all_artifacts}
     for upload in signed["uploads"]:
         artifact = by_name[upload["filename"]]
@@ -408,6 +465,11 @@ def publish(args: argparse.Namespace) -> str:
         verify_public_object(upload["publicUrl"], artifact.sha256, artifact.size_bytes)
 
     uploads_by_name = {upload["filename"]: upload for upload in signed["uploads"]}
+    published_release_artifacts = [
+        artifact
+        for artifact in release_artifacts
+        if not legacy_production_envelope or artifact.role != "provenance"
+    ]
     release_request = {
         "track": args.track,
         "deviceType": args.device_type,
@@ -429,9 +491,11 @@ def publish(args: argparse.Namespace) -> str:
                 "required": artifact.installable,
                 "installOrder": artifact.install_order,
             }
-            for artifact in release_artifacts
+            for artifact in published_release_artifacts
         ],
     }
+    if legacy_production_envelope:
+        release_request.pop("provenance")
     published = request_json(f"{base_url}/api/internal/firmware/v1/releases", token, release_request)
     release_id = published["releaseId"]
     try:
