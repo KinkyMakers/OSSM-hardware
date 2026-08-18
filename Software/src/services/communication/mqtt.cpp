@@ -4,6 +4,8 @@
 #include <esp_log.h>
 #include <utils/getEfuseMac.h>
 #include <utils/random.h>
+#include "FirmwareProvenance.h"
+#include "constants/Version.h"
 
 // Define the global variables here
 bool mqttConnected = false;
@@ -43,6 +45,20 @@ void event_connected_handler(void* handler_args, esp_event_base_t base,
                              int32_t event_id, void* event_data) {
     ESP_LOGD("MQTT", "Connected to MQTT broker");
     mqttConnected = true;
+    const auto token = firmware::provenance::currentToken();
+    JsonDocument document;
+    document["provenanceCapability"] = 1;
+    document["provenance"] = token;
+    document["provenanceId"] = firmware::provenance::currentTokenId();
+    document["imageSha256"] = firmware::provenance::runningImageSha256();
+    document["track"] = FIRMWARE_TRACK;
+    document["version"] = VERSION;
+    document["buildSha"] = FIRMWARE_BUILD_SHA;
+    String payload;
+    serializeJson(document, payload);
+    const String topic = "ossm/" + getMacAddress() + "/firmware";
+    esp_mqtt_client_publish(mqttClient, topic.c_str(), payload.c_str(),
+                            payload.length(), 1, true);
 }
 
 void event_disconnected_handler(void* handler_args, esp_event_base_t base,

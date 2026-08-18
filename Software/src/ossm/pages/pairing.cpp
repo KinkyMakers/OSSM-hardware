@@ -5,6 +5,8 @@
 
 #include <ArduinoJson.h>
 
+#include "FirmwareProvenance.h"
+
 #include "constants/Version.h"
 #include "ossm/Events.h"
 #include "ossm/state/state.h"
@@ -18,6 +20,58 @@ using namespace sml;
 namespace pages {
 
 static String pairingCode = "";
+static volatile bool paired = false;
+
+static int requestDeviceAuth(bool updatePairingCode) {
+    if (WiFi.status() != WL_CONNECTED) {
+        return HTTP_CODE_SERVICE_UNAVAILABLE;
+    }
+
+    String macAddress = WiFi.macAddress();
+    HTTPClient http;
+    String url = String(RAD_SERVER) + "/api/ossm/auth";
+    http.begin(url);
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("X-RAD-Firmware-Provenance-Capability", "1");
+    const auto provenanceToken = firmware::provenance::currentToken();
+    if (!provenanceToken.empty()) {
+        http.addHeader("X-RAD-Firmware-Provenance", provenanceToken.c_str());
+        http.addHeader("X-RAD-Firmware-Provenance-ID",
+                       firmware::provenance::currentTokenId().c_str());
+        http.addHeader("X-RAD-Firmware-Image-SHA256",
+                       firmware::provenance::currentImageSha256().c_str());
+    }
+
+    JsonDocument doc;
+    doc["mac"] = macAddress;
+    doc["chip"] = String((uint32_t)ESP.getEfuseMac(), HEX);
+    doc["md5"] = ESP.getSketchMD5();
+    doc["device"] = "OSSM";
+    doc["version"] = VERSION;
+
+    String body;
+    serializeJson(doc, body);
+
+    int httpCode = http.POST(body);
+    if (httpCode == HTTP_CODE_OK) {
+        JsonDocument response;
+        DeserializationError jsonError =
+            deserializeJson(response, http.getString());
+        if (jsonError) {
+            ESP_LOGW("PAIRING", "Invalid auth response: %s",
+                     jsonError.c_str());
+            http.end();
+            return HTTP_CODE_INTERNAL_SERVER_ERROR;
+        }
+
+        paired = response["isPaired"].as<bool>();
+        if (updatePairingCode) {
+            pairingCode = response["pairingCode"].as<String>();
+        }
+    }
+    http.end();
+    return httpCode;
+}
 
 static void drawPairingScreen() {
     showHeaderIcons = false;
@@ -46,44 +100,19 @@ static void pairingTask(void *pvParameters) {
         xSemaphoreGive(displayMutex);
     }
 
-    String macAddress = WiFi.macAddress();
+    int httpCode = requestDeviceAuth(true);
 
-    HTTPClient http;
-    String url = String(RAD_SERVER) + "/api/ossm/auth";
-    http.begin(url);
-    http.addHeader("Content-Type", "application/json");
-
-    JsonDocument doc;
-    doc["mac"] = macAddress;
-    doc["chip"] = String((uint32_t)ESP.getEfuseMac(), HEX);
-    doc["md5"] = ESP.getSketchMD5();
-    doc["device"] = "OSSM";
-    doc["version"] = VERSION;
-
-    String body;
-    serializeJson(doc, body);
-
-    ESP_LOGI("PAIRING", "POST %s", url.c_str());
-    int httpCode = http.POST(body);
-
-    if (httpCode != 200) {
+    if (httpCode != HTTP_CODE_OK) {
         ESP_LOGW("PAIRING", "Auth failed with HTTP %d", httpCode);
-        http.end();
         stateMachine->process_event(Error{});
         vTaskDelete(nullptr);
         return;
     }
 
-    String payload = http.getString();
-    http.end();
+    ESP_LOGI("PAIRING", "Auth response: code=%s isPaired=%d",
+             pairingCode.c_str(), paired);
 
-    JsonDocument resp;
-    deserializeJson(resp, payload);
-    pairingCode = resp["pairingCode"].as<String>();
-    bool isPaired = resp["isPaired"].as<bool>();
-    ESP_LOGI("PAIRING", "Auth response: code=%s isPaired=%d", pairingCode.c_str(), isPaired);
-
-    if (isPaired) {
+    if (paired) {
         stateMachine->process_event(Done{});
         vTaskDelete(nullptr);
         return;
@@ -131,6 +160,34 @@ static void pairingTask(void *pvParameters) {
 void checkPairing() {
     ESP_LOGI("PAIRING", "checkPairing action triggered");
     xTaskCreatePinnedToCore(pairingTask, "pairingTask",
+                            20 * configMINIMAL_STACK_SIZE, nullptr, 1, nullptr,
+                            0);
+}
+
+static void pairingStatusTask(void *pvParameters) {
+    while (!paired) {
+        if (WiFi.status() == WL_CONNECTED) {
+            int httpCode = requestDeviceAuth(false);
+            if (httpCode != HTTP_CODE_OK) {
+                ESP_LOGW("PAIRING", "Pairing status check failed with HTTP %d",
+                         httpCode);
+            } else {
+                ESP_LOGI("PAIRING", "Pairing status: isPaired=%d", paired);
+            }
+        }
+
+        if (!paired) {
+            vTaskDelay(pdMS_TO_TICKS(60000));
+        }
+    }
+
+    vTaskDelete(nullptr);
+}
+
+bool isOssmPaired() { return paired; }
+
+void startPairingStatusCheck() {
+    xTaskCreatePinnedToCore(pairingStatusTask, "pairingStatusTask",
                             20 * configMINIMAL_STACK_SIZE, nullptr, 1, nullptr,
                             0);
 }

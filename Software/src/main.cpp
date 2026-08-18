@@ -4,6 +4,7 @@
 #include "esp_log.h"
 #include "ossm/Events.h"
 #include "ossm/OSSM.h"
+#include "ossm/pages/pairing.h"
 #include "ossm/state/state.h"
 #include "services/board.h"
 #include "services/communication/mqtt.h"
@@ -89,23 +90,17 @@ void __attribute__((weak)) setup() {
         "buttonTask", 4 * configMINIMAL_STACK_SIZE, nullptr,
         configMAX_PRIORITIES - 1, nullptr, 0);
 
-    // Initialize NimBLE only when in menu.idle state
+    // Communication must remain available while homing and in motor-power
+    // error states. This also makes diagnostics and recovery possible when the
+    // drive supply is intentionally disconnected.
     xTaskCreatePinnedToCore(
         [](void *pvParameters) {
-            bool initialized = false;
-            while (true) {
-                if ((stateMachine->is("menu.idle"_s) ||
-                     stateMachine->is("error.idle"_s)) &&
-                    !initialized) {
-                    ESP_LOGD("MAIN", "Initializing communication services");
-                    initNimble();
-                    initWM();
-                    initMQTT();
-                    initialized = true;
-                    vTaskDelete(nullptr);
-                }
-                vTaskDelay(pdMS_TO_TICKS(100));
-            }
+            ESP_LOGD("MAIN", "Initializing communication services");
+            initNimble();
+            initWM();
+            initMQTT();
+            pages::startPairingStatusCheck();
+            vTaskDelete(nullptr);
         },
         "initNimbleTask", 32 * configMINIMAL_STACK_SIZE, nullptr,
         configMAX_PRIORITIES - 1, nullptr, 0);

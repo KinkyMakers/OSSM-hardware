@@ -41,6 +41,23 @@ std::uint32_t otaSlotSizeBytes() {
     return partition == nullptr ? 0 : partition->size;
 }
 
+const char *currentPartitionLayout() {
+    const esp_partition_t *app0 = esp_partition_find_first(
+        ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_0, nullptr);
+    const esp_partition_t *app1 = esp_partition_find_first(
+        ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_1, nullptr);
+    if (app0 == nullptr || app1 == nullptr) return "unknown";
+    if (app0->address == 0x10000 && app0->size == 0x780000 &&
+        app1->address == 0x790000 && app1->size == 0x780000) {
+        return "ossm-ota-16mb-v1";
+    }
+    if (app0->address == 0x10000 && app0->size == 0x1F0000 &&
+        app1->address == 0x200000 && app1->size == 0x1F0000) {
+        return "ossm-ota-v1";
+    }
+    return "unknown";
+}
+
 std::string runningFirmwareHash() {
     const esp_partition_t *running = esp_ota_get_running_partition();
     unsigned char digest[32] = {};
@@ -65,7 +82,8 @@ firmware::DeviceReport makeDeviceReport() {
     report.flashSizeBytes = physicalFlashSizeBytes();
     report.psramSizeBytes = ESP.getPsramSize();
     report.otaSlotSizeBytes = otaSlotSizeBytes();
-    report.partitionLayout = "ossm-ota-v1";
+    report.partitionLayout = currentPartitionLayout();
+    firmware::provenance::reconcile(report);
     return report;
 }
 
@@ -109,6 +127,8 @@ void updateTask(void *pvParameters) {
         finishWithoutUpdate(mqttStopped, error);
         return;
     }
+    firmware::provenance::observeCurrent(report, decision);
+    firmware::provenance::stageUpdate(report, decision);
 
     ESP_LOGW(UPDATE_TAG,
              "Resolver assigned track=%s shouldUpdate=%s target=%s next=%s reason=%s",

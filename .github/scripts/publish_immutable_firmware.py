@@ -4,10 +4,13 @@
 from __future__ import annotations
 
 import argparse
+import base64
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 import urllib.error
@@ -21,7 +24,17 @@ PROJECT_REFS = {
     "main": "acjajruwevyyatztbkdf",
     "staging": "meuaxbjzqrszxdvmacug",
 }
-VALID_ROLES = {"application", "filesystem", "bootloader", "partitions"}
+VALID_ROLES = {
+    "application",
+    "filesystem",
+    "bootloader",
+    "partitions",
+    "web-installer",
+}
+PROVENANCE_KEYS = {
+    "staging": ("rd-fw-staging-2026-08-01", "35fb9c22de8d69e3a1bb999c69f110b53b4879cd884af10b92cc137013b1c2cc"),
+    "main": ("rd-fw-production-2026-08-01", "13f51408cd35f7925d9405e1b04d4e6ebdb57d2149f0eae522caaf3fc4d3aed6"),
+}
 
 
 @dataclass(frozen=True)
@@ -48,6 +61,13 @@ class Artifact:
         return self.path.stat().st_size
 
 
+class ControlPlaneHttpError(RuntimeError):
+    def __init__(self, status: int, detail: str):
+        self.status = status
+        self.detail = detail
+        super().__init__(f"control plane returned HTTP {status}: {detail}")
+
+
 def parse_artifact(value: str) -> Artifact:
     try:
         role, path, order, installable = value.split(":", 3)
@@ -70,8 +90,125 @@ def read_version(path: Path) -> str:
     return match.group(1)
 
 
+def positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("value must be a positive integer")
+    return parsed
+
+
+def compatibility_rules(min_flash_size_bytes: int | None) -> list[dict[str, int]]:
+    return (
+        [{"minFlashSizeBytes": min_flash_size_bytes}]
+        if min_flash_size_bytes is not None
+        else []
+    )
+
+
 def json_bytes(value: Any) -> bytes:
     return (json.dumps(value, sort_keys=True, separators=(",", ":")) + "\n").encode()
+
+
+def base64url(value: bytes) -> str:
+    return base64.urlsafe_b64encode(value).rstrip(b"=").decode("ascii")
+
+
+def read_der_length(value: bytes, offset: int) -> tuple[int, int]:
+    length = value[offset]
+    if length < 0x80:
+        return length, offset + 1
+    count = length & 0x7F
+    if count == 0 or count > 2:
+        raise RuntimeError("unsupported ECDSA DER length")
+    return int.from_bytes(value[offset + 1 : offset + 1 + count], "big"), offset + 1 + count
+
+
+def der_ecdsa_to_p1363(signature: bytes) -> bytes:
+    if not signature or signature[0] != 0x30:
+        raise RuntimeError("invalid ECDSA signature encoding")
+    sequence_length, offset = read_der_length(signature, 1)
+    if offset + sequence_length != len(signature):
+        raise RuntimeError("invalid ECDSA signature length")
+    values: list[bytes] = []
+    for _ in range(2):
+        if offset >= len(signature) or signature[offset] != 0x02:
+            raise RuntimeError("invalid ECDSA signature integer")
+        integer_length, offset = read_der_length(signature, offset + 1)
+        integer = signature[offset : offset + integer_length]
+        offset += integer_length
+        integer = integer.lstrip(b"\x00")
+        if len(integer) > 32:
+            raise RuntimeError("ECDSA signature integer is too large")
+        values.append(integer.rjust(32, b"\x00"))
+    return b"".join(values)
+
+
+def sign_provenance(track: str, claims: dict[str, Any]) -> str:
+    private_key = os.environ.get("FIRMWARE_PROVENANCE_SIGNING_KEY_PEM", "").strip()
+    if not private_key:
+        raise RuntimeError("FIRMWARE_PROVENANCE_SIGNING_KEY_PEM is required")
+    key_id, expected_fingerprint = PROVENANCE_KEYS[track]
+    public_der = subprocess.run(
+        ["openssl", "pkey", "-pubout", "-outform", "DER"],
+        input=private_key.encode(),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=True,
+    ).stdout
+    if hashlib.sha256(public_der).hexdigest() != expected_fingerprint:
+        raise RuntimeError("firmware provenance signing key does not match the selected track")
+    header = {"alg": "ES256", "kid": key_id, "typ": "rad-fw-prov+jws"}
+    signing_input = (
+        f"{base64url(json.dumps(header, sort_keys=True, separators=(',', ':')).encode())}."
+        f"{base64url(json.dumps(claims, sort_keys=True, separators=(',', ':')).encode())}"
+    )
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", prefix="rad-fw-key-", delete=True) as key_file:
+        os.chmod(key_file.name, 0o600)
+        key_file.write(private_key)
+        key_file.flush()
+        signature = subprocess.run(
+            ["openssl", "dgst", "-sha256", "-sign", key_file.name],
+            input=signing_input.encode(),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+        ).stdout
+    return f"{signing_input}.{base64url(der_ecdsa_to_p1363(signature))}"
+
+
+def runtime_image_sha256(application: Artifact) -> str:
+    content = application.content
+    if len(content) < 56 or content[0] != 0xE9:
+        raise RuntimeError("application is not an ESP app image")
+    if content[23] != 1:
+        return hashlib.sha256(content).hexdigest()
+    expected = content[-32:]
+    if hashlib.sha256(content[:-32]).digest() != expected:
+        raise RuntimeError("application has an invalid appended image digest")
+    return expected.hex()
+
+
+def create_provenance(args: argparse.Namespace, version: str, manifest: Artifact, application: Artifact, path: Path, order: int) -> tuple[Artifact, str]:
+    claims = {
+        "schema": "rad.firmware.provenance.v1",
+        "issuer": "research-and-desire",
+        "track": args.track,
+        "deviceType": args.device_type,
+        "hardwareVariant": getattr(args, "hardware_variant", "default"),
+        "kind": args.kind,
+        "version": version,
+        "buildSha": args.build_sha,
+        "manifestSha256": manifest.sha256,
+        "applicationSha256": application.sha256,
+        "runtimeImageSha256": runtime_image_sha256(application),
+        "applicationSizeBytes": application.size_bytes,
+        "issuedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+    }
+    token = sign_provenance(args.track, claims)
+    path.write_bytes(json_bytes({"provenance": token}))
+    return Artifact("provenance", path, order, False), token
 
 
 def request_json(url: str, token: str, payload: dict[str, Any]) -> dict[str, Any]:
@@ -90,7 +227,7 @@ def request_json(url: str, token: str, payload: dict[str, Any]) -> dict[str, Any
             return json.load(response)
     except urllib.error.HTTPError as error:
         detail = error.read().decode(errors="replace")
-        raise RuntimeError(f"control plane returned HTTP {error.code}: {detail}") from error
+        raise ControlPlaneHttpError(error.code, detail) from error
 
 
 def upload_file(url: str, content: bytes, content_type: str) -> None:
@@ -139,6 +276,95 @@ def validation_payload(release_id: str, layer: str, status: str, args: argparse.
     return payload
 
 
+def select_release_artifacts(
+    artifacts: list[Artifact],
+) -> tuple[list[Artifact], list[Artifact]]:
+    if len({artifact.filename for artifact in artifacts}) != len(artifacts):
+        raise RuntimeError("artifact filenames must be unique")
+    if len({artifact.install_order for artifact in artifacts}) != len(artifacts):
+        raise RuntimeError("artifact install orders must be unique")
+    installable = sorted(
+        (artifact for artifact in artifacts if artifact.installable),
+        key=lambda artifact: artifact.install_order,
+    )
+    applications = [
+        artifact for artifact in installable if artifact.role == "application"
+    ]
+    if len(applications) != 1:
+        raise RuntimeError("exactly one installable application artifact is required")
+    web_installers = [
+        artifact for artifact in artifacts if artifact.role == "web-installer"
+    ]
+    if len(web_installers) != 1 or any(
+        artifact.installable for artifact in web_installers
+    ):
+        raise RuntimeError(
+            "exactly one non-installable web-installer artifact is required"
+        )
+    if any(
+        artifact.role not in {"application", "filesystem"}
+        for artifact in installable
+    ):
+        raise RuntimeError("only application and filesystem may be installable")
+    return installable, sorted(
+        [*installable, *web_installers], key=lambda artifact: artifact.install_order
+    )
+
+
+def upload_request_payload(
+    args: argparse.Namespace, version: str, artifacts: list[Artifact]
+) -> dict[str, Any]:
+    return {
+        "track": args.track,
+        "deviceType": args.device_type,
+        "version": version,
+        "buildSha": args.build_sha,
+        "kind": args.kind,
+        "storageProjectRef": PROJECT_REFS[args.track],
+        "bucketId": f"{args.device_type}-firmware",
+        "artifacts": [
+            {
+                "role": artifact.role,
+                "filename": artifact.filename,
+                "sha256": artifact.sha256,
+                "sizeBytes": artifact.size_bytes,
+                "installOrder": artifact.install_order,
+                "contentType": "application/json"
+                if artifact.path.suffix == ".json"
+                else "application/octet-stream",
+            }
+            for artifact in artifacts
+        ],
+    }
+
+
+def complete_release_artifacts(
+    payload_artifacts: list[Artifact],
+    manifest: Artifact,
+    provenance: Artifact,
+) -> list[Artifact]:
+    """Return the artifacts the control plane must bind to the release."""
+    return [*payload_artifacts, manifest, provenance]
+
+
+def requires_legacy_production_envelope(
+    track: str, error: ControlPlaneHttpError
+) -> bool:
+    """Recognize only the deployed production API's missing provenance role."""
+    if track != "main" or error.status != 400:
+        return False
+    try:
+        issues = json.loads(error.detail).get("issues", [])
+    except (AttributeError, json.JSONDecodeError):
+        return False
+    return any(
+        issue.get("code") == "invalid_value"
+        and issue.get("path", [])[-1:] == ["role"]
+        and "provenance" not in issue.get("values", [])
+        for issue in issues
+    )
+
+
 def publish(args: argparse.Namespace) -> str:
     token = os.environ.get("FIRMWARE_PUBLISH_TOKEN", "").strip()
     if not token:
@@ -148,16 +374,7 @@ def publish(args: argparse.Namespace) -> str:
     if not re.fullmatch(r"[0-9a-fA-F]{7,64}", args.build_sha):
         raise RuntimeError("build SHA must contain 7 to 64 hexadecimal characters")
     version = read_version(args.version_file)
-    installable = sorted(
-        (artifact for artifact in args.artifact if artifact.installable),
-        key=lambda artifact: artifact.install_order,
-    )
-    if not any(artifact.role == "application" for artifact in installable):
-        raise RuntimeError("an installable application artifact is required")
-    if len({artifact.filename for artifact in args.artifact}) != len(args.artifact):
-        raise RuntimeError("artifact filenames must be unique")
-    if len({artifact.install_order for artifact in args.artifact}) != len(args.artifact):
-        raise RuntimeError("artifact install orders must be unique")
+    installable, release_artifacts = select_release_artifacts(args.artifact)
 
     metadata = [
         {
@@ -199,36 +416,47 @@ def publish(args: argparse.Namespace) -> str:
             }
         )
     )
-    generated = [
-        Artifact("manifest", manifest_path, max(item.install_order for item in args.artifact) + 1, False),
-        Artifact("release", release_path, max(item.install_order for item in args.artifact) + 2, False),
-    ]
+    generated_order = max(item.install_order for item in args.artifact)
+    manifest_artifact = Artifact("manifest", manifest_path, generated_order + 1, False)
+    release_artifact = Artifact("release", release_path, generated_order + 2, False)
+    application = next(item for item in installable if item.role == "application")
+    provenance_artifact, provenance_token = create_provenance(
+        args, version, manifest_artifact, application,
+        generated_dir / "provenance.json", generated_order + 3,
+    )
+    generated = [manifest_artifact, release_artifact, provenance_artifact]
+    release_artifacts = complete_release_artifacts(
+        release_artifacts, manifest_artifact, provenance_artifact
+    )
     all_artifacts = [*args.artifact, *generated]
-    upload_request = {
-        "track": args.track,
-        "deviceType": args.device_type,
-        "version": version,
-        "buildSha": args.build_sha,
-        "storageProjectRef": PROJECT_REFS[args.track],
-        "bucketId": f"{args.device_type}-firmware",
-        "artifacts": [
-            {
-                "role": artifact.role,
-                "filename": artifact.filename,
-                "sha256": artifact.sha256,
-                "sizeBytes": artifact.size_bytes,
-                "installOrder": artifact.install_order,
-                "contentType": "application/json" if artifact.path.suffix == ".json" else "application/octet-stream",
-            }
-            for artifact in all_artifacts
-        ],
-    }
+    upload_request = upload_request_payload(args, version, all_artifacts)
     base_url = os.environ.get("FIRMWARE_CONTROL_PLANE_BASE_URL", CONTROL_PLANE).rstrip("/")
     upload_base_url = os.environ.get(
         "FIRMWARE_UPLOAD_BASE_URL",
         "https://staging.researchanddesire.com" if args.track == "staging" else base_url,
     ).rstrip("/")
-    signed = request_json(f"{upload_base_url}/api/internal/firmware/v1/uploads", token, upload_request)
+    legacy_production_envelope = False
+    try:
+        signed = request_json(
+            f"{upload_base_url}/api/internal/firmware/v1/uploads", token, upload_request
+        )
+    except ControlPlaneHttpError as error:
+        if not requires_legacy_production_envelope(args.track, error):
+            raise
+        legacy_production_envelope = True
+        print(
+            "Production control plane has no provenance artifact role; "
+            "retrying with its legacy release envelope.",
+            file=sys.stderr,
+        )
+        upload_request["artifacts"] = [
+            artifact
+            for artifact in upload_request["artifacts"]
+            if artifact["role"] != "provenance"
+        ]
+        signed = request_json(
+            f"{upload_base_url}/api/internal/firmware/v1/uploads", token, upload_request
+        )
     by_name = {artifact.filename: artifact for artifact in all_artifacts}
     for upload in signed["uploads"]:
         artifact = by_name[upload["filename"]]
@@ -237,6 +465,11 @@ def publish(args: argparse.Namespace) -> str:
         verify_public_object(upload["publicUrl"], artifact.sha256, artifact.size_bytes)
 
     uploads_by_name = {upload["filename"]: upload for upload in signed["uploads"]}
+    published_release_artifacts = [
+        artifact
+        for artifact in release_artifacts
+        if not legacy_production_envelope or artifact.role != "provenance"
+    ]
     release_request = {
         "track": args.track,
         "deviceType": args.device_type,
@@ -246,6 +479,8 @@ def publish(args: argparse.Namespace) -> str:
         "storageProjectRef": PROJECT_REFS[args.track],
         "bucketId": f"{args.device_type}-firmware",
         "objectPrefix": signed["objectPrefix"],
+        "compatibilityRules": compatibility_rules(args.min_flash_size_bytes),
+        "provenance": provenance_token,
         "artifacts": [
             {
                 "role": artifact.role,
@@ -253,12 +488,14 @@ def publish(args: argparse.Namespace) -> str:
                 "publicUrl": uploads_by_name[artifact.filename]["publicUrl"],
                 "sha256": artifact.sha256,
                 "sizeBytes": artifact.size_bytes,
-                "required": True,
+                "required": artifact.installable,
                 "installOrder": artifact.install_order,
             }
-            for artifact in installable
+            for artifact in published_release_artifacts
         ],
     }
+    if legacy_production_envelope:
+        release_request.pop("provenance")
     published = request_json(f"{base_url}/api/internal/firmware/v1/releases", token, release_request)
     release_id = published["releaseId"]
     try:
@@ -289,6 +526,7 @@ def main() -> int:
     parser.add_argument("--build-sha", required=True)
     parser.add_argument("--version-file", required=True, type=Path)
     parser.add_argument("--kind", default="firmware", choices=("firmware", "migration"))
+    parser.add_argument("--min-flash-size-bytes", type=positive_int)
     parser.add_argument("--artifact", action="append", required=True, type=parse_artifact)
     args = parser.parse_args()
     try:
