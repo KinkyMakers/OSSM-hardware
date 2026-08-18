@@ -5,10 +5,13 @@ from pathlib import Path
 
 from publish_immutable_firmware import (
     Artifact,
+    ControlPlaneHttpError,
+    complete_release_artifacts,
     compatibility_rules,
     parse_artifact,
     positive_int,
     read_version,
+    requires_legacy_production_envelope,
     select_release_artifacts,
     upload_request_payload,
 )
@@ -103,6 +106,41 @@ class PublisherTests(unittest.TestCase):
                 select_release_artifacts(
                     [Artifact("application", firmware, 1, True)]
                 )
+
+    def test_release_includes_manifest_and_provenance(self):
+        application = Artifact("application", Path("firmware.bin"), 1, True)
+        manifest = Artifact("manifest", Path("manifest.json"), 5, False)
+        provenance = Artifact("provenance", Path("provenance.json"), 7, False)
+        self.assertEqual(
+            [
+                artifact.role
+                for artifact in complete_release_artifacts(
+                    [application], manifest, provenance
+                )
+            ],
+            ["application", "manifest", "provenance"],
+        )
+
+    def test_legacy_envelope_is_limited_to_old_production_schema(self):
+        old_schema = ControlPlaneHttpError(
+            400,
+            '{"issues":[{"code":"invalid_value","values":'
+            '["application","manifest","release"],"path":'
+            '["artifacts",6,"role"]}]}',
+        )
+        self.assertTrue(requires_legacy_production_envelope("main", old_schema))
+        self.assertFalse(requires_legacy_production_envelope("staging", old_schema))
+        self.assertFalse(
+            requires_legacy_production_envelope(
+                "main",
+                ControlPlaneHttpError(
+                    400,
+                    '{"issues":[{"code":"invalid_value","values":'
+                    '["application","provenance"],"path":'
+                    '["artifacts",6,"role"]}]}',
+                ),
+            )
+        )
 
 
 if __name__ == "__main__":
