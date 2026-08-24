@@ -138,14 +138,13 @@ jobs:
           cd Software
           pio test -e test
 
-  check_docs:
+  check_community_docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify legacy documentation remains retired
+      - name: Verify community documentation remains available
         run: |
-          if [[ -d Documentation ]]; then
-            echo "The retired in-repository documentation workspace was restored"
-            exit 1
-          fi
+          test -f community-docs/README.md
+          test -f community-docs/SUMMARY.md
+          test -f "community-docs/Printed Parts/OSSM Mods/README.md"

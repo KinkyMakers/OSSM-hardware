@@ -7,8 +7,10 @@ smooth as possible.
 
 ## 📚 Project Overview
 
-- **Project Home:**
-  [Kinky Makers OSSM Documentation](https://docs.researchanddesire.com/open-source-sex-machine/software/docs)
+- **Community documentation:**
+  [GitHub-hosted OSSM documentation](community-docs/README.md)
+- **Hosted reference:**
+  [R+D OSSM documentation](https://docs.researchanddesire.com/ossm)
 - **Main Repository:** This repo contains hardware, software, and documentation
   for OSSM.
 - **Community:** [Join our Discord](https://discord.gg/MmpT9xE) for support,
@@ -82,8 +84,8 @@ smooth as possible.
 ## 🛟 Getting Help
 
 - **Documentation:**
-  [Project Docs](https://docs.researchanddesire.com/open-source-sex-machine/software/docs)
-- **FAQ:** [FAQ.md](FAQ.md)
+  [Community documentation](community-docs/README.md)
+- **FAQ:** [Community FAQ](community-docs/FAQ.md)
 - **Discord:** [Join our Discord](https://discord.gg/MmpT9xE)
 - **Issues:** If you find a bug or have a feature request, open an issue in the
   repo.

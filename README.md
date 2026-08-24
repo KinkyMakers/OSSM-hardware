@@ -2,7 +2,10 @@
 
 **Maintained by [Research and Desire](https://researchanddesire.com), supported by the community.**
 
-[Read the documentation here.](https://docs.researchanddesire.com/ossm)
+[Browse the community-maintained documentation in this repository.](community-docs/README.md)
+
+[Hosted documentation](https://docs.researchanddesire.com/ossm) remains
+available as an additional reference.
 
 ![OSSM Overview Image](assets/readme/ossm-banner.webp)
 
@@ -31,6 +34,7 @@ OSSM uses a servo-powered belt-driven linear rail, enabling quiet operation, hig
 
 | Resource | Description |
 |----------|-------------|
+| [Community documentation](community-docs/README.md) | GitHub-hosted build notes, hardware references, photos, PDFs, and community mods |
 | [Documentation](https://docs.researchanddesire.com/ossm) | Complete build guides, hardware specs, and software reference |
 | [R+D Store](https://researchanddesire.com) | Purchase motors, PCBs, wire harnesses, and complete kits |
 | [KinkyMakers Discord](https://discord.gg/VtZcudpxT6) | Community discussion, build help, and mod development |
@@ -75,7 +79,7 @@ For 3D printing settings and material recommendations, see [3D Printing Parts](h
 | [Mounting](Printed%20Parts/Mounting/) | PitClamp Mini Ring/Base, PCB Enclosure | [Mounting Docs](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/pitclamp/README) |
 | [Stand](Printed%20Parts/Stand/) | 3030 Extrusion Base Components | [Stand Docs](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/stand/introduction) |
 
-Experimental parts are developed in the [KinkyMakers Discord](https://discord.gg/wrENMKb3) `#ossm-print-testing` channel.
+Experimental parts are documented in the [community modifications archive](<community-docs/Printed Parts/OSSM Mods/README.md>) and developed in the [KinkyMakers Discord](https://discord.gg/wrENMKb3) `#ossm-print-testing` channel.
 
 ### Hardware Components
 
