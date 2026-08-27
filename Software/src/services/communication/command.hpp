@@ -9,6 +9,7 @@
 #include "NimBLEService.h"
 #include "NimBLEUUID.h"
 #include "queue.h"
+#include "rad_ble.h"
 #include "services/led.h"
 
 static const std::regex commandRegex(
@@ -23,6 +24,17 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
     void onWrite(NimBLECharacteristic* pCharacteristic,
                  NimBLEConnInfo& connInfo) override {
         std::string cmd = pCharacteristic->getValue();
+
+        // RAD BLE v1 deliberately multiplexes OSSM's established command
+        // characteristic. JSON is queued to the shared dispatcher; existing
+        // go:/set:/stream: text keeps its original behavior.
+        if (!cmd.empty() && cmd.front() == '{') {
+            if (!radBleServer.enqueue(
+                    0, connInfo.getConnHandle(),
+                    reinterpret_cast<const uint8_t*>(cmd.data()), cmd.size()))
+                ESP_LOGW("NIMBLE_COMMAND", "RAD BLE command queue is full");
+            return;
+        }
 
         if (!std::regex_match(cmd, commandRegex)) {
             ESP_LOGD("NIMBLE_COMMAND", "Invalid command: %s", cmd.c_str());

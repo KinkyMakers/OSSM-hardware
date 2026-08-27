@@ -188,6 +188,7 @@ void ossmDrawPairingSuccess() {
 
 void ossmSetHomed() {
     calibration.isHomed = true;
+    calibration.justHomed = true;
 }
 
 void ossmSetNotHomed() {

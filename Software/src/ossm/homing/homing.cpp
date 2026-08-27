@@ -46,6 +46,7 @@ static void startHomingTask(void *pvParameters) {
 #ifdef AJ_DEVELOPMENT_HARDWARE
     stepper->setCurrentPosition(0);
     stepper->forceStopAndNewPosition(0);
+    stepperFrame = StepperFrame::Native;  // counter re-zeroed at home rest
     stateMachine->process_event(Done{});
     vTaskDelete(nullptr);
     return;
@@ -126,6 +127,9 @@ static void startHomingTask(void *pvParameters) {
 
         stepper->setCurrentPosition(0);
         stepper->forceStopAndNewPosition(0);
+        // The counter was just re-zeroed at the homed rest position: the
+        // shared frame is Native again by definition.
+        stepperFrame = StepperFrame::Native;
 
         int32_t goToPosition = homing_logic::calculatePostHomingPosition(
             sign, calibration.measuredStrokeSteps,

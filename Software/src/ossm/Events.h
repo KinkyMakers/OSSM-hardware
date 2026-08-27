@@ -30,6 +30,11 @@ struct Home {};
 struct BleClick {};
 struct ReturnToMenu {};
 
+// Posted by the OTA update task when no update was applied (no newer version,
+// or the check/download failed) so the SM leaves "checking" and shows the
+// no-update page.
+struct UpdateUnavailable {};
+
 // Definitions to make the table easier to read.
 static auto bleClick = sml::event<BleClick>;
 static auto buttonPress = sml::event<ButtonPress>;
@@ -38,5 +43,7 @@ static auto doublePress = sml::event<DoublePress>;
 static auto done = sml::event<Done>;
 static auto error = sml::event<Error>;
 static auto home = sml::event<Home>;
+static auto emergencyStopEvent = sml::event<EmergencyStop>;
 static auto returnToMenu = sml::event<ReturnToMenu>;
+static auto updateUnavailable = sml::event<UpdateUnavailable>;
 #endif  // OSSM_SOFTWARE_EVENTS_H

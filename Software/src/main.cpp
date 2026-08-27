@@ -4,6 +4,7 @@
 #include "esp_log.h"
 #include "ossm/Events.h"
 #include "ossm/OSSM.h"
+#include "ossm/pages/pairing.h"
 #include "ossm/state/state.h"
 #include "services/board.h"
 #include "services/communication/mqtt.h"
@@ -13,6 +14,7 @@
 #include "services/led.h"
 #include "services/stepper.h"
 #include "services/wm.h"
+#include "utils/update.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -36,6 +38,12 @@ using namespace sml;
 
 OneButton button(Pins::Remote::encoderSwitch, false);
 
+#ifdef CONFIG_APP_ROLLBACK_ENABLE
+// Keep Arduino core startup from accepting a pending image before OSSM has
+// initialized enough of the application to confirm it explicitly.
+extern "C" bool verifyRollbackLater() { return true; }
+#endif
+
 void __attribute__((weak)) setup() {
     // Suppress verbose GPIO configuration logs
     esp_log_level_set("gpio", ESP_LOG_WARN);
@@ -56,6 +64,10 @@ void __attribute__((weak)) setup() {
 
     // Initialize state machine after global state is set up
     initStateMachine();
+
+    // The board, display, and state machine initialized successfully. Confirm
+    // the running image if a rollback-capable bootloader marked it pending.
+    ossmConfirmRunningImage();
 
     // ialize LED for BLE and machine status indication
     ESP_LOGI("MAIN", "LED initialized for BLE and machine status indication");
@@ -78,23 +90,17 @@ void __attribute__((weak)) setup() {
         "buttonTask", 4 * configMINIMAL_STACK_SIZE, nullptr,
         configMAX_PRIORITIES - 1, nullptr, 0);
 
-    // Initialize NimBLE only when in menu.idle state
+    // Communication must remain available while homing and in motor-power
+    // error states. This also makes diagnostics and recovery possible when the
+    // drive supply is intentionally disconnected.
     xTaskCreatePinnedToCore(
         [](void *pvParameters) {
-            bool initialized = false;
-            while (true) {
-                if ((stateMachine->is("menu.idle"_s) ||
-                     stateMachine->is("error.idle"_s)) &&
-                    !initialized) {
-                    ESP_LOGD("MAIN", "Initializing communication services");
-                    initNimble();
-                    initWM();
-                    initMQTT();
-                    initialized = true;
-                    vTaskDelete(nullptr);
-                }
-                vTaskDelay(pdMS_TO_TICKS(100));
-            }
+            ESP_LOGD("MAIN", "Initializing communication services");
+            initNimble();
+            initWM();
+            initMQTT();
+            pages::startPairingStatusCheck();
+            vTaskDelete(nullptr);
         },
         "initNimbleTask", 32 * configMINIMAL_STACK_SIZE, nullptr,
         configMAX_PRIORITIES - 1, nullptr, 0);

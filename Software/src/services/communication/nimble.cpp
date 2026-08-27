@@ -14,6 +14,7 @@
 #include "ossm/OSSM.h"
 #include "pairing.hpp"
 #include "patterns.hpp"
+#include "rad_ble.h"
 #include "rename.hpp"
 #include "services/led.h"
 #include "state.hpp"
@@ -32,6 +33,23 @@ static int speedOnLostConnection = 0;
 static const unsigned long RAMP_DURATION_MS =
     2000;  // Duration for speed ramp to zero
 
+void restartAdvertisingWithCurrentName() {
+    const std::string deviceName = getDeviceName();
+    NimBLEAdvertising* advertising = NimBLEDevice::getAdvertising();
+    advertising->stop();
+    advertising->clearData();
+    advertising->enableScanResponse(true);
+    advertising->setName(deviceName);
+    advertising->addServiceUUID(SERVICE_UUID);
+    advertising->addServiceUUID(DEVICE_INFO_SERVICE_UUID);
+#ifdef PRETEND_TO_BE_FLESHY_THRUST_SYNC
+    advertising->addServiceUUID("0000ffe0-0000-1000-8000-00805f9b34fb");
+#endif
+    NimBLEDevice::setDeviceName(deviceName);
+    ESP_LOGI(NIMBLE_TAG, "Advertising as: %s", deviceName.c_str());
+    advertising->start();
+}
+
 double easeInOutSine(double t) {
     return 0.5 * (1 + sin(3.1415926 * (t - 0.5)));
 }
@@ -48,6 +66,7 @@ class ServerCallbacks : public NimBLEServerCallbacks {
         if (ossm) {
             ossm->setBLEConnectionStatus(true);
         }
+        radBleServer.onConnect(connInfo.getConnHandle());
 
         lostConnectionTime = 0;
     }
@@ -64,6 +83,7 @@ class ServerCallbacks : public NimBLEServerCallbacks {
             ossm->setBLEConnectionStatus(false);
             ossm->ble_click("go:menu");
         }
+        radBleServer.onDisconnect(connInfo.getConnHandle());
 
         // Capture current speed when connection is lost
         speedOnLostConnection = ossm->getSpeed();
@@ -73,8 +93,7 @@ class ServerCallbacks : public NimBLEServerCallbacks {
         if (pServer->getConnectedCount() == 0) {
             ESP_LOGI(NIMBLE_TAG,
                      "No connections remaining, restarting advertising");
-            NimBLEDevice::setDeviceName(getDeviceName());
-            pServer->startAdvertising();
+            restartAdvertisingWithCurrentName();
         }
 
         lostConnectionTime = millis();
@@ -159,7 +178,7 @@ void nimbleLoop(void* pvParameters) {
                 ESP_LOGI(NIMBLE_TAG,
                          "No connections and not advertising, restarting "
                          "advertising");
-                pServer->startAdvertising();
+                restartAdvertisingWithCurrentName();
             }
 
             if (lostConnectionTime > 0) {
@@ -281,8 +300,9 @@ void nimbleLoop(void* pvParameters) {
 void initNimble() {
     /** Initialize NimBLE and set the device name */
     NimBLEDevice::init(getDeviceName());
+    NimBLEDevice::setMTU(512);
 
-    NimBLEDevice::setSecurityAuth(BLE_SM_PAIR_AUTHREQ_SC);
+    NimBLEDevice::setSecurityAuth(false, false, false);
     pServer = NimBLEDevice::createServer();
     pServer->setCallbacks(&serverCallbacks);
 
@@ -319,9 +339,6 @@ void initNimble() {
     initPairingCharacteristic(pService,
                               NimBLEUUID(CHARACTERISTIC_PAIRING_UUID));
 
-    // Start the services
-    pService->start();
-
     // Add Device Information Service
     NimBLEService* pDeviceInfoService =
         pServer->createService(DEVICE_INFO_SERVICE_UUID);
@@ -339,8 +356,11 @@ void initNimble() {
     uint8_t systemId[] = {0x88, 0x1A, 0x14, 0xFF, 0xFE, 0x34, 0x29, 0x63};
     pSystemId->setValue(systemId, 8);
 
-    // Start the device info service
-    pDeviceInfoService->start();
+    if (!initRadBle(pServer)) {
+        ESP_LOGE(NIMBLE_TAG, "Universal RAD BLE service failed to initialize");
+    }
+
+    // NimBLE 2 starts every registered service when advertising begins.
 
 #ifdef PRETEND_TO_BE_FLESHY_THRUST_SYNC
     // if this is true, then we'll start a service for the FTS
@@ -355,21 +375,11 @@ void initNimble() {
     pFTS->start();
 #endif
 
-    // Update advertising to include new services
-    NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
-    pAdvertising->setName(getDeviceName());
-    pAdvertising->addServiceUUID(pService->getUUID());
-    pAdvertising->addServiceUUID(pDeviceInfoService->getUUID());
-#ifdef PRETEND_TO_BE_FLESHY_THRUST_SYNC
-    pAdvertising->addServiceUUID(pFTS->getUUID());
-#endif
-    pAdvertising->enableScanResponse(true);
-
     // // Configure advertising parameters for better reliability
     // pAdvertising->setMinInterval(0x20);  // 20ms minimum interval
     // pAdvertising->setMaxInterval(0x40);  // 40ms maximum interval
 
-    pAdvertising->start();
+    restartAdvertisingWithCurrentName();
 
     xTaskCreatePinnedToCore(
         nimbleLoop, "nimbleLoop", 5 * configMINIMAL_STACK_SIZE, pServer,

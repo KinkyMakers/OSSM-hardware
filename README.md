@@ -4,7 +4,7 @@
 
 [Read the documentation here.](https://docs.researchanddesire.com/ossm)
 
-![OSSM Overview Image](Documentation/ossm/images/_images/OSSM%20Banner%20Image.webp)
+![OSSM Overview Image](assets/readme/ossm-banner.webp)
 
 ## What is OSSM?
 
@@ -115,7 +115,7 @@ Additional hardware is required for Stand, Mounting, and Remote assemblies. See 
 
 Your rail should extend the threaded end first when booted. If this doesn't match your build's behavior, reverse your rail's printed hardware.
 
-![Actuator Assembly](Documentation/ossm/Hardware/standard-printed-parts/_images/Exploded%20-%20Actuator%20Default.webp)
+![Actuator Assembly](assets/readme/actuator-exploded.webp)
 
 ### Build Resources
 

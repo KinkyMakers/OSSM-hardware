@@ -1,0 +1,188 @@
+name: Publish immutable firmware candidate
+
+on:
+  push:
+    branches: [main, staging]
+    paths:
+      - "Software/**"
+      - "scripts/release_version.py"
+      - "scripts/test_release_version.py"
+      - ".github/scripts/download_verified_release.py"
+      - ".github/scripts/test_download_verified_release.py"
+      - ".github/scripts/publish_immutable_firmware.py"
+      - ".github/scripts/test_publish_immutable_firmware.py"
+      - ".github/scripts/build_web_installer.py"
+      - ".github/scripts/test_build_web_installer.py"
+      - ".github/scripts/release_workflow.py"
+      - ".github/scripts/test_release_workflow.py"
+      - ".github/workflows/finalize_release.yml"
+      - ".github/workflows/publish_firmware.yml"
+      - ".github/workflows/release_alpha.yml"
+      - ".github/workflows/release_production.yml"
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: firmware-publish-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  detect_auto_version:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.detect.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Detect current-track auto-version commit
+        id: detect
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          if python scripts/release_version.py is-auto-commit --message "$COMMIT_MESSAGE" --track "$GITHUB_REF_NAME"; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  publish:
+    needs: detect_auto_version
+    if: ${{ needs.detect_auto_version.outputs.skip != 'true' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref_name == 'main' && 'firmware-production' || 'firmware-staging' }}
+    env:
+      FIRMWARE_PUBLISH_TOKEN: ${{ secrets.FIRMWARE_PUBLISH_TOKEN }}
+      FIRMWARE_PROVENANCE_SIGNING_KEY_PEM: ${{ secrets.FIRMWARE_PROVENANCE_SIGNING_KEY_PEM }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          ssh-key: ${{ secrets.RAD_VERSION_CONTROL_DEPLOY_KEY }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolve merged PR title
+        id: pull_request
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { data: pulls } =
+              await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: context.sha,
+              });
+            const title = pulls.find(
+              (pull) =>
+                pull.merged_at !== null &&
+                pull.base.ref === process.env.GITHUB_REF_NAME,
+            )?.title ?? "";
+            core.setOutput("title", title);
+
+      - name: Allocate and commit next version
+        id: version
+        env:
+          PR_TITLE: ${{ steps.pull_request.outputs.title }}
+        run: |
+          set -euo pipefail
+          SOURCE_VERSION="$(python scripts/release_version.py read --header Software/src/constants/Version.h)"
+          BUMP_TYPE="$(python scripts/release_version.py bump-type --title "$PR_TITLE")"
+          RESPONSE="$(curl --fail --silent --show-error \
+            --retry 5 \
+            --retry-delay 2 \
+            --retry-max-time 60 \
+            --header "Authorization: Bearer $FIRMWARE_PUBLISH_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data "$(jq -n \
+              --arg track "$GITHUB_REF_NAME" \
+              --arg deviceType "ossm" \
+              --arg bump "$BUMP_TYPE" \
+              --arg sourceVersion "$SOURCE_VERSION" \
+              '{track: $track, deviceType: $deviceType, bump: $bump, sourceVersion: $sourceVersion}')" \
+            "https://dashboard.researchanddesire.com/api/internal/firmware/v1/versions/next")"
+          NEXT_VERSION="$(jq -er '.nextVersion' <<< "$RESPONSE")"
+          python scripts/release_version.py write \
+            --header Software/src/constants/Version.h \
+            --version "$NEXT_VERSION" \
+            --version-json version.json
+          test "$(python scripts/release_version.py read --header Software/src/constants/Version.h)" = "$NEXT_VERSION"
+          test "$(jq -r '[.major, .minor, .patch] | map(tostring) | join(".")' version.json)" = "$NEXT_VERSION"
+          UNEXPECTED="$(git diff --name-only | grep -Ev '^(Software/src/constants/Version\.h|version\.json)$' || true)"
+          if [[ -n "$UNEXPECTED" ]]; then
+            echo "Unexpected versioning changes:"
+            echo "$UNEXPECTED"
+            exit 1
+          fi
+          git add Software/src/constants/Version.h version.json
+          if git diff --cached --quiet; then
+            echo "Version allocation did not change the canonical files"
+            exit 1
+          fi
+          git config user.name "rad-version-control[bot]"
+          git config user.email "rad-version-control[bot]@users.noreply.github.com"
+          git commit -m "AUTO: Version bump $GITHUB_REF_NAME $NEXT_VERSION"
+          git push origin "HEAD:$GITHUB_REF_NAME"
+          RELEASE_BUILD_SHA="$(git rev-parse HEAD)"
+          echo "RELEASE_BUILD_SHA=$RELEASE_BUILD_SHA" >> "$GITHUB_ENV"
+          echo "release_build_sha=$RELEASE_BUILD_SHA" >> "$GITHUB_OUTPUT"
+          echo "version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "bump=$BUMP_TYPE" >> "$GITHUB_OUTPUT"
+
+      - name: Install PlatformIO
+        run: python -m pip install --upgrade platformio
+
+      - name: Test publisher
+        run: |
+          python .github/scripts/test_download_verified_release.py
+          python .github/scripts/test_build_web_installer.py
+          python .github/scripts/test_firmware_provenance.py
+          python .github/scripts/test_publish_immutable_firmware.py
+          python .github/scripts/test_release_workflow.py
+
+      - name: Run release helper tests
+        run: python scripts/test_release_version.py
+
+      - name: Run native unit tests
+        working-directory: Software
+        run: pio test -e test
+
+      - name: Select track build
+        run: python .github/scripts/release_workflow.py configure --branch "$GITHUB_REF_NAME"
+
+      - name: Build application
+        working-directory: Software
+        run: pio run -e "$PIO_ENV"
+
+      - name: Build merged web installer
+        run: |
+          python .github/scripts/build_web_installer.py \
+            --build-dir "Software/.pio/build/$PIO_ENV" \
+            --output "Software/.pio/build/$PIO_ENV/web-installer.bin"
+
+      - name: Publish validating release
+        id: publish
+        run: |
+          python .github/scripts/publish_immutable_firmware.py \
+            --device-type ossm \
+            --track "$TRACK" \
+            --build-sha "$RELEASE_BUILD_SHA" \
+            --version-file Software/src/constants/Version.h \
+            --min-flash-size-bytes 16777216 \
+            --artifact "application:Software/.pio/build/$PIO_ENV/firmware.bin:1:true" \
+            --artifact "bootloader:Software/.pio/build/$PIO_ENV/bootloader.bin:2:false" \
+            --artifact "partitions:Software/.pio/build/$PIO_ENV/partitions.bin:3:false" \
+            --artifact "web-installer:Software/.pio/build/$PIO_ENV/web-installer.bin:4:false"
+
+      - name: Candidate summary
+        run: |
+          echo "Release ${{ steps.publish.outputs.release_id }} is waiting for hardware validation" >> "$GITHUB_STEP_SUMMARY"
+          echo "Version: ${{ steps.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Build: ${{ steps.version.outputs.release_build_sha }}" >> "$GITHUB_STEP_SUMMARY"

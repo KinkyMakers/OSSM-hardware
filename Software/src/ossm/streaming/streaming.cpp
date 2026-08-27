@@ -20,6 +20,13 @@ using namespace sml;
 namespace streaming {
 
 static void startStreamingTask(void *pvParameters) {
+    // Own the shared stepper config at mode entry (see simple_penetration.cpp:
+    // StrokeEngine leaves the shared DIR polarity inverted and the counter in
+    // its own frame; this mode's targets are native-frame absolutes).
+    stepperTranslateFrame(StepperFrame::Native);
+    stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
+    stepper->enableOutputs();
+
     auto isInCorrectState = []() {
         return stateMachine->is("streaming"_s) ||
                stateMachine->is("streaming.preflight"_s) ||
@@ -85,11 +92,9 @@ static void startStreamingTask(void *pvParameters) {
             best = std::chrono::steady_clock::now();
         }
         lastPositionTime = targetPositionTime;
-        //Grab the minimal value between depth and stroke, use as max stroke length.
         int32_t maxStroke = streaming_logic::calculateMaxStroke(
             settings.stroke, settings.depth,
             calibration.measuredStrokeSteps);
-        //Set 100% at max depth and constrain speeds based on user inputs.
         int32_t depth = streaming_logic::calculateDepthOffset(
             calibration.measuredStrokeSteps, maxStroke, settings.depth);
         uint32_t speedLimit = maxSpeed * (settings.speed/100.0);

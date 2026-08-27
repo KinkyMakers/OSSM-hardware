@@ -1,0 +1,30 @@
+name: Rebuild Firmware Registry
+
+# registry.json is derived state: rebuilt from the bucket's actual contents,
+# never edited in place. See .github/scripts/rebuild_registry.sh.
+#
+# Invoked:
+#   - by Master Branch Cleanup on every push to main (workflow_call)
+#   - at the end of every PR firmware upload (as an in-job step, not this file)
+#   - manually via workflow_dispatch for on-demand healing/verification
+
+on:
+  workflow_dispatch: {}
+  workflow_call: {}
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    # Queue concurrent rebuilds instead of interleaving uploads. Rebuilds are
+    # idempotent (full state from ground truth), so the last one wins safely.
+    concurrency:
+      group: ossm-firmware-registry
+      cancel-in-progress: false
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rebuild registry from bucket contents
+        run: bash .github/scripts/rebuild_registry.sh
