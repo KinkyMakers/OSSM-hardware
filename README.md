@@ -34,7 +34,7 @@ OSSM uses a servo-powered belt-driven linear rail, enabling quiet operation, hig
 | [Documentation](https://docs.researchanddesire.com/ossm) | Complete build guides, hardware specs, and software reference |
 | [R+D Store](https://researchanddesire.com) | Purchase motors, PCBs, wire harnesses, and complete kits |
 | [KinkyMakers Discord](https://discord.gg/VtZcudpxT6) | Community discussion, build help, and mod development |
-| [FAQs](https://docs.researchanddesire.com/ossm/guides/housekeeping/faqs) | Common questions about hardware, motors, printing, and control |
+| [Troubleshooting](https://docs.researchanddesire.com/ossm/troubleshooting) | Help with hardware, homing, controllers, Bluetooth, and WiFi |
 
 ![Discord](https://img.shields.io/discord/559409652425687041)
 
@@ -42,20 +42,20 @@ OSSM uses a servo-powered belt-driven linear rail, enabling quiet operation, hig
 
 ## Building Your OSSM
 
-For complete step-by-step instructions, see the [Build Guide](https://docs.researchanddesire.com/ossm/guides/getting-started/build-guide/step-0.0_introduction).
+For complete step-by-step instructions, see the [Build Guide](https://ohai.researchanddesire.com/ossm/build/introduction).
 
 ### Bill of Materials
 
-For the complete parts list with supplier links, see [Required Tools and Parts](https://docs.researchanddesire.com/ossm/guides/getting-started/build-guide/step-1.0_required_tools_and_parts).
+For the complete parts list, see [Required Tools and Parts](https://ohai.researchanddesire.com/ossm/build/tools-and-parts).
 
 ### Electronics
 
 | Component | Description | Documentation |
 |-----------|-------------|---------------|
-| Motor | 57AIM30 "Gold Motor" | [Motor Documentation](https://docs.researchanddesire.com/ossm/Hardware/motor/standard-build-motor) |
-| Reference Board | OSSM PCB or ESP32 Development Board | [Board Design](https://docs.researchanddesire.com/ossm/Hardware/PCB/board-design) |
-| Remote | OSSM Wired Remote | [Remote Documentation](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/remote/introduction) |
-| Wiring | JST-PH 2.0 4-Pin data cable and 16awg power wire | [Wiring Guide](https://docs.researchanddesire.com/ossm/Hardware/motor/wiring-gold-motor) |
+| Motor | 57AIM30 "Gold Motor" | [Bill of Materials](https://ohai.researchanddesire.com/ossm/build/bill-of-materials) |
+| Reference Board | OSSM PCB or ESP32 Development Board | [Board Design](https://dev.researchanddesire.com/ossm/hardware/pcb/board-design) |
+| Remote | OSSM Wired Remote | [Controller Documentation](https://docs.researchanddesire.com/ossm/controllers) |
+| Wiring | JST-PH 2.0 4-Pin data cable and 16awg power wire | [Wiring Guide](https://ohai.researchanddesire.com/ossm/build/wiring) |
 
 **Power Supply:** 20-36V DC (5.5 x 2.1 Barrel Plug). A 24V 5A supply is recommended. Higher voltage (up to 36V) provides increased force.
 
@@ -65,15 +65,15 @@ For the complete parts list with supplier links, see [Required Tools and Parts](
 
 ### Printed Parts
 
-For 3D printing settings and material recommendations, see [3D Printing Parts](https://docs.researchanddesire.com/ossm/guides/getting-started/build-guide/step-1.2_3d-printing-parts).
+For 3D printing settings and material recommendations, see [3D Printing Parts](https://ohai.researchanddesire.com/ossm/build/printed-parts).
 
 | Assembly | Parts Included | Documentation |
 |----------|----------------|---------------|
-| [Actuator](Printed%20Parts/Actuator/) | Body, Belt Tensioner, Threaded End Effector | [Actuator Docs](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/actuator/introduction) |
-| [Remote](Printed%20Parts/Remote/) | Body, Knobs, Top Cover | [Remote Docs](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/remote/introduction) |
-| [Toy Mounting](Printed%20Parts/Toy%20Mounting/) | Flange Base, Vac-U-Lock Adapters | [Toy Mounting Docs](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/toy-mounting/introduction) |
-| [Mounting](Printed%20Parts/Mounting/) | PitClamp Mini Ring/Base, PCB Enclosure | [Mounting Docs](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/pitclamp/README) |
-| [Stand](Printed%20Parts/Stand/) | 3030 Extrusion Base Components | [Stand Docs](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/stand/introduction) |
+| [Actuator](Printed%20Parts/Actuator/) | Body, Belt Tensioner, Threaded End Effector | [Assembly Guide](https://ohai.researchanddesire.com/ossm/build/introduction) |
+| [Remote](Printed%20Parts/Remote/) | Body, Knobs, Top Cover | [Controller Documentation](https://docs.researchanddesire.com/ossm/controllers) |
+| [Toy Mounting](Printed%20Parts/Toy%20Mounting/) | Flange Base, Vac-U-Lock Adapters | [End Effector Guide](https://ohai.researchanddesire.com/ossm/build/end-effector) |
+| [Mounting](Printed%20Parts/Mounting/) | PitClamp Mini Ring/Base, PCB Enclosure | [Mounting Files](Printed%20Parts/Mounting/) |
+| [Stand](Printed%20Parts/Stand/) | 3030 Extrusion Base Components | [Stand Files](Printed%20Parts/Stand/) |
 
 Experimental parts are developed in the [KinkyMakers Discord](https://discord.gg/wrENMKb3) `#ossm-print-testing` channel.
 
@@ -121,7 +121,7 @@ Your rail should extend the threaded end first when booted. If this doesn't matc
 
 | Resource | Description |
 |----------|-------------|
-| [Complete Build Guide](https://docs.researchanddesire.com/ossm/guides/getting-started/build-guide/step-0.0_introduction) | Step-by-step documentation with images |
+| [Complete Build Guide](https://ohai.researchanddesire.com/ossm/build/introduction) | Step-by-step documentation with images |
 | [OSSM Assembly Playlist](https://youtube.com/playlist?list=PLzSK7OAu3KNQsFo6WJGT8P28lfkD3xpps) | Video tutorials for each assembly step |
 | [Complete Assembly - Follow Along Guide](https://www.youtube.com/watch?v=9lVobSEw_Uw) | Full 30-minute video walkthrough |
 
@@ -129,23 +129,23 @@ Your rail should extend the threaded end first when booted. If this doesn't matc
 
 ## Software
 
-For firmware flashing and configuration, see the [Software Documentation](https://docs.researchanddesire.com/ossm/Software/getting-started/introduction).
+For firmware flashing and configuration, see the [Software Documentation](https://dev.researchanddesire.com/ossm/software/getting-started/introduction).
 
 | Resource | Description |
 |----------|-------------|
-| [Web Flasher](https://docs.researchanddesire.com/ossm/guides/getting-started/web-flasher) | Flash firmware directly from your browser |
-| [PlatformIO Setup](https://docs.researchanddesire.com/ossm/Software/getting-started/PlatformIO) | Development environment for custom builds |
-| [LED Status Guide](https://docs.researchanddesire.com/ossm/Software/getting-started/LED_Status) | Understanding indicator lights |
-| [StrokeEngine](https://docs.researchanddesire.com/ossm/Software/motion/stroke-engine/introduction) | Motion control library documentation |
-| [Hardware Tests](https://docs.researchanddesire.com/ossm/Software/getting-started/hardware-tests) | On-device test suites for verifying peripherals, BLE, WiFi, and homing |
+| [Web Flasher](https://docs.researchanddesire.com/ossm/tools/web-flasher) | Flash firmware directly from your browser |
+| [PlatformIO Setup](https://dev.researchanddesire.com/ossm/software/getting-started/platformio) | Development environment for custom builds |
+| [LED Status Guide](https://dev.researchanddesire.com/ossm/software/getting-started/led-status) | Understanding indicator lights |
+| [StrokeEngine](https://dev.researchanddesire.com/ossm/software/motion/stroke-engine/introduction) | Motion control library documentation |
+| [Hardware Tests](Software/test/) | On-device test suites for verifying peripherals, BLE, WiFi, and homing |
 
 ---
 
 ## Getting Help
 
-- [User Guide](https://docs.researchanddesire.com/ossm/guides/getting-started/user-guide/introduction) - Operating your OSSM
-- [Troubleshooting](https://docs.researchanddesire.com/ossm/guides/getting-started/user-guide/troubleshooting) - Common issues and solutions
-- [Safety Information](https://docs.researchanddesire.com/ossm/guides/housekeeping/safety/introduction) - Important safety guidance
+- [User Guide](https://docs.researchanddesire.com/ossm/how-to-use) - Operating your OSSM
+- [Troubleshooting](https://docs.researchanddesire.com/ossm/troubleshooting) - Common issues and solutions
+- [Safety Information](https://docs.researchanddesire.com/ossm/safety) - Important safety guidance
 - [Discord Community](https://discord.gg/VtZcudpxT6) - Real-time community support
 
 ---
@@ -154,15 +154,15 @@ For firmware flashing and configuration, see the [Software Documentation](https:
 
 OSSM is open-source hardware under the [CERN Open Hardware Licence Version 2 - Strongly Reciprocal](LICENSE).
 
-- [How to Become a Contributor](https://docs.researchanddesire.com/ossm/guides/contributing/how-to-become-a-contributor)
-- [Forking the Repository](https://docs.researchanddesire.com/ossm/guides/contributing/forking)
-- [Reporting Issues](https://docs.researchanddesire.com/ossm/guides/contributing/reporting-issues)
-- [Roadmap](https://docs.researchanddesire.com/ossm/guides/contributing/roadmap)
+- [How to Contribute](CONTRIBUTING.md)
+- [Fork the Repository](https://github.com/KinkyMakers/OSSM-hardware/fork)
+- [Report an Issue](https://github.com/KinkyMakers/OSSM-hardware/issues)
+- [Roadmap](https://github.com/KinkyMakers/OSSM-hardware/milestones)
 
 ---
 
 ## About
 
-- [About Research and Desire](https://docs.researchanddesire.com/ossm/guides/housekeeping/about-research-and-desire)
-- [About Kinky Makers](https://docs.researchanddesire.com/ossm/guides/housekeeping/about-kinky-makers)
-- [Open Source Certification](https://docs.researchanddesire.com/ossm/guides/housekeeping/open-source/introduction)
+- [About Research and Desire](https://researchanddesire.com)
+- [About Kinky Makers](https://github.com/KinkyMakers)
+- [Open Source Information](https://docs.researchanddesire.com/ossm/open-source-info)
