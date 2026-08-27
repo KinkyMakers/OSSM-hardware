@@ -1,5 +1,7 @@
 #include "nimble.h"
 
+#if OSSM_ENABLE_RAD_BLE
+
 #include <ArduinoJson.h>
 #include <constants/LogTags.h>
 #include <services/board.h>
@@ -385,3 +387,20 @@ void initNimble() {
         nimbleLoop, "nimbleLoop", 5 * configMINIMAL_STACK_SIZE, pServer,
         configMAX_PRIORITIES - 1, nullptr, Tasks::stepperCore);
 }
+
+int nimbleConnectionCount() {
+    return pServer == nullptr ? 0 : pServer->getConnectedCount();
+}
+
+bool nimbleIsAdvertising() {
+    return pServer != nullptr && pServer->getAdvertising();
+}
+
+#else
+
+void nimbleLoop(void*) {}
+void initNimble() {}
+int nimbleConnectionCount() { return 0; }
+bool nimbleIsAdvertising() { return false; }
+
+#endif

@@ -317,6 +317,7 @@ def upload_request_payload(
     return {
         "track": args.track,
         "deviceType": args.device_type,
+        "hardwareVariant": args.hardware_variant,
         "version": version,
         "buildSha": args.build_sha,
         "kind": args.kind,
@@ -396,6 +397,7 @@ def publish(args: argparse.Namespace) -> str:
             {
                 "protocolVersion": 1,
                 "deviceType": args.device_type,
+                "hardwareVariant": args.hardware_variant,
                 "track": args.track,
                 "version": version,
                 "buildSha": args.build_sha,
@@ -408,6 +410,7 @@ def publish(args: argparse.Namespace) -> str:
             {
                 "protocolVersion": 1,
                 "deviceType": args.device_type,
+                "hardwareVariant": args.hardware_variant,
                 "track": args.track,
                 "version": version,
                 "buildSha": args.build_sha,
@@ -473,6 +476,7 @@ def publish(args: argparse.Namespace) -> str:
     release_request = {
         "track": args.track,
         "deviceType": args.device_type,
+        "hardwareVariant": args.hardware_variant,
         "version": version,
         "buildSha": args.build_sha,
         "kind": args.kind,
@@ -522,6 +526,7 @@ def publish(args: argparse.Namespace) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--device-type", required=True, choices=("dtt", "lkbx", "ossm", "radr"))
+    parser.add_argument("--hardware-variant", required=True, choices=("v1", "v2"))
     parser.add_argument("--track", required=True, choices=("main", "staging"))
     parser.add_argument("--build-sha", required=True)
     parser.add_argument("--version-file", required=True, type=Path)

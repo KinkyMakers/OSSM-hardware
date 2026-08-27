@@ -12,14 +12,16 @@ OSSM (Open Source Sex Machine) is an ESP32-based stepper motor device firmware. 
 - **State Machine:** Boost.SML (header-only, `include/boost/sml.hpp`)
 - **Motor:** FastAccelStepper (stepper motor with trapezoidal acceleration)
 - **Display:** U8g2 (128x64 SSD1306 OLED)
-- **BLE:** NimBLE-Arduino 2.1.2
+- **BLE:** NimBLE-Arduino 2.4.0 on V2; omitted from V1
 - **LED:** FastLED (WS2812B status indicator)
-- **Build:** PlatformIO with 5 environments (development, developmentAJ, staging, production, test)
+- **Build:** PlatformIO with explicit 4 MiB V1 and 16 MiB V2 release environments
 
 ## Quick Commands
 
 ```bash
 pio run -e development            # Build development
+pio run -e production-v1          # Build universal 4 MiB firmware without BLE
+pio run -e production-v2          # Build full 16 MiB firmware with BLE
 pio run -e development -t upload  # Build + upload
 pio run -e development -t monitor # Serial monitor (115200 baud)
 pio run -e test -t test           # Run unit tests (native platform)
@@ -30,7 +32,7 @@ pio check                         # Run clang-tidy static analysis
 
 ```
 Software/
-├── platformio.ini               # Build config (5 environments)
+├── platformio.ini               # Build config and hardware variants
 ├── pre_build_script.py          # Build-time version injection
 ├── src/
 │   ├── main.cpp                 # Entry point, FreeRTOS task creation
@@ -190,22 +192,24 @@ struct SettingPercents {
 
 ### Environments
 
-| Env           | Debug | Platform         | Notable Flags                        |
-|---------------|-------|------------------|--------------------------------------|
-| development   | 4     | espressif32@6.3.2| `DEBUG_TALKATIVE`, `PRETEND_TO_BE_FLESHY_THRUST_SYNC` |
-| developmentAJ | 4     | espressif32      | Custom hardware, hardcoded WiFi      |
-| staging       | 1     | espressif32      | `PRETEND_TO_BE_FLESHY_THRUST_SYNC`   |
-| production    | 0     | espressif32      | `PRETEND_TO_BE_FLESHY_THRUST_SYNC`   |
-| test          | 0     | native           | `UNITY_INCLUDE_DOUBLE`, ArduinoFake  |
+| Env | Flash | BLE | Purpose |
+|-----|-------|-----|---------|
+| development | 16 MiB | Yes | Local development |
+| staging-v1 / production-v1 | 4 MiB | No | Universal compact release lane |
+| staging-v2 / production-v2 | 16 MiB | Yes | Full release lane |
+| staging / production | 16 MiB | Yes | Compatibility aliases pinned to V2 |
+| test | Native | No | Unity unit tests |
 
 ### Build Script
 
 `pre_build_script.py` runs before compilation:
 - Sets `SW_VERSION` from environment or GITHUB_ENV
+- Selects 4 MiB, Bluetooth-disabled ESP-IDF defaults for V1 builds
 
 ### Flash Partitions
 
-Uses `min_spiffs.csv` (PlatformIO built-in minimal SPIFFS partition).
+- `partition-v1.csv` preserves the historical 4 MiB OTA/SPIFFS layout.
+- `partition-v2.csv` uses the full 16 MiB flash with two 7.5 MiB OTA slots.
 
 ## Libraries
 
