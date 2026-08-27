@@ -1,3 +1,7 @@
+#include <OssmHardwareVariant.h>
+
+#if OSSM_ENABLE_RAD_BLE
+
 #include "rad_ble.h"
 
 #include <Preferences.h>
@@ -689,7 +693,9 @@ bool initRadBle(NimBLEServer* server) {
             .serviceUuid = radble::OSSM_SERVICE_UUID,
             .firmwareVersion = VERSION,
             .build = FIRMWARE_BUILD_SHA,
-            .partitionLayout = "ossm-ota-16mb-v1",
+            .partitionLayout = ossm_hardware::HARDWARE_VARIANT[1] == '1'
+                                   ? "ossm-ota-4mb-v1"
+                                   : "ossm-ota-16mb-v1",
         },
         .capabilities = radble::CAP_BUTTON | radble::CAP_ENCODER |
                         radble::CAP_ANALOG | radble::CAP_MOTION |
@@ -711,3 +717,5 @@ bool initRadBle(NimBLEServer* server) {
     };
     return radBleServer.begin(server, config);
 }
+
+#endif

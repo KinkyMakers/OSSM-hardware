@@ -20,8 +20,18 @@ class ReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("github-token: ${{ github.token }}", workflow)
 
     def test_branch_configuration_maps_tracks_and_projects(self):
-        self.assertEqual(branch_configuration("main")["PIO_ENV"], "production")
-        self.assertEqual(branch_configuration("staging")["PIO_ENV"], "staging")
+        self.assertEqual(
+            branch_configuration("main")["PIO_ENV_V1"], "production-v1"
+        )
+        self.assertEqual(
+            branch_configuration("main")["PIO_ENV_V2"], "production-v2"
+        )
+        self.assertEqual(
+            branch_configuration("staging")["PIO_ENV_V1"], "staging-v1"
+        )
+        self.assertEqual(
+            branch_configuration("staging")["PIO_ENV_V2"], "staging-v2"
+        )
         self.assertNotEqual(
             branch_configuration("main")["STORAGE_PROJECT_REF"],
             branch_configuration("staging")["STORAGE_PROJECT_REF"],

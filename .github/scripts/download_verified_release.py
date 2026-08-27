@@ -125,14 +125,26 @@ def fetch(url: str, token: str | None = None) -> bytes:
         raise RuntimeError(f"download returned HTTP {error.code}: {detail}") from error
 
 
-def download_release(release_id: str, track: str, device: str, output: Path) -> str:
+def download_release(
+    release_id: str,
+    track: str,
+    device: str,
+    hardware_variant: str,
+    output: Path,
+) -> str:
     token = os.environ.get("FIRMWARE_PUBLISH_TOKEN", "").strip()
     if not token:
         raise RuntimeError("FIRMWARE_PUBLISH_TOKEN is required")
     base = os.environ.get("FIRMWARE_CONTROL_PLANE_BASE_URL", CONTROL_PLANE).rstrip("/")
     status = json.loads(fetch(f"{base}/api/internal/firmware/v1/releases/{release_id}?track={track}", token))
-    if status.get("track") != track or status.get("deviceType") != device:
-        raise RuntimeError("release track or device family does not match")
+    if (
+        status.get("track") != track
+        or status.get("deviceType") != device
+        or status.get("hardwareVariant") != hardware_variant
+    ):
+        raise RuntimeError(
+            "release track, device family, or hardware variant does not match"
+        )
     allowed = {"active"} if track == "staging" else {"ready", "active"}
     if status.get("lifecycle") not in allowed:
         raise RuntimeError("release has not passed the required lifecycle gate")
@@ -147,7 +159,12 @@ def download_release(release_id: str, track: str, device: str, output: Path) -> 
     manifest_url = status["manifestUrl"]
     manifest_bytes = fetch(manifest_url)
     manifest = json.loads(manifest_bytes)
-    if manifest.get("track") != track or manifest.get("deviceType") != device or manifest.get("buildSha") != build_sha:
+    if (
+        manifest.get("track") != track
+        or manifest.get("deviceType") != device
+        or manifest.get("hardwareVariant") != hardware_variant
+        or manifest.get("buildSha") != build_sha
+    ):
         raise RuntimeError("manifest identity does not match the release")
     provenance = status.get("provenance") or {}
     provenance_token = provenance.get("compact_jws", "")
@@ -156,6 +173,7 @@ def download_release(release_id: str, track: str, device: str, output: Path) -> 
         claims.get("schema") != "rad.firmware.provenance.v1"
         or claims.get("issuer") != "research-and-desire"
         or claims.get("deviceType") != device
+        or claims.get("hardwareVariant") != hardware_variant
         or claims.get("version") != status.get("version")
         or claims.get("buildSha") != build_sha
         or claims.get("manifestSha256") != hashlib.sha256(manifest_bytes).hexdigest()
@@ -203,9 +221,16 @@ def main() -> int:
     parser.add_argument("--release-id", required=True)
     parser.add_argument("--track", required=True, choices=("main", "staging"))
     parser.add_argument("--device", required=True, choices=("dtt", "lkbx", "ossm", "radr"))
+    parser.add_argument("--hardware-variant", required=True, choices=("v1", "v2"))
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
-    version = download_release(args.release_id, args.track, args.device, args.output)
+    version = download_release(
+        args.release_id,
+        args.track,
+        args.device,
+        args.hardware_variant,
+        args.output,
+    )
     github_output = os.environ.get("GITHUB_OUTPUT")
     if github_output:
         with open(github_output, "a", encoding="utf-8") as handle:
