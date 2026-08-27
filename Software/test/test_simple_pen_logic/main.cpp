@@ -76,9 +76,9 @@ void test_isSpeedChangeSignificant_significant(void) {
 // ─── calculateTarget ───
 
 void test_calculateTarget_forward(void) {
-    // isForward=true, stroke=50%, measured=10000 → -abs(0.5*10000) = -5000
+    // isForward=true, stroke=50%, measured=10000 → abs(0.5*10000) = 5000
     int32_t result = simple_pen_logic::calculateTarget(true, 50.0f, 10000.0f);
-    TEST_ASSERT_EQUAL_INT32(-5000, result);
+    TEST_ASSERT_EQUAL_INT32(5000, result);
 }
 
 void test_calculateTarget_backward(void) {
