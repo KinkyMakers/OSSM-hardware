@@ -15,6 +15,13 @@ It preserves the prerequisite boot/Wi-Fi/BLE work through
 to `040f37172dfb4a02e26362ada46e09504c66cb1c` (researchanddesire/rad-ble PR 1).
 Their changes are included in the baseline, not counted as this cleanup's savings.
 
+After both cleanup commits, main advanced through the synchronized V1/V2
+publication change (PR 336, merge `9a53597e`) to `081c84b3` (1.0.58). This branch
+reconciles that main history and its release guards, retaining current-source
+4 MB firmware and the stronger installer validation. The size comparison below
+still uses the original 1.0.57 baseline; final candidates are rebuilt from the
+reconciled committed source with their own source SHA and version.
+
 [OSSM-Lite by fray-d](https://github.com/fray-d/OSSM-Lite) was the starting point
 for the unused-code audit, inspected at
 `76a894f269573a42530bde8a170a0de14c2ed105`. Relevant prior work:
@@ -184,8 +191,8 @@ finalization, artifact order, MQTT resume and pending-image confirmation. The
 shared MQTT/full-BLE serializer is also exercised directly, including the existing
 buffer and firmware provenance fields that the previous duplicated fixture omitted.
 These seams do not add virtual dispatch or a second implementation of the protocol.
-OTA checks now reject header failures, incomplete bodies and reported SHA errors
-instead of accepting a complete-looking JSON prefix or ignoring crypto errors.
+OTA checks now reject header failures and incomplete bodies instead of accepting
+a complete-looking JSON prefix; artifact writes abort on reported SHA errors.
 Complete chunked check responses remain accepted; artifact downloads retain their
 existing content-length policy and must match their declared size and SHA-256.
 
