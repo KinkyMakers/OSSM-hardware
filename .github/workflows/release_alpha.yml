@@ -33,7 +33,6 @@ jobs:
             --release-id "${{ inputs.release_id }}" \
             --track staging \
             --device ossm \
-            --hardware-variant v2 \
             --output firmware
 
       - name: Replace explicit alpha alias

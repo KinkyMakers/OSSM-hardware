@@ -10,7 +10,6 @@
 #include <esp_system.h>
 
 #include "FirmwareUpdateRuntime.h"
-#include <OssmHardwareVariant.h>
 #include "constants/LogTags.h"
 #include "constants/Version.h"
 #include "ossm/Events.h"
@@ -52,9 +51,9 @@ const char *currentPartitionLayout() {
         app1->address == 0x790000 && app1->size == 0x780000) {
         return "ossm-ota-16mb-v1";
     }
-    if (app0->address == 0x10000 && app0->size == 0x1E0000 &&
-        app1->address == 0x1F0000 && app1->size == 0x1E0000) {
-        return "ossm-ota-4mb-v1";
+    if (app0->address == 0x10000 && app0->size == 0x1F0000 &&
+        app1->address == 0x200000 && app1->size == 0x1F0000) {
+        return "ossm-ota-v1";
     }
     return "unknown";
 }
@@ -79,8 +78,7 @@ firmware::DeviceReport makeDeviceReport() {
     report.chip = std::string(ESP.getChipModel());
     report.chipRevision = ESP.getChipRevision();
     report.chipCores = ESP.getChipCores();
-    report.hardwareRevision =
-        std::string("ossm-") + ossm_hardware::HARDWARE_VARIANT;
+    report.hardwareRevision = "ossm-v1";
     report.flashSizeBytes = physicalFlashSizeBytes();
     report.psramSizeBytes = ESP.getPsramSize();
     report.otaSlotSizeBytes = otaSlotSizeBytes();

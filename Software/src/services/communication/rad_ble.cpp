@@ -1,7 +1,3 @@
-#include <OssmHardwareVariant.h>
-
-#if OSSM_ENABLE_RAD_BLE
-
 #include "rad_ble.h"
 
 #include <Preferences.h>
@@ -715,5 +711,3 @@ bool initRadBle(NimBLEServer* server) {
     };
     return radBleServer.begin(server, config);
 }
-
-#endif

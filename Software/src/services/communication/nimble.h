@@ -1,12 +1,9 @@
 #ifndef OSSM_NIMBLE_H
 #define OSSM_NIMBLE_H
 
-#include <OssmHardwareVariant.h>
-
-#if OSSM_ENABLE_RAD_BLE
 #include <NimBLEDevice.h>
 #include <NimBLEServer.h>
-#endif
+#include <esp_log.h>
 
 #define SERVICE_UUID "522b443a-4f53-534d-0001-420badbabe69"
 
@@ -65,13 +62,9 @@
 #define SYSTEM_ID_UUID "2A23"            // Standard UUID for system ID
 #define DEVICE_INFO_SERVICE_UUID "180A"  // Device Information Service
 
-#if OSSM_ENABLE_RAD_BLE
 extern NimBLEServer* pServer;
-#endif
 
 void nimbleLoop(void* pvParameters);
 void initNimble();
-int nimbleConnectionCount();
-bool nimbleIsAdvertising();
 
 #endif  // OSSM_NIMBLE_H

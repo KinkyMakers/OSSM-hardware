@@ -33,7 +33,6 @@ jobs:
             --release-id "${{ inputs.release_id }}" \
             --track main \
             --device ossm \
-            --hardware-variant v2 \
             --output firmware
 
       - name: Replace production Supabase aliases

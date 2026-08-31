@@ -2,6 +2,7 @@
 #define OSSM_SOFTWARE_BOARD_H
 
 #include <Arduino.h>
+#include <NimBLEDevice.h>
 
 #include "constants/Pins.h"
 #include "services/encoder.h"

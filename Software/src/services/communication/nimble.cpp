@@ -1,7 +1,5 @@
 #include "nimble.h"
 
-#if OSSM_ENABLE_RAD_BLE
-
 #include <ArduinoJson.h>
 #include <constants/LogTags.h>
 #include <services/board.h>
@@ -55,6 +53,22 @@ void restartAdvertisingWithCurrentName() {
 double easeInOutSine(double t) {
     return 0.5 * (1 + sin(3.1415926 * (t - 0.5)));
 }
+
+class StateCallbacks : public NimBLECharacteristicCallbacks {
+    void onRead(NimBLECharacteristic* characteristic, NimBLEConnInfo&) override {
+        if (!ossm) return;
+        // RADR needs full legacy state on reads; retain shared BLE metadata.
+        JsonDocument value, current;
+        const auto stored = characteristic->getValue();
+        deserializeJson(value, stored.data(), stored.size());
+        if (deserializeJson(current, ossm->getCurrentState())) return;
+        for (JsonPairConst field : current.as<JsonObjectConst>())
+            value[field.key()] = field.value();
+        String payload;
+        serializeJson(value, payload);
+        characteristic->setValue(payload);
+    }
+} stateCallbacks;
 
 /** Handler class for server actions */
 class ServerCallbacks : public NimBLEServerCallbacks {
@@ -328,6 +342,7 @@ void initNimble() {
 
     pStateCharacteristic = initStateCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_STATE_UUID));
+    pStateCharacteristic->setCallbacks(&stateCallbacks);
 
     initPatternsCharacteristic(pService,
                                NimBLEUUID(CHARACTERISTIC_PATTERNS_UUID));
@@ -387,20 +402,3 @@ void initNimble() {
         nimbleLoop, "nimbleLoop", 5 * configMINIMAL_STACK_SIZE, pServer,
         configMAX_PRIORITIES - 1, nullptr, Tasks::stepperCore);
 }
-
-int nimbleConnectionCount() {
-    return pServer == nullptr ? 0 : pServer->getConnectedCount();
-}
-
-bool nimbleIsAdvertising() {
-    return pServer != nullptr && pServer->getAdvertising();
-}
-
-#else
-
-void nimbleLoop(void*) {}
-void initNimble() {}
-int nimbleConnectionCount() { return 0; }
-bool nimbleIsAdvertising() { return false; }
-
-#endif

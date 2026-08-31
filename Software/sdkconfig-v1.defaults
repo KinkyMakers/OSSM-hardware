@@ -1,4 +1,0 @@
-# Compact OSSM hardware has 4 MiB flash and does not expose Bluetooth.
-CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
-CONFIG_ESPTOOLPY_FLASHSIZE="4MB"
-# CONFIG_BT_ENABLED is not set

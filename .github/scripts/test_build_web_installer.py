@@ -15,18 +15,16 @@ SPEC.loader.exec_module(MODULE)
 
 
 class BuildWebInstallerTests(unittest.TestCase):
-    def test_merge_preserves_built_mode_and_uses_selected_capacity(self):
+    def test_merge_preserves_built_mode_and_uses_16_mib_capacity(self):
         with tempfile.TemporaryDirectory() as directory:
-            profile = MODULE.PROFILES["esp32-4mb"]
             command = MODULE.merge_command(
                 Path(directory) / "esptool.py",
-                profile,
                 Path(directory) / "web-installer.bin",
                 [(0x1000, Path(directory) / "bootloader.bin")],
             )
         self.assertIn("keep", command)
-        self.assertIn("4MB", command)
-        self.assertEqual(profile.capacity, 4 * 1024 * 1024)
+        self.assertIn("16MB", command)
+        self.assertEqual(MODULE.FLASH_CAPACITY, 16 * 1024 * 1024)
 
     def test_rejects_the_wrong_chip_or_flash_header(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -39,19 +37,18 @@ class BuildWebInstallerTests(unittest.TestCase):
             application.write_bytes(b"\xe9\x01\x00\x00" + b"\0" * 10)
             partitions.write_bytes(b"partitions")
             boot_app0.write_bytes(b"boot-app")
-            profile = MODULE.PROFILES["esp32-16mb"]
-            MODULE.build_components(profile, root, boot_app0)
+            MODULE.build_components(root, boot_app0)
 
             bootloader.write_bytes(b"\xe9\x01\x00\x20" + b"\0" * 10)
             with self.assertRaisesRegex(RuntimeError, "flash header"):
-                MODULE.build_components(profile, root, boot_app0)
+                MODULE.build_components(root, boot_app0)
 
             application.write_bytes(
                 b"\xe9\x01\x00\x00" + b"\0" * 8 + b"\x09\x00"
             )
             bootloader.write_bytes(b"\xe9\x01\x02\x40" + b"\0" * 10)
             with self.assertRaisesRegex(RuntimeError, "chip ID"):
-                MODULE.build_components(profile, root, boot_app0)
+                MODULE.build_components(root, boot_app0)
 
     def test_validation_checks_magic_and_exact_components(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -62,7 +59,7 @@ class BuildWebInstallerTests(unittest.TestCase):
             bootloader[1] = 1
             bootloader[2] = MODULE.FLASH_MODE_ID
             bootloader[3] = (
-                MODULE.PROFILES["esp32-16mb"].flash_size_id << 4
+                MODULE.FLASH_SIZE_ID << 4
             ) | MODULE.FLASH_FREQUENCY_ID
             bootloader[12:14] = MODULE.ESP32_CHIP_ID.to_bytes(2, "little")
             application = bytearray(16)
@@ -85,19 +82,18 @@ class BuildWebInstallerTests(unittest.TestCase):
                 merged[offset : offset + len(body)] = body
             output = root / "web-installer.bin"
             output.write_bytes(merged)
-            profile = MODULE.PROFILES["esp32-16mb"]
-            MODULE.validate_merged_image(output, profile, components)
+            MODULE.validate_merged_image(output, components)
 
             merged[0x10000] = 0
             output.write_bytes(merged)
             with self.assertRaisesRegex(RuntimeError, "magic"):
-                MODULE.validate_merged_image(output, profile, components)
+                MODULE.validate_merged_image(output, components)
 
             merged[0x10000] = 0xE9
             merged[0x8000] = 0
             output.write_bytes(merged)
             with self.assertRaisesRegex(RuntimeError, "component mismatch"):
-                MODULE.validate_merged_image(output, profile, components)
+                MODULE.validate_merged_image(output, components)
 
 
 if __name__ == "__main__":

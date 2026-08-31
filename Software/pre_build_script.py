@@ -3,21 +3,6 @@ import os
 import re
 import socket
 
-
-def configure_release_sdkconfig():
-    """Layer compact-board IDF defaults over the shared release config."""
-    pio_env = env.subst("$PIOENV")
-    project_dir = env.subst("$PROJECT_DIR")
-    defaults = [os.path.join(project_dir, "sdkconfig.defaults")]
-    if pio_env.endswith("-v1"):
-        defaults.append(os.path.join(project_dir, "sdkconfig-v1.defaults"))
-        print("Using 4 MB, Bluetooth-disabled ESP-IDF defaults")
-    env["ENV"]["SDKCONFIG_DEFAULTS"] = ";".join(defaults)
-
-
-configure_release_sdkconfig()
-
-
 def get_local_ip():
     try:
         # Create a socket connection to an external server (doesn't actually connect)
