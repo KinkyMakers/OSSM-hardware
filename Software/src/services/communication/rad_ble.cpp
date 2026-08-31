@@ -706,6 +706,10 @@ bool initRadBle(NimBLEServer* server) {
             .otaSafetyHandler = prepareOta,
             .leaseReleaseHandler = releaseDiagnosticOutputs,
             .streamSafetyHandler = nullptr,
+            .readSnapshotHandler = [](radble::Surface, void*) {
+                return ossm == nullptr ? String(R"({"state":"starting"})")
+                                       : ossm->getCurrentState();
+            },
         },
         .context = nullptr,
     };

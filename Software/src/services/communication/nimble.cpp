@@ -68,6 +68,10 @@ class StateCallbacks : public NimBLECharacteristicCallbacks {
         serializeJson(value, payload);
         characteristic->setValue(payload);
     }
+    void onSubscribe(NimBLECharacteristic*, NimBLEConnInfo& connection,
+                     uint16_t value) override {
+        radBleServer.onStateSubscribe(connection.getConnHandle(), value);
+    }
 } stateCallbacks;
 
 /** Handler class for server actions */
@@ -278,7 +282,6 @@ void nimbleLoop(void* pvParameters) {
             String cmd = messageQueue.front();
             messageQueue.pop();
             ossm->ble_click(cmd);
-            pChr->setValue("ok:" + cmd);
 
             // Trigger LED communication pulse for command processing
             pulseForCommunication();
@@ -301,8 +304,7 @@ void nimbleLoop(void* pvParameters) {
         String currentState = ossm->getCurrentState();
         if (stateChanged) {
             ESP_LOGD(NIMBLE_TAG, "State changed to: %s", currentState.c_str());
-            pChr->setValue(currentState);
-            pChr->notify();
+            radBleServer.publishStateNotification(currentState);
         }
 
         // Trigger LED communication pulse for state update
