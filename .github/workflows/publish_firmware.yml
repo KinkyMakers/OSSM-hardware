@@ -161,6 +161,31 @@ jobs:
         working-directory: Software
         run: pio run -e "$PIO_ENV"
 
+      - name: Checkout V1 firmware with Bluetooth
+        if: github.ref_name == 'main'
+        uses: actions/checkout@v4
+        with:
+          ref: 065c1c70d8be0b6ebe3edf536051ca542b793d70 # Legacy source; release version is synchronized below.
+          path: legacy-4mb
+
+      - name: Test and build V1 with the allocated version
+        if: github.ref_name == 'main'
+        run: |
+          python scripts/release_version.py write --version "${{ steps.version.outputs.version }}" \
+            --header legacy-4mb/Software/src/constants/Version.h --version-json legacy-4mb/version.json
+          pio test --project-dir legacy-4mb/Software -e test
+          pio run --project-dir legacy-4mb/Software -e production -t buildprog
+          grep -aFq "$RELEASE_BUILD_SHA" legacy-4mb/Software/.pio/build/production/firmware.bin
+          grep -aFq "${{ steps.version.outputs.version }}" legacy-4mb/Software/.pio/build/production/firmware.bin
+          test "$(stat --format=%s legacy-4mb/Software/.pio/build/production/firmware.bin)" -le $((0x1E0000 - 0x4000))
+          grep -qx 'CONFIG_BT_ENABLED=y' legacy-4mb/Software/sdkconfig.production
+          grep -qx 'CONFIG_ESPTOOLPY_FLASHSIZE="4MB"' legacy-4mb/Software/sdkconfig.production
+          ~/.platformio/packages/toolchain-xtensa-esp32/bin/xtensa-esp32-elf-nm \
+            legacy-4mb/Software/.pio/build/production/firmware.elf | grep -E 'NimBLEServer' > /dev/null
+          python .github/scripts/build_web_installer.py --flash-size 4MB \
+            --build-dir legacy-4mb/Software/.pio/build/production \
+            --output legacy-4mb/Software/.pio/build/production/web-installer.bin
+
       - name: Build merged web installer
         run: |
           python .github/scripts/build_web_installer.py \
@@ -182,8 +207,25 @@ jobs:
             --artifact "partitions:Software/.pio/build/$PIO_ENV/partitions.bin:3:false" \
             --artifact "web-installer:Software/.pio/build/$PIO_ENV/web-installer.bin:4:false"
 
+      - name: Publish validating V1 release
+        if: github.ref_name == 'main'
+        id: publish_v1
+        run: |
+          python .github/scripts/publish_immutable_firmware.py \
+            --device-type ossm --hardware-variant v1 --track "$TRACK" \
+            --build-sha "$RELEASE_BUILD_SHA" \
+            --version-file legacy-4mb/Software/src/constants/Version.h \
+            --min-flash-size-bytes 4194304 \
+            --artifact "application:legacy-4mb/Software/.pio/build/production/firmware.bin:1:true" \
+            --artifact "bootloader:legacy-4mb/Software/.pio/build/production/bootloader.bin:2:false" \
+            --artifact "partitions:legacy-4mb/Software/.pio/build/production/partitions.bin:3:false" \
+            --artifact "web-installer:legacy-4mb/Software/.pio/build/production/web-installer.bin:4:false"
+
       - name: Candidate summary
         run: |
-          echo "Release ${{ steps.publish.outputs.release_id }} is waiting for hardware validation" >> "$GITHUB_STEP_SUMMARY"
+          echo "V2 release ${{ steps.publish.outputs.release_id }} is waiting for hardware validation" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -n "${{ steps.publish_v1.outputs.release_id }}" ]]; then
+            echo "V1 release ${{ steps.publish_v1.outputs.release_id }} is waiting for hardware validation" >> "$GITHUB_STEP_SUMMARY"
+          fi
           echo "Version: ${{ steps.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Build: ${{ steps.version.outputs.release_build_sha }}" >> "$GITHUB_STEP_SUMMARY"
