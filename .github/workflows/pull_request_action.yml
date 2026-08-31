@@ -53,16 +53,32 @@ jobs:
       - name: Build PlatformIO Project
         run: |
           cd Software
-          pio run -e staging
-          pio run -e production
+          pio run -e staging-v1 -j 1
+          pio run -e staging-v2 -j 1
+          pio run -e production-v1 -j 1
+          pio run -e production-v2 -j 1
 
       - name: Build merged web installers
         run: |
-          for environment in staging production; do
-            python .github/scripts/build_web_installer.py \
-              --build-dir "Software/.pio/build/$environment" \
-              --output "Software/.pio/build/$environment/web-installer.bin"
-          done
+          python .github/scripts/build_web_installer.py \
+            --profile esp32-4mb \
+            --build-dir "Software/.pio/build/production-v1" \
+            --output "Software/.pio/build/production-v1/web-installer.bin"
+          python .github/scripts/build_web_installer.py \
+            --profile esp32-16mb \
+            --build-dir "Software/.pio/build/production-v2" \
+            --output "Software/.pio/build/production-v2/web-installer.bin"
+
+      - name: Verify V1 omits Bluetooth
+        run: |
+          grep -qx '# CONFIG_BT_ENABLED is not set' Software/sdkconfig.production-v1
+          grep -qx 'CONFIG_BT_ENABLED=y' Software/sdkconfig.production-v2
+          if ~/.platformio/packages/toolchain-xtensa-esp32/bin/xtensa-esp32-elf-nm \
+            Software/.pio/build/production-v1/firmware.elf | \
+            grep -E 'NimBLE|initRadBle|radBleServer' > /dev/null; then
+            echo "V1 unexpectedly contains Bluetooth symbols" >&2
+            exit 1
+          fi
 
       - name: Test immutable publisher
         run: |
@@ -76,10 +92,14 @@ jobs:
         with:
           name: firmware-bin
           path: |
-            Software/.pio/build/production/firmware.bin
-            Software/.pio/build/production/partitions.bin
-            Software/.pio/build/production/bootloader.bin
-            Software/.pio/build/production/web-installer.bin
+            Software/.pio/build/production-v1/firmware.bin
+            Software/.pio/build/production-v1/partitions.bin
+            Software/.pio/build/production-v1/bootloader.bin
+            Software/.pio/build/production-v1/web-installer.bin
+            Software/.pio/build/production-v2/firmware.bin
+            Software/.pio/build/production-v2/partitions.bin
+            Software/.pio/build/production-v2/bootloader.bin
+            Software/.pio/build/production-v2/web-installer.bin
           retention-days: 1
 
   check:
@@ -108,7 +128,7 @@ jobs:
       - name: Check PlatformIO Project
         run: |
           cd Software
-          pio check --skip-packages --fail-on-defect high -e production -f src
+          pio check --skip-packages --fail-on-defect high -e production-v2 -f src
 
   test:
     needs: check_changes
@@ -143,9 +163,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify legacy documentation remains retired
+      - name: Verify restored safety documentation
         run: |
-          if [[ -d Documentation ]]; then
-            echo "The retired in-repository documentation workspace was restored"
+          if [[ ! -s Documentation/Hazards.md || ! -s "Documentation/Safety and Design Guide.md" ]]; then
+            echo "Required safety documentation is missing or empty"
             exit 1
           fi

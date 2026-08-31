@@ -157,32 +157,72 @@ jobs:
       - name: Select track build
         run: python .github/scripts/release_workflow.py configure --branch "$GITHUB_REF_NAME"
 
-      - name: Build application
+      - name: Build V1 and V2 applications
         working-directory: Software
-        run: pio run -e "$PIO_ENV"
+        run: |
+          pio run -e "$PIO_ENV_V1" -j 1
+          pio run -e "$PIO_ENV_V2" -j 1
 
-      - name: Build merged web installer
+      - name: Verify each firmware fits its OTA slot
+        run: |
+          V1_SIZE="$(stat --format=%s "Software/.pio/build/$PIO_ENV_V1/firmware.bin")"
+          V2_SIZE="$(stat --format=%s "Software/.pio/build/$PIO_ENV_V2/firmware.bin")"
+          test "$V1_SIZE" -le $((0x1E0000 - 0x4000))
+          test "$V2_SIZE" -le $((0x780000 - 0x4000))
+          echo "V1 firmware: $V1_SIZE bytes" >> "$GITHUB_STEP_SUMMARY"
+          echo "V2 firmware: $V2_SIZE bytes" >> "$GITHUB_STEP_SUMMARY"
+          grep -qx '# CONFIG_BT_ENABLED is not set' "Software/sdkconfig.$PIO_ENV_V1"
+          grep -qx 'CONFIG_BT_ENABLED=y' "Software/sdkconfig.$PIO_ENV_V2"
+          if ~/.platformio/packages/toolchain-xtensa-esp32/bin/xtensa-esp32-elf-nm \
+            "Software/.pio/build/$PIO_ENV_V1/firmware.elf" | \
+            grep -E 'NimBLE|initRadBle|radBleServer' > /dev/null; then
+            echo "V1 unexpectedly contains Bluetooth symbols" >&2
+            exit 1
+          fi
+
+      - name: Build merged V1 and V2 web installers
         run: |
           python .github/scripts/build_web_installer.py \
-            --build-dir "Software/.pio/build/$PIO_ENV" \
-            --output "Software/.pio/build/$PIO_ENV/web-installer.bin"
+            --profile esp32-4mb \
+            --build-dir "Software/.pio/build/$PIO_ENV_V1" \
+            --output "Software/.pio/build/$PIO_ENV_V1/web-installer.bin"
+          python .github/scripts/build_web_installer.py \
+            --profile esp32-16mb \
+            --build-dir "Software/.pio/build/$PIO_ENV_V2" \
+            --output "Software/.pio/build/$PIO_ENV_V2/web-installer.bin"
 
-      - name: Publish validating release
-        id: publish
+      - name: Publish validating V1 release
+        id: publish_v1
         run: |
           python .github/scripts/publish_immutable_firmware.py \
             --device-type ossm \
+            --hardware-variant v1 \
+            --track "$TRACK" \
+            --build-sha "$RELEASE_BUILD_SHA" \
+            --version-file Software/src/constants/Version.h \
+            --artifact "application:Software/.pio/build/$PIO_ENV_V1/firmware.bin:1:true" \
+            --artifact "bootloader:Software/.pio/build/$PIO_ENV_V1/bootloader.bin:2:false" \
+            --artifact "partitions:Software/.pio/build/$PIO_ENV_V1/partitions.bin:3:false" \
+            --artifact "web-installer:Software/.pio/build/$PIO_ENV_V1/web-installer.bin:4:false"
+
+      - name: Publish validating V2 release
+        id: publish_v2
+        run: |
+          python .github/scripts/publish_immutable_firmware.py \
+            --device-type ossm \
+            --hardware-variant v2 \
             --track "$TRACK" \
             --build-sha "$RELEASE_BUILD_SHA" \
             --version-file Software/src/constants/Version.h \
             --min-flash-size-bytes 16777216 \
-            --artifact "application:Software/.pio/build/$PIO_ENV/firmware.bin:1:true" \
-            --artifact "bootloader:Software/.pio/build/$PIO_ENV/bootloader.bin:2:false" \
-            --artifact "partitions:Software/.pio/build/$PIO_ENV/partitions.bin:3:false" \
-            --artifact "web-installer:Software/.pio/build/$PIO_ENV/web-installer.bin:4:false"
+            --artifact "application:Software/.pio/build/$PIO_ENV_V2/firmware.bin:1:true" \
+            --artifact "bootloader:Software/.pio/build/$PIO_ENV_V2/bootloader.bin:2:false" \
+            --artifact "partitions:Software/.pio/build/$PIO_ENV_V2/partitions.bin:3:false" \
+            --artifact "web-installer:Software/.pio/build/$PIO_ENV_V2/web-installer.bin:4:false"
 
       - name: Candidate summary
         run: |
-          echo "Release ${{ steps.publish.outputs.release_id }} is waiting for hardware validation" >> "$GITHUB_STEP_SUMMARY"
+          echo "V1 release ${{ steps.publish_v1.outputs.release_id }} is waiting for hardware validation" >> "$GITHUB_STEP_SUMMARY"
+          echo "V2 release ${{ steps.publish_v2.outputs.release_id }} is waiting for hardware validation" >> "$GITHUB_STEP_SUMMARY"
           echo "Version: ${{ steps.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Build: ${{ steps.version.outputs.release_build_sha }}" >> "$GITHUB_STEP_SUMMARY"

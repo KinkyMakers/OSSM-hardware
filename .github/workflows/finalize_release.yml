@@ -7,6 +7,11 @@ on:
         description: Validated control-plane release UUID
         required: true
         type: string
+      hardware_variant:
+        description: OSSM hardware lane
+        required: true
+        type: choice
+        options: [v1, v2]
 
 permissions:
   contents: write
@@ -32,11 +37,12 @@ jobs:
             --header "Authorization: Bearer $FIRMWARE_PUBLISH_TOKEN" \
             "https://dashboard.researchanddesire.com/api/internal/firmware/v1/releases/${{ inputs.release_id }}?track=main" \
             --output release.json
-          jq -e --arg device "ossm" '
+          jq -e --arg device "ossm" --arg variant "${{ inputs.hardware_variant }}" '
             . as $release |
             $release.buildSha as $sha |
             $release.track == "main" and
             $release.deviceType == $device and
+            $release.hardwareVariant == $variant and
             $release.buildSha == $sha and
             $release.lifecycle == "ready" and
             $release.paused == true and

@@ -70,19 +70,19 @@ void drawWifiIcon() {
 }
 
 BleStatus getBleStatus() {
-    if (pServer == nullptr) {
+    if (!ossm_hardware::RAD_BLE_ENABLED) {
         return BleStatus::DISCONNECTED;
     }
 
-    if (pServer->getAdvertising() && pServer->getConnectedCount() == 0) {
+    if (nimbleIsAdvertising() && nimbleConnectionCount() == 0) {
         return BleStatus::ADVERTISING;
     }
 
-    if (pServer->getConnectedCount() > 0) {
+    if (nimbleConnectionCount() > 0) {
         return BleStatus::CONNECTED;
     }
 
-    if (pServer->getAdvertising()) {
+    if (nimbleIsAdvertising()) {
         return BleStatus::CONNECTING;
     }
 
@@ -145,7 +145,7 @@ void drawBleIcon() {
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
             clearIcons();
             drawWifiIcon();
-            drawBleIcon();
+            if (ossm_hardware::RAD_BLE_ENABLED) drawBleIcon();
             refreshIcons();
             xSemaphoreGive(displayMutex);
         }
@@ -171,7 +171,8 @@ void drawBleIcon() {
         }
 
         bool wifiChanged = shouldDrawWifiIcon() || stateChanged;
-        bool bleChanged = shouldDrawBleIcon() || stateChanged;
+        bool bleChanged = ossm_hardware::RAD_BLE_ENABLED &&
+                          (shouldDrawBleIcon() || stateChanged);
 
         updateLEDForMachineStatus();
 
@@ -183,7 +184,7 @@ void drawBleIcon() {
         if (xSemaphoreTake(displayMutex, 100) == pdTRUE) {
             clearIcons();
             drawWifiIcon();
-            drawBleIcon();
+            if (ossm_hardware::RAD_BLE_ENABLED) drawBleIcon();
             refreshIcons();
             xSemaphoreGive(displayMutex);
         } else {

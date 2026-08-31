@@ -135,3 +135,7 @@ PlatformIO ESP32 code/OSSM_ESP32/.vscode/launch.json
 node_modules
 
 scratch/*
+
+# PlatformIO generates hybrid Arduino/ESP-IDF config snapshots per variant.
+Software/sdkconfig.*-v1
+Software/sdkconfig.*-v2

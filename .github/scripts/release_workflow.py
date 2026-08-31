@@ -18,13 +18,15 @@ def branch_configuration(branch: str) -> dict[str, str]:
     if branch == "main":
         return {
             "TRACK": "main",
-            "PIO_ENV": "production",
+            "PIO_ENV_V1": "production-v1",
+            "PIO_ENV_V2": "production-v2",
             "STORAGE_PROJECT_REF": PROJECT_REFS["main"],
         }
     if branch == "staging":
         return {
             "TRACK": "staging",
-            "PIO_ENV": "staging",
+            "PIO_ENV_V1": "staging-v1",
+            "PIO_ENV_V2": "staging-v2",
             "STORAGE_PROJECT_REF": PROJECT_REFS["staging"],
         }
     raise ValueError("firmware publication is restricted to main or staging")
