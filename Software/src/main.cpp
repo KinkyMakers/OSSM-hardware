@@ -45,6 +45,8 @@ extern "C" bool verifyRollbackLater() { return true; }
 #endif
 
 void __attribute__((weak)) setup() {
+    // Cache the sketch hash before BLE and TLS fragment the heap.
+    ESP.getSketchMD5();
     // Suppress verbose GPIO configuration logs
     esp_log_level_set("gpio", ESP_LOG_WARN);
 
