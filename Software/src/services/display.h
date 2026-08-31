@@ -28,19 +28,10 @@ void initDisplay();
 void clearIcons();
 void refreshIcons();
 
-void clearHeader();
-void clearFooter();
-void clearPage(bool includeFooter = false, bool includeHeader = false);
-
 void refreshHeader();
 
 void refreshFooter();
 
-void setHeader(String &text);
-void setFooter(String &left, String &right);
-
 void refreshPage(bool includeFooter = false, bool includeHeader = false);
-
-int drawWrappedText(int x, int y, const String &text, bool center = false);
 
 #endif  // OSSM_SOFTWARE_DISPLAY_H

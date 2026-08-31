@@ -3,6 +3,7 @@
 #include <functional>
 
 #include "FirmwareUpdateProtocol.h"
+#include "partition_layout.h"
 
 namespace {
 
@@ -76,7 +77,7 @@ void test_serializes_version_identity_and_hardware_fields() {
         .flashSizeBytes = 4194304,
         .psramSizeBytes = 0,
         .otaSlotSizeBytes = 1966080,
-        .partitionLayout = "ossm-ota-v1",
+        .partitionLayout = "ossm-ota-4mb-v1",
     };
     JsonDocument parsed;
     deserializeJson(parsed, firmware::serializeReport(report));
@@ -95,7 +96,7 @@ void test_serializes_version_identity_and_hardware_fields() {
     TEST_ASSERT_EQUAL_UINT32(4194304, parsed["flashSizeBytes"]);
     TEST_ASSERT_EQUAL_UINT32(0, parsed["psramSizeBytes"]);
     TEST_ASSERT_EQUAL_UINT32(1966080, parsed["otaSlotSizeBytes"]);
-    TEST_ASSERT_EQUAL_STRING("ossm-ota-v1", parsed["partitionLayout"]);
+    TEST_ASSERT_EQUAL_STRING("ossm-ota-4mb-v1", parsed["partitionLayout"]);
 
     report.otaSlotSizeBytes = 0;
     report.chipCores = 0;
@@ -105,6 +106,45 @@ void test_serializes_version_identity_and_hardware_fields() {
     TEST_ASSERT_TRUE(withoutOtaSlot["chipCores"].isNull());
     TEST_ASSERT_EQUAL_UINT32(0, withoutOtaSlot["chipRevision"]);
     TEST_ASSERT_EQUAL_UINT32(0, withoutOtaSlot["psramSizeBytes"]);
+}
+
+void test_reports_each_installed_ota_layout_without_conflating_4mb_tables() {
+    struct Layout {
+        std::uint32_t flashSize;
+        std::uint32_t slotSize;
+        std::uint32_t app1Address;
+        const char *name;
+    };
+    const Layout layouts[] = {
+        {0x400000, 0x1E0000, 0x1F0000, "ossm-ota-4mb-v1"},
+        {0x400000, 0x1F0000, 0x200000, "ossm-ota-v1"},
+        {0x1000000, 0x780000, 0x790000, "ossm-ota-16mb-v1"},
+    };
+    for (const auto &layout : layouts) {
+        auto report = matchingReport();
+        report.flashSizeBytes = layout.flashSize;
+        report.otaSlotSizeBytes = layout.slotSize;
+        report.partitionLayout = firmware::detectOtaPartitionLayout(
+            0x10000, layout.slotSize, layout.app1Address, layout.slotSize);
+        JsonDocument parsed;
+        deserializeJson(parsed, firmware::serializeReport(report));
+        TEST_ASSERT_EQUAL_STRING(layout.name, parsed["partitionLayout"]);
+        TEST_ASSERT_EQUAL_UINT32(layout.slotSize, parsed["otaSlotSizeBytes"]);
+        TEST_ASSERT_EQUAL_UINT32(layout.flashSize, parsed["flashSizeBytes"]);
+
+        // Missing, displaced, overlapping or unequal slots are not supported
+        // layouts, even if the other slot happens to match a known profile.
+        TEST_ASSERT_EQUAL_STRING("unknown", firmware::detectOtaPartitionLayout(
+            0, 0, layout.app1Address, layout.slotSize));
+        TEST_ASSERT_EQUAL_STRING("unknown", firmware::detectOtaPartitionLayout(
+            0x10000, layout.slotSize, 0, 0));
+        TEST_ASSERT_EQUAL_STRING("unknown", firmware::detectOtaPartitionLayout(
+            0x20000, layout.slotSize, layout.app1Address, layout.slotSize));
+        TEST_ASSERT_EQUAL_STRING("unknown", firmware::detectOtaPartitionLayout(
+            0x10000, layout.slotSize, layout.app1Address - 0x1000, layout.slotSize));
+        TEST_ASSERT_EQUAL_STRING("unknown", firmware::detectOtaPartitionLayout(
+            0x10000, layout.slotSize, layout.app1Address, layout.slotSize - 0x1000));
+    }
 }
 
 void test_parses_canonical_decision_and_orders_artifacts() {
@@ -286,6 +326,7 @@ void test_rejects_bad_hash_build_sha_and_missing_fields() {
 int main(int, char **) {
     UNITY_BEGIN();
     RUN_TEST(test_serializes_version_identity_and_hardware_fields);
+    RUN_TEST(test_reports_each_installed_ota_layout_without_conflating_4mb_tables);
     RUN_TEST(test_parses_canonical_decision_and_orders_artifacts);
     RUN_TEST(test_accepts_legacy_update_available_alias);
     RUN_TEST(test_rejects_conflicting_decision_booleans_and_protocols);

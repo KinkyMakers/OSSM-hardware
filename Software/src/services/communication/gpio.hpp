@@ -1,9 +1,8 @@
 #ifndef OSSM_GPIO_HPP
 #define OSSM_GPIO_HPP
 
-#include <regex>
-
 #include "Arduino.h"
+#include "ble_command_validation.h"
 #include "NimBLECharacteristic.h"
 #include "NimBLEService.h"
 #include "NimBLEUUID.h"
@@ -33,10 +32,7 @@ class GPIOCallbacks : public NimBLECharacteristicCallbacks {
         String input = String(raw.c_str());
         input.trim();
 
-        static const std::regex rx(R"(^\s*(\d+)\s*:(low|high|0|1)\s*$)",
-                                   std::regex::icase);
-
-        if (!std::regex_match(raw, rx)) {
+        if (!ble_command_validation::isGpioCommand(raw)) {
             static const char err[] PROGMEM = "error:invalid_format";
             ESP_LOGW(NIMBLE_TAG, "GPIO write invalid format: %s", raw.c_str());
             pCharacteristic->setValue(String(FPSTR(err)));

@@ -3,13 +3,13 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <esp_heap_caps.h>
-#include <esp_flash.h>
 #include <esp_log.h>
 #include <esp_ota_ops.h>
 #include <esp_partition.h>
 #include <esp_system.h>
 
 #include "FirmwareUpdateRuntime.h"
+#include "flash.h"
 #include "constants/LogTags.h"
 #include "constants/Version.h"
 #include "ossm/Events.h"
@@ -26,37 +26,6 @@
 #endif
 
 namespace {
-
-std::uint32_t physicalFlashSizeBytes() {
-    std::uint32_t size = 0;
-    if (esp_flash_get_physical_size(nullptr, &size) == ESP_OK && size > 0) {
-        return size;
-    }
-    return ESP.getFlashChipSize();
-}
-
-std::uint32_t otaSlotSizeBytes() {
-    const esp_partition_t *partition =
-        esp_ota_get_next_update_partition(nullptr);
-    return partition == nullptr ? 0 : partition->size;
-}
-
-const char *currentPartitionLayout() {
-    const esp_partition_t *app0 = esp_partition_find_first(
-        ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_0, nullptr);
-    const esp_partition_t *app1 = esp_partition_find_first(
-        ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_1, nullptr);
-    if (app0 == nullptr || app1 == nullptr) return "unknown";
-    if (app0->address == 0x10000 && app0->size == 0x780000 &&
-        app1->address == 0x790000 && app1->size == 0x780000) {
-        return "ossm-ota-16mb-v1";
-    }
-    if (app0->address == 0x10000 && app0->size == 0x1F0000 &&
-        app1->address == 0x200000 && app1->size == 0x1F0000) {
-        return "ossm-ota-v1";
-    }
-    return "unknown";
-}
 
 std::string runningFirmwareHash() {
     const esp_partition_t *running = esp_ota_get_running_partition();
@@ -79,10 +48,10 @@ firmware::DeviceReport makeDeviceReport() {
     report.chipRevision = ESP.getChipRevision();
     report.chipCores = ESP.getChipCores();
     report.hardwareRevision = "ossm-v1";
-    report.flashSizeBytes = physicalFlashSizeBytes();
+    report.flashSizeBytes = firmware::physicalFlashSizeBytes();
     report.psramSizeBytes = ESP.getPsramSize();
-    report.otaSlotSizeBytes = otaSlotSizeBytes();
-    report.partitionLayout = currentPartitionLayout();
+    report.otaSlotSizeBytes = firmware::otaSlotSizeBytes();
+    report.partitionLayout = firmware::currentPartitionLayout();
     firmware::provenance::reconcile(report);
     return report;
 }

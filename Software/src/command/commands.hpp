@@ -1,7 +1,6 @@
 #ifndef OSSM_SOFTWARE_COMMANDS_H
 #define OSSM_SOFTWARE_COMMANDS_H
 
-#include <regex>
 #include <string>
 
 #include "Arduino.h"

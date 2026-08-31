@@ -78,16 +78,6 @@ namespace Config {
     }
 
     /**
-        Font Config. These must be the "f" variants of the font to support other
-       languages.
-*/
-    namespace Font {
-        static auto bold = u8g2_font_helvB08_tf;
-        static auto base = u8g2_font_helvR08_tf;
-        static auto small = u8g2_font_6x10_tf;
-    }
-
-    /**
         Advanced Config
 */
     namespace Advanced {

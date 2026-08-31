@@ -388,7 +388,12 @@ def publish(args: argparse.Namespace) -> str:
         }
         for artifact in sorted(args.artifact, key=lambda item: item.install_order)
     ]
-    generated_dir = Path(os.environ.get("RUNNER_TEMP", ".pio")) / "firmware-release"
+    # A single workflow publishes both flash variants at the same version/SHA.
+    # Keep each manifest and signed provenance available without overwriting its sibling.
+    generated_dir = (
+        Path(os.environ.get("RUNNER_TEMP", ".pio")) / "firmware-release"
+        / args.device_type / args.track / args.hardware_variant / args.build_sha
+    )
     generated_dir.mkdir(parents=True, exist_ok=True)
     manifest_path = generated_dir / "manifest.json"
     release_path = generated_dir / "release.json"

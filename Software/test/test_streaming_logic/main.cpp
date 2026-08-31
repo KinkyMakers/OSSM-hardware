@@ -141,8 +141,21 @@ void test_planMotion_very_short_time(void) {
     TEST_ASSERT_GREATER_THAN(0u, profile.acceleration);
 }
 
+void test_stream_direction_handles_initial_zero_repeats_and_reversals(void) {
+    const uint8_t positions[] = {0, 30, 30, 20, 20, 100, 0, 0};
+    const int directions[] = {0, 1, 0, -1, 0, 1, -1, 0};
+    uint8_t previous = 0;
+    for (size_t index = 0; index < sizeof(positions); ++index) {
+        TEST_ASSERT_EQUAL_INT(directions[index],
+                              streaming_logic::calculateDirection(previous,
+                                                                  positions[index]));
+        previous = positions[index];
+    }
+}
+
 int main(int argc, char **argv) {
     UNITY_BEGIN();
+    RUN_TEST(test_stream_direction_handles_initial_zero_repeats_and_reversals);
 
     RUN_TEST(test_calculateMaxStroke_stroke_less_than_depth);
     RUN_TEST(test_calculateMaxStroke_depth_less_than_stroke);

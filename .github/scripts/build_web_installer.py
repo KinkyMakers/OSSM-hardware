@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
-"""Build and validate the merged 16 MiB OSSM browser-flashing image."""
+"""Build and validate OSSM browser installers for the existing 4/16 MiB layouts."""
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
+import struct
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
-FLASH_CAPACITY = 16 * 1024 * 1024
+OTA_SAFETY_MARGIN = 0x4000
 COMPONENT_OFFSETS = {
     "bootloader.bin": 0x1000,
     "partitions.bin": 0x8000,
@@ -18,8 +21,49 @@ COMPONENT_OFFSETS = {
 }
 ESP32_CHIP_ID = 0
 FLASH_MODE_ID = 2
-FLASH_SIZE_ID = 4
 FLASH_FREQUENCY_ID = 0
+PARTITION_ENTRY = struct.Struct("<HBBII16sI")
+PARTITION_MD5_MARKER = b"\xeb\xeb" + b"\xff" * 14
+PARTITION_TABLE_CAPACITY = 0x1000  # 0x8000..0x9000; NVS starts immediately after it.
+ESP_IMAGE_HEADER_SIZE = 24
+
+
+@dataclass(frozen=True)
+class FlashProfile:
+    capacity: int
+    size_id: int
+    # Name, type, subtype, offset, size. Existing partitions are unencrypted.
+    partitions: tuple[tuple[str, int, int, int, int], ...]
+
+    @property
+    def maximum_application_size(self) -> int:
+        return min(row[4] for row in self.partitions if row[1] == 0) - OTA_SAFETY_MARGIN
+
+
+COMMON_PARTITIONS = (
+    ("nvs", 1, 2, 0x9000, 0x5000),
+    ("otadata", 1, 0, 0xE000, 0x2000),
+)
+FLASH_PROFILES = {
+    "4MB": FlashProfile(4 * 1024 * 1024, 2, COMMON_PARTITIONS + (
+        ("app0", 0, 0x10, 0x10000, 0x1E0000),
+        ("app1", 0, 0x11, 0x1F0000, 0x1E0000),
+        ("spiffs", 1, 0x82, 0x3D0000, 0x20000),
+        ("coredump", 1, 3, 0x3F0000, 0x10000),
+    )),
+    "16MB": FlashProfile(16 * 1024 * 1024, 4, COMMON_PARTITIONS + (
+        ("app0", 0, 0x10, 0x10000, 0x780000),
+        ("app1", 0, 0x11, 0x790000, 0x780000),
+        ("spiffs", 1, 0x82, 0xF10000, 0xF0000),
+    )),
+}
+
+
+def flash_profile(flash_size: str) -> FlashProfile:
+    try:
+        return FLASH_PROFILES[flash_size]
+    except KeyError as error:
+        raise ValueError("flash size must be 4MB or 16MB") from error
 
 
 def require_image(path: Path, label: str) -> Path:
@@ -58,39 +102,65 @@ def find_esptool() -> Path:
     return find_platformio_package_file("tool-esptoolpy", "esptool.py", "esptool")
 
 
-def validate_esp_image(path: Path, label: str) -> None:
-    content = require_image(path, label).read_bytes()
-    if len(content) < 14 or content[0] != 0xE9:
-        raise RuntimeError(f"{label} does not contain an ESP image header: {path}")
+def validate_esp_header(content: bytes, label: str, profile: FlashProfile) -> None:
+    if len(content) < ESP_IMAGE_HEADER_SIZE or content[0] != 0xE9:
+        raise RuntimeError(f"{label} does not contain ESP image magic and header")
     chip_id = int.from_bytes(content[12:14], "little")
     if chip_id != ESP32_CHIP_ID:
         raise RuntimeError(
             f"{label} targets chip ID {chip_id}, expected {ESP32_CHIP_ID}"
         )
+    if (
+        content[2] != FLASH_MODE_ID
+        or content[3] >> 4 != profile.size_id
+        or content[3] & 0xF != FLASH_FREQUENCY_ID
+    ):
+        raise RuntimeError(f"{label} flash header does not match the selected OSSM profile")
+
+
+def validate_partition_table(path: Path, profile: FlashProfile) -> None:
+    content = require_image(path, "partition table").read_bytes()
+    if len(content) > PARTITION_TABLE_CAPACITY:
+        raise RuntimeError("partition table exceeds its reserved sector and would overwrite NVS")
+    if len(content) % PARTITION_ENTRY.size:
+        raise RuntimeError("partition table has a truncated entry")
+    partitions = []
+    for offset in range(0, len(content), PARTITION_ENTRY.size):
+        entry = content[offset : offset + PARTITION_ENTRY.size]
+        if entry[:16] == PARTITION_MD5_MARKER:
+            if entry[16:] != hashlib.md5(content[:offset]).digest():
+                raise RuntimeError("partition table MD5 mismatch")
+            if any(byte != 0xFF for byte in content[offset + PARTITION_ENTRY.size :]):
+                raise RuntimeError("partition table contains data after its MD5")
+            break
+        magic, kind, subtype, address, size, name, flags = PARTITION_ENTRY.unpack(entry)
+        if magic != 0x50AA or flags != 0:
+            raise RuntimeError("partition table contains an invalid or encrypted entry")
+        partitions.append((name, kind, subtype, address, size))
+    else:
+        raise RuntimeError("partition table is missing its MD5")
+    expected = [
+        (name.encode().ljust(16, b"\0"), kind, subtype, address, size)
+        for name, kind, subtype, address, size in profile.partitions
+    ]
+    if partitions != expected:
+        raise RuntimeError("partition geometry does not match the selected OSSM profile")
 
 
 def build_components(
-    build_dir: Path, boot_app0: Path
+    build_dir: Path, boot_app0: Path, flash_size: str = "16MB"
 ) -> list[tuple[int, Path]]:
+    profile = flash_profile(flash_size)
     bootloader = require_image(build_dir / "bootloader.bin", "bootloader")
     application = require_image(build_dir / "firmware.bin", "application")
-    validate_esp_image(bootloader, "bootloader")
-    validate_esp_image(application, "application")
-
-    bootloader_header = bootloader.read_bytes()[:4]
-    flash_mode_id = bootloader_header[2]
-    flash_size_id = bootloader_header[3] >> 4
-    flash_frequency_id = bootloader_header[3] & 0xF
-    if (
-        flash_mode_id != FLASH_MODE_ID
-        or flash_size_id != FLASH_SIZE_ID
-        or flash_frequency_id != FLASH_FREQUENCY_ID
-    ):
+    partitions = require_image(build_dir / "partitions.bin", "partition table")
+    validate_esp_header(bootloader.read_bytes(), "bootloader", profile)
+    validate_esp_header(application.read_bytes(), "application", profile)
+    validate_partition_table(partitions, profile)
+    if application.stat().st_size > profile.maximum_application_size:
         raise RuntimeError(
-            "bootloader flash header does not match OSSM's 16 MiB profile: "
-            f"found mode/size/frequency IDs {flash_mode_id}/{flash_size_id}/"
-            f"{flash_frequency_id}, expected {FLASH_MODE_ID}/{FLASH_SIZE_ID}/"
-            f"{FLASH_FREQUENCY_ID}"
+            f"application is {application.stat().st_size} bytes; maximum is "
+            f"{profile.maximum_application_size} bytes after the 16 KiB OTA safety margin"
         )
 
     components = [
@@ -100,7 +170,7 @@ def build_components(
         ),
         (
             COMPONENT_OFFSETS["partitions.bin"],
-            require_image(build_dir / "partitions.bin", "partition table"),
+            partitions,
         ),
         (
             COMPONENT_OFFSETS["boot_app0.bin"],
@@ -113,7 +183,7 @@ def build_components(
     ]
     for index, (offset, path) in enumerate(components):
         end = offset + path.stat().st_size
-        if end > FLASH_CAPACITY:
+        if end > profile.capacity:
             raise RuntimeError(f"{path} exceeds the physical flash capacity")
         if index + 1 < len(components) and end > components[index + 1][0]:
             raise RuntimeError(f"{path} overlaps the next flash component")
@@ -121,8 +191,10 @@ def build_components(
 
 
 def merge_command(
-    esptool: Path, output: Path, components: list[tuple[int, Path]]
+    esptool: Path, output: Path, components: list[tuple[int, Path]],
+    flash_size: str = "16MB",
 ) -> list[str]:
+    flash_profile(flash_size)
     command = [
         sys.executable,
         str(esptool),
@@ -136,7 +208,7 @@ def merge_command(
         "--flash_freq",
         "keep",
         "--flash_size",
-        "16MB",
+        flash_size,
     ]
     for offset, path in components:
         command.extend((hex(offset), str(path)))
@@ -144,32 +216,16 @@ def merge_command(
 
 
 def validate_merged_image(
-    output: Path, components: list[tuple[int, Path]]
+    output: Path, components: list[tuple[int, Path]], flash_size: str = "16MB"
 ) -> None:
+    profile = flash_profile(flash_size)
     content = require_image(output, "merged web installer").read_bytes()
-    if len(content) > FLASH_CAPACITY:
+    if len(content) > profile.capacity:
         raise RuntimeError(
-            f"merged image is {len(content)} bytes, beyond 16 MiB flash"
+            f"merged image is {len(content)} bytes, beyond {flash_size} flash"
         )
     for offset in (COMPONENT_OFFSETS["bootloader.bin"], 0x10000):
-        if offset >= len(content) or content[offset] != 0xE9:
-            raise RuntimeError(f"ESP image magic is missing at {hex(offset)}")
-        chip_id = int.from_bytes(content[offset + 12 : offset + 14], "little")
-        if chip_id != ESP32_CHIP_ID:
-            raise RuntimeError(
-                f"ESP chip ID {chip_id} at {hex(offset)} does not match "
-                f"ESP32 ({ESP32_CHIP_ID})"
-            )
-
-    header = content[
-        COMPONENT_OFFSETS["bootloader.bin"] : COMPONENT_OFFSETS["bootloader.bin"] + 4
-    ]
-    if (
-        header[2] != FLASH_MODE_ID
-        or header[3] >> 4 != FLASH_SIZE_ID
-        or header[3] & 0xF != FLASH_FREQUENCY_ID
-    ):
-        raise RuntimeError("merged bootloader flash header does not match OSSM's profile")
+        validate_esp_header(content[offset : offset + ESP_IMAGE_HEADER_SIZE], f"image at {hex(offset)}", profile)
 
     for offset, source_path in components:
         source = source_path.read_bytes()
@@ -183,11 +239,14 @@ def validate_merged_image(
             raise RuntimeError(f"merged component mismatch at {hex(offset)}")
 
 
-def build(build_dir: Path, output: Path, boot_app0: Path | None = None) -> None:
-    components = build_components(build_dir, boot_app0 or find_boot_app0())
+def build(
+    build_dir: Path, output: Path, boot_app0: Path | None = None,
+    flash_size: str = "16MB",
+) -> None:
+    components = build_components(build_dir, boot_app0 or find_boot_app0(), flash_size)
     output.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run(merge_command(find_esptool(), output, components), check=True)
-    validate_merged_image(output, components)
+    subprocess.run(merge_command(find_esptool(), output, components, flash_size), check=True)
+    validate_merged_image(output, components, flash_size)
 
 
 def main() -> int:
@@ -195,9 +254,10 @@ def main() -> int:
     parser.add_argument("--build-dir", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--boot-app0", type=Path)
+    parser.add_argument("--flash-size", choices=FLASH_PROFILES, default="16MB")
     args = parser.parse_args()
     try:
-        build(args.build_dir, args.output, args.boot_app0)
+        build(args.build_dir, args.output, args.boot_app0, args.flash_size)
         print(f"Built validated web installer: {args.output}")
         return 0
     except Exception as error:

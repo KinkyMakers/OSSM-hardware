@@ -34,7 +34,7 @@ static void startStreamingTask(void *pvParameters) {
     };
 
     auto best = std::chrono::steady_clock::now();
-    PositionTime lastPositionTime;
+    PositionTime lastPositionTime{};
     
     // Reset the queue to clear any existing commands
     targetQueue = {};
@@ -60,8 +60,8 @@ static void startStreamingTask(void *pvParameters) {
         // Get next move
         PositionTime targetPositionTime = targetQueue.front();
         //Wait for previous command to finish if it isn't moving in the same direction.
-        int16_t distance = targetPositionTime.position - lastPositionTime.position;
-        targetPositionTime.direction = distance/abs(distance);
+        targetPositionTime.direction = streaming_logic::calculateDirection(
+            lastPositionTime.position, targetPositionTime.position);
         bool sameDirection = lastPositionTime.direction == targetPositionTime.direction;
         if (!sameDirection && stepper->isRunning()){
             vTaskDelay(1);
@@ -105,7 +105,7 @@ static void startStreamingTask(void *pvParameters) {
                 targetPositionTime.position, maxStroke, depth);
             currentPosition = stepper->getCurrentPosition();
             // Calculate distance to travel (in steps)
-            distance = abs(targetPosition - currentPosition);
+            int16_t distance = abs(targetPosition - currentPosition);
             if (timeSeconds > 0.01f && distance > 1.0f) {
                 //Find max distance possible to travel given available time, max acceleration, and max speed.
                 int32_t maxDistance = accelLimit * pow(timeSeconds/2,2);

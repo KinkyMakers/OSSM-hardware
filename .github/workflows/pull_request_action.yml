@@ -21,16 +21,31 @@ jobs:
         run: |
           if git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -Eq "^(Software/|\.github/scripts/|\.github/workflows/)"; then
             echo "Firmware-affecting changes detected"
-            echo "changes_detected=true" >> $GITHUB_OUTPUT
+            echo "changes_detected=true" >> "$GITHUB_OUTPUT"
           else
             echo "No firmware-affecting changes detected, skipping build"
-            echo "changes_detected=false" >> $GITHUB_OUTPUT
+            echo "changes_detected=false" >> "$GITHUB_OUTPUT"
           fi
 
   build:
     needs: check_changes
     if: needs.check_changes.outputs.changes_detected == 'true'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - environment: staging
+            flash_size: 16MB
+          - environment: production
+            flash_size: 16MB
+          - environment: staging_4mb
+            flash_size: 4MB
+          - environment: production_4mb
+            flash_size: 4MB
+    env:
+      PIO_ENV: ${{ matrix.environment }}
+      RELEASE_BUILD_SHA: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -51,63 +66,37 @@ jobs:
         run: pip install --upgrade platformio
 
       - name: Build PlatformIO Project
+        working-directory: Software
         run: |
-          cd Software
-          pio run -e staging
-          pio run -e production
+          pio run -e "$PIO_ENV" -t buildprog
 
-      - name: Build merged web installers
+      - name: Verify flash profile and build merged web installer
+        env:
+          FLASH_SIZE: ${{ matrix.flash_size }}
         run: |
-          for environment in staging production; do
-            python .github/scripts/build_web_installer.py \
-              --build-dir "Software/.pio/build/$environment" \
-              --output "Software/.pio/build/$environment/web-installer.bin"
-          done
+          python .github/scripts/build_web_installer.py \
+            --build-dir "Software/.pio/build/$PIO_ENV" \
+            --output "Software/.pio/build/$PIO_ENV/web-installer.bin" \
+            --flash-size "$FLASH_SIZE"
 
-      - name: Test immutable publisher
+      - name: Verify current build identity and Bluetooth
         run: |
-          python .github/scripts/test_download_verified_release.py
-          python .github/scripts/test_build_web_installer.py
-          python .github/scripts/test_publish_immutable_firmware.py
-          python .github/scripts/test_release_workflow.py
-
-      - name: Upload firmware artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: firmware-bin
-          path: |
-            Software/.pio/build/production/firmware.bin
-            Software/.pio/build/production/partitions.bin
-            Software/.pio/build/production/bootloader.bin
-            Software/.pio/build/production/web-installer.bin
-          retention-days: 1
-
-      - name: Checkout legacy 4 MB firmware with Bluetooth
-        uses: actions/checkout@v4
-        with:
-          ref: 065c1c70d8be0b6ebe3edf536051ca542b793d70 # main 1.0.39
-          path: legacy-4mb
-
-      - name: Test and build legacy 4 MB firmware
-        run: |
-          pio test --project-dir legacy-4mb/Software -e test
-          RELEASE_BUILD_SHA=$(git -C legacy-4mb rev-parse HEAD) pio run --project-dir legacy-4mb/Software -e production -t buildprog
-          grep -aFq "$(git -C legacy-4mb rev-parse HEAD)" legacy-4mb/Software/.pio/build/production/firmware.bin
-          test "$(python scripts/release_version.py read --header legacy-4mb/Software/src/constants/Version.h)" = 1.0.39
-          test "$(stat --format=%s legacy-4mb/Software/.pio/build/production/firmware.bin)" -le $((0x1E0000 - 0x4000))
-          grep -qx 'CONFIG_BT_ENABLED=y' legacy-4mb/Software/sdkconfig.production
-          grep -qx 'CONFIG_ESPTOOLPY_FLASHSIZE="4MB"' legacy-4mb/Software/sdkconfig.production
+          grep -aFq "$RELEASE_BUILD_SHA" "Software/.pio/build/$PIO_ENV/firmware.bin"
+          grep -qx 'CONFIG_BT_ENABLED=y' "Software/sdkconfig.$PIO_ENV"
           ~/.platformio/packages/toolchain-xtensa-esp32/bin/xtensa-esp32-elf-nm \
-            legacy-4mb/Software/.pio/build/production/firmware.elf | grep -E 'NimBLEServer' > /dev/null
+            "Software/.pio/build/$PIO_ENV/firmware.elf" | grep -E 'NimBLEServer' > /dev/null
 
-      - name: Upload legacy 4 MB firmware artifact
+      - name: Upload firmware and size evidence
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-4mb-1.0.39
+          name: firmware-${{ matrix.environment }}
           path: |
-            legacy-4mb/Software/.pio/build/production/firmware.bin
-            legacy-4mb/Software/.pio/build/production/partitions.bin
-            legacy-4mb/Software/.pio/build/production/bootloader.bin
+            Software/.pio/build/${{ matrix.environment }}/firmware.bin
+            Software/.pio/build/${{ matrix.environment }}/firmware.elf
+            Software/.pio/build/${{ matrix.environment }}/Software.map
+            Software/.pio/build/${{ matrix.environment }}/partitions.bin
+            Software/.pio/build/${{ matrix.environment }}/bootloader.bin
+            Software/.pio/build/${{ matrix.environment }}/web-installer.bin
           if-no-files-found: error
           retention-days: 1
 
@@ -157,7 +146,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.12"
 
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
@@ -166,6 +155,11 @@ jobs:
         run: |
           cd Software
           pio test -e test
+
+      - name: Test firmware artifacts and release gates
+        run: |
+          python -m unittest discover -s .github/scripts -p 'test_*.py'
+          python scripts/test_release_version.py
 
   check_docs:
     runs-on: ubuntu-latest

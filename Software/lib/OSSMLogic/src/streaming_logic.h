@@ -9,6 +9,12 @@
 
 namespace streaming_logic {
 
+// A repeated target has no direction. Avoid dividing by zero on an initial
+// zero-position packet or repeated positions within a streaming sequence.
+constexpr int calculateDirection(uint8_t previousPosition, uint8_t position) {
+    return (position > previousPosition) - (position < previousPosition);
+}
+
 /// Compute max stroke in steps from user percentages and calibration.
 /// streaming.cpp line 88
 inline int32_t calculateMaxStroke(float strokePct, float depthPct,

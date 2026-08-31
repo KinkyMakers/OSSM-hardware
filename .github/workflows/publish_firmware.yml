@@ -132,20 +132,18 @@ jobs:
           git push origin "HEAD:$GITHUB_REF_NAME"
           RELEASE_BUILD_SHA="$(git rev-parse HEAD)"
           echo "RELEASE_BUILD_SHA=$RELEASE_BUILD_SHA" >> "$GITHUB_ENV"
-          echo "release_build_sha=$RELEASE_BUILD_SHA" >> "$GITHUB_OUTPUT"
-          echo "version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
-          echo "bump=$BUMP_TYPE" >> "$GITHUB_OUTPUT"
+          {
+            echo "release_build_sha=$RELEASE_BUILD_SHA"
+            echo "version=$NEXT_VERSION"
+            echo "bump=$BUMP_TYPE"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Install PlatformIO
         run: python -m pip install --upgrade platformio
 
-      - name: Test publisher
+      - name: Test firmware artifacts and release gates
         run: |
-          python .github/scripts/test_download_verified_release.py
-          python .github/scripts/test_build_web_installer.py
-          python .github/scripts/test_firmware_provenance.py
-          python .github/scripts/test_publish_immutable_firmware.py
-          python .github/scripts/test_release_workflow.py
+          python -m unittest discover -s .github/scripts -p 'test_*.py'
 
       - name: Run release helper tests
         run: python scripts/test_release_version.py
@@ -154,21 +152,46 @@ jobs:
         working-directory: Software
         run: pio test -e test
 
-      - name: Select track build
+      - name: Select track builds
         run: python .github/scripts/release_workflow.py configure --branch "$GITHUB_REF_NAME"
 
-      - name: Build application
+      - name: Build both flash variants from the allocated version and commit
         working-directory: Software
-        run: pio run -e "$PIO_ENV"
+        run: |
+          pio run -e "$PIO_ENV" -t buildprog
+          pio run -e "$PIO_ENV_4MB" -t buildprog
 
-      - name: Build merged web installer
+      - name: Verify both flash profiles and build merged web installers
         run: |
           python .github/scripts/build_web_installer.py \
             --build-dir "Software/.pio/build/$PIO_ENV" \
-            --output "Software/.pio/build/$PIO_ENV/web-installer.bin"
+            --output "Software/.pio/build/$PIO_ENV/web-installer.bin" \
+            --flash-size 16MB
+          python .github/scripts/build_web_installer.py \
+            --build-dir "Software/.pio/build/$PIO_ENV_4MB" \
+            --output "Software/.pio/build/$PIO_ENV_4MB/web-installer.bin" \
+            --flash-size 4MB
+          for environment in "$PIO_ENV" "$PIO_ENV_4MB"; do
+            grep -aFq "$RELEASE_BUILD_SHA" "Software/.pio/build/$environment/firmware.bin"
+          done
 
-      - name: Publish validating release
-        id: publish
+      - name: Publish validating 4 MiB release
+        id: publish_4mb
+        run: |
+          python .github/scripts/publish_immutable_firmware.py \
+            --device-type ossm \
+            --hardware-variant v1 \
+            --track "$TRACK" \
+            --build-sha "$RELEASE_BUILD_SHA" \
+            --version-file Software/src/constants/Version.h \
+            --min-flash-size-bytes 4194304 \
+            --artifact "application:Software/.pio/build/$PIO_ENV_4MB/firmware.bin:1:true" \
+            --artifact "bootloader:Software/.pio/build/$PIO_ENV_4MB/bootloader.bin:2:false" \
+            --artifact "partitions:Software/.pio/build/$PIO_ENV_4MB/partitions.bin:3:false" \
+            --artifact "web-installer:Software/.pio/build/$PIO_ENV_4MB/web-installer.bin:4:false"
+
+      - name: Publish validating 16 MiB release
+        id: publish_16mb
         run: |
           python .github/scripts/publish_immutable_firmware.py \
             --device-type ossm \
@@ -183,7 +206,14 @@ jobs:
             --artifact "web-installer:Software/.pio/build/$PIO_ENV/web-installer.bin:4:false"
 
       - name: Candidate summary
+        env:
+          RELEASE_ID_4MB: ${{ steps.publish_4mb.outputs.release_id }}
+          RELEASE_ID_16MB: ${{ steps.publish_16mb.outputs.release_id }}
         run: |
-          echo "Release ${{ steps.publish.outputs.release_id }} is waiting for hardware validation" >> "$GITHUB_STEP_SUMMARY"
-          echo "Version: ${{ steps.version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "Build: ${{ steps.version.outputs.release_build_sha }}" >> "$GITHUB_STEP_SUMMARY"
+          test "$RELEASE_ID_4MB" != "$RELEASE_ID_16MB"
+          {
+            echo "4 MiB (v1): $RELEASE_ID_4MB — waiting for its hardware validation"
+            echo "16 MiB (v2): $RELEASE_ID_16MB — waiting for its hardware validation"
+            echo "Version: ${{ steps.version.outputs.version }}"
+            echo "Build: ${{ steps.version.outputs.release_build_sha }}"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#include <cassert>
+#include <cstring>
 
 #include "boost/sml.hpp"
 #include "constants/LogTags.h"
@@ -21,27 +21,39 @@ using namespace sml;
  * adding one of the following build flags:
  */
 struct StateLogger {
+#if defined(CONFIG_ARDUHAL_ESP_LOG) && !defined(USE_ESP_IDF_LOG)
+    // Arduino remaps ESP_LOG* to its own compile-time logging level.
+    static constexpr bool debugEnabled =
+        ARDUHAL_LOG_LEVEL >= ARDUHAL_LOG_LEVEL_DEBUG;
+#else
+    static constexpr bool debugEnabled = LOG_LOCAL_LEVEL >= ESP_LOG_DEBUG;
+#endif
+
     template <class SM, class TEvent>
     [[gnu::used]] void log_process_event(const TEvent&) {
-        ESP_LOGV(STATE_MACHINE_TAG, "%s", sml::aux::get_type_name<SM>());
-        String eventName = String(sml::aux::get_type_name<TEvent>());
-        // if the event name starts with " boost::ext::sml" then only TRACE it
-        // to reduce verbosity
-        if (eventName.startsWith("boost::ext::sml")) {
-            ESP_LOGV(STATE_MACHINE_TAG, "%s", eventName.c_str());
-        } else {
-            ESP_LOGD(STATE_MACHINE_TAG, "%s", eventName.c_str());
+        if constexpr (debugEnabled) {
+            ESP_LOGV(STATE_MACHINE_TAG, "%s", sml::aux::get_type_name<SM>());
+            const char* eventName = sml::aux::get_type_name<TEvent>();
+            // Internal SML events are only visible at verbose level.
+            if (std::strncmp(eventName, "boost::ext::sml",
+                             sizeof("boost::ext::sml") - 1) == 0) {
+                ESP_LOGV(STATE_MACHINE_TAG, "%s", eventName);
+            } else {
+                ESP_LOGD(STATE_MACHINE_TAG, "%s", eventName);
+            }
         }
     }
 
     template <class SM, class TGuard, class TEvent>
     [[gnu::used]] void log_guard(const TGuard&, const TEvent&, bool result) {
-        String resultString = result ? "[PASS]" : "[DO NOT PASS]";
-        ESP_LOGV(STATE_MACHINE_TAG, "%s: %s", resultString,
-                 sml::aux::get_type_name<SM>());
-        ESP_LOGD(STATE_MACHINE_TAG, "%s: %s, %s", resultString,
-                 sml::aux::get_type_name<TGuard>(),
-                 sml::aux::get_type_name<TEvent>());
+        if constexpr (debugEnabled) {
+            const char* resultString = result ? "[PASS]" : "[DO NOT PASS]";
+            ESP_LOGV(STATE_MACHINE_TAG, "%s: %s", resultString,
+                     sml::aux::get_type_name<SM>());
+            ESP_LOGD(STATE_MACHINE_TAG, "%s: %s, %s", resultString,
+                     sml::aux::get_type_name<TGuard>(),
+                     sml::aux::get_type_name<TEvent>());
+        }
     }
 
     template <class SM, class TAction, class TEvent>

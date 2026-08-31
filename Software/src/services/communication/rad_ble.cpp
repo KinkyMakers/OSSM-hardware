@@ -19,6 +19,7 @@
 #include "services/communication/nimble.h"
 #include "services/led.h"
 #include "services/stepper.h"
+#include "utils/flash.h"
 
 #ifndef FIRMWARE_BUILD_SHA
 #define FIRMWARE_BUILD_SHA "unknown"
@@ -689,7 +690,7 @@ bool initRadBle(NimBLEServer* server) {
             .serviceUuid = radble::OSSM_SERVICE_UUID,
             .firmwareVersion = VERSION,
             .build = FIRMWARE_BUILD_SHA,
-            .partitionLayout = "ossm-ota-16mb-v1",
+            .partitionLayout = firmware::currentPartitionLayout(),
         },
         .capabilities = radble::CAP_BUTTON | radble::CAP_ENCODER |
                         radble::CAP_ANALOG | radble::CAP_MOTION |

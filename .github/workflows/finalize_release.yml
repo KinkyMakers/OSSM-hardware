@@ -4,7 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       release_id:
-        description: Validated control-plane release UUID
+        description: Validated 16 MiB (v2) control-plane release UUID
+        required: true
+        type: string
+      release_id_4mb:
+        description: Validated 4 MiB (v1) release UUID for the same version and commit
         required: true
         type: string
 
@@ -25,29 +29,23 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Verify persisted release gates
+      - name: Verify both variants' persisted release gates
         id: release
+        env:
+          RELEASE_ID_16MB: ${{ inputs.release_id }}
+          RELEASE_ID_4MB: ${{ inputs.release_id_4mb }}
         run: |
+          test "$RELEASE_ID_4MB" != "$RELEASE_ID_16MB"
           curl --fail --silent --show-error \
             --header "Authorization: Bearer $FIRMWARE_PUBLISH_TOKEN" \
-            "https://dashboard.researchanddesire.com/api/internal/firmware/v1/releases/${{ inputs.release_id }}?track=main" \
-            --output release.json
-          jq -e --arg device "ossm" '
-            . as $release |
-            $release.buildSha as $sha |
-            $release.track == "main" and
-            $release.deviceType == $device and
-            $release.buildSha == $sha and
-            $release.lifecycle == "ready" and
-            $release.paused == true and
-            $release.rolloutPercentage == 0 and
-            (["build", "unit", "integration", "artifact", "hardware"] | all(. as $layer |
-              any($release.validations[]; .layer == $layer and .status == "success" and .repository_sha == $sha)
-            ))
-          ' release.json
-          echo "version=$(jq -r .version release.json)" >> "$GITHUB_OUTPUT"
-          echo "manifest_url=$(jq -r .manifestUrl release.json)" >> "$GITHUB_OUTPUT"
-          echo "build_sha=$(jq -r .buildSha release.json)" >> "$GITHUB_OUTPUT"
+            "https://dashboard.researchanddesire.com/api/internal/firmware/v1/releases/$RELEASE_ID_4MB?track=main" \
+            --output release-4mb.json
+          curl --fail --silent --show-error \
+            --header "Authorization: Bearer $FIRMWARE_PUBLISH_TOKEN" \
+            "https://dashboard.researchanddesire.com/api/internal/firmware/v1/releases/$RELEASE_ID_16MB?track=main" \
+            --output release-16mb.json
+          python .github/scripts/release_workflow.py validate-pair \
+            --release-4mb release-4mb.json --release-16mb release-16mb.json
 
       - name: Checkout exact release candidate
         env:
@@ -55,6 +53,7 @@ jobs:
         run: |
           git checkout --detach "$RELEASE_BUILD_SHA"
           test "$(git rev-parse HEAD)" = "$RELEASE_BUILD_SHA"
+          git merge-base --is-ancestor "$RELEASE_BUILD_SHA" origin/main
 
       - name: Create idempotent numeric tag
         env:
@@ -79,7 +78,16 @@ jobs:
       - name: Create metadata-only GitHub release
         env:
           VERSION: ${{ steps.release.outputs.version }}
-          MANIFEST_URL: ${{ steps.release.outputs.manifest_url }}
+          MANIFEST_URL_4MB: ${{ steps.release.outputs.manifest_url_4mb }}
+          MANIFEST_URL_16MB: ${{ steps.release.outputs.manifest_url_16mb }}
         run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          Path("release-notes.md").write_text(
+              "4 MiB firmware manifest: " + os.environ["MANIFEST_URL_4MB"] + "\n\n"
+              "16 MiB firmware manifest: " + os.environ["MANIFEST_URL_16MB"] + "\n"
+          )
+          PY
           gh release view "$VERSION" >/dev/null 2>&1 || \
-            gh release create "$VERSION" --title "$VERSION" --notes "Firmware manifest: $MANIFEST_URL"
+            gh release create "$VERSION" --title "$VERSION" --notes-file release-notes.md
