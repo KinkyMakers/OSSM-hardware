@@ -270,17 +270,36 @@ validation by using explicit multipart writes, not a merged image over its gaps.
 
 ## Validation status and boundaries
 
-Hardware validation is pending. The higher-priority task explicitly released
-both ports and BLE connections after closing its loggers and clients. Its previous
-frozen 4 MB firmware result is not evidence for this branch's current-source
-4 MB image. Candidate builds, size checks and the visual safety gate must pass
-before this branch is flashed.
-The hardware window was subsequently returned to that task for validation of
-its newly version-synchronized release images; this task remains source-only
-until another explicit handoff.
-The attempted fresh OSSM screen snapshot timed out waiting for the camera
-stream. Until that visual gate is restored or explicitly waived for this bench,
-there are no flash, reset, BLE or motion results for these candidate images.
+Final candidates were rebuilt from committed source
+`6b3106bfed0c42b45cfc09893d29b114479ef996`, including main's synchronized
+publication changes, with embedded version `1.0.58` and that exact build SHA.
+All four passed image checksums and appended hashes, flash-profile headers,
+partition geometry, OTA margins, merged component preservation and linked-code
+checks. The following documentation-only checkpoint does not change those images.
+
+| Candidate profile | Application bytes | SHA-256 |
+| --- | ---: | --- |
+| `production` | 1,485,264 | `049fa38c435384581d44e7f8f49fcd5625e3b458eb12bb4e069529ff2e21576d` |
+| `production_4mb` | 1,485,312 | `3d701a16c072f5223e9086257227b8b9db2321c9c5d9eb096c1486a5cf2ce1aa` |
+| `staging` | 1,492,512 | `980323bfcebc5aa788704eecbb3703d15fe83b703be26eaefd886ebf57a5b049` |
+| `staging_4mb` | 1,492,560 | `6ecfcda6c30b5e5802cf72d6b0276ff031a561995ae384108c167f4bee819ac9` |
+
+The configured native suite passes 270 tests; 67 pairing, OTA-runtime and
+telemetry tests also pass with AddressSanitizer and UndefinedBehaviorSanitizer.
+The 45 Python helper/version tests and changed-workflow lint pass after main
+reconciliation. The configured static check passes with zero high-severity and
+1,749 medium-severity diagnostics. Automatic fixes were disabled; changed-code
+diagnostics were reviewed without finding an additional correctness blocker.
+This is not a warning-free or hardware-validated result.
+
+Hardware validation is pending. Following its synchronized-release checks, the
+higher-priority task explicitly released both ports and all BLE sessions back
+to this task. Its frozen 4 MB firmware result is not evidence for this branch's
+current-source 4 MB image. Only passive status and camera acquisition have been
+attempted here; the fresh OSSM screen snapshot again timed out waiting for the
+camera stream. Until the visual gate is restored or explicitly waived for this
+task, there are no flash, reset, BLE or motion results for these candidate images.
+The other task's camera waiver does not authorize this task's hardware checks.
 
 After handoff, separately record exact board identity/capacity and artifact hash,
 flash/readback/boot stability, full RADR reads versus compact subscriptions,
