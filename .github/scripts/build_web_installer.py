@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and validate the merged 16 MiB OSSM browser-flashing image."""
+"""Build and validate the merged OSSM browser-flashing image."""
 
 from __future__ import annotations
 
@@ -20,6 +20,7 @@ ESP32_CHIP_ID = 0
 FLASH_MODE_ID = 2
 FLASH_SIZE_ID = 4
 FLASH_FREQUENCY_ID = 0
+FLASH_PROFILES = {4: (4 * 1024 * 1024, 2), 16: (FLASH_CAPACITY, FLASH_SIZE_ID)}
 
 
 def require_image(path: Path, label: str) -> Path:
@@ -70,8 +71,9 @@ def validate_esp_image(path: Path, label: str) -> None:
 
 
 def build_components(
-    build_dir: Path, boot_app0: Path
+    build_dir: Path, boot_app0: Path, flash_size_mib: int = 16
 ) -> list[tuple[int, Path]]:
+    flash_capacity, expected_size_id = FLASH_PROFILES[flash_size_mib]
     bootloader = require_image(build_dir / "bootloader.bin", "bootloader")
     application = require_image(build_dir / "firmware.bin", "application")
     validate_esp_image(bootloader, "bootloader")
@@ -83,15 +85,17 @@ def build_components(
     flash_frequency_id = bootloader_header[3] & 0xF
     if (
         flash_mode_id != FLASH_MODE_ID
-        or flash_size_id != FLASH_SIZE_ID
+        or flash_size_id != expected_size_id
         or flash_frequency_id != FLASH_FREQUENCY_ID
     ):
         raise RuntimeError(
-            "bootloader flash header does not match OSSM's 16 MiB profile: "
+            f"bootloader flash header does not match OSSM's {flash_size_mib} MiB profile: "
             f"found mode/size/frequency IDs {flash_mode_id}/{flash_size_id}/"
-            f"{flash_frequency_id}, expected {FLASH_MODE_ID}/{FLASH_SIZE_ID}/"
+            f"{flash_frequency_id}, expected {FLASH_MODE_ID}/{expected_size_id}/"
             f"{FLASH_FREQUENCY_ID}"
         )
+    if application.read_bytes()[2:4] != bootloader_header[2:4]:
+        raise RuntimeError("application flash header does not match the bootloader profile")
 
     components = [
         (
@@ -113,7 +117,7 @@ def build_components(
     ]
     for index, (offset, path) in enumerate(components):
         end = offset + path.stat().st_size
-        if end > FLASH_CAPACITY:
+        if end > flash_capacity:
             raise RuntimeError(f"{path} exceeds the physical flash capacity")
         if index + 1 < len(components) and end > components[index + 1][0]:
             raise RuntimeError(f"{path} overlaps the next flash component")
@@ -121,7 +125,7 @@ def build_components(
 
 
 def merge_command(
-    esptool: Path, output: Path, components: list[tuple[int, Path]]
+    esptool: Path, output: Path, components: list[tuple[int, Path]], flash_size_mib: int = 16
 ) -> list[str]:
     command = [
         sys.executable,
@@ -136,7 +140,7 @@ def merge_command(
         "--flash_freq",
         "keep",
         "--flash_size",
-        "16MB",
+        f"{flash_size_mib}MB",
     ]
     for offset, path in components:
         command.extend((hex(offset), str(path)))
@@ -144,12 +148,13 @@ def merge_command(
 
 
 def validate_merged_image(
-    output: Path, components: list[tuple[int, Path]]
+    output: Path, components: list[tuple[int, Path]], flash_size_mib: int = 16
 ) -> None:
+    flash_capacity, flash_size_id = FLASH_PROFILES[flash_size_mib]
     content = require_image(output, "merged web installer").read_bytes()
-    if len(content) > FLASH_CAPACITY:
+    if len(content) > flash_capacity:
         raise RuntimeError(
-            f"merged image is {len(content)} bytes, beyond 16 MiB flash"
+            f"merged image is {len(content)} bytes, beyond {flash_size_mib} MiB flash"
         )
     for offset in (COMPONENT_OFFSETS["bootloader.bin"], 0x10000):
         if offset >= len(content) or content[offset] != 0xE9:
@@ -166,10 +171,12 @@ def validate_merged_image(
     ]
     if (
         header[2] != FLASH_MODE_ID
-        or header[3] >> 4 != FLASH_SIZE_ID
+        or header[3] >> 4 != flash_size_id
         or header[3] & 0xF != FLASH_FREQUENCY_ID
     ):
         raise RuntimeError("merged bootloader flash header does not match OSSM's profile")
+    if content[0x10002:0x10004] != header[2:4]:
+        raise RuntimeError("merged application flash header does not match OSSM's profile")
 
     for offset, source_path in components:
         source = source_path.read_bytes()
@@ -183,11 +190,13 @@ def validate_merged_image(
             raise RuntimeError(f"merged component mismatch at {hex(offset)}")
 
 
-def build(build_dir: Path, output: Path, boot_app0: Path | None = None) -> None:
-    components = build_components(build_dir, boot_app0 or find_boot_app0())
+def build(
+    build_dir: Path, output: Path, boot_app0: Path | None = None, flash_size_mib: int = 16
+) -> None:
+    components = build_components(build_dir, boot_app0 or find_boot_app0(), flash_size_mib)
     output.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run(merge_command(find_esptool(), output, components), check=True)
-    validate_merged_image(output, components)
+    subprocess.run(merge_command(find_esptool(), output, components, flash_size_mib), check=True)
+    validate_merged_image(output, components, flash_size_mib)
 
 
 def main() -> int:
@@ -195,9 +204,10 @@ def main() -> int:
     parser.add_argument("--build-dir", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--boot-app0", type=Path)
+    parser.add_argument("--flash-size", choices=("4MB", "16MB"), default="16MB")
     args = parser.parse_args()
     try:
-        build(args.build_dir, args.output, args.boot_app0)
+        build(args.build_dir, args.output, args.boot_app0, int(args.flash_size[:-2]))
         print(f"Built validated web installer: {args.output}")
         return 0
     except Exception as error:

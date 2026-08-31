@@ -90,24 +90,31 @@ jobs:
 
       - name: Test and build legacy 4 MB firmware
         run: |
+          VERSION="$(python scripts/release_version.py read --header Software/src/constants/Version.h)"
+          python scripts/release_version.py write --version "$VERSION" \
+            --header legacy-4mb/Software/src/constants/Version.h --version-json legacy-4mb/version.json
           pio test --project-dir legacy-4mb/Software -e test
-          RELEASE_BUILD_SHA=$(git -C legacy-4mb rev-parse HEAD) pio run --project-dir legacy-4mb/Software -e production -t buildprog
-          grep -aFq "$(git -C legacy-4mb rev-parse HEAD)" legacy-4mb/Software/.pio/build/production/firmware.bin
-          test "$(python scripts/release_version.py read --header legacy-4mb/Software/src/constants/Version.h)" = 1.0.39
+          RELEASE_BUILD_SHA=$(git rev-parse HEAD) pio run --project-dir legacy-4mb/Software -e production -t buildprog
+          grep -aFq "$(git rev-parse HEAD)" legacy-4mb/Software/.pio/build/production/firmware.bin
+          grep -aFq "$VERSION" legacy-4mb/Software/.pio/build/production/firmware.bin
           test "$(stat --format=%s legacy-4mb/Software/.pio/build/production/firmware.bin)" -le $((0x1E0000 - 0x4000))
           grep -qx 'CONFIG_BT_ENABLED=y' legacy-4mb/Software/sdkconfig.production
           grep -qx 'CONFIG_ESPTOOLPY_FLASHSIZE="4MB"' legacy-4mb/Software/sdkconfig.production
           ~/.platformio/packages/toolchain-xtensa-esp32/bin/xtensa-esp32-elf-nm \
             legacy-4mb/Software/.pio/build/production/firmware.elf | grep -E 'NimBLEServer' > /dev/null
+          python .github/scripts/build_web_installer.py --flash-size 4MB \
+            --build-dir legacy-4mb/Software/.pio/build/production \
+            --output legacy-4mb/Software/.pio/build/production/web-installer.bin
 
       - name: Upload legacy 4 MB firmware artifact
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-4mb-1.0.39
+          name: firmware-v1
           path: |
             legacy-4mb/Software/.pio/build/production/firmware.bin
             legacy-4mb/Software/.pio/build/production/partitions.bin
             legacy-4mb/Software/.pio/build/production/bootloader.bin
+            legacy-4mb/Software/.pio/build/production/web-installer.bin
           if-no-files-found: error
           retention-days: 1
 
