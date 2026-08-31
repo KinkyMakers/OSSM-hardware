@@ -82,6 +82,35 @@ jobs:
             Software/.pio/build/production/web-installer.bin
           retention-days: 1
 
+      - name: Checkout legacy 4 MB firmware with Bluetooth
+        uses: actions/checkout@v4
+        with:
+          ref: 065c1c70d8be0b6ebe3edf536051ca542b793d70 # main 1.0.39
+          path: legacy-4mb
+
+      - name: Test and build legacy 4 MB firmware
+        run: |
+          pio test --project-dir legacy-4mb/Software -e test
+          RELEASE_BUILD_SHA=$(git -C legacy-4mb rev-parse HEAD) pio run --project-dir legacy-4mb/Software -e production -t buildprog
+          grep -aFq "$(git -C legacy-4mb rev-parse HEAD)" legacy-4mb/Software/.pio/build/production/firmware.bin
+          test "$(python scripts/release_version.py read --header legacy-4mb/Software/src/constants/Version.h)" = 1.0.39
+          test "$(stat --format=%s legacy-4mb/Software/.pio/build/production/firmware.bin)" -le $((0x1E0000 - 0x4000))
+          grep -qx 'CONFIG_BT_ENABLED=y' legacy-4mb/Software/sdkconfig.production
+          grep -qx 'CONFIG_ESPTOOLPY_FLASHSIZE="4MB"' legacy-4mb/Software/sdkconfig.production
+          ~/.platformio/packages/toolchain-xtensa-esp32/bin/xtensa-esp32-elf-nm \
+            legacy-4mb/Software/.pio/build/production/firmware.elf | grep -E 'NimBLEServer' > /dev/null
+
+      - name: Upload legacy 4 MB firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-4mb-1.0.39
+          path: |
+            legacy-4mb/Software/.pio/build/production/firmware.bin
+            legacy-4mb/Software/.pio/build/production/partitions.bin
+            legacy-4mb/Software/.pio/build/production/bootloader.bin
+          if-no-files-found: error
+          retention-days: 1
+
   check:
     needs: check_changes
     if: needs.check_changes.outputs.changes_detected == 'true'
@@ -143,9 +172,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify legacy documentation remains retired
+      - name: Verify restored safety documentation
         run: |
-          if [[ -d Documentation ]]; then
-            echo "The retired in-repository documentation workspace was restored"
+          if [[ ! -s Documentation/Hazards.md || ! -s "Documentation/Safety and Design Guide.md" ]]; then
+            echo "Required safety documentation is missing or empty"
             exit 1
           fi

@@ -54,6 +54,22 @@ double easeInOutSine(double t) {
     return 0.5 * (1 + sin(3.1415926 * (t - 0.5)));
 }
 
+class StateCallbacks : public NimBLECharacteristicCallbacks {
+    void onRead(NimBLECharacteristic* characteristic, NimBLEConnInfo&) override {
+        if (!ossm) return;
+        // RADR needs full legacy state on reads; retain shared BLE metadata.
+        JsonDocument value, current;
+        const auto stored = characteristic->getValue();
+        deserializeJson(value, stored.data(), stored.size());
+        if (deserializeJson(current, ossm->getCurrentState())) return;
+        for (JsonPairConst field : current.as<JsonObjectConst>())
+            value[field.key()] = field.value();
+        String payload;
+        serializeJson(value, payload);
+        characteristic->setValue(payload);
+    }
+} stateCallbacks;
+
 /** Handler class for server actions */
 class ServerCallbacks : public NimBLEServerCallbacks {
     void onConnect(NimBLEServer* pServer, NimBLEConnInfo& connInfo) override {
@@ -326,6 +342,7 @@ void initNimble() {
 
     pStateCharacteristic = initStateCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_STATE_UUID));
+    pStateCharacteristic->setCallbacks(&stateCallbacks);
 
     initPatternsCharacteristic(pService,
                                NimBLEUUID(CHARACTERISTIC_PATTERNS_UUID));

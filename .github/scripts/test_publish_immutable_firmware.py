@@ -56,6 +56,7 @@ class PublisherTests(unittest.TestCase):
                 argparse.Namespace(
                     track="staging",
                     device_type="ossm",
+                    hardware_variant="v2",
                     build_sha="abcdef0",
                     kind="firmware",
                 ),
@@ -63,6 +64,7 @@ class PublisherTests(unittest.TestCase):
                 [Artifact("application", firmware, 1, True)],
             )
         self.assertEqual(payload["kind"], "firmware")
+        self.assertEqual(payload["hardwareVariant"], "v2")
 
     def test_web_installer_is_published_but_not_installable(self):
         with tempfile.TemporaryDirectory() as directory:

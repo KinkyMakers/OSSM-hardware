@@ -172,6 +172,7 @@ jobs:
         run: |
           python .github/scripts/publish_immutable_firmware.py \
             --device-type ossm \
+            --hardware-variant v2 \
             --track "$TRACK" \
             --build-sha "$RELEASE_BUILD_SHA" \
             --version-file Software/src/constants/Version.h \
