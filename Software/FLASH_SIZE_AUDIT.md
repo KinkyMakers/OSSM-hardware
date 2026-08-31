@@ -107,7 +107,7 @@ pass; the changed workflows pass actionlint. Native display/hardware suites
 remain excluded by the existing native profile. No device result is claimed.
 
 Controlled builds apply each source group cumulatively at the fixed baseline
-SHA. Completed measurements at this checkpoint:
+SHA in an isolated build directory:
 
 | Change applied | Application bytes | Bytes saved by this step |
 | --- | ---: | ---: |
@@ -115,10 +115,18 @@ SHA. Completed measurements at this checkpoint:
 | Unused StrokeEngine/display/Font/orphan code | 2,025,120 | 3,616 |
 | Both regex validators replaced | 1,795,232 | 229,888 |
 | Disabled logger overhead removed | 1,786,528 | 8,704 |
+| Inherit the declared RAD BLE surface flag | 1,785,680 | 848 |
+| Initialize streaming history / repeated-position guard | 1,785,712 | -32 |
+| Release size optimization | 1,545,568 | 240,144 |
+| Shared installed-partition detection | 1,545,424 | 144 |
 
-The remaining flag/optimization/layout measurements continue independently.
 These are observed image deltas, including linker alignment and shared-code
-effects. Unused-source deletion alone would still exceed the 4 MB target.
+effects. The isolated Phase 1 result is 160 bytes smaller than the main matrix:
+source, SDK configuration and effective compiler flags match, but archive link
+order changes Xtensa call relaxation and section padding. Disassembly and map
+comparisons account for that difference; the matrix remains the authoritative
+candidate measurement. Unused-source deletion alone would still exceed the
+4 MB target.
 
 The parsers matched all **149,760** comparisons against the previous regexes;
 the same suite passes AddressSanitizer and UndefinedBehaviorSanitizer. Target
@@ -139,6 +147,70 @@ validation are recorded as each change is implemented:
 | MQTT WebSocket transports off | Only MQTT TCP/TLS is used | Preserve MQTT SSL and dashboard streaming/reconnect |
 | mbedTLS client-only TLS | No TLS server exists in firmware | Retain client algorithms, full CA bundle and BLE cryptography |
 
+Config-only ablations continue from the isolated Phase 1 result, before changing
+pairing or extracting the production test seams:
+
+| Change applied | Application bytes | Bytes saved by this step |
+| --- | ---: | ---: |
+| NimBLE uses mbedTLS instead of TinyCrypt | 1,539,888 | 5,536 |
+| Disable unused BLE central/observer roles | 1,532,144 | 7,744 |
+| Disable MQTT WebSocket transports | 1,526,032 | 6,112 |
+| TLS clients only | 1,518,192 | 7,840 |
+| Pairing moves to the IDF HTTP client | 1,484,800 | 33,392 |
+| Production OTA test seam / response and SHA guards | 1,485,200 | -400 |
+| Production telemetry serializer test seam | 1,485,264 | -64 |
+
+These four settings save 27,232 bytes together. The effective Xtensa preprocessor
+configuration retains the peripheral and broadcaster roles, three connections,
+legacy pairing and secure connections. Runtime security settings are unchanged.
+The pairing migration removes HTTPClient, WiFiClientSecure, their TLS adapter and
+now-unreferenced formatting/error code; it does not remove a second independent
+mbedTLS stack. Link maps confirm TinyCrypt, central/scanner wrappers, WebSocket
+transport and the TLS server handshake are absent. IDF HTTP/TLS, MQTT publish and
+reconnect, AES/CMAC/ECDH, all seven pattern classes and the full CA bundle remain.
+The 63,739-byte CA payload is byte-identical to the baseline.
+
+Pairing now uses the IDF HTTP client and certificate bundle already used by OTA.
+It preserves the JSON identity fields, provenance headers, five-second timeout,
+HTTP status handling, foreground pairing code and background paired-state poll.
+It explicitly requests identity encoding, does not follow redirects or fall back
+to unverified TLS, caps responses at 32 KiB, and leaves both state fields unchanged
+on transport, incomplete-body or JSON errors.
+
+The actual OTA check/transfer/dispatch and task orchestration are shared with
+native tests through compile-time adapters. Arduino Update and Preferences remain
+in place. The tests cover short reads/writes, early EOF, overrun, SHA failures,
+finalization, artifact order, MQTT resume and pending-image confirmation. The
+shared MQTT/full-BLE serializer is also exercised directly, including the existing
+buffer and firmware provenance fields that the previous duplicated fixture omitted.
+These seams do not add virtual dispatch or a second implementation of the protocol.
+OTA checks now reject header failures, incomplete bodies and reported SHA errors
+instead of accepting a complete-looking JSON prefix or ignoring crypto errors.
+Complete chunked check responses remain accepted; artifact downloads retain their
+existing content-length policy and must match their declared size and SHA-256.
+
+| Phase 2 profile | Application bytes | ELF flash bytes | Free space after 16 KiB margin |
+| --- | ---: | ---: | ---: |
+| `production` (16 MB) | 1,485,264 | 1,478,685 | 6,362,672 |
+| `production_4mb` | 1,485,312 | 1,478,737 | 464,384 |
+| `staging` (16 MB) | 1,492,512 | 1,485,933 | 6,355,424 |
+| `staging_4mb` | 1,492,560 | 1,485,985 | 457,136 |
+
+Production is **543,472 bytes (26.8%) smaller** than fresh main, including a
+60,320-byte reduction from the Phase 1 matrix. Static RAM is 59,004 bytes on all
+four profiles, down 7,552 bytes from main. The four builds and their image
+checksums/headers, partition geometry, OTA margins, merged component bytes and
+required/removed linked-symbol checks pass. All 270 configured native tests pass;
+the 67 pairing, OTA-runtime and telemetry tests also pass with AddressSanitizer
+and UndefinedBehaviorSanitizer. Hardware behavior is still unverified.
+
+The publication follow-up at `026021055ee3e83f49021c96fb9047a93f056e33`
+(OSSM PR 336) uses the same installer CLI and synchronized version/build definition.
+This branch retains those guards and separate variant publication, while advancing
+the 4 MB lane to current source and also building it for staging. Both CI and the
+publisher assert the embedded version/SHA and retained Bluetooth. No PR or release
+is created by pushing this task's working branch.
+
 ## Deliberately retained
 
 - WiFiManager and its plain-HTTP captive portal: provisioning is core behavior.
@@ -154,6 +226,25 @@ validation are recorded as each change is implemented:
 - Existing dedicated TLS/update task, MQTT pause/resume, checksum verification,
   reboot conditions and pending-image confirmation. Rollback remains disabled
   by the existing bootloader configuration; tests must not claim otherwise.
+
+Further possible cuts require separate functionality or maintenance decisions.
+After the pairing migration, WiFiManager retains about 39 KB, U8g2 37 KB, FastLED
+5 KB and Arduino Update 2.4 KB in the map. These support provisioning, wired UI,
+LED feedback and shared OTA paths. Font/glyph subsetting or a smaller CA bundle
+could reduce data, but needs complete screen/language coverage or an explicit
+certificate-rotation policy. Replacing Arduino's remaining roughly 53 KB wholesale
+would affect serial, timing, Wi-Fi events and other shared services. These archive
+figures are retained footprints, not independent promised savings.
+
+Unchanged limitations must not be confused with test coverage: application and
+filesystem updates are not transactional together; current task self-deletion
+bypasses C++ local destructors on failed/no-update attempts; certificate-date
+checking remains disabled by the existing SDK configuration. Native adapters do
+not prove FreeRTOS heap cleanup, TLS handshakes or physical flash behavior. Pairing
+now verifies certificate trust and hostname, so custom untrusted HTTPS endpoints
+fail without an insecure fallback. Legacy full-state change notifications remain
+alongside the separate compact RAD state heartbeat; not every notification is
+compact.
 
 ## Installed layouts
 
@@ -177,6 +268,9 @@ both ports and BLE connections after closing its loggers and clients. Its previo
 frozen 4 MB firmware result is not evidence for this branch's current-source
 4 MB image. Candidate builds, size checks and the visual safety gate must pass
 before this branch is flashed.
+The hardware window was subsequently returned to that task for validation of
+its newly version-synchronized release images; this task remains source-only
+until another explicit handoff.
 The attempted fresh OSSM screen snapshot timed out waiting for the camera
 stream. Until that visual gate is restored or explicitly waived for this bench,
 there are no flash, reset, BLE or motion results for these candidate images.

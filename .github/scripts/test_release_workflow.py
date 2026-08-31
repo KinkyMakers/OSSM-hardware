@@ -1,3 +1,5 @@
+import copy
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -137,5 +139,3 @@ class ReleaseWorkflowTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-import copy
-import json

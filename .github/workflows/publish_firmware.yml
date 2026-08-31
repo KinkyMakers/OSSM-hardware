@@ -162,6 +162,8 @@ jobs:
           pio run -e "$PIO_ENV_4MB" -t buildprog
 
       - name: Verify both flash profiles and build merged web installers
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
         run: |
           python .github/scripts/build_web_installer.py \
             --build-dir "Software/.pio/build/$PIO_ENV" \
@@ -173,6 +175,10 @@ jobs:
             --flash-size 4MB
           for environment in "$PIO_ENV" "$PIO_ENV_4MB"; do
             grep -aFq "$RELEASE_BUILD_SHA" "Software/.pio/build/$environment/firmware.bin"
+            grep -aFq "$EXPECTED_VERSION" "Software/.pio/build/$environment/firmware.bin"
+            grep -qx 'CONFIG_BT_ENABLED=y' "Software/sdkconfig.$environment"
+            ~/.platformio/packages/toolchain-xtensa-esp32/bin/xtensa-esp32-elf-nm \
+              "Software/.pio/build/$environment/firmware.elf" | grep -E 'NimBLEServer' > /dev/null
           done
 
       - name: Publish validating 4 MiB release

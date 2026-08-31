@@ -13,6 +13,7 @@
 #include "services/communication/queue.h"
 #include "services/encoder.h"
 #include "services/stepper.h"
+#include "telemetry_payload.h"
 
 namespace sml = boost::sml;
 using namespace sml;
@@ -164,19 +165,20 @@ String OSSM::getCurrentState() {
     }
 
     float positionMm = float(stepper->getCurrentPosition()) / float(1_mm);
-    if (isnan(positionMm)) positionMm = 0.0f;
 
     const String provenanceId =
         firmware::provenance::currentTokenId().c_str();
-    return "{\"timestamp\":" + String((unsigned long)millis()) +
-           ",\"state\":\"" + currentState +
-           "\",\"speed\":" + String((int)settings.speed) +
-           ",\"stroke\":" + String((int)settings.stroke) +
-           ",\"sensation\":" + String((int)settings.sensation) +
-           ",\"depth\":" + String((int)settings.depth) +
-           ",\"buffer\":" + String((int)settings.buffer) +
-           ",\"pattern\":" + String(static_cast<int>(settings.pattern)) +
-           ",\"position\":" + String(positionMm, 2) +
-           ",\"sessionId\":\"" + sessionId +
-           "\",\"firmwareProvenanceId\":\"" + provenanceId + "\"}";
+    return telemetry::serialize({
+        .timestamp = (unsigned long)millis(),
+        .state = currentState.c_str(),
+        .speed = settings.speed,
+        .stroke = settings.stroke,
+        .sensation = settings.sensation,
+        .depth = settings.depth,
+        .buffer = settings.buffer,
+        .pattern = static_cast<int>(settings.pattern),
+        .positionMm = positionMm,
+        .sessionId = sessionId.c_str(),
+        .firmwareProvenanceId = provenanceId.c_str(),
+    });
 }

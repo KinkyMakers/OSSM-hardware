@@ -1,11 +1,11 @@
 #include "pairing.h"
 
-#include <HTTPClient.h>
 #include <WiFi.h>
-
-#include <ArduinoJson.h>
+#include <esp_crt_bundle.h>
+#include <esp_http_client.h>
 
 #include "FirmwareProvenance.h"
+#include "pairing_auth.h"
 
 #include "constants/Version.h"
 #include "ossm/Events.h"
@@ -14,8 +14,38 @@
 #include "services/display.h"
 #include "ui.h"
 
-namespace sml = boost::sml;
-using namespace sml;
+namespace {
+
+struct AuthHttpOperations {
+    using Config = esp_http_client_config_t;
+    using Client = esp_http_client_handle_t;
+    static constexpr auto POST = HTTP_METHOD_POST;
+    static constexpr auto OK = ESP_OK;
+    static constexpr auto attachCertificateBundle = esp_crt_bundle_attach;
+
+    Client init(const Config *config) { return esp_http_client_init(config); }
+    int setHeader(Client client, const char *name, const char *value) {
+        return esp_http_client_set_header(client, name, value);
+    }
+    int open(Client client, std::size_t size) {
+        return esp_http_client_open(client, static_cast<int>(size));
+    }
+    int write(Client client, const char *body, std::size_t size) {
+        return esp_http_client_write(client, body, static_cast<int>(size));
+    }
+    std::int64_t fetchHeaders(Client client) { return esp_http_client_fetch_headers(client); }
+    int statusCode(Client client) { return esp_http_client_get_status_code(client); }
+    int read(Client client, char *buffer, std::size_t size) {
+        return esp_http_client_read(client, buffer, static_cast<int>(size));
+    }
+    bool isComplete(Client client) {
+        return esp_http_client_is_complete_data_received(client);
+    }
+    void close(Client client) { esp_http_client_close(client); }
+    void cleanup(Client client) { esp_http_client_cleanup(client); }
+};
+
+}  // namespace
 
 namespace pages {
 
@@ -24,52 +54,24 @@ static volatile bool paired = false;
 
 static int requestDeviceAuth(bool updatePairingCode) {
     if (WiFi.status() != WL_CONNECTED) {
-        return HTTP_CODE_SERVICE_UNAVAILABLE;
+        return pairing_auth::HTTP_SERVICE_UNAVAILABLE;
     }
 
-    String macAddress = WiFi.macAddress();
-    HTTPClient http;
-    String url = String(RAD_SERVER) + "/api/ossm/auth";
-    http.begin(url);
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("X-RAD-Firmware-Provenance-Capability", "1");
-    const auto provenanceToken = firmware::provenance::currentToken();
-    if (!provenanceToken.empty()) {
-        http.addHeader("X-RAD-Firmware-Provenance", provenanceToken.c_str());
-        http.addHeader("X-RAD-Firmware-Provenance-ID",
-                       firmware::provenance::currentTokenId().c_str());
-        http.addHeader("X-RAD-Firmware-Image-SHA256",
-                       firmware::provenance::currentImageSha256().c_str());
+    pairing_auth::DeviceIdentity identity;
+    identity.mac = WiFi.macAddress().c_str();
+    identity.chip = String((uint32_t)ESP.getEfuseMac(), HEX).c_str();
+    identity.md5 = ESP.getSketchMD5().c_str();
+    identity.version = VERSION;
+    identity.provenance = firmware::provenance::currentToken();
+    if (!identity.provenance.empty()) {
+        identity.provenanceId = firmware::provenance::currentTokenId();
+        identity.imageSha256 = firmware::provenance::currentImageSha256();
     }
-
-    JsonDocument doc;
-    doc["mac"] = macAddress;
-    doc["chip"] = String((uint32_t)ESP.getEfuseMac(), HEX);
-    doc["md5"] = ESP.getSketchMD5();
-    doc["device"] = "OSSM";
-    doc["version"] = VERSION;
-
-    String body;
-    serializeJson(doc, body);
-
-    int httpCode = http.POST(body);
-    if (httpCode == HTTP_CODE_OK) {
-        JsonDocument response;
-        DeserializationError jsonError =
-            deserializeJson(response, http.getString());
-        if (jsonError) {
-            ESP_LOGW("PAIRING", "Invalid auth response: %s",
-                     jsonError.c_str());
-            http.end();
-            return HTTP_CODE_INTERNAL_SERVER_ERROR;
-        }
-
-        paired = response["isPaired"].as<bool>();
-        if (updatePairingCode) {
-            pairingCode = response["pairingCode"].as<String>();
-        }
-    }
-    http.end();
+    AuthHttpOperations http;
+    const char *error = nullptr;
+    const int httpCode = pairing_auth::requestDeviceAuth(
+        http, RAD_SERVER, identity, updatePairingCode, paired, pairingCode, error);
+    if (error != nullptr) ESP_LOGW("PAIRING", "Auth request failed: %s", error);
     return httpCode;
 }
 
@@ -102,7 +104,7 @@ static void pairingTask(void *pvParameters) {
 
     int httpCode = requestDeviceAuth(true);
 
-    if (httpCode != HTTP_CODE_OK) {
+    if (httpCode != pairing_auth::HTTP_OK) {
         ESP_LOGW("PAIRING", "Auth failed with HTTP %d", httpCode);
         stateMachine->process_event(Error{});
         vTaskDelete(nullptr);
@@ -124,36 +126,6 @@ static void pairingTask(void *pvParameters) {
     // Polling disabled — causes SSL memory exhaustion when BLE + MQTT TLS are active.
     // User must press the button to exit after pairing on the website.
 
-    // auto isInCorrectState = []() {
-    //     return stateMachine->is("pairing"_s) ||
-    //            stateMachine->is("pairing.idle"_s);
-    // };
-
-    // while (isInCorrectState()) {
-    //     vTaskDelay(pdMS_TO_TICKS(1000));
-
-    //     if (!isInCorrectState()) break;
-
-    //     HTTPClient pollHttp;
-    //     pollHttp.begin(String(RAD_SERVER) + "/api/ossm/is-paired");
-    //     pollHttp.addHeader("Content-Type", "application/json");
-
-    //     JsonDocument pollDoc;
-    //     pollDoc["macAddress"] = macAddress;
-    //     String pollBody;
-    //     serializeJson(pollDoc, pollBody);
-
-    //     int pollCode = pollHttp.POST(pollBody);
-    //     pollHttp.end();
-
-    //     ESP_LOGI("PAIRING", "is-paired poll: %d", pollCode);
-
-    //     if (pollCode == 200) {
-    //         stateMachine->process_event(Done{});
-    //         break;
-    //     }
-    // }
-
     vTaskDelete(nullptr);
 }
 
@@ -168,7 +140,7 @@ static void pairingStatusTask(void *pvParameters) {
     while (!paired) {
         if (WiFi.status() == WL_CONNECTED) {
             int httpCode = requestDeviceAuth(false);
-            if (httpCode != HTTP_CODE_OK) {
+            if (httpCode != pairing_auth::HTTP_OK) {
                 ESP_LOGW("PAIRING", "Pairing status check failed with HTTP %d",
                          httpCode);
             } else {

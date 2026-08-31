@@ -1,40 +1,16 @@
-// ┌──────────────────────────────────────────────────────────────────────────┐
-// │ MQTT TELEMETRY PAYLOAD — CONTRACT TESTS                                │
-// │                                                                        │
-// │ These tests validate that the JSON payload produced by                  │
-// │ OSSM::getCurrentState() matches the Zod schema expected by the         │
-// │ RAD Dashboard API route:                                               │
-// │                                                                        │
-// │   rad-app/src/app/api/lockbox/event/ossm/[mac]/route.ts                │
-// │                                                                        │
-// │ The Dashboard's payloadSchema (Zod) requires:                          │
-// │   timestamp  : z.number()        — millis() uptime                    │
-// │   state      : z.string()        — Boost.SML state name              │
-// │   speed      : z.number().int()  — cast from float                   │
-// │   stroke     : z.number().int()  — cast from float                   │
-// │   sensation  : z.number().int()  — cast from float                   │
-// │   depth      : z.number().int()  — cast from float                   │
-// │   pattern    : z.number().int()  — StrokePatterns enum ordinal       │
-// │   position   : z.number()        — stepper position in mm (float)    │
-// │   sessionId  : z.uuid()          — generated per MQTT connection      │
-// │   meta       : z.string().optional() — JSON metadata (optional)       │
-// │                                                                        │
-// │ The outer wrapper is: { payload: <above> }                             │
-// │ The "payload" key is added by the EMQX MQTT rule engine, NOT here.     │
-// │                                                                        │
-// │ IF YOU CHANGE THE PAYLOAD SHAPE, YOU MUST ALSO UPDATE:                 │
-// │   1. The Zod schema in the Dashboard route (see path above)            │
-// │   2. OSSM::getCurrentState() in src/ossm/OSSM.cpp                     │
-// │   3. These tests                                                       │
-// │                                                                        │
-// │ Failure to keep these in sync causes silent 400 errors on the server   │
-// │ and lost telemetry data.                                               │
-// └──────────────────────────────────────────────────────────────────────────┘
+// Exercise the production serializer shared by MQTT and full BLE state reads.
+// The dashboard schema lives in RAD App at:
+// packages/supabase/functions/ossm-mqtt-telemetry/index.ts
+// Its proxy adds the outer {payload: ...} wrapper. Buffer is a BLE field that
+// the dashboard ignores; provenance identifies the running firmware.
 
 #include <ArduinoJson.h>
 #include <unity.h>
 
 #include <cstring>
+#include <limits>
+
+#include "telemetry_payload.h"
 #include <set>
 #include <string>
 
@@ -44,25 +20,24 @@ static const std::set<std::string> REQUIRED_KEYS = {
     "depth",     "pattern", "position", "sessionId",
 };
 
-// "meta" is the only optional key the server accepts
-static const std::set<std::string> OPTIONAL_KEYS = {"meta"};
+// Preserve the two additional fields already emitted by the firmware.
+static const std::set<std::string> OPTIONAL_KEYS = {
+    "meta", "buffer", "firmwareProvenanceId"
+};
 
-// Builds a payload identical to OSSM::getCurrentState().
-// Kept in sync manually — if getCurrentState() changes, this must too.
+// Parse the real wire payload; no manually maintained parallel serializer.
 static JsonDocument buildPayload(unsigned long timestamp,
-                                 const char* state, int speed, int stroke,
-                                 int sensation, int depth, int pattern,
-                                 float position, const char* sessionId) {
+                                 const char* state, float speed, float stroke,
+                                 float sensation, float depth, int pattern,
+                                 float position, const char* sessionId,
+                                 float buffer = 100,
+                                 const char* provenanceId = "") {
+    const String payload = telemetry::serialize({timestamp, state, speed, stroke,
+        sensation, depth, buffer, pattern, position, sessionId, provenanceId});
     JsonDocument doc;
-    doc["timestamp"] = timestamp;
-    doc["state"] = state;
-    doc["speed"] = speed;
-    doc["stroke"] = stroke;
-    doc["sensation"] = sensation;
-    doc["depth"] = depth;
-    doc["pattern"] = pattern;
-    doc["position"] = position;
-    doc["sessionId"] = sessionId;
+    const auto error = deserializeJson(doc, payload.c_str());
+    TEST_ASSERT_EQUAL_MESSAGE(DeserializationError::Ok, error.code(),
+                               "Production telemetry must be valid JSON");
     return doc;
 }
 
@@ -179,7 +154,7 @@ void test_serialized_json_round_trips() {
                              parsed["sessionId"]);
 }
 
-// ─── Test: key count is exactly 9 (required) without meta ────────────────
+// ─── Test: all 11 existing firmware fields are emitted without meta ────
 
 void test_key_count_without_meta() {
     auto doc = buildPayload(0, "s", 0, 0, 0, 0, 0, 0.0f,
@@ -189,7 +164,7 @@ void test_key_count_without_meta() {
         (void)kv;
         count++;
     }
-    TEST_ASSERT_EQUAL_INT(9, count);
+    TEST_ASSERT_EQUAL_INT(11, count);
 }
 
 // ─── Test: pattern enum values stay within known range ───────────────────
@@ -204,10 +179,41 @@ void test_pattern_boundary_values() {
     }
 }
 
+void test_full_state_keeps_buffer_and_firmware_provenance() {
+    const char* provenance = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq";
+    auto doc = buildPayload(0, "error.idle", 0, 50, 50, 10, 0, 0.0f,
+        "00000000-0000-0000-0000-000000000000", 75, provenance);
+    TEST_ASSERT_EQUAL_INT(75, doc["buffer"].as<int>());
+    TEST_ASSERT_EQUAL_STRING(provenance, doc["firmwareProvenanceId"]);
+}
+
+void test_wire_format_preserves_percent_truncation_and_position_rounding() {
+    const String actual = telemetry::serialize({4294967295UL, "strokeEngine",
+        50.9f, 80.1f, 40.8f, 60.4f, 100.9f, 6, 12.346f,
+        "00000000-0000-0000-0000-000000000000", ""});
+    TEST_ASSERT_EQUAL_STRING(
+        "{\"timestamp\":4294967295,\"state\":\"strokeEngine\","
+        "\"speed\":50,\"stroke\":80,\"sensation\":40,\"depth\":60,"
+        "\"buffer\":100,\"pattern\":6,\"position\":12.35,"
+        "\"sessionId\":\"00000000-0000-0000-0000-000000000000\","
+        "\"firmwareProvenanceId\":\"\"}", actual.c_str());
+}
+
+void test_nonfinite_position_keeps_existing_nan_fallback() {
+    auto doc = buildPayload(0, "menu.idle", 0, 0, 0, 0, 0,
+        std::numeric_limits<float>::quiet_NaN(),
+        "00000000-0000-0000-0000-000000000000");
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, doc["position"].as<float>());
+}
+
 // ─── Runner ──────────────────────────────────────────────────────────────
 
 int main() {
     UNITY_BEGIN();
+
+    RUN_TEST(test_full_state_keeps_buffer_and_firmware_provenance);
+    RUN_TEST(test_wire_format_preserves_percent_truncation_and_position_rounding);
+    RUN_TEST(test_nonfinite_position_keeps_existing_nan_fallback);
 
     RUN_TEST(test_payload_has_all_required_keys);
     RUN_TEST(test_payload_has_no_extra_keys);
