@@ -29,7 +29,7 @@ void clearHoming() {
 
     // Set acceleration and deceleration in steps/s^2
     stepper->setAcceleration(1000_mm);
-    // Set speed in steps/s
+    // Set speed in steps/s, this speed is also used to calculate homing timeout
     stepper->setSpeedInHz(25_mm);
 
     // Clear the stored values.
@@ -62,8 +62,9 @@ static void startHomingTask(void *pvParameters) {
     stepper->setDirectionPin(Pins::Driver::motorDirectionPin, true);
     int16_t sign = stateMachine->is("homing.backward"_s) ? -1 : 1;
 
+    // Set target position as 50mm+ max stroke length to ensure hitting the endstop.
     int32_t targetPositionInSteps =
-        round(sign * Config::Driver::maxStrokeSteps);
+        round(sign * (50_mm + Config::Driver::maxStrokeSteps));
 
     ESP_LOGD("Homing", "Target position in steps: %d", targetPositionInSteps);
     stepper->moveTo(targetPositionInSteps, false);
@@ -81,11 +82,13 @@ static void startHomingTask(void *pvParameters) {
         // Calculate the time in ticks that the task has been running.
         TickType_t xTicksPassed = xCurrentTickCount - xTaskStartTime;
 
-        // If you need the time in milliseconds, convert ticks to milliseconds.
+        // Calculate the number of milliseconds that have passed since the task started.
         // 'portTICK_PERIOD_MS' is the number of milliseconds per tick.
         uint32_t msPassed = xTicksPassed * portTICK_PERIOD_MS;
+        // Calculate the timeout for homing based on the maximum stroke steps + 5s
+        uint32_t msTimeoutHoming = (Config::Driver::maxStrokeSteps / 25_mm + 5) * 1000;
 
-        if (homing_logic::isHomingTimedOut(msPassed, 40000)) {
+        if (msPassed > msTimeoutHoming) {
             ESP_LOGE("Homing", "Homing took too long. Check power and restart");
             errorState.message = ui::strings::homingTookTooLong;
 
