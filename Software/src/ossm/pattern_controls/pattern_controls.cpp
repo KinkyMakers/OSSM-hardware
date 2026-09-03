@@ -44,6 +44,7 @@ static void drawPatternControlsTask(void *pvParameters) {
     showHeaderIcons = true;
 
     while (isInCorrectState()) {
+        nextPattern = encoder.readEncoder() / 3;
         float speed;
         float speedKnob =
             getAnalogAveragePercent(SampleOnPin{Pins::Remote::speedPotPin, 50});
@@ -60,7 +61,6 @@ static void drawPatternControlsTask(void *pvParameters) {
             settings.speed = speed;
         }
 
-        nextPattern = encoder.readEncoder() / 3;
         shouldUpdateDisplay =
             shouldUpdateDisplay || (int)settings.pattern != nextPattern;
         if (!shouldUpdateDisplay) {
