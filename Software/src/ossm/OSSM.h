@@ -33,6 +33,12 @@ class OSSM {
     // BLE command handler
     void ble_click(String commandString);
 
+    // Runs a menu option as if the button was pressed on it, from any state:
+    // returns to the menu first when needed. Marks the action as remote so
+    // network pages report failures over BLE instead of opening the captive
+    // portal. Returns false when the menu could not be reached.
+    bool triggerMenuActionFromBle(Menu option);
+
     // Get current state as JSON string (includes timestamp)
     String getCurrentState();
 

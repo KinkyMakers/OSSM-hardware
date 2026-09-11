@@ -14,8 +14,10 @@
 #include "constants/Version.h"
 #include "ossm/Events.h"
 #include "ossm/pages/update.h"
+#include "ossm/state/network.h"
 #include "ossm/state/state.h"
 #include "services/communication/mqtt.h"
+#include "utils/tls_session.hpp"
 
 #ifndef FIRMWARE_BUILD_SHA
 #define FIRMWARE_BUILD_SHA "unknown"
@@ -87,36 +89,42 @@ firmware::DeviceReport makeDeviceReport() {
     return report;
 }
 
-void finishWithoutUpdate(bool mqttStopped, const String &reason) {
-    if (!reason.isEmpty()) {
-        ESP_LOGE(UPDATE_TAG, "Firmware update stopped: %s", reason.c_str());
-    }
-    if (mqttStopped) {
-        esp_mqtt_client_start(mqttClient);
-    }
-    stateMachine->process_event(UpdateUnavailable{});
-    vTaskDelete(nullptr);
+void failUpdate(const char *code, const String &detail) {
+    ESP_LOGE(UPDATE_TAG, "Firmware update failed (%s): %s", code, detail.c_str());
+    networkStatus.error = code;
+    stateMachine->process_event(UpdateFailed{});
 }
 
-// The complete HTTPS check and install remains isolated from the button task.
-// MQTT is paused so its TLS session cannot compete with the update client for
-// heap; motor control is never invoked by this task.
-void updateTask(void *pvParameters) {
-    ESP_LOGW(UPDATE_TAG,
-             "Update task started: %s %s (%s), heap=%lu, largest=%lu",
-             VERSION, FIRMWARE_BUILD_SHA, FIRMWARE_TRACK,
-             static_cast<unsigned long>(esp_get_free_heap_size()),
-             static_cast<unsigned long>(
-                 heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)));
+// The complete HTTPS check and install runs isolated from the button task.
+// TlsSession pauses MQTT for the duration (its TLS session would otherwise
+// compete with the update client for heap) and refuses to start when the
+// largest free block is below the measured TLS budget. Every exit is a state
+// machine event so the display and the BLE state characteristic always show
+// what happened; motor control is never invoked by this task.
+// Decision the last check offered; consumed by the install task.
+firmware::Decision offeredDecision;
+bool offeredDecisionValid = false;
 
-    bool mqttStopped = false;
-    if (mqttClient != nullptr) {
-        esp_mqtt_client_stop(mqttClient);
-        mqttStopped = true;
-    }
+// HTTPS check only. TlsSession pauses MQTT for the duration (its TLS session
+// would otherwise compete with the update client for heap) and refuses to
+// start when the largest free block is below the measured TLS budget. Every
+// exit is a state machine event so the display and the BLE state
+// characteristic always show what happened; motor control is never invoked.
+void runCheck() {
+    networkStatus.clearError();
+    networkStatus.clearUpdate();
+    offeredDecisionValid = false;
+    ESP_LOGW(UPDATE_TAG, "Update check started: %s %s (%s)", VERSION,
+             FIRMWARE_BUILD_SHA, FIRMWARE_TRACK);
 
     if (WiFi.status() != WL_CONNECTED) {
-        finishWithoutUpdate(mqttStopped, "Wi-Fi is disconnected");
+        failUpdate("wifi", "Wi-Fi is disconnected");
+        return;
+    }
+
+    TlsSession tls("update-check");
+    if (!tls.ok()) {
+        failUpdate("low-memory", tls.error());
         return;
     }
 
@@ -124,7 +132,7 @@ void updateTask(void *pvParameters) {
     String error;
     const firmware::DeviceReport report = makeDeviceReport();
     if (!firmware::postCheck(RAD_SERVER, report, decision, error)) {
-        finishWithoutUpdate(mqttStopped, error);
+        failUpdate("check-failed", error);
         return;
     }
     firmware::provenance::observeCurrent(report, decision);
@@ -137,13 +145,40 @@ void updateTask(void *pvParameters) {
              decision.targetVersion.c_str(), decision.nextHopVersion.c_str(),
              decision.reason.c_str());
     if (!decision.shouldUpdate) {
-        finishWithoutUpdate(mqttStopped, "");
+        stateMachine->process_event(UpdateUnavailable{});
         return;
     }
 
-    pages::drawUpdating();
-    if (!firmware::installApplicationAndFilesystem(decision, error)) {
-        finishWithoutUpdate(mqttStopped, error);
+    offeredDecision = decision;
+    offeredDecisionValid = true;
+    networkStatus.targetVersion = decision.nextHopVersion.empty()
+                                      ? decision.targetVersion.c_str()
+                                      : decision.nextHopVersion.c_str();
+    stateMachine->process_event(UpdateAvailable{});
+}
+
+// Download + install of the offered decision, after confirmation. Same TLS
+// rules as the check. Reboots on success.
+void runInstall() {
+    networkStatus.clearError();
+    if (!offeredDecisionValid) {
+        failUpdate("install-failed", "no update was offered");
+        return;
+    }
+    if (WiFi.status() != WL_CONNECTED) {
+        failUpdate("wifi", "Wi-Fi is disconnected");
+        return;
+    }
+
+    TlsSession tls("update-install");
+    if (!tls.ok()) {
+        failUpdate("low-memory", tls.error());
+        return;
+    }
+
+    String error;
+    if (!firmware::installApplicationAndFilesystem(offeredDecision, error)) {
+        failUpdate("install-failed", error);
         return;
     }
 
@@ -151,7 +186,18 @@ void updateTask(void *pvParameters) {
     esp_restart();
 }
 
+void updateTask(void *pvParameters) {
+    runCheck();  // TlsSession restores MQTT when this returns
+    vTaskDelete(nullptr);
+}
+
+void installTask(void *pvParameters) {
+    runInstall();
+    vTaskDelete(nullptr);
+}
+
 }  // namespace
+
 
 void ossmConfirmRunningImage() {
     const esp_partition_t *running = esp_ota_get_running_partition();
@@ -171,8 +217,25 @@ void ossmConfirmRunningImage() {
     }
 }
 
+// With BLE connected and MQTT up the largest free block is ~9 KB (measured
+// 2026-09-09), smaller than these tasks' stacks. Pausing MQTT first frees
+// its TLS buffers; the TlsSession inside the task adopts the pause.
 void ossmStartUpdate() {
-    xTaskCreatePinnedToCore(updateTask, "updateTask",
-                            20 * configMINIMAL_STACK_SIZE, nullptr, 1, nullptr,
-                            0);
+    pauseMqttForTls();
+    if (xTaskCreatePinnedToCore(updateTask, "updateTask",
+                                20 * configMINIMAL_STACK_SIZE, nullptr, 1,
+                                nullptr, 0) != pdPASS) {
+        resumeMqttAfterTls();
+        failUpdate("low-memory", "could not create update task");
+    }
+}
+
+void ossmStartInstall() {
+    pauseMqttForTls();
+    if (xTaskCreatePinnedToCore(installTask, "installTask",
+                                20 * configMINIMAL_STACK_SIZE, nullptr, 1,
+                                nullptr, 0) != pdPASS) {
+        resumeMqttAfterTls();
+        failUpdate("low-memory", "could not create install task");
+    }
 }

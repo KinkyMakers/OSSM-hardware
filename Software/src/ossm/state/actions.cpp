@@ -8,6 +8,8 @@
 #include "ossm/pages/help.h"
 #include "ossm/pages/preflight.h"
 #include "ossm/pages/update.h"
+#include "ossm/state/ble.h"
+#include "ossm/state/network.h"
 #include "ossm/pages/wifi.h"
 #include "ossm/pattern_controls/pattern_controls.h"
 #include "ossm/play_controls/play_controls.h"
@@ -174,6 +176,14 @@ void ossmDrawUpdating() {
     pages::drawUpdating();
 }
 
+void ossmDrawUpdateFailed() {
+    pages::drawUpdateFailed();
+}
+
+void ossmDrawUpdateAvailable() {
+    pages::drawUpdateAvailable();
+}
+
 void ossmDrawError() {
     pages::drawError();
 }
@@ -184,6 +194,22 @@ void ossmCheckPairing() {
 
 void ossmDrawPairingSuccess() {
     pages::drawPairingSuccess();
+}
+
+void ossmDrawPairingFailed() {
+    pages::drawPairingFailed();
+}
+
+void ossmClearRemoteMenuAction() {
+    bleState.remoteMenuAction = false;
+    // Back in the menu: the last network job's result is no longer current,
+    // and the RADR must not read stale pairing/error fields for the next one.
+    networkStatus.clearError();
+    networkStatus.clearPairing();
+}
+
+void ossmSetNetworkError(const char *code) {
+    networkStatus.error = code;
 }
 
 void ossmSetHomed() {

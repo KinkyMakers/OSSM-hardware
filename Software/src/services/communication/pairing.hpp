@@ -8,6 +8,7 @@
 
 #include "constants/Version.h"
 #include "services/wm.h"
+#include "utils/firmware_md5.h"
 
 /**
  * Pairing characteristic — used by the RAD dashboard BLE one-click pairing
@@ -47,7 +48,7 @@ class PairingCallbacks : public NimBLECharacteristicCallbacks {
                 NimBLEConnInfo& connInfo) override {
         uint8_t wifiConnected = (WiFi.status() == WL_CONNECTED) ? 1 : 0;
         String info = WiFi.macAddress() + ";" + ESP.getChipModel() + ";" +
-                      String(wifiConnected) + ";" + ESP.getSketchMD5() + ";" +
+                      String(wifiConnected) + ";" + sketchMd5() + ";" +
                       String(VERSION);
         pCharacteristic->setValue(info);
         ESP_LOGD("PAIRING_CHAR", "Read: %s", info.c_str());

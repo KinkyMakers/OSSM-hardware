@@ -14,6 +14,7 @@
 #include "services/led.h"
 #include "services/stepper.h"
 #include "services/wm.h"
+#include "utils/firmware_md5.h"
 #include "utils/update.h"
 
 namespace sml = boost::sml;
@@ -68,6 +69,7 @@ void __attribute__((weak)) setup() {
     // The board, display, and state machine initialized successfully. Confirm
     // the running image if a rollback-capable bootloader marked it pending.
     ossmConfirmRunningImage();
+    cacheSketchMd5();  // before BLE/Wi-Fi/MQTT: getSketchMD5 needs a big buffer
 
     // ialize LED for BLE and machine status indication
     ESP_LOGI("MAIN", "LED initialized for BLE and machine status indication");
