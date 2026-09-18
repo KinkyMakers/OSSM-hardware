@@ -9,10 +9,10 @@
 #include "NimBLEService.h"
 #include "NimBLEUUID.h"
 #include "queue.h"
+#include "command/command_pattern.hpp"
+#include "rad_ble.h"
 #include "services/led.h"
 
-static const std::regex commandRegex(
-    R"(go:(simplePenetration|strokeEngine|streaming|menu)|set:(speed|stroke|depth|sensation|buffer|pattern):\d+|set:wifi:[^|]+\|.+|stream:\d+:\d+)");
 
 /** Handler class for characteristic actions */
 class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
@@ -24,7 +24,18 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
                  NimBLEConnInfo& connInfo) override {
         std::string cmd = pCharacteristic->getValue();
 
-        if (!std::regex_match(cmd, commandRegex)) {
+        // RAD BLE v1 deliberately multiplexes OSSM's established command
+        // characteristic. JSON is queued to the shared dispatcher; existing
+        // go:/set:/stream: text keeps its original behavior.
+        if (!cmd.empty() && cmd.front() == '{') {
+            if (!radBleServer.enqueue(
+                    0, connInfo.getConnHandle(),
+                    reinterpret_cast<const uint8_t*>(cmd.data()), cmd.size()))
+                ESP_LOGW("NIMBLE_COMMAND", "RAD BLE command queue is full");
+            return;
+        }
+
+        if (!isValidBleCommand(cmd)) {
             ESP_LOGD("NIMBLE_COMMAND", "Invalid command: %s", cmd.c_str());
             pCharacteristic->setValue("fail:" + String(cmd.c_str()));
             return;

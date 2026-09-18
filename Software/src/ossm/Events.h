@@ -34,6 +34,14 @@ struct ReturnToMenu {};
 // or the check/download failed) so the SM leaves "checking" and shows the
 // no-update page.
 struct UpdateUnavailable {};
+// Posted by the OTA task once the resolver returned an artifact plan and the
+// streamed install is starting (the OSSM reboots when it succeeds).
+struct UpdateInstalling {};
+// Posted by the OTA task when the resolver offered a newer version; the OSSM
+// waits for a button press (or a second BLE go:update) before installing.
+struct UpdateAvailable {};
+// Posted by the OTA task on any failure; networkStatus.error holds the code.
+struct UpdateFailed {};
 
 // Definitions to make the table easier to read.
 static auto bleClick = sml::event<BleClick>;
@@ -43,6 +51,10 @@ static auto doublePress = sml::event<DoublePress>;
 static auto done = sml::event<Done>;
 static auto error = sml::event<Error>;
 static auto home = sml::event<Home>;
+static auto emergencyStopEvent = sml::event<EmergencyStop>;
 static auto returnToMenu = sml::event<ReturnToMenu>;
 static auto updateUnavailable = sml::event<UpdateUnavailable>;
+static auto updateInstalling = sml::event<UpdateInstalling>;
+static auto updateAvailable = sml::event<UpdateAvailable>;
+static auto updateFailed = sml::event<UpdateFailed>;
 #endif  // OSSM_SOFTWARE_EVENTS_H

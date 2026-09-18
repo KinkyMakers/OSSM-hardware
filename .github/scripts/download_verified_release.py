@@ -4,10 +4,13 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import os
 import re
+import subprocess
+import tempfile
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -15,6 +18,78 @@ from typing import Any
 
 CONTROL_PLANE = "https://dashboard.researchanddesire.com"
 REQUIRED_GATES = {"build", "unit", "integration", "artifact", "hardware"}
+PROVENANCE_KEYS = {
+    "rd-fw-staging-2026-08-01": ("staging", """-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEYb/VGPjyRATcddhxhnNs6IZYPSVM
+7GKJFcCpnZgNEYj4z7N897PnOo/KMfyhE5xny9Kl5nJDxEDw0P12xkj75w==
+-----END PUBLIC KEY-----
+"""),
+    "rd-fw-production-2026-08-01": ("main", """-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEaXWHINx1VmUw0eMf5xCX5T5w24IZ
+9K31OGTOy/s37oE7lbPyJanjrVq2u4DOqGLWc6YgSTwekFKO8VXq+GW9Cw==
+-----END PUBLIC KEY-----
+"""),
+}
+
+
+def decode_base64url(value: str) -> bytes:
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", value):
+        raise RuntimeError("provenance contains malformed base64url")
+    return base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
+
+
+def p1363_to_der(signature: bytes) -> bytes:
+    if len(signature) != 64:
+        raise RuntimeError("provenance signature must be 64 bytes")
+    encoded = []
+    for integer in (signature[:32], signature[32:]):
+        integer = integer.lstrip(b"\0") or b"\0"
+        if integer[0] & 0x80:
+            integer = b"\0" + integer
+        encoded.append(b"\x02" + bytes([len(integer)]) + integer)
+    body = b"".join(encoded)
+    return b"\x30" + bytes([len(body)]) + body
+
+
+def verify_provenance(token: str, track: str) -> dict[str, Any]:
+    parts = token.split(".")
+    if len(parts) != 3 or not all(parts):
+        raise RuntimeError("release provenance is not a compact JWS")
+    header = json.loads(decode_base64url(parts[0]))
+    claims = json.loads(decode_base64url(parts[1]))
+    key = PROVENANCE_KEYS.get(header.get("kid"))
+    if (header.get("alg"), header.get("typ")) != ("ES256", "rad-fw-prov+jws"):
+        raise RuntimeError("release provenance has an unsupported header")
+    if key is None or key[0] != track or claims.get("track") != track:
+        raise RuntimeError("release provenance key does not match the track")
+    with tempfile.TemporaryDirectory(prefix="rad-fw-verify-") as directory:
+        directory_path = Path(directory)
+        public_path = directory_path / "public.pem"
+        signature_path = directory_path / "signature.der"
+        public_path.write_text(key[1], encoding="utf-8")
+        signature_path.write_bytes(p1363_to_der(decode_base64url(parts[2])))
+        result = subprocess.run(
+            ["openssl", "dgst", "-sha256", "-verify", str(public_path),
+             "-signature", str(signature_path)],
+            input=f"{parts[0]}.{parts[1]}".encode(),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+    if result.returncode != 0:
+        raise RuntimeError("release provenance signature is invalid")
+    return claims
+
+
+def runtime_image_sha256(content: bytes) -> str:
+    if len(content) < 56 or content[0] != 0xE9:
+        raise RuntimeError("application is not an ESP app image")
+    if content[23] != 1:
+        return hashlib.sha256(content).hexdigest()
+    expected = content[-32:]
+    if hashlib.sha256(content[:-32]).digest() != expected:
+        raise RuntimeError("application has an invalid appended image digest")
+    return expected.hex()
 
 
 def legacy_version_document(
@@ -74,9 +149,22 @@ def download_release(release_id: str, track: str, device: str, output: Path) -> 
     manifest = json.loads(manifest_bytes)
     if manifest.get("track") != track or manifest.get("deviceType") != device or manifest.get("buildSha") != build_sha:
         raise RuntimeError("manifest identity does not match the release")
+    provenance = status.get("provenance") or {}
+    provenance_token = provenance.get("compact_jws", "")
+    claims = verify_provenance(provenance_token, track)
+    if (
+        claims.get("schema") != "rad.firmware.provenance.v1"
+        or claims.get("issuer") != "research-and-desire"
+        or claims.get("deviceType") != device
+        or claims.get("version") != status.get("version")
+        or claims.get("buildSha") != build_sha
+        or claims.get("manifestSha256") != hashlib.sha256(manifest_bytes).hexdigest()
+    ):
+        raise RuntimeError("provenance claims do not match the release")
     output.mkdir(parents=True, exist_ok=True)
     (output / "manifest.json").write_bytes(manifest_bytes)
     object_base = manifest_url.rsplit("/", 1)[0]
+    saw_application = False
     for artifact in manifest.get("artifacts", []):
         filename = artifact.get("filename", "")
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", filename):
@@ -86,7 +174,20 @@ def download_release(release_id: str, track: str, device: str, output: Path) -> 
             raise RuntimeError(f"size mismatch for {filename}")
         if hashlib.sha256(content).hexdigest() != artifact.get("sha256"):
             raise RuntimeError(f"SHA-256 mismatch for {filename}")
+        if artifact.get("role") == "application":
+            saw_application = True
+            if (
+                claims.get("applicationSha256") != artifact.get("sha256")
+                or claims.get("applicationSizeBytes") != len(content)
+                or claims.get("runtimeImageSha256") != runtime_image_sha256(content)
+            ):
+                raise RuntimeError("application does not match its provenance claims")
         (output / filename).write_bytes(content)
+    if not saw_application:
+        raise RuntimeError("manifest has no application artifact")
+    (output / "provenance.json").write_text(
+        json.dumps({"provenance": provenance_token}, separators=(",", ":")) + "\n"
+    )
     (output / "version.json").write_text(
         json.dumps(
             legacy_version_document(status["version"], build_sha, release_id),

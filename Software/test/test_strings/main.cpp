@@ -1,6 +1,10 @@
 #include "unity.h"
 #include "utils/format.h"
 
+namespace UserConfig {
+bool displayMetric = true;
+}
+
 void test_ZeroSeconds(void) {
     TEST_ASSERT_EQUAL_STRING("0s", formatTime(0).c_str());
 }

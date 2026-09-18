@@ -87,6 +87,18 @@ namespace ui {
         static const char updatingTitle[] PROGMEM = "Updating OSSM...";
         static const char updatingBody[] PROGMEM =
             "Update is in progress. This may take up to 60s.";
+        static const char updateFailedTitle[] PROGMEM = "Update Failed";
+        static const char updateAvailableTitle[] PROGMEM = "Update Available";
+        static const char updateAvailableBottom[] PROGMEM = "Click to install";
+        static const char pairingFailedTitle[] PROGMEM = "Pairing Failed";
+        // Reasons shown as the subtitle of the failed pages. Codes match
+        // NetworkStatus::error (reported over BLE to the RADR).
+        static const char reasonWifi[] PROGMEM = "Connect to Wi-Fi first";
+        static const char reasonLowMemory[] PROGMEM = "Not enough memory";
+        static const char reasonCheckFailed[] PROGMEM = "Could not reach server";
+        static const char reasonInstallFailed[] PROGMEM = "Install failed";
+        static const char reasonPairingFailed[] PROGMEM = "Could not reach server";
+        static const char reasonUnknown[] PROGMEM = "Unknown error";
 
         // ============================================================
         // WiFi pages

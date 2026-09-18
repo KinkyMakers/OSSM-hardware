@@ -47,8 +47,12 @@ static void startSimplePenetrationTask(void *pvParameters) {
             settings.speed, Config::Driver::maxSpeedMmPerSecond,
             Config::Advanced::accelerationScaling, (1_mm));
 
+        // Use the effective speed after PlayControls has applied either the
+        // physical knob or the BLE override. Checking the raw knob here makes
+        // a valid BLE speed command unable to start motion when the knob is at
+        // zero, even when speedKnobAsLimit is disabled.
         bool isSpeedZero = simple_pen_logic::isInDeadZone(
-            settings.speedKnob, Config::Advanced::commandDeadZonePercentage);
+            settings.speed, Config::Advanced::commandDeadZonePercentage);
         bool isSpeedChanged =
             !isSpeedZero && simple_pen_logic::isSpeedChangeSignificant(
                                 lastSpeed, speed,

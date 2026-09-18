@@ -22,12 +22,18 @@ void ossmDrawWiFi();
 void ossmDrawUpdate();
 void ossmDrawNoUpdate();
 void ossmDrawUpdating();
+void ossmDrawUpdateFailed();
 void ossmStartUpdate();
+void ossmStartInstall();
+void ossmDrawUpdateAvailable();
 void ossmDrawError();
 void ossmSetHomed();
 void ossmSetNotHomed();
 void ossmCheckPairing();
 void ossmDrawPairingSuccess();
+void ossmDrawPairingFailed();
+void ossmClearRemoteMenuAction();
+void ossmSetNetworkError(const char *code);
 void ossmResetWiFi();
 void ossmRestart();
 
@@ -73,9 +79,16 @@ namespace actions {
     
     constexpr auto drawUpdating = []() { ossmDrawUpdating(); };
 
+    constexpr auto drawUpdateFailed = []() { ossmDrawUpdateFailed(); };
+
     // Spawns the OTA update task (TLS check + download run there, not on the
     // button task, which lacks the stack for a TLS handshake).
     constexpr auto startUpdate = []() { ossmStartUpdate(); };
+
+    // Installs the update the last check offered (confirmed by button/BLE).
+    constexpr auto startInstall = []() { ossmStartInstall(); };
+
+    constexpr auto drawUpdateAvailable = []() { ossmDrawUpdateAvailable(); };
 
     constexpr auto stopWifiPortal = []() {};
     
@@ -86,6 +99,16 @@ namespace actions {
     constexpr auto checkPairing = []() { ossmCheckPairing(); };
 
     constexpr auto drawPairingSuccess = []() { ossmDrawPairingSuccess(); };
+
+    constexpr auto drawPairingFailed = []() { ossmDrawPairingFailed(); };
+
+    // A BLE-triggered menu action is finished once we are back in the menu.
+    constexpr auto clearRemoteMenuAction = []() { ossmClearRemoteMenuAction(); };
+
+    // Records why a network page failed (shown on screen and over BLE).
+    constexpr auto setNetworkError = [](const char *code) {
+        return [code]() { ossmSetNetworkError(code); };
+    };
 
     constexpr auto setHomed = []() { ossmSetHomed(); };
     

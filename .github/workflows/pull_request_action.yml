@@ -56,9 +56,18 @@ jobs:
           pio run -e staging
           pio run -e production
 
+      - name: Build merged web installers
+        run: |
+          for environment in staging production; do
+            python .github/scripts/build_web_installer.py \
+              --build-dir "Software/.pio/build/$environment" \
+              --output "Software/.pio/build/$environment/web-installer.bin"
+          done
+
       - name: Test immutable publisher
         run: |
           python .github/scripts/test_download_verified_release.py
+          python .github/scripts/test_build_web_installer.py
           python .github/scripts/test_publish_immutable_firmware.py
           python .github/scripts/test_release_workflow.py
 
@@ -70,6 +79,43 @@ jobs:
             Software/.pio/build/production/firmware.bin
             Software/.pio/build/production/partitions.bin
             Software/.pio/build/production/bootloader.bin
+            Software/.pio/build/production/web-installer.bin
+          retention-days: 1
+
+      - name: Checkout legacy 4 MB firmware with Bluetooth
+        uses: actions/checkout@v4
+        with:
+          ref: 065c1c70d8be0b6ebe3edf536051ca542b793d70 # main 1.0.39
+          path: legacy-4mb
+
+      - name: Test and build legacy 4 MB firmware
+        run: |
+          VERSION="$(python scripts/release_version.py read --header Software/src/constants/Version.h)"
+          python scripts/release_version.py write --version "$VERSION" \
+            --header legacy-4mb/Software/src/constants/Version.h --version-json legacy-4mb/version.json
+          pio test --project-dir legacy-4mb/Software -e test
+          RELEASE_BUILD_SHA=$(git rev-parse HEAD) pio run --project-dir legacy-4mb/Software -e production -t buildprog
+          grep -aFq "$(git rev-parse HEAD)" legacy-4mb/Software/.pio/build/production/firmware.bin
+          grep -aFq "$VERSION" legacy-4mb/Software/.pio/build/production/firmware.bin
+          test "$(stat --format=%s legacy-4mb/Software/.pio/build/production/firmware.bin)" -le $((0x1E0000 - 0x4000))
+          grep -qx 'CONFIG_BT_ENABLED=y' legacy-4mb/Software/sdkconfig.production
+          grep -qx 'CONFIG_ESPTOOLPY_FLASHSIZE="4MB"' legacy-4mb/Software/sdkconfig.production
+          ~/.platformio/packages/toolchain-xtensa-esp32/bin/xtensa-esp32-elf-nm \
+            legacy-4mb/Software/.pio/build/production/firmware.elf | grep -E 'NimBLEServer' > /dev/null
+          python .github/scripts/build_web_installer.py --flash-size 4MB \
+            --build-dir legacy-4mb/Software/.pio/build/production \
+            --output legacy-4mb/Software/.pio/build/production/web-installer.bin
+
+      - name: Upload legacy 4 MB firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-v1
+          path: |
+            legacy-4mb/Software/.pio/build/production/firmware.bin
+            legacy-4mb/Software/.pio/build/production/partitions.bin
+            legacy-4mb/Software/.pio/build/production/bootloader.bin
+            legacy-4mb/Software/.pio/build/production/web-installer.bin
+          if-no-files-found: error
           retention-days: 1
 
   check:
@@ -127,4 +173,15 @@ jobs:
         run: |
           cd Software
           pio test -e test
+
   check_docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify restored safety documentation
+        run: |
+          if [[ ! -s Documentation/Hazards.md || ! -s "Documentation/Safety and Design Guide.md" ]]; then
+            echo "Required safety documentation is missing or empty"
+            exit 1
+          fi

@@ -14,10 +14,13 @@ const char *VALID_RESPONSE = R"json({
   "reportedTrack": "main",
   "assignedTrack": "staging",
   "trackChanged": true,
+  "firmwareOrigin": "official",
+  "currentProvenance": "current.jws.token",
   "currentVersion": "1.0.34",
   "targetVersion": "1.0.35",
   "nextHopVersion": "1.0.35",
   "update": {
+    "provenance": "target.jws.token",
     "releaseId": "00000000-0000-4000-8000-000000000001",
     "buildSha": "0123456789abcdef0123456789abcdef01234567",
     "kind": "firmware",
@@ -64,6 +67,8 @@ void test_serializes_version_identity_and_hardware_fields() {
         .currentBuild = "0123456789abcdef",
         .firmwareHash =
             "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        .provenanceCapability = 1,
+        .firmwareProvenance = "current.jws.token",
         .chip = "ESP32-D0WDQ6",
         .chipRevision = 0,
         .chipCores = 2,
@@ -79,6 +84,9 @@ void test_serializes_version_identity_and_hardware_fields() {
     TEST_ASSERT_EQUAL_STRING("ossm", parsed["deviceType"]);
     TEST_ASSERT_EQUAL_STRING("AA:BB:CC:DD:EE:FF", parsed["deviceId"]);
     TEST_ASSERT_EQUAL_STRING("main", parsed["reportedTrack"]);
+    TEST_ASSERT_EQUAL_INT(1, parsed["provenanceCapability"]);
+    TEST_ASSERT_EQUAL_STRING("current.jws.token",
+                             parsed["firmwareProvenance"]);
     TEST_ASSERT_EQUAL_STRING("1.0.34", parsed["currentVersion"]);
     TEST_ASSERT_EQUAL_STRING("0123456789abcdef", parsed["currentBuild"]);
     TEST_ASSERT_EQUAL_STRING(report.firmwareHash.c_str(), parsed["firmwareHash"]);
@@ -108,6 +116,11 @@ void test_parses_canonical_decision_and_orders_artifacts() {
     TEST_ASSERT_EQUAL_INT(1, decision.protocolVersion);
     TEST_ASSERT_EQUAL_STRING("update-available", decision.reason.c_str());
     TEST_ASSERT_EQUAL_STRING("staging", decision.assignedTrack.c_str());
+    TEST_ASSERT_EQUAL_STRING("official", decision.firmwareOrigin.c_str());
+    TEST_ASSERT_EQUAL_STRING("current.jws.token",
+                             decision.currentProvenance.c_str());
+    TEST_ASSERT_EQUAL_STRING("target.jws.token",
+                             decision.provenance.c_str());
     TEST_ASSERT_TRUE(decision.trackChanged);
     TEST_ASSERT_EQUAL_STRING("1.0.35", decision.nextHopVersion.c_str());
     TEST_ASSERT_EQUAL_STRING(

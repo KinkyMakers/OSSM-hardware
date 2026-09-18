@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FirmwareUpdateProtocol.h"
+#include "FirmwareProvenance.h"
 
 #if defined(ARDUINO_ARCH_ESP32)
 
@@ -40,6 +41,19 @@ inline bool postCheck(const char *apiBaseUrl, const DeviceReport &report,
     }
     esp_http_client_set_header(client, "Content-Type", "application/json");
     esp_http_client_set_header(client, "Accept-Encoding", "identity");
+    esp_http_client_set_header(client, "X-RAD-Firmware-Provenance-Capability",
+                               "1");
+    if (!report.firmwareProvenance.empty()) {
+        const std::string provenanceId =
+            provenance::tokenId(report.firmwareProvenance);
+        esp_http_client_set_header(client, "X-RAD-Firmware-Provenance",
+                                   report.firmwareProvenance.c_str());
+        esp_http_client_set_header(client, "X-RAD-Firmware-Provenance-ID",
+                                   provenanceId.c_str());
+    }
+    if (!report.firmwareHash.empty())
+        esp_http_client_set_header(client, "X-RAD-Firmware-Image-SHA256",
+                                   report.firmwareHash.c_str());
 
     bool success = false;
     if (esp_http_client_open(client, body.size()) != ESP_OK ||

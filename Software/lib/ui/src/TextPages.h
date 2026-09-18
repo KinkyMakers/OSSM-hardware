@@ -34,6 +34,23 @@ namespace ui {
             .title = error,
         };
 
+        // Subtitle is filled at draw time with the reason (see Strings reason*).
+        static const TextPage updateFailedPage = {
+            .title = updateFailedTitle,
+            .bottomText = skip,
+        };
+
+        // Subtitle is the offered version.
+        static const TextPage updateAvailablePage = {
+            .title = updateAvailableTitle,
+            .bottomText = updateAvailableBottom,
+        };
+
+        static const TextPage pairingFailedPage = {
+            .title = pairingFailedTitle,
+            .bottomText = skip,
+        };
+
         static const TextPage wifiDisconnectedPage = {
             .title = wifiSetup,
             .body = wifiBody,

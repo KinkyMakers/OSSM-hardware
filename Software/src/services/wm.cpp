@@ -10,7 +10,7 @@ WiFiManager wm;
 Preferences wifiPrefs;
 
 void initWM() {
-    WiFi.useStaticBuffers(true);
+    WiFi.useStaticBuffers(false);
     esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
 
     wm.setSaveConfigCallback([]() {

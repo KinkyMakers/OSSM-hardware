@@ -1,168 +1,173 @@
 # OSSM - Open Source Sex Machine
+### **Maintained by Research and Desire, supported by the community!**
+### Check us out at [**researchanddesire.com**](https://researchanddesire.com)
 
-**Maintained by [Research and Desire](https://researchanddesire.com), supported by the community.**
+![OSSM Overview Image](Documentation/_images/OSSM%20Banner%20Image.png)
 
-[Read the documentation here.](https://docs.researchanddesire.com/ossm)
+### [**KinkyMakers Discord Community**](https://discord.gg/VtZcudpxT6) 
+![Discord](https://img.shields.io/discord/559409652425687041)  
+Most OSSM development takes place through ideas and CAD contributions made by enthusiastic discord members, join the discussion or show off your build!  
 
-![OSSM Overview Image](assets/readme/ossm-banner.webp)
+### Check out our docs at [GitBook](https://kinky-makers.gitbook.io/)
 
-## What is OSSM?
+### [**Read the Frequently Asked Questions**](FAQ.md)
 
-**OSSM** (pronounced like "awesome") is a user-friendly, open-source sex machine designed for everyday use. Whether you're curious about sex machines or looking to build your own, OSSM provides a powerful, customizable solution you can assemble at home.
 
-OSSM uses a servo-powered belt-driven linear rail, enabling quiet operation, high torque, and software-defined stroke and depth control at speeds up to 1 meter per second.
+## **Summary**   
+**OSSM** (pronounced like "awesome") is a user friendly every day sex machine for the people.
 
-### Performance Specifications
+The OSSM's primary feature is that it is a servo powered belt-driven linear rail.  
+This allows for quiet, high torque operation at speeds up to 1 meter per second, as well as for software-defined stroke and depth. 
 
-| Specification | Standard (20V DC) | High Power (36V DC) |
-|---------------|-------------------|---------------------|
-| Force output  | 32 lbs (14 kg)    | 50 lbs (22 kg)      |
-| Stroke length | 8" (20 cm)        | 8" (20 cm)          |
-| Rail size     | 350mm             | 350mm               |
+**Standard Recommended Build at a glance**
+ - 32 lbs (14 kg) of force @ 20v DC
+   - Up to 50 lbs (22 kg) @ 36v DC
+ - 8" Stroke (20 cm) with 350mm rail
 
-### Why Build an OSSM?
+This project aims to help people curious about sex machines explore their interest.   
+A second objective is optionally learning how mechanics, electronics, physics and computing are involved in your sexual pleasure.
 
-- **Full control** over stroke length, depth, and speed through software
-- **Quiet operation** suitable for shared living spaces
-- **Customization options** through community-developed mods
-- **Learning opportunities** in mechanics, electronics, and computing
+### **Primary** Design Goals
+- Compact & quiet
+- Highly performant
+- Moderate cost
+- 3D printable
+- Easily-sourced components
+- Moddable
+  
+<p align="center">
+<img width="750" alt="image" src="https://github.com/KinkyMakers/OSSM-hardware/assets/43324815/a756a8d5-c075-4e86-8206-b553a0b77127">
+</p>
 
-## Quick Links
+Note: This is a _work in progress_ and we have attempted to keep compatibility with the current BOM going
+forward, but it's not guaranteed.
 
-| Resource | Description |
-|----------|-------------|
-| [Documentation](https://docs.researchanddesire.com/ossm) | Complete build guides, hardware specs, and software reference |
-| [R+D Store](https://researchanddesire.com) | Purchase motors, PCBs, wire harnesses, and complete kits |
-| [KinkyMakers Discord](https://discord.gg/VtZcudpxT6) | Community discussion, build help, and mod development |
-| [FAQs](https://docs.researchanddesire.com/ossm/guides/housekeeping/faqs) | Common questions about hardware, motors, printing, and control |
 
-![Discord](https://img.shields.io/discord/559409652425687041)
 
----
+### Is it *actually* Open Source?
+    CERN Open Hardware Licence Version 2 - Strongly Reciprocal
+It is one of a kind Certified, Actual, Factual, Open Source  
+[<img width="287" alt="image" src="https://github.com/user-attachments/assets/af168015-b80a-4464-8778-e391278d9748">](https://certification.oshwa.org/ca000057.html)
 
-## Building Your OSSM
+Contributions to this GitHub repository assume the same license.
 
-For complete step-by-step instructions, see the [Build Guide](https://docs.researchanddesire.com/ossm/guides/getting-started/build-guide/step-0.0_introduction).
+## **Safety**
 
-### Bill of Materials
+The safety of the OSSM is yet to be fully characterized as it is a work in progress.  
+The OSSM is a framework for building your own sex machine and as such your specific combination may have risks not inherent to other builds.  
+**These risks may be undocumented or undiscovered. Please see the [Hazards](Documentation/Hazards.md) file for more information.**
 
-For the complete parts list with supplier links, see [Required Tools and Parts](https://docs.researchanddesire.com/ossm/guides/getting-started/build-guide/step-1.0_required_tools_and_parts).
+Use of experimental/modified code increases the level of risk.
 
-### Electronics
+While using the OSSM we can suggest the following hierarchy of safety, however it is up to you and your build to decide
+what risks exist and how to mitigate them.
 
-| Component | Description | Documentation |
-|-----------|-------------|---------------|
-| Motor | 57AIM30 "Gold Motor" | [Motor Documentation](https://docs.researchanddesire.com/ossm/Hardware/motor/standard-build-motor) |
-| Reference Board | OSSM PCB or ESP32 Development Board | [Board Design](https://docs.researchanddesire.com/ossm/Hardware/PCB/board-design) |
-| Remote | OSSM Wired Remote | [Remote Documentation](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/remote/introduction) |
-| Wiring | JST-PH 2.0 4-Pin data cable and 16awg power wire | [Wiring Guide](https://docs.researchanddesire.com/ossm/Hardware/motor/wiring-gold-motor) |
+1. Have ability to move away
+2. Have ability to remove the power
+3. If you are in bondage, safety is responsibility of the Top
 
-**Power Supply:** 20-36V DC (5.5 x 2.1 Barrel Plug). A 24V 5A supply is recommended. Higher voltage (up to 36V) provides increased force.
+## **Building Your OSSM**
+### Motor Support  
+ - 57AIM30 "Gold Motor" (Standard Recommended)
+ - 42AIM30 "Round Motor" (Smaller form factor, limited mounting support)
+ - iHSV57 "Legacy Motor" (Pre-2024 recommended motor)
 
-> **Portable Option:** USB Power Banks capable of true 100W USB PD generally work well.
-> - INIU Power Bank P63-E1 100W (tested, works)
-> - INIU B62 Power Bank 65W (tested, powers down on high load)
+The OSSM Software is written to support closed loop servo type motors and tested on the above motors.  
+Most OSSM actuator and mounting hardware is designed for NEMA23 form factor motors.  
+Attempting to use a stepper or other motor is not recommended; while it may be technically possible in some cases, this usually requires custom design work and advanced-level custom code. 
 
-### Printed Parts
+### Bill Of Materials for Standard Recommended Build
 
-For 3D printing settings and material recommendations, see [3D Printing Parts](https://docs.researchanddesire.com/ossm/guides/getting-started/build-guide/step-1.2_3d-printing-parts).
+### Electronics  
 
-| Assembly | Parts Included | Documentation |
-|----------|----------------|---------------|
-| [Actuator](Printed%20Parts/Actuator/) | Body, Belt Tensioner, Threaded End Effector | [Actuator Docs](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/actuator/introduction) |
-| [Remote](Printed%20Parts/Remote/) | Body, Knobs, Top Cover | [Remote Docs](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/remote/introduction) |
-| [Toy Mounting](Printed%20Parts/Toy%20Mounting/) | Flange Base, Vac-U-Lock Adapters | [Toy Mounting Docs](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/toy-mounting/introduction) |
-| [Mounting](Printed%20Parts/Mounting/) | PitClamp Mini Ring/Base, PCB Enclosure | [Mounting Docs](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/pitclamp/README) |
-| [Stand](Printed%20Parts/Stand/) | 3030 Extrusion Base Components | [Stand Docs](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/stand/introduction) |
+ - Motor 
+   - 57AIM30 ["Gold Motor"](https://www.researchanddesire.com/products/ossm-motor-gold-motor)
+     - **Important note:** In order to operate with OSSM Software, motors must receive programming to set their "steps per revolution" to 800.
+     - Motors from R+D are pre-programmed for OSSM. Motors from all other sources will need programming.
+     - Programming requires a USB to 4 pin RS485 connector, cable for the 8 pin white motor plug, and use of the [Gold Motor Programming Tool](/Hardware/Servo%20Tools/Gold%20Motor/)
+ - OSSM Reference Board, Remote, Wiring
+    - [OSSM Reference PCB](https://www.researchanddesire.com/products/ossm-reference-board) or ESP32 Development Board
+      - More information for board development [here](/Documentation/Board_Design.md).
+    - [OSSM Remote](https://www.researchanddesire.com/products/ossm-reference-board)
+    - JST-PH 2.0 4-Pin data cable and 16awg power wire
+      - [Wire harness - Gold Motor](https://www.researchanddesire.com/products/ossm-wire-harness-gold-motor)
+ - 20-36v DC Power Supply (5.5 x 2.1 Barrel Plug)
+   - [24 volt 5 amp](https://www.researchanddesire.com/products/ossm-24v-power-supply) is recommended
+   - Higher voltage, up to 36v, will provide increased force
+   - USB Power Banks capable of true 100w USB PD also generally seem to operate well for a portable OSSM
+     - [TESTED: ✓] INIU Power Bank P63-E1 100w (Old model: B63)
+     - [TESTED: Powers down on high load] INIU B62 Power Bank 65W
 
-Experimental parts are developed in the [KinkyMakers Discord](https://discord.gg/wrENMKb3) `#ossm-print-testing` channel.
+### [**Printed Parts**](Printed%20Parts/) 
+ - [Actuator](Printed%20Parts/Actuator/)
+   - Body
+   - Belt Tensioner
+   - Threaded End Effector, Clamp + Nut  
+ - [Remote](Printed%20Parts/Remote/)
+   - Body
+   - Knobs
+ - [Toy Mounting](Printed%20Parts/Toy%20Mounting/)
+   - Flange Base Plate with Clamping Ring (Tie-Down or Suction)
+   - Double Double (Vac-U-Lock)
+ - [Mounting](Printed%20Parts/Mounting/)
+   - Mounting Ring (PitClamp Mini Ring)
+   - Base (PitClamp Mini Base)
+   - PCB Enclosure
+ - [Stand](Printed%20Parts/Stand/)
+   - 3030 Extrusion Base
 
-### Hardware Components
+Experimental parts pop up in the [KinkyMakers Discord](https://discord.gg/wrENMKb3) #ossm-print-testing channel.  
+W.I.P. for the top rated to be merged into this repo.
 
-**GT2 Pulley**
-- Qty 1: 8mm Bore, 20 Tooth, 10mm Width
+### Standard Actuator Hardware
+**GT2 Pulley** 
 
-**GT2 Timing Belt**
-- Qty 1: 10mm Width, 500mm length
+    (Qty 1) 8mm Bore, 20 Tooth, 10mm Width
+**GT2 Timing Belt** 
 
+    (Qty 1) 10mm Width, 500mm length
 **MGN12H Rail + Bearing Block**
-- Qty 1: Minimum 250mm, Suggested 350mm, Maximum 550mm
-- Rail length = desired maximum stroke + 180mm
-- Must be MGN**12H** (H = longer bearing block for stability, 12 = 12mm rail width)
+
+    (Qty 1)
+    Minimum 250mm
+    Suggested 350mm
+    Maximum 550mm
+
+Rail length = desired maximum stroke + 180mm  
+Must be MGN**12H** rail.  
+H is a longer bearing block than C for greater stability. 12 indicates 12mm rail width.
 
 **Ball Bearings**
-- Qty 6: MR115-2RS 5x11x4mm
 
-**Fasteners**
-| Qty | Part |
-|-----|------|
-| 8 | M3x8 Socket Cap Head Bolt |
-| 2 | M3x16 Socket Cap Head Bolt |
-| 1 | M3x20 Socket Cap Head Bolt |
-| 7 | M3 Hex Nut |
-| 3 | M5x20 Socket Cap Head Bolt |
-| 1 | M5 Hex Nut |
-| 4 | M5x35 Socket Cap Head Bolt |
-| 4 | M5 20mm Hex Coupling Nut (or M5 Hex Nut) |
+    (Qty 6) MR115-2RS 5x11x4mm 
 
-Additional hardware is required for Stand, Mounting, and Remote assemblies. See the respective [Printed Parts](Printed%20Parts/) folders for details.
+**Fasteners**  
 
----
+    (Qty 8) M3x8  Socket Cap Head Bolt 
+    (Qty 2) M3x16 Socket Cap Head Bolt 
+    (Qty 1) M3x20 Socket Cap Head Bolt 
+    (Qty 7) M3 Hex Nut
+    (Qty 3) M5x20 Socket Cap Head Bolt
+    (Qty 1) M5 Hex Nut
+    (Qty 4) M5x35 Socket Cap Head Bolt 
+    (Qty 4) M5 20mm Hex Coupling Nut (Or M5 Hex Nut)
+
+**Additional hardware is required for Stand, Mounting, Remote  
+Detailed in their respective [Printed Parts](Printed%20Parts/) folder**
 
 ## Assembly
 
-**Important:** The actuator rail direction is critical for pattern accuracy and safety. The proper orientation has the threaded end to the right when looking at the front face of the actuator body (the "M" side of the OSSM text on the cover).
+**Important note:** The actuator rail direction is critical for pattern accuracy and safety functions. The proper direction is with the threaded end to the right when looking at the front face of the actuator body - the "M" side of the OSSM text on the Cover.  
+Outdated videos and documentation may show different directions. Your rail should extend the threaded end first when booted; if this does not match the behavior of your build you should reverse your rail's printed hardware.
 
-Your rail should extend the threaded end first when booted. If this doesn't match your build's behavior, reverse your rail's printed hardware.
 
-![Actuator Assembly](assets/readme/actuator-exploded.webp)
+![](Printed%20Parts/Actuator/_images/Exploded%20-%20Actuator%20Default.png)  
+### [**Build Instructions**](Documentation/Assembly%20Instructions.pdf)
+(03.30.2025) Note: There have been recent improvements to the OSSM Standard Recommended build that are not yet reflected in this build document.  
+Refer to exploded views from the Printed Parts folders for assembly of each major component.
+## Build Videos
 
-### Build Resources
+[OSSM Assembly Playlist](https://youtube.com/playlist?list=PLzSK7OAu3KNQsFo6WJGT8P28lfkD3xpps)
 
-| Resource | Description |
-|----------|-------------|
-| [Complete Build Guide](https://docs.researchanddesire.com/ossm/guides/getting-started/build-guide/step-0.0_introduction) | Step-by-step documentation with images |
-| [OSSM Assembly Playlist](https://youtube.com/playlist?list=PLzSK7OAu3KNQsFo6WJGT8P28lfkD3xpps) | Video tutorials for each assembly step |
-| [Complete Assembly - Follow Along Guide](https://www.youtube.com/watch?v=9lVobSEw_Uw) | Full 30-minute video walkthrough |
 
----
-
-## Software
-
-For firmware flashing and configuration, see the [Software Documentation](https://docs.researchanddesire.com/ossm/Software/getting-started/introduction).
-
-| Resource | Description |
-|----------|-------------|
-| [Web Flasher](https://docs.researchanddesire.com/ossm/guides/getting-started/web-flasher) | Flash firmware directly from your browser |
-| [PlatformIO Setup](https://docs.researchanddesire.com/ossm/Software/getting-started/PlatformIO) | Development environment for custom builds |
-| [LED Status Guide](https://docs.researchanddesire.com/ossm/Software/getting-started/LED_Status) | Understanding indicator lights |
-| [StrokeEngine](https://docs.researchanddesire.com/ossm/Software/motion/stroke-engine/introduction) | Motion control library documentation |
-| [Hardware Tests](https://docs.researchanddesire.com/ossm/Software/getting-started/hardware-tests) | On-device test suites for verifying peripherals, BLE, WiFi, and homing |
-
----
-
-## Getting Help
-
-- [User Guide](https://docs.researchanddesire.com/ossm/guides/getting-started/user-guide/introduction) - Operating your OSSM
-- [Troubleshooting](https://docs.researchanddesire.com/ossm/guides/getting-started/user-guide/troubleshooting) - Common issues and solutions
-- [Safety Information](https://docs.researchanddesire.com/ossm/guides/housekeeping/safety/introduction) - Important safety guidance
-- [Discord Community](https://discord.gg/VtZcudpxT6) - Real-time community support
-
----
-
-## Contributing
-
-OSSM is open-source hardware under the [CERN Open Hardware Licence Version 2 - Strongly Reciprocal](LICENSE).
-
-- [How to Become a Contributor](https://docs.researchanddesire.com/ossm/guides/contributing/how-to-become-a-contributor)
-- [Forking the Repository](https://docs.researchanddesire.com/ossm/guides/contributing/forking)
-- [Reporting Issues](https://docs.researchanddesire.com/ossm/guides/contributing/reporting-issues)
-- [Roadmap](https://docs.researchanddesire.com/ossm/guides/contributing/roadmap)
-
----
-
-## About
-
-- [About Research and Desire](https://docs.researchanddesire.com/ossm/guides/housekeeping/about-research-and-desire)
-- [About Kinky Makers](https://docs.researchanddesire.com/ossm/guides/housekeeping/about-kinky-makers)
-- [Open Source Certification](https://docs.researchanddesire.com/ossm/guides/housekeeping/open-source/introduction)
+[OSSM Complete Assembly - Follow Along Guide](https://www.youtube.com/watch?v=9lVobSEw_Uw)
