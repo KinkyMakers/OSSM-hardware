@@ -100,6 +100,20 @@ void __attribute__((weak)) setup() {
             ESP_LOGD("MAIN", "Initializing communication services");
             initNimble();
             initWM();
+            // The MQTT TLS session competes with homing for internal RAM and
+            // can leave the backward homing pass unable to start. Bring MQTT
+            // and the pairing check up once the boot homing run is over
+            // (capped so comms still come up if something else stalls).
+            // Later re-homes pause and resume MQTT themselves.
+            for (int waited = 0; waited < 1200; waited++) {
+                const bool bootHomingPending =
+                    stateMachine->is("idle"_s) ||
+                    stateMachine->is("homing"_s) ||
+                    stateMachine->is("homing.forward"_s) ||
+                    stateMachine->is("homing.backward"_s);
+                if (!bootHomingPending) break;
+                vTaskDelay(pdMS_TO_TICKS(100));
+            }
             initMQTT();
             pages::startPairingStatusCheck();
             vTaskDelete(nullptr);

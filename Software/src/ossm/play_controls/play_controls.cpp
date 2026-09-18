@@ -80,6 +80,8 @@ static void drawPlayControlsTask(void *pvParameters) {
     while (isInCorrectState()) {
         shouldUpdateDisplay = false;
 
+        encoderValue = encoder.readEncoder();
+        PlayControls loopControl =  session.playControl;
 #ifdef AJ_DEVELOPMENT_HARDWARE
         next.speedKnob = 0;
 #else
@@ -106,9 +108,8 @@ static void drawPlayControlsTask(void *pvParameters) {
         }
 
         settings.speedKnob = next.speedKnob;
-        encoderValue = encoder.readEncoder();
 
-        switch (session.playControl) {
+        switch (loopControl) {
             case PlayControls::STROKE:
                 next.stroke = encoderValue;
                 shouldUpdateDisplay =
@@ -171,7 +172,7 @@ static void drawPlayControlsTask(void *pvParameters) {
             data.sensation = settings.sensation;
             data.depth = settings.depth;
             data.buffer = settings.buffer;
-            data.activeControl = toUiPlayControl(session.playControl);
+            data.activeControl = toUiPlayControl(loopControl);
             data.strokeCount = session.strokeCount;
             data.distanceMeters = session.distanceMeters;
             data.elapsedMs = displayLastUpdated - session.startTime;
