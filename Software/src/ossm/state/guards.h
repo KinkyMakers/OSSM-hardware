@@ -4,6 +4,7 @@
 #include <WiFi.h>
 
 #include "../../constants/Menu.h"
+#include "ble.h"
 
 // Forward declarations for guard implementations (defined in guards.cpp)
 bool ossmIsStrokeTooShort();
@@ -51,6 +52,9 @@ namespace guards {
 
     // Guard for checking if online
     constexpr auto isOnline = []() { return WiFiClass::status() == WL_CONNECTED; };
+
+    // True when the current menu action was requested over BLE (RADR/app).
+    constexpr auto isRemoteMenuAction = []() { return bleState.remoteMenuAction; };
 
 }  // namespace guards
 

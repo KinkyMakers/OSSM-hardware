@@ -14,6 +14,7 @@
 #include "services/led.h"
 #include "services/stepper.h"
 #include "services/wm.h"
+#include "utils/firmware_md5.h"
 #include "utils/update.h"
 
 namespace sml = boost::sml;
@@ -68,6 +69,7 @@ void __attribute__((weak)) setup() {
     // The board, display, and state machine initialized successfully. Confirm
     // the running image if a rollback-capable bootloader marked it pending.
     ossmConfirmRunningImage();
+    cacheSketchMd5();  // before BLE/Wi-Fi/MQTT: getSketchMD5 needs a big buffer
 
     // ialize LED for BLE and machine status indication
     ESP_LOGI("MAIN", "LED initialized for BLE and machine status indication");
@@ -98,6 +100,20 @@ void __attribute__((weak)) setup() {
             ESP_LOGD("MAIN", "Initializing communication services");
             initNimble();
             initWM();
+            // The MQTT TLS session competes with homing for internal RAM and
+            // can leave the backward homing pass unable to start. Bring MQTT
+            // and the pairing check up once the boot homing run is over
+            // (capped so comms still come up if something else stalls).
+            // Later re-homes pause and resume MQTT themselves.
+            for (int waited = 0; waited < 1200; waited++) {
+                const bool bootHomingPending =
+                    stateMachine->is("idle"_s) ||
+                    stateMachine->is("homing"_s) ||
+                    stateMachine->is("homing.forward"_s) ||
+                    stateMachine->is("homing.backward"_s);
+                if (!bootHomingPending) break;
+                vTaskDelay(pdMS_TO_TICKS(100));
+            }
             initMQTT();
             pages::startPairingStatusCheck();
             vTaskDelete(nullptr);

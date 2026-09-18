@@ -9,15 +9,45 @@
 #include "ossm/state/calibration.h"
 #include "ossm/state/error.h"
 #include "ossm/state/state.h"
+#include "services/communication/mqtt.h"
 #include "services/led.h"
 #include "services/stepper.h"
 #include "services/tasks.h"
 #include "utils/analog.h"
 
+#include <esp_heap_caps.h>
+
 namespace sml = boost::sml;
 using namespace sml;
 
 namespace homing {
+
+namespace {
+
+// The MQTT client holds a TLS session that competes with homing for internal
+// RAM. It is paused for the whole homing run and resumed once the state
+// machine has left homing by any route (done, error, emergency stop).
+bool mqttPausedForHoming = false;
+
+bool isInHomingState() {
+    return stateMachine->is("homing"_s) ||
+           stateMachine->is("homing.forward"_s) ||
+           stateMachine->is("homing.backward"_s);
+}
+
+void pauseMqttForHoming() {
+    if (mqttPausedForHoming || mqttClient == nullptr) return;
+    esp_mqtt_client_stop(mqttClient);
+    mqttPausedForHoming = true;
+}
+
+void resumeMqttAfterHoming() {
+    if (!mqttPausedForHoming) return;
+    mqttPausedForHoming = false;
+    if (mqttClient != nullptr) esp_mqtt_client_start(mqttClient);
+}
+
+}  // namespace
 
 void clearHoming() {
     ESP_LOGD("Homing", "Homing started");
@@ -52,15 +82,12 @@ static void startHomingTask(void *pvParameters) {
     return;
 #endif
 
+    pauseMqttForHoming();
+
     // Stroke Engine and Simple Penetration treat this differently.
     stepper->enableOutputs();
-    // Path X: standardize on invertDirection=true. With this polarity, positive
-    // counter direction = physical extend. We want homing.backward to END at the
-    // retracted hard stop with counter=0 (so positive working range = extend),
-    // so its drive direction must be NEGATIVE. Sign assignment is therefore
-    // inverted from the pre-Path-X convention.
-    stepper->setDirectionPin(Pins::Driver::motorDirectionPin, true);
-    int16_t sign = stateMachine->is("homing.backward"_s) ? -1 : 1;
+    stepper->setDirectionPin(Pins::Driver::motorDirectionPin, false);
+    int16_t sign = stateMachine->is("homing.backward"_s) ? 1 : -1;
 
     int32_t targetPositionInSteps =
         round(sign * Config::Driver::maxStrokeSteps);
@@ -68,15 +95,8 @@ static void startHomingTask(void *pvParameters) {
     ESP_LOGD("Homing", "Target position in steps: %d", targetPositionInSteps);
     stepper->moveTo(targetPositionInSteps, false);
 
-    auto isInCorrectState = []() {
-        // Add any states that you want to support here.
-        return stateMachine->is("homing"_s) ||
-               stateMachine->is("homing.forward"_s) ||
-               stateMachine->is("homing.backward"_s);
-    };
-
     // run loop for 15second or until loop exits
-    while (isInCorrectState()) {
+    while (isInHomingState()) {
         TickType_t xCurrentTickCount = xTaskGetTickCount();
         // Calculate the time in ticks that the task has been running.
         TickType_t xTicksPassed = xCurrentTickCount - xTaskStartTime;
@@ -144,14 +164,42 @@ static void startHomingTask(void *pvParameters) {
         break;
     };
 
+    // The forward pass hands over to the backward pass while still homing;
+    // only the pass that leaves homing (or any error/stop exit) resumes MQTT.
+    if (!isInHomingState()) {
+        resumeMqttAfterHoming();
+    }
+
     vTaskDelete(nullptr);
 }
 
 void startHoming() {
     int stackSize = 10 * configMINIMAL_STACK_SIZE;
-    xTaskCreatePinnedToCore(startHomingTask, "startHomingTask", stackSize,
-                            nullptr, configMAX_PRIORITIES - 1,
-                            &Tasks::runHomingTaskH, Tasks::operationTaskCore);
+
+    // The timeout, stall detection and Done event all live inside this task.
+    // If it silently fails to start, the state machine waits in homing
+    // forever, so retry briefly (internal RAM frees up as the radios settle)
+    // and fall back to the existing homing error instead of hanging.
+    BaseType_t created = pdFAIL;
+    for (int attempt = 0; attempt < 20 && created != pdPASS; attempt++) {
+        if (attempt > 0) vTaskDelay(pdMS_TO_TICKS(250));
+        created = xTaskCreatePinnedToCore(
+            startHomingTask, "startHomingTask", stackSize, nullptr,
+            configMAX_PRIORITIES - 1, &Tasks::runHomingTaskH,
+            Tasks::operationTaskCore);
+    }
+    if (created == pdPASS) return;
+
+    ESP_LOGE("Homing",
+             "Could not create homing task: internal free=%u largest=%u",
+             static_cast<unsigned>(heap_caps_get_free_size(
+                 MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)),
+             static_cast<unsigned>(heap_caps_get_largest_free_block(
+                 MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)));
+    errorState.message = ui::strings::homingTookTooLong;
+    setHomingActive(false);
+    resumeMqttAfterHoming();
+    stateMachine->process_event(Error{});
 }
 
 bool isStrokeTooShort() {

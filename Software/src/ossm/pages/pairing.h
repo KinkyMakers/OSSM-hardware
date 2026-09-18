@@ -7,6 +7,7 @@ void checkPairing();
 void drawPairingSuccess();
 bool isOssmPaired();
 void startPairingStatusCheck();
+void drawPairingFailed();
 
 }  // namespace pages
 

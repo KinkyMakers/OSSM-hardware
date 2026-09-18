@@ -9,6 +9,10 @@
 struct BLEState {
     bool lastSpeedCommandWasFromBLE = false;
     bool hasActiveConnection = false;
+    // True while a menu action (update, pairing, restart) was requested over
+    // BLE rather than the physical button. Network pages use it to report a
+    // failure back over BLE instead of dropping into the captive portal.
+    bool remoteMenuAction = false;
 };
 
 extern BLEState bleState;

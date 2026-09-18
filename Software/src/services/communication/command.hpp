@@ -9,11 +9,10 @@
 #include "NimBLEService.h"
 #include "NimBLEUUID.h"
 #include "queue.h"
+#include "command/command_pattern.hpp"
 #include "rad_ble.h"
 #include "services/led.h"
 
-static const std::regex commandRegex(
-    R"(go:(simplePenetration|strokeEngine|streaming|menu)|set:(speed|stroke|depth|sensation|buffer|pattern):\d+|set:wifi:[^|]+\|.+|stream:\d+:\d+)");
 
 /** Handler class for characteristic actions */
 class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
@@ -36,7 +35,7 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
             return;
         }
 
-        if (!std::regex_match(cmd, commandRegex)) {
+        if (!isValidBleCommand(cmd)) {
             ESP_LOGD("NIMBLE_COMMAND", "Invalid command: %s", cmd.c_str());
             pCharacteristic->setValue("fail:" + String(cmd.c_str()));
             return;

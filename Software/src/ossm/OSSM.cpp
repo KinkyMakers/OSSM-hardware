@@ -6,9 +6,11 @@
 #include "ossm/state/ble.h"
 #include "ossm/state/calibration.h"
 #include "ossm/state/menu.h"
+#include "ossm/state/network.h"
 #include "ossm/state/session.h"
 #include "ossm/state/settings.h"
 #include "ossm/state/state.h"
+#include "ossm/state_json.hpp"
 #include "services/communication/mqtt.h"
 #include "services/communication/queue.h"
 #include "services/encoder.h"
@@ -31,6 +33,33 @@ SettingPercents OSSM::setting = {.speed = 0,
 OSSM::OSSM() {
     // Initialize global state from OSSM::setting
     settings = OSSM::setting;
+}
+
+bool OSSM::triggerMenuActionFromBle(Menu option) {
+    if (stateMachine == nullptr) return false;
+    bleState.remoteMenuAction = true;
+    // A second go:update while an update is offered is the install confirmation.
+    if (option == Menu::UpdateOSSM && stateMachine->is("update.available"_s)) {
+        stateMachine->process_event(ButtonPress{});
+        return true;
+    }
+    // Leave whatever we are doing: play modes honour ReturnToMenu, the simple
+    // info/result pages (update.idle, pairing.failed, help...) exit on a
+    // button press.
+    if (!stateMachine->is("menu.idle"_s)) {
+        stateMachine->process_event(ReturnToMenu{});
+    }
+    if (!stateMachine->is("menu.idle"_s)) {
+        stateMachine->process_event(ButtonPress{});
+    }
+    if (!stateMachine->is("menu.idle"_s)) {
+        ESP_LOGW("OSSM", "BLE menu action %d refused: not in a menu", (int)option);
+        bleState.remoteMenuAction = false;
+        return false;
+    }
+    menuState.currentOption = option;
+    stateMachine->process_event(ButtonPress{});
+    return true;
 }
 
 void OSSM::ble_click(String commandString) {
@@ -66,6 +95,15 @@ void OSSM::ble_click(String commandString) {
             if (stateMachine != nullptr) {
                 stateMachine->process_event(ReturnToMenu{});
             }
+            break;
+        case Commands::goToRestart:
+            triggerMenuActionFromBle(Menu::Restart);
+            break;
+        case Commands::goToUpdate:
+            triggerMenuActionFromBle(Menu::UpdateOSSM);
+            break;
+        case Commands::goToPairing:
+            triggerMenuActionFromBle(Menu::Pairing);
             break;
         case Commands::setSpeed:
             // BLE devices can be trusted to send true value
@@ -124,6 +162,8 @@ String OSSM::getStateFingerprint() {
     output += String((int)settings.sensation) + ":";
     output += String((int)settings.depth) + ":";
     output += String(static_cast<int>(settings.pattern)) + ":";
+    output += networkStatus.error + ":" + networkStatus.pairingCode + ":" +
+              String(networkStatus.isPaired ? 1 : 0) + ":" + networkStatus.targetVersion + ":";
     output += sessionId;
     return output;
 }
@@ -157,10 +197,10 @@ String OSSM::getStateFingerprint() {
 // │ See: test/test_mqtt_payload/ for contract tests.                   │
 // └──────────────────────────────────────────────────────────────────────┘
 String OSSM::getCurrentState() {
-    String currentState;
+    StateJsonInput input;
     if (stateMachine != nullptr) {
         stateMachine->visit_current_states(
-            [&currentState](auto state) { currentState = state.c_str(); });
+            [&input](auto state) { input.state = state.c_str(); });
     }
 
     float positionMm = float(stepper->getCurrentPosition()) / float(1_mm);
@@ -168,15 +208,19 @@ String OSSM::getCurrentState() {
 
     const String provenanceId =
         firmware::provenance::currentTokenId().c_str();
-    return "{\"timestamp\":" + String((unsigned long)millis()) +
-           ",\"state\":\"" + currentState +
-           "\",\"speed\":" + String((int)settings.speed) +
-           ",\"stroke\":" + String((int)settings.stroke) +
-           ",\"sensation\":" + String((int)settings.sensation) +
-           ",\"depth\":" + String((int)settings.depth) +
-           ",\"buffer\":" + String((int)settings.buffer) +
-           ",\"pattern\":" + String(static_cast<int>(settings.pattern)) +
-           ",\"position\":" + String(positionMm, 2) +
-           ",\"sessionId\":\"" + sessionId +
-           "\",\"firmwareProvenanceId\":\"" + provenanceId + "\"}";
+    input.timestamp = (unsigned long)millis();
+    input.speed = (int)settings.speed;
+    input.stroke = (int)settings.stroke;
+    input.sensation = (int)settings.sensation;
+    input.depth = (int)settings.depth;
+    input.buffer = (int)settings.buffer;
+    input.pattern = static_cast<int>(settings.pattern);
+    input.position = positionMm;
+    input.sessionId = sessionId;
+    input.error = networkStatus.error;
+    input.pairingCode = networkStatus.pairingCode;
+    input.isPaired = networkStatus.isPaired;
+    input.targetVersion = networkStatus.targetVersion;
+    input.firmwareProvenanceId = provenanceId;
+    return buildStateJson(input);
 }

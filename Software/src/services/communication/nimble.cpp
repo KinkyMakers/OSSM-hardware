@@ -55,8 +55,17 @@ double easeInOutSine(double t) {
 }
 
 class StateCallbacks : public NimBLECharacteristicCallbacks {
+    // A long read arrives as several ATT requests, each of which calls
+    // onRead. Rebuilding the value on every one of them hands the reader
+    // chunks from different versions (seen as corrupted JSON on the RADR).
+    // Keep the value stable for the duration of one long read.
+    uint32_t lastBuildMs = 0;
+
     void onRead(NimBLECharacteristic* characteristic, NimBLEConnInfo&) override {
         if (!ossm) return;
+        const uint32_t now = millis();
+        if (lastBuildMs != 0 && now - lastBuildMs < 300) return;
+        lastBuildMs = now;
         // RADR needs full legacy state on reads; retain shared BLE metadata.
         JsonDocument value, current;
         const auto stored = characteristic->getValue();
