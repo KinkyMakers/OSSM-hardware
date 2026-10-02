@@ -60,7 +60,16 @@ static void drawPatternControlsTask(void *pvParameters) {
             settings.speed = speed;
         }
 
-        nextPattern = encoder.readEncoder() / 3;
+        // Same rules as the play controls: drop turns made during a click
+        // sequence, and check the state only once the button is idle so a
+        // task that is about to exit never reads the play controls' encoder.
+        if (!button.isIdle() || !isInCorrectState()) {
+            vTaskDelay(100);
+            continue;
+        }
+
+        nextPattern = constrain((int)(encoder.readEncoder() / 3), 0,
+                                (int)numberOfPatterns - 1);
         shouldUpdateDisplay =
             shouldUpdateDisplay || (int)settings.pattern != nextPattern;
         if (!shouldUpdateDisplay) {

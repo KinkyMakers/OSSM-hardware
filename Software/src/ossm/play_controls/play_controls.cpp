@@ -33,24 +33,20 @@ static ui::PlayControl toUiPlayControl(PlayControls pc) {
     return ui::PlayControl::STROKE;
 }
 
+static float getSetting(PlayControls pc) {
+    switch (pc) {
+        case PlayControls::STROKE:    return settings.stroke;
+        case PlayControls::SENSATION: return settings.sensation;
+        case PlayControls::DEPTH:     return settings.depth;
+        case PlayControls::BUFFER:    return settings.buffer;
+    }
+    return settings.stroke;
+}
+
 static void drawPlayControlsTask(void *pvParameters) {
     encoder.setAcceleration(10);
     encoder.setBoundaries(0, 100, false);
-
-    switch (session.playControl) {
-        case PlayControls::STROKE:
-            encoder.setEncoderValue(settings.stroke);
-            break;
-        case PlayControls::SENSATION:
-            encoder.setEncoderValue(settings.sensation);
-            break;
-        case PlayControls::DEPTH:
-            encoder.setEncoderValue(settings.depth);
-            break;
-        case PlayControls::BUFFER:
-            encoder.setEncoderValue(settings.buffer);
-            break;
-    }
+    encoder.setEncoderValue(getSetting(session.playControl));
 
     SettingPercents next = {0, 0, 0, 0, 0};
     unsigned long displayLastUpdated = 0;
@@ -73,6 +69,7 @@ static void drawPlayControlsTask(void *pvParameters) {
                        stateMachine->is("streaming.idle"_s);
 
     bool shouldUpdateDisplay = false;
+    bool wasButtonBusy = false;
 
     showHeaderIcons = true;
     vTaskDelay(100);
@@ -106,33 +103,61 @@ static void drawPlayControlsTask(void *pvParameters) {
         }
 
         settings.speedKnob = next.speedKnob;
-        encoderValue = encoder.readEncoder();
 
-        switch (session.playControl) {
-            case PlayControls::STROKE:
-                next.stroke = encoderValue;
-                shouldUpdateDisplay =
-                    shouldUpdateDisplay || next.stroke - settings.stroke >= 1;
-                settings.stroke = next.stroke;
-                break;
-            case PlayControls::SENSATION:
-                next.sensation = encoderValue;
-                shouldUpdateDisplay = shouldUpdateDisplay ||
-                                      next.sensation - settings.sensation >= 1;
-                settings.sensation = next.sensation;
-                break;
-            case PlayControls::DEPTH:
-                next.depth = encoderValue;
-                shouldUpdateDisplay =
-                    shouldUpdateDisplay || next.depth - settings.depth >= 1;
-                settings.depth = next.depth;
-                break;
-            case PlayControls::BUFFER:
-                next.buffer = encoderValue;
-                shouldUpdateDisplay =
-                    shouldUpdateDisplay || next.buffer - settings.buffer >= 1;
-                settings.buffer = next.buffer;
-                break;
+        // Pressing the encoder often turns it, and a click usually changes
+        // what the knob controls (next setting, pattern menu). Drop turns
+        // made during a click sequence instead of applying them to a setting
+        // that is about to leave the screen.
+        //
+        // The state is checked only once the button is idle again: by then
+        // the click's transition has completed, so a task that is about to
+        // exit never applies the next screen's encoder value.
+        if (!button.isIdle()) {
+            wasButtonBusy = true;
+        } else if (isInCorrectState()) {
+            const PlayControls control = session.playControl;
+
+            if (wasButtonBusy) {
+                // Clicks without a transition (e.g. in simple penetration)
+                // leave the dropped turns in the encoder.
+                encoder.setEncoderValue(getSetting(control));
+                wasButtonBusy = false;
+            }
+
+            encoderValue = encoder.readEncoder();
+
+            // A BLE set: command can switch the control during the read.
+            if (session.playControl == control) {
+                switch (control) {
+                    case PlayControls::STROKE:
+                        next.stroke = encoderValue;
+                        shouldUpdateDisplay =
+                            shouldUpdateDisplay ||
+                            next.stroke - settings.stroke >= 1;
+                        settings.stroke = next.stroke;
+                        break;
+                    case PlayControls::SENSATION:
+                        next.sensation = encoderValue;
+                        shouldUpdateDisplay =
+                            shouldUpdateDisplay ||
+                            next.sensation - settings.sensation >= 1;
+                        settings.sensation = next.sensation;
+                        break;
+                    case PlayControls::DEPTH:
+                        next.depth = encoderValue;
+                        shouldUpdateDisplay = shouldUpdateDisplay ||
+                                              next.depth - settings.depth >= 1;
+                        settings.depth = next.depth;
+                        break;
+                    case PlayControls::BUFFER:
+                        next.buffer = encoderValue;
+                        shouldUpdateDisplay =
+                            shouldUpdateDisplay ||
+                            next.buffer - settings.buffer >= 1;
+                        settings.buffer = next.buffer;
+                        break;
+                }
+            }
         }
 
         shouldUpdateDisplay =

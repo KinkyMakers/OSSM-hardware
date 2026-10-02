@@ -69,11 +69,11 @@ void __attribute__((weak)) setup() {
     // the running image if a rollback-capable bootloader marked it pending.
     ossmConfirmRunningImage();
 
-    // ialize LED for BLE and machine status indication
+    // Initialize LED for BLE and machine status indication
     ESP_LOGI("MAIN", "LED initialized for BLE and machine status indication");
     updateLEDForMachineStatus();  // Set initial LED state
 
-    // // link functions to be called on events.
+    // Link functions to be called on events.
     button.attachClick([]() { stateMachine->process_event(ButtonPress{}); });
     button.attachDoubleClick(
         []() { stateMachine->process_event(DoublePress{}); });
