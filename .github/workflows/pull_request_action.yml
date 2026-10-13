@@ -53,6 +53,7 @@ jobs:
       - name: Build PlatformIO Project
         run: |
           cd Software
+          pio run -e development -t buildprog -j 1
           pio run -e staging-v1 -j 1
           pio run -e staging-v2 -j 1
           pio run -e production-v1 -j 1

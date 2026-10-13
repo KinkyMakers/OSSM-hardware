@@ -22,8 +22,12 @@
 #define FIRMWARE_BUILD_SHA "unknown"
 #endif
 
+// The reported track is a provenance verification input: a token is only
+// accepted when its track matches both the signing key and this value. An
+// environment that forgot the flag must not silently self-report as
+// production, so fail the build instead of guessing.
 #ifndef FIRMWARE_TRACK
-#define FIRMWARE_TRACK "main"
+#error "FIRMWARE_TRACK must be set in the environment build_flags"
 #endif
 
 namespace {
