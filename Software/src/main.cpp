@@ -1,4 +1,5 @@
 #include "Arduino.h"
+#include "FirmwareProvenance.h"
 #include "OneButton.h"
 #include "components/HeaderBar.h"
 #include "esp_log.h"
@@ -9,7 +10,9 @@
 #include "services/board.h"
 #include "services/communication/mqtt.h"
 #include "services/communication/nimble.h"
+#include "services/device_config.h"
 #include "services/display.h"
+#include "services/serial_console.h"
 #include "services/encoder.h"
 #include "services/led.h"
 #include "services/stepper.h"
@@ -52,6 +55,11 @@ void __attribute__((weak)) setup() {
     /** Board setup */
     initBoard();
 
+    // Before anything converts mm to steps or reads the device name.
+    device_config::load();
+    // State JSON reads the provenance token from RAM after this.
+    firmware::provenance::load();
+
     ESP_LOGD("MAIN", "Starting OSSM");
 
     // Display
@@ -65,6 +73,7 @@ void __attribute__((weak)) setup() {
 
     // Initialize state machine after global state is set up
     initStateMachine();
+    startSerialConsole();
 
     // The board, display, and state machine initialized successfully. Confirm
     // the running image if a rollback-capable bootloader marked it pending.

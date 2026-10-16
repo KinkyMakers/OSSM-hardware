@@ -23,10 +23,6 @@
 #define FIRMWARE_BUILD_SHA "unknown"
 #endif
 
-#ifndef FIRMWARE_TRACK
-#define FIRMWARE_TRACK "main"
-#endif
-
 namespace {
 
 std::uint32_t physicalFlashSizeBytes() {

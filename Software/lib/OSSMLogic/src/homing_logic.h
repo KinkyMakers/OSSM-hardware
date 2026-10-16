@@ -26,13 +26,19 @@ inline float calculateMeasuredStroke(int32_t currentPosition,
 }
 
 /// Calculate where to move after homing completes.
+/// afterHomingPosition is a fraction of the measured stroke, clamped to 0..1
+/// so a bad stored value can never drive past the far end.
 /// homing.cpp lines 123-127
 inline int32_t calculatePostHomingPosition(int16_t sign,
                                            float measuredStrokeSteps,
                                            float afterHomingPosition) {
+    const float fraction =
+        std::isfinite(afterHomingPosition)
+            ? std::min(std::max(afterHomingPosition, 0.0f), 1.0f)
+            : 0.0f;
     int32_t goToPosition = -sign * measuredStrokeSteps;
     if (goToPosition < 0) {
-        goToPosition = goToPosition * afterHomingPosition;
+        goToPosition = goToPosition * fraction;
     }
     return goToPosition;
 }

@@ -4,14 +4,11 @@
 #include <NimBLECharacteristic.h>
 #include <NimBLEService.h>
 #include <NimBLEUUID.h>
-#include <Preferences.h>
 
+// rad-ble owns the name (NVS "radble"/"deviceName"). Names stored under the
+// old UserConfig/DeviceName key are migrated by device_config::load().
 std::string getDeviceName() {
-    Preferences userConfig;
-    userConfig.begin("UserConfig", true);
-    String legacyName = userConfig.getString("DeviceName", "OSSM");
-    userConfig.end();
-    return radble::loadDeviceName(legacyName.c_str()).c_str();
+    return radble::loadDeviceName("OSSM").c_str();
 }
 
 bool isValidLegacyDeviceName(const String& value) {
@@ -29,6 +26,8 @@ bool isValidLegacyDeviceName(const String& value) {
     return true;
 }
 
+// Legacy rename characteristic. The RAD BLE device.name path renames live;
+// this one restarts so the new name is used everywhere.
 class RenameConfigCallbacks : public NimBLECharacteristicCallbacks {
     u32_t lastPresetCommand = millis();
 
@@ -56,10 +55,6 @@ class RenameConfigCallbacks : public NimBLECharacteristicCallbacks {
                 lastPresetCommand = currentTime;
                 return;
             }
-            Preferences userConfig;
-            userConfig.begin("UserConfig", false);
-            userConfig.putString("DeviceName", value);
-            userConfig.end();
             Serial.printf(
                 "[RAD BLE] device name changed old=\"%s\" new=\"%s\" "
                 "source=legacy\n",

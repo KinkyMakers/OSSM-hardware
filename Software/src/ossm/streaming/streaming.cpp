@@ -40,10 +40,10 @@ static void startStreamingTask(void *pvParameters) {
     targetQueue = {};
     
     // Motion state
-    int16_t currentPosition = 0;
-    int16_t targetPosition = 0;
+    int32_t currentPosition = 0;
+    int32_t targetPosition = 0;
 
-    uint16_t maxSpeed = Config::Driver::maxSpeedMmPerSecond * (1_mm);
+    uint32_t maxSpeed = Config::Driver::maxStepRateHz();
     uint32_t maxAccel = Config::Driver::maxAcceleration * (1_mm);
 
     // Set initial max speed and acceleration
@@ -60,8 +60,9 @@ static void startStreamingTask(void *pvParameters) {
         // Get next move
         PositionTime targetPositionTime = targetQueue.front();
         //Wait for previous command to finish if it isn't moving in the same direction.
-        int16_t distance = targetPositionTime.position - lastPositionTime.position;
-        targetPositionTime.direction = distance/abs(distance);
+        int32_t distance = targetPositionTime.position - lastPositionTime.position;
+        targetPositionTime.direction = streaming_logic::moveDirection(
+            distance, lastPositionTime.direction);
         bool sameDirection = lastPositionTime.direction == targetPositionTime.direction;
         if (!sameDirection && stepper->isRunning()){
             vTaskDelay(1);

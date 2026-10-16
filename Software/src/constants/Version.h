@@ -6,4 +6,9 @@
 #define MINOR_VERSION 0
 #define PATCH_VERSION 60
 
+// Only staging and production define this in platformio.ini
+#ifndef FIRMWARE_TRACK
+#define FIRMWARE_TRACK "main"
+#endif
+
 #endif  // OSSM_VERSION_H

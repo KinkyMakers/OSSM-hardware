@@ -11,9 +11,9 @@ void stepperTranslateFrame(StepperFrame to) {
     if (stepperFrame == to) return;
     if (stepper == nullptr) return;
     // Mirror map between the two frames. The keepout must match
-    // strokingMachine.keepoutBoundary (6 mm) in stroke_engine.cpp.
-    constexpr int32_t keepoutSteps =
-        static_cast<int32_t>(6.0f * Config::Driver::stepsPerMM);
+    // strokingMachine.keepoutBoundary in stroke_engine.cpp.
+    const int32_t keepoutSteps = static_cast<int32_t>(
+        Config::Driver::keepoutBoundaryMm * Config::Driver::stepsPerMM());
     stepper->setCurrentPosition(
         -(stepper->getCurrentPosition() + keepoutSteps));
     stepperFrame = to;

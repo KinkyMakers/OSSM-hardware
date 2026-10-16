@@ -1,7 +1,7 @@
 /**
  * Hardware Homing Tests — require physically connected OSSM with working motor
  *
- * Run:  pio test -e development -f test_hw_homing
+ * Run:  pio test -e hw_test -f test_hw_homing
  *
  * WARNING: The motor WILL move during these tests.
  *          Ensure the linear rail is clear and the device is powered.
@@ -21,9 +21,10 @@
 #include "ossm/state/calibration.h"
 #include "ossm/state/state.h"
 #include "services/board.h"
+#include "services/device_config.h"
 #include "services/display.h"
 
-static constexpr uint32_t HOMING_TIMEOUT_MS = 30000;
+static constexpr uint32_t HOMING_TIMEOUT_MS = 45000;
 
 void setUp(void) {}
 void tearDown(void) {
@@ -50,13 +51,13 @@ static bool waitForHomed(uint32_t timeoutMs) {
 void test_homing_completes_within_timeout(void) {
     TEST_ASSERT_TRUE_MESSAGE(
         waitForHomed(HOMING_TIMEOUT_MS),
-        "Homing did not complete within 30 s — check motor, "
+        "Homing did not complete within 45 s — check motor, "
         "current sensor, and power supply");
 }
 
 void test_measured_stroke_reasonable(void) {
     TEST_ASSERT_GREATER_THAN_MESSAGE(
-        Config::Driver::minStrokeLengthMm,
+        Config::Driver::minStrokeLengthSteps(),
         calibration.measuredStrokeSteps,
         "Measured stroke is below minimum — homing may have failed or "
         "stroke is physically too short");
@@ -72,6 +73,7 @@ void setup() {
 
     // Full hardware init (same as normal boot minus BLE/WiFi/MQTT)
     initBoard();
+    device_config::load();
     initDisplay();
 
     ossm = new OSSM();

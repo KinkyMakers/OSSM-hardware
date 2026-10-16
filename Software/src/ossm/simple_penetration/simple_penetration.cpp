@@ -42,9 +42,9 @@ static void startSimplePenetrationTask(void *pvParameters) {
 
     while (isInCorrectState()) {
         auto speed = simple_pen_logic::calculateSpeed(
-            settings.speed, Config::Driver::maxSpeedMmPerSecond, (1_mm));
+            settings.speed, Config::Driver::maxSpeedMmPerSecond(), (1_mm));
         auto acceleration = simple_pen_logic::calculateAcceleration(
-            settings.speed, Config::Driver::maxSpeedMmPerSecond,
+            settings.speed, Config::Driver::maxSpeedMmPerSecond(),
             Config::Advanced::accelerationScaling, (1_mm));
 
         // Use the effective speed after PlayControls has applied either the

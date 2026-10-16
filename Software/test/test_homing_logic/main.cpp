@@ -55,6 +55,18 @@ void test_calculatePostHomingPosition_negative_sign(void) {
     TEST_ASSERT_EQUAL_INT32(5000, result);
 }
 
+void test_calculatePostHomingPosition_fraction_above_one_clamped(void) {
+    // sign=1, measured=5000, afterHoming=10 → clamped to 1 → -5000, never past the far end
+    int32_t result = homing_logic::calculatePostHomingPosition(1, 5000.0f, 10.0f);
+    TEST_ASSERT_EQUAL_INT32(-5000, result);
+}
+
+void test_calculatePostHomingPosition_negative_fraction_clamped(void) {
+    // sign=1, measured=5000, afterHoming=-1 → clamped to 0 → stays home
+    int32_t result = homing_logic::calculatePostHomingPosition(1, 5000.0f, -1.0f);
+    TEST_ASSERT_EQUAL_INT32(0, result);
+}
+
 // ─── isHomingTimedOut ───
 
 void test_isHomingTimedOut_not_timed_out(void) {
@@ -97,6 +109,8 @@ int main(int argc, char **argv) {
 
     RUN_TEST(test_calculatePostHomingPosition_positive_sign);
     RUN_TEST(test_calculatePostHomingPosition_negative_sign);
+    RUN_TEST(test_calculatePostHomingPosition_fraction_above_one_clamped);
+    RUN_TEST(test_calculatePostHomingPosition_negative_fraction_clamped);
 
     RUN_TEST(test_isHomingTimedOut_not_timed_out);
     RUN_TEST(test_isHomingTimedOut_timed_out);

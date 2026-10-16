@@ -345,7 +345,8 @@ void StrokeEngine::enableAndHome(endstopProperties *endstop, float speed) {
     _homeingPin = endstop->endstopPin;
     pinMode(_homeingPin, endstop->pinMode);
     _homeingActiveLow = endstop->activeLow;
-    _homeingSpeed = speed * _motor->stepsPerMillimeter;
+    _homeingSpeed =
+        constrain(int(speed * _motor->stepsPerMillimeter), 1, _maxStepPerSecond);
 
     // set homing direction so sign can be multiplied
     if (endstop->homeToBack == true) {
@@ -377,7 +378,8 @@ void StrokeEngine::enableAndHome(endstopProperties *endstop, float speed) {
 
 void StrokeEngine::thisIsHome(float speed, bool resetOrigin) {
     // set homeing speed
-    _homeingSpeed = speed * _motor->stepsPerMillimeter;
+    _homeingSpeed =
+        constrain(int(speed * _motor->stepsPerMillimeter), 1, _maxStepPerSecond);
 
     if (_state == UNDEFINED) {
         // Enable _servo

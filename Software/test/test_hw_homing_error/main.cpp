@@ -30,6 +30,7 @@
 #include "ossm/state/error.h"
 #include "ossm/state/state.h"
 #include "services/board.h"
+#include "services/device_config.h"
 #include "services/display.h"
 #include "services/stepper.h"
 #include "services/tasks.h"
@@ -156,6 +157,7 @@ void setup() {
 
     // Full hardware init
     initBoard();
+    device_config::load();
     initDisplay();
 
     ossm = new OSSM();

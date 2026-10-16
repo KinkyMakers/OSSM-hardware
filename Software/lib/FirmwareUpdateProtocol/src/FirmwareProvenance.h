@@ -11,6 +11,7 @@
 
 #include <array>
 #include <cstring>
+#include <mutex>
 #include <vector>
 
 namespace firmware::provenance {
@@ -231,7 +232,34 @@ inline std::string readStored(const char *key) {
     return value.c_str();
 }
 
-inline std::string currentToken() { return readStored("current"); }
+// The current token is read from NVS once (load() at boot, or the first
+// caller) and kept in RAM. State JSON asks for it several times a second, and
+// opening a missing "fw-prov" namespace logs an error on every attempt.
+struct CurrentCache {
+    std::mutex mutex;
+    bool loaded = false;
+    std::string token;
+};
+
+inline CurrentCache &currentCache() {
+    static CurrentCache cache;
+    return cache;
+}
+
+inline void load() {
+    auto &cache = currentCache();
+    std::lock_guard<std::mutex> lock(cache.mutex);
+    if (cache.loaded) return;
+    cache.token = readStored("current");
+    cache.loaded = true;
+}
+
+inline std::string currentToken() {
+    load();
+    auto &cache = currentCache();
+    std::lock_guard<std::mutex> lock(cache.mutex);
+    return cache.token;
+}
 inline std::string currentTokenId() {
     const auto token = currentToken();
     return token.empty() ? std::string{} : tokenId(token);
@@ -254,13 +282,19 @@ inline bool writeStored(const char *key, const std::string &value) {
     if (!preferences.begin("fw-prov", false)) return false;
     const bool stored = preferences.putString(key, value.c_str()) > 0;
     preferences.end();
+    if (stored && std::strcmp(key, "current") == 0) {
+        auto &cache = currentCache();
+        std::lock_guard<std::mutex> lock(cache.mutex);
+        cache.token = value;
+        cache.loaded = true;
+    }
     return stored;
 }
 
 inline Snapshot snapshot(const DeviceReport &running) {
     Snapshot result;
     result.imageSha256 = running.firmwareHash;
-    result.token = readStored("current");
+    result.token = currentToken();
     Claims claims;
     if (result.token.empty()) return result;
     if (!verifyToken(result.token, running, claims)) {

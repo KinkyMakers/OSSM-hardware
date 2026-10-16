@@ -1,6 +1,5 @@
 #include "rad_ble.h"
 
-#include <Preferences.h>
 #include <WiFi.h>
 
 #include "FirmwareProvenance.h"
@@ -17,8 +16,10 @@
 #include "services/encoder.h"
 #include "services/board.h"
 #include "services/communication/nimble.h"
+#include "services/device_config.h"
 #include "services/led.h"
 #include "services/stepper.h"
+#include "settings_catalog.h"
 
 #ifndef FIRMWARE_BUILD_SHA
 #define FIRMWARE_BUILD_SHA "unknown"
@@ -35,6 +36,7 @@ constexpr uint16_t RS = R | radble::RESOURCE_STREAMABLE;
 constexpr uint16_t RWT = RW | radble::RESOURCE_STREAMABLE;
 constexpr uint16_t RWST = RWS | radble::RESOURCE_STREAMABLE;
 constexpr uint16_t RWP = RW | radble::RESOURCE_PERSISTENT;
+constexpr uint16_t RWSP = RWS | radble::RESOURCE_PERSISTENT;
 
 const radble::Resource RESOURCES[] = {
     {"essential", "essential.live", "essential", "object", "", RS,
@@ -76,17 +78,46 @@ const radble::Resource RESOURCES[] = {
      "{\"min\":0,\"max\":6}"},
     {"speed_ble", "motion.speedBle", "setting", "float", "percent", RW,
      "{\"min\":0,\"max\":100}"},
-    {"speed_limit", "setting.speedKnobAsLimit", "setting", "bool", "", RW,
-     ""},
-    {"latency", "setting.latencyCompensation", "setting", "bool", "", RW,
-     ""},
-    {"metric", "setting.displayMetric", "setting", "bool", "", RW, ""},
-    {"home_position", "setting.afterHomingPosition", "setting", "float", "mm",
-     RW, "{\"min\":0,\"max\":100}"},
-    {"mqtt_rate", "setting.mqttPublishFrequency", "setting", "float", "Hz",
-     RW, "{\"min\":1,\"max\":100}"},
-    {"device_name", "device.name", "setting", "string", "", RWP,
-     "{\"maxBytes\":24,\"emptyResets\":true}"},
+    {"speed_limit", settings_catalog::kSpeedLimit.path, "setting",
+     settings_catalog::kSpeedLimit.valueType,
+     settings_catalog::kSpeedLimit.units, RWP,
+     settings_catalog::kSpeedLimit.constraintsJson},
+    {"latency", settings_catalog::kLatency.path, "setting",
+     settings_catalog::kLatency.valueType, settings_catalog::kLatency.units,
+     RWP, settings_catalog::kLatency.constraintsJson},
+    {"metric", settings_catalog::kMetric.path, "setting",
+     settings_catalog::kMetric.valueType, settings_catalog::kMetric.units, RWP,
+     settings_catalog::kMetric.constraintsJson},
+    {"home_position", settings_catalog::kHomePosition.path, "setting",
+     settings_catalog::kHomePosition.valueType,
+     settings_catalog::kHomePosition.units, RWP,
+     settings_catalog::kHomePosition.constraintsJson},
+    {"mqtt_rate", settings_catalog::kMqttRate.path, "setting",
+     settings_catalog::kMqttRate.valueType, settings_catalog::kMqttRate.units,
+     RWP, settings_catalog::kMqttRate.constraintsJson},
+    {"steps_per_rev", settings_catalog::kStepsPerRev.path, "setting",
+     settings_catalog::kStepsPerRev.valueType,
+     settings_catalog::kStepsPerRev.units, RWSP,
+     settings_catalog::kStepsPerRev.constraintsJson},
+    {"pulley_teeth", settings_catalog::kPulleyTeeth.path, "setting",
+     settings_catalog::kPulleyTeeth.valueType,
+     settings_catalog::kPulleyTeeth.units, RWSP,
+     settings_catalog::kPulleyTeeth.constraintsJson},
+    {"belt_pitch", settings_catalog::kBeltPitch.path, "setting",
+     settings_catalog::kBeltPitch.valueType,
+     settings_catalog::kBeltPitch.units, RWSP,
+     settings_catalog::kBeltPitch.constraintsJson},
+    {"max_rpm", settings_catalog::kMaxRpm.path, "setting",
+     settings_catalog::kMaxRpm.valueType, settings_catalog::kMaxRpm.units,
+     RWSP, settings_catalog::kMaxRpm.constraintsJson},
+    {"max_stroke", settings_catalog::kMaxStroke.path, "setting",
+     settings_catalog::kMaxStroke.valueType,
+     settings_catalog::kMaxStroke.units, RWSP,
+     settings_catalog::kMaxStroke.constraintsJson},
+    {"device_name", settings_catalog::kDeviceName.path, "setting",
+     settings_catalog::kDeviceName.valueType,
+     settings_catalog::kDeviceName.units, RWP,
+     settings_catalog::kDeviceName.constraintsJson},
     {"firmware_provenance", "device.firmwareProvenance", "setting", "object",
      "", R, ""},
     {"calibration_offset", "motion.currentOffset", "motion", "float", "raw",
@@ -161,6 +192,22 @@ void requestNetworkOtaTask(void*) {
     vTaskDelete(nullptr);
 }
 
+float* machineField(device_config_logic::MachineConfig& config,
+                    const String& path) {
+    if (path == "setting.machine.stepsPerRev") return &config.stepsPerRev;
+    if (path == "setting.machine.pulleyToothCount")
+        return &config.pulleyToothCount;
+    if (path == "setting.machine.beltPitchMm") return &config.beltPitchMm;
+    if (path == "setting.machine.maxRpm") return &config.maxRpm;
+    if (path == "setting.machine.maxStrokeMm") return &config.maxStrokeMm;
+    return nullptr;
+}
+
+radble::Result storageFailed() {
+    return radble::Result::failure("storage_failed",
+                                   "Could not save the setting");
+}
+
 radble::Result settingValue(const String& path) {
     JsonDocument document;
     if (path == "motion.speed")
@@ -188,11 +235,16 @@ radble::Result settingValue(const String& path) {
         document["value"] = UserConfig::afterHomingPosition;
     else if (path == "setting.mqttPublishFrequency")
         document["value"] = UserConfig::mqttPublishFrequencyHz;
-    else if (path == "device.name") {
-        Preferences preferences;
-        preferences.begin("UserConfig", true);
-        document["value"] = preferences.getString("DeviceName", "OSSM");
-        preferences.end();
+    else if (path.startsWith("setting.machine.")) {
+        device_config_logic::MachineConfig stored = device_config::stored();
+        device_config_logic::MachineConfig active = device_config::active();
+        const float* storedField = machineField(stored, path);
+        const float* activeField = machineField(active, path);
+        if (storedField == nullptr)
+            return radble::Result::failure("unknown_path", "Unknown setting path");
+        document["value"] = *storedField;
+        document["active"] = *activeField;
+        document["restartRequired"] = device_config::restartRequired();
     } else if (path == "device.firmwareProvenance") {
         const auto snapshot = firmware::provenance::runningSnapshot(
             FIRMWARE_TRACK, "ossm", VERSION, FIRMWARE_BUILD_SHA);
@@ -337,21 +389,24 @@ radble::Result handleCommand(JsonObjectConst request, void*) {
             if (!args["value"].is<bool>())
                 return radble::Result::failure("invalid_value",
                                                "A boolean value is required");
-            USE_SPEED_KNOB_AS_LIMIT = args["value"] | false;
+            if (!device_config::setSpeedKnobAsLimit(args["value"] | false))
+                return storageFailed();
             return settingValue(path);
         }
         if (path == "setting.latencyCompensation") {
             if (!args["value"].is<bool>())
                 return radble::Result::failure("invalid_value",
                                                "A boolean value is required");
-            USE_LATENCY_COMPENSATION = args["value"] | false;
+            if (!device_config::setLatencyCompensation(args["value"] | false))
+                return storageFailed();
             return settingValue(path);
         }
         if (path == "setting.displayMetric") {
             if (!args["value"].is<bool>())
                 return radble::Result::failure("invalid_value",
                                                "A boolean value is required");
-            UserConfig::displayMetric = args["value"] | true;
+            if (!device_config::setDisplayMetric(args["value"] | true))
+                return storageFailed();
             return settingValue(path);
         }
         if (path == "setting.afterHomingPosition") {
@@ -359,10 +414,12 @@ radble::Result handleCommand(JsonObjectConst request, void*) {
                 return radble::Result::failure("invalid_value",
                                                "A numeric home position is required");
             const float value = args["value"] | -1.0f;
-            if (value < 0.0f || value > 100.0f)
-                return radble::Result::failure("invalid_value",
-                                               "Home position must be 0..100 mm");
-            UserConfig::afterHomingPosition = value;
+            if (!device_config_logic::isValidAfterHomingPosition(value))
+                return radble::Result::failure(
+                    "invalid_value",
+                    "Home position must be a fraction from 0 to 1");
+            if (!device_config::setAfterHomingPosition(value))
+                return storageFailed();
             return settingValue(path);
         }
         if (path == "setting.mqttPublishFrequency") {
@@ -370,10 +427,31 @@ radble::Result handleCommand(JsonObjectConst request, void*) {
                 return radble::Result::failure("invalid_value",
                                                "A numeric MQTT frequency is required");
             const float value = args["value"] | 0.0f;
-            if (value < 1.0f || value > 100.0f)
+            if (!device_config_logic::isValidMqttPublishHz(value))
                 return radble::Result::failure("invalid_value",
                                                "MQTT frequency must be 1..100 Hz");
-            UserConfig::mqttPublishFrequencyHz = value;
+            if (!device_config::setMqttPublishFrequencyHz(value))
+                return storageFailed();
+            return settingValue(path);
+        }
+        if (path.startsWith("setting.machine.")) {
+            if (!args["value"].is<float>())
+                return radble::Result::failure("invalid_value",
+                                               "A numeric value is required");
+            device_config_logic::MachineConfig candidate =
+                device_config::stored();
+            float *field = machineField(candidate, path);
+            if (field == nullptr)
+                return radble::Result::failure("unknown_path",
+                                               "Unknown setting path");
+            *field = args["value"] | 0.0f;
+            const auto error = device_config::saveMachineConfig(candidate);
+            if (error == device_config_logic::GeometryError::StorageFailed)
+                return storageFailed();
+            if (error != device_config_logic::GeometryError::None)
+                return radble::Result::failure(
+                    "invalid_value",
+                    device_config_logic::geometryErrorMessage(error));
             return settingValue(path);
         }
         if (path == "motion.speedBle") {
@@ -385,24 +463,6 @@ radble::Result handleCommand(JsonObjectConst request, void*) {
                 return radble::Result::failure("invalid_value",
                                                "BLE speed must be 0..100");
             settings.speedBLE = value;
-            return settingValue(path);
-        }
-        if (path == "device.name") {
-            if (!args["value"].is<const char*>())
-                return radble::Result::failure("invalid_value",
-                                               "A device name string is required");
-            String value = args["value"] | "";
-            value.trim();
-            if (value.isEmpty() || value.length() > 8)
-                return radble::Result::failure("invalid_value",
-                                               "Device name must be 1..8 characters");
-            Preferences preferences;
-            preferences.begin("UserConfig", false);
-            const bool stored = preferences.putString("DeviceName", value) > 0;
-            preferences.end();
-            if (!stored)
-                return radble::Result::failure("storage_failed",
-                                               "Could not store device name");
             return settingValue(path);
         }
         if (!args["value"].is<int>())
@@ -680,6 +740,10 @@ void releaseDiagnosticOutputs(void*) { setLEDOff(); }
 }  // namespace
 
 radble::Server radBleServer;
+
+radble::Result dispatchRadCommand(JsonObjectConst request) {
+    return handleCommand(request, nullptr);
+}
 
 bool initRadBle(NimBLEServer* server) {
     const radble::Config config = {

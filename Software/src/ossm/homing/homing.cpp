@@ -60,7 +60,7 @@ void clearHoming() {
     // Set acceleration and deceleration in steps/s^2
     stepper->setAcceleration(1000_mm);
     // Set speed in steps/s
-    stepper->setSpeedInHz(25_mm);
+    stepper->setSpeedInHz(Config::Driver::stepRateHz(25.0f));
 
     // Clear the stored values.
     calibration.measuredStrokeSteps = 0;
@@ -90,7 +90,7 @@ static void startHomingTask(void *pvParameters) {
     int16_t sign = stateMachine->is("homing.backward"_s) ? 1 : -1;
 
     int32_t targetPositionInSteps =
-        round(sign * Config::Driver::maxStrokeSteps);
+        round(sign * Config::Driver::maxStrokeSteps());
 
     ESP_LOGD("Homing", "Target position in steps: %d", targetPositionInSteps);
     stepper->moveTo(targetPositionInSteps, false);
@@ -133,17 +133,18 @@ static void startHomingTask(void *pvParameters) {
         ESP_LOGD("Homing", "Current over limit: %f", current);
         stepper->stopMove();
 
-        stepper->setSpeedInHz(250_mm);
+        stepper->setSpeedInHz(Config::Driver::stepRateHz(250.0f));
         // step away from the hard stop, with your hands in the air!
         int32_t currentPosition = stepper->getCurrentPosition();
-        stepper->moveTo(currentPosition - sign * Config::Driver::homingOffsetMn,
-                        true);
+        stepper->moveTo(
+            currentPosition - sign * Config::Driver::homingOffsetSteps(),
+            true);
 
         // measure and save the current position
         calibration.measuredStrokeSteps =
             homing_logic::calculateMeasuredStroke(
                 stepper->getCurrentPosition(),
-                Config::Driver::maxStrokeSteps);
+                Config::Driver::maxStrokeSteps());
 
         stepper->setCurrentPosition(0);
         stepper->forceStopAndNewPosition(0);
@@ -203,7 +204,8 @@ void startHoming() {
 }
 
 bool isStrokeTooShort() {
-    if (calibration.measuredStrokeSteps > Config::Driver::minStrokeLengthMm) {
+    if (calibration.measuredStrokeSteps >
+        Config::Driver::minStrokeLengthSteps()) {
         return false;
     }
     errorState.message = ui::strings::strokeTooShort;

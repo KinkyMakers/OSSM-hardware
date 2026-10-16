@@ -1,7 +1,7 @@
 /**
  * Hardware Pairing Tests — require USB-connected OSSM
  *
- * Run:  pio test -e development -f test_hw_pairing
+ * Run:  pio test -e hw_test -f test_hw_pairing
  *
  * These tests verify the BLE pairing characteristic and its command parsing
  * on real hardware. No motor motion is commanded.

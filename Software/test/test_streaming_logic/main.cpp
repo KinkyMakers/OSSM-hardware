@@ -141,6 +141,23 @@ void test_planMotion_very_short_time(void) {
     TEST_ASSERT_GREATER_THAN(0u, profile.acceleration);
 }
 
+// ─── moveDirection ───
+
+void test_moveDirection_positive_distance(void) {
+    TEST_ASSERT_EQUAL_INT(1, streaming_logic::moveDirection(25, -1));
+}
+
+void test_moveDirection_negative_distance(void) {
+    TEST_ASSERT_EQUAL_INT(-1, streaming_logic::moveDirection(-25, 1));
+}
+
+void test_moveDirection_zero_keeps_previous(void) {
+    // Repeated position: no divide by zero, no false reversal
+    TEST_ASSERT_EQUAL_INT(1, streaming_logic::moveDirection(0, 1));
+    TEST_ASSERT_EQUAL_INT(-1, streaming_logic::moveDirection(0, -1));
+    TEST_ASSERT_EQUAL_INT(0, streaming_logic::moveDirection(0, 0));
+}
+
 int main(int argc, char **argv) {
     UNITY_BEGIN();
 
@@ -160,6 +177,10 @@ int main(int argc, char **argv) {
     RUN_TEST(test_planMotion_speed_clamped_to_max);
     RUN_TEST(test_planMotion_accel_clamped_to_max);
     RUN_TEST(test_planMotion_very_short_time);
+
+    RUN_TEST(test_moveDirection_positive_distance);
+    RUN_TEST(test_moveDirection_negative_distance);
+    RUN_TEST(test_moveDirection_zero_keeps_previous);
 
     return UNITY_END();
 }

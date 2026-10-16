@@ -1,7 +1,7 @@
 /**
  * Hardware Smoke Tests — require USB-connected OSSM
  *
- * Run:  pio test -e development -f test_hw_smoke
+ * Run:  pio test -e hw_test -f test_hw_smoke
  *
  * These tests verify basic peripheral initialisation on real hardware.
  * No motor motion is commanded; the enable pin is toggled briefly.
@@ -15,6 +15,7 @@
 #include "constants/Pins.h"
 #include "ossm/state/actions.h"
 #include "services/board.h"
+#include "services/device_config.h"
 
 void setUp(void) {}
 void tearDown(void) {
@@ -92,6 +93,7 @@ void setup() {
     // This configures all pins and runs the stepper safety sequence
     // (disable 600ms → enable 100ms) so the motor is in a known state.
     initBoard();
+    device_config::load();
 
     UNITY_BEGIN();
 

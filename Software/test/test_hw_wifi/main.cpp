@@ -1,7 +1,7 @@
 /**
  * Hardware WiFi Tests — require USB-connected OSSM
  *
- * Run:  pio test -e development -f test_hw_wifi
+ * Run:  pio test -e hw_test -f test_hw_wifi
  *
  * These tests verify WiFi credential storage (NVS), the WiFi config BLE
  * characteristic, and the WiFi status JSON output on real hardware.

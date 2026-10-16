@@ -17,9 +17,21 @@ void initWM() {
         ESP_LOGI("WM", "WiFi credentials saved to NVS");
     });
 
-#if defined(WIFI_SSID) && defined(WIFI_PASSWORD)
+#if DEV_WIFI_AUTOCONNECT && defined(WIFI_SSID) && defined(WIFI_PASSWORD)
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 #else
+#if defined(WIFI_SSID)
+    // A build with DEV_WIFI_AUTOCONNECT=1 leaves the dev network saved in the
+    // WiFi driver, and WiFi.begin() would keep retrying it. Forget it, but
+    // keep any other saved network (e.g. one set through pairing).
+    WiFi.mode(WIFI_STA);
+    wifi_config_t saved = {};
+    if (esp_wifi_get_config(WIFI_IF_STA, &saved) == ESP_OK &&
+        strcmp(reinterpret_cast<const char*>(saved.sta.ssid), WIFI_SSID) == 0) {
+        ESP_LOGI("WM", "Forgetting dev WiFi network %s", WIFI_SSID);
+        WiFi.disconnect(false, true);
+    }
+#endif
     WiFi.begin();
 #endif
 

@@ -6,6 +6,7 @@
 #include <NimBLEUUID.h>
 
 #include "Arduino.h"
+#include "services/device_config.h"
 
 /** Handler class for speed knob config characteristic */
 class SpeedKnobConfigCallbacks : public NimBLECharacteristicCallbacks {
@@ -24,11 +25,13 @@ class SpeedKnobConfigCallbacks : public NimBLECharacteristicCallbacks {
         static const char error_invalid[] PROGMEM = "error:invalid_value";
 
         if (configValue == "true" || configValue == "1" || configValue == "t") {
-            USE_SPEED_KNOB_AS_LIMIT = true;
+            // Session only. The remote writes false on every connect; saving
+            // that would overwrite the user's stored preference.
+            device_config::applySpeedKnobAsLimit(true);
             pCharacteristic->setValue(String(FPSTR(true_str)));
         } else if (configValue == "false" || configValue == "0" ||
                    configValue == "f") {
-            USE_SPEED_KNOB_AS_LIMIT = false;
+            device_config::applySpeedKnobAsLimit(false);
             pCharacteristic->setValue(String(FPSTR(false_str)));
         } else {
             ESP_LOGW(NIMBLE_TAG, "Invalid speed knob config value: %s",
@@ -90,11 +93,11 @@ class LatencyCompensationConfigCallbacks : public NimBLECharacteristicCallbacks 
         static const char error_invalid[] PROGMEM = "error:invalid_value";
 
         if (configValue == "true" || configValue == "1" || configValue == "t") {
-            USE_LATENCY_COMPENSATION = true;
+            device_config::setLatencyCompensation(true);
             pCharacteristic->setValue(String(FPSTR(true_str)));
         } else if (configValue == "false" || configValue == "0" ||
                    configValue == "f") {
-            USE_LATENCY_COMPENSATION = false;
+            device_config::setLatencyCompensation(false);
             pCharacteristic->setValue(String(FPSTR(false_str)));
         } else {
             ESP_LOGW(NIMBLE_TAG, "Invalid latency compensation config value: %s",

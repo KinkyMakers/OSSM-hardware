@@ -32,6 +32,14 @@ inline int32_t scaleStreamPosition(int posPercent, int32_t maxStroke,
     return (1-(static_cast<float>(posPercent) / 100.0f)) * maxStroke + depth;
 }
 
+/// Direction of a streamed move: 1 out, -1 in. A repeated position keeps the
+/// previous direction so a hold is not treated as a reversal.
+inline int moveDirection(int32_t distance, int previousDirection) {
+    if (distance > 0) return 1;
+    if (distance < 0) return -1;
+    return previousDirection;
+}
+
 /// Result of motion profile planning.
 struct MotionProfile {
     uint32_t speed;

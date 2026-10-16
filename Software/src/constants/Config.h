@@ -3,6 +3,11 @@
 
 #include <U8g2lib.h>
 
+#include <cmath>
+#include <cstdint>
+
+#include "services/device_config.h"
+
 /**
     Default Config for OSSM - Reference board users should tweak UserConfig to
    match their personal build.
@@ -15,55 +20,70 @@ namespace Config {
             Motion System Config
     */
     namespace Driver {
-        // Max speed of the device
-        constexpr float maxRPM = 1500.0f;
-        // Number of teeth the pulley that is attached to the servo/stepper shaft has.
-        constexpr float pulleyToothCount = 20.0f;
-        // Set to your belt pitch (Distance between two teeth on the belt) (E.g.
-        // GT2 belt has 2mm tooth pitch)
-        constexpr float beltPitchMm = 2.0f;
-        // Top linear speed of the device.
-        constexpr float motorStepPerRevolution = 800.0f;
         // Top acceleration of the device in mm/s/s
-        constexpr float maxAcceleration = 50000.0f;
-        // Number of steps to move the arm 1mm
-        constexpr float maxSpeedMmPerSecond = maxRPM / 60.0 * pulleyToothCount * beltPitchMm;
-        // This should match the step/rev of your stepper or servo.
-        // N.b. the iHSV57 has a table on the side for setting the DIP switches
-        // to your preference.
-        constexpr float stepsPerMM = motorStepPerRevolution / (pulleyToothCount * beltPitchMm);
+        constexpr float maxAcceleration =
+            device_config_logic::kMaxAccelerationMmPerS2;
         // This is the measured current that use to infer when the device has
         // reached the end of its stroke. during "Homing".
         constexpr float sensorlessCurrentLimit = 6.0f;
+        // Soft endstop in mm. StrokeEngine's keepoutBoundary and the frame
+        // translation in stepper.cpp must use the same value.
+        constexpr float keepoutBoundaryMm = 6.0f;
+
+        // Steps/rev, pulley teeth, belt pitch, max RPM and max stroke are
+        // stored in NVS (services/device_config.h) and fixed from boot until
+        // restart. Defaults: 800 steps/rev, 20 teeth, 2 mm GT2, 1500 RPM,
+        // 500 mm. Steps/rev must match the DIP switches on the servo/stepper.
+        inline float stepsPerMM() {
+            return device_config_logic::stepsPerMm(device_config::active());
+        }
+
+        inline float maxStepRateHz() {
+            return std::fmin(
+                device_config_logic::maxStepRateHz(device_config::active()),
+                device_config_logic::kMaxStepRateHz);
+        }
+
+        inline float maxSpeedMmPerSecond() {
+            return maxStepRateHz() / stepsPerMM();
+        }
+
+        // Step rate for a linear speed, clamped to the machine's limit.
+        inline uint32_t stepRateHz(float mmPerSecond) {
+            return device_config_logic::clampStepRateHz(
+                mmPerSecond * stepsPerMM(), maxStepRateHz());
+        }
 
         namespace Operator {
             // Define user-defined literal for unsigned integer values
-            constexpr long long operator"" _mm(unsigned long long x) {
-                return x * stepsPerMM;
+            inline long long operator"" _mm(unsigned long long x) {
+                return x * stepsPerMM();
             }
 
             // Define user-defined literal for floating-point values
-            constexpr long double operator"" _mm(long double x) {
-                return x * stepsPerMM;
+            inline long double operator"" _mm(long double x) {
+                return x * stepsPerMM();
             }
         }
 
         using namespace Operator;
 
-        // This is in millimeters, and is what's used to define how much of
-        // your rail is usable.
-        // The absolute max your OSSM would have is the distance between the
-        // belt attachments subtract the linear block holder length (75mm on
-        // OSSM) Recommended to also subtract e.g. 20mm to keep the backstop
+        // How much of the rail is usable, in steps. The absolute max is the
+        // distance between the belt attachments minus the linear block holder
+        // length (75mm on OSSM); also subtract e.g. 20mm to keep the backstop
         // well away from the device.
-        constexpr float maxStrokeSteps = 500.0_mm;
+        inline float maxStrokeSteps() {
+            return device_config::active().maxStrokeMm * stepsPerMM();
+        }
 
         // If the stroke length is less than this value, then the stroke is
         // likely the result of a poor homing.
-        constexpr float minStrokeLengthMm = 50.0_mm;
+        inline float minStrokeLengthSteps() {
+            return device_config_logic::kMinStrokeLengthMm * stepsPerMM();
+        }
 
-        // Applied offset after homing process.
-        constexpr float homingOffsetMn = 10_mm;
+        // Applied offset after homing process, in steps.
+        inline float homingOffsetSteps() { return 10_mm; }
     }
 
     /**

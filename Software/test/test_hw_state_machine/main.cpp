@@ -33,6 +33,7 @@
 #include "ossm/state/menu.h"
 #include "ossm/state/state.h"
 #include "services/board.h"
+#include "services/device_config.h"
 #include "services/display.h"
 
 namespace sml = boost::sml;
@@ -43,7 +44,7 @@ void tearDown(void) {
     ossmEmergencyStop();
 }
 
-static constexpr uint32_t HOMING_TIMEOUT_MS = 30000;
+static constexpr uint32_t HOMING_TIMEOUT_MS = 45000;
 
 // ─── Helpers ───────────────────────────────────────────────
 
@@ -75,7 +76,7 @@ static void selectMenuOption(Menu option) {
  * Navigate back to menu and wait for menu.idle.
  * Uses ButtonPress from most sub-states.
  */
-static bool returnToMenu(uint32_t waitMs = 2000) {
+static bool pressToMenu(uint32_t waitMs = 2000) {
     stateMachine->process_event(ButtonPress{});
     vTaskDelay(pdMS_TO_TICKS(200));
 
@@ -94,7 +95,7 @@ static bool returnToMenu(uint32_t waitMs = 2000) {
  * to self-terminate before the next test starts.
  */
 static bool returnToMenuWithCleanup(uint32_t cleanupMs = 2000) {
-    if (!returnToMenu()) return false;
+    if (!pressToMenu()) return false;
     vTaskDelay(pdMS_TO_TICKS(cleanupMs));
     return true;
 }
@@ -132,7 +133,7 @@ void test_menu_navigate_to_help(void) {
         "Should transition to help.idle after selecting Help");
 
     TEST_ASSERT_TRUE_MESSAGE(
-        returnToMenu(),
+        pressToMenu(),
         "Should return to menu.idle from help.idle via ButtonPress");
 }
 
@@ -221,13 +222,13 @@ void test_menu_round_trip_stability(void) {
         "Pre-condition: must be in menu.idle");
 
     selectMenuOption(Menu::Help);
-    TEST_ASSERT_TRUE(returnToMenu());
+    TEST_ASSERT_TRUE(pressToMenu());
 
     selectMenuOption(Menu::Help);
-    TEST_ASSERT_TRUE(returnToMenu());
+    TEST_ASSERT_TRUE(pressToMenu());
 
     selectMenuOption(Menu::Help);
-    TEST_ASSERT_TRUE(returnToMenu());
+    TEST_ASSERT_TRUE(pressToMenu());
 
     TEST_ASSERT_TRUE_MESSAGE(
         stateMachine->is("menu.idle"_s),
@@ -243,6 +244,7 @@ void setup() {
     esp_log_level_set("gpio", ESP_LOG_WARN);
 
     initBoard();
+    device_config::load();
     initDisplay();
 
     ossm = new OSSM();

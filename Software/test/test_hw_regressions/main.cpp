@@ -58,6 +58,7 @@
 #include "ossm/state/menu.h"
 #include "ossm/state/state.h"
 #include "services/board.h"
+#include "services/device_config.h"
 #include "services/display.h"
 #include "services/stepper.h"
 
@@ -290,6 +291,7 @@ void setup() {
     esp_log_level_set("gpio", ESP_LOG_WARN);
 
     initBoard();
+    device_config::load();
     initDisplay();
 
     ossm = new OSSM();

@@ -15,12 +15,13 @@
 // enum of stroke engine states
 enum PlayControls { STROKE, DEPTH, SENSATION, BUFFER};
 
+// maxSpeed and stepsPerMillimeter come from the NVS machine config, which is
+// loaded after static initialization; stroke_engine.cpp sets them before
+// StrokeEngine::begin.
 static motorProperties servoMotor{
-    .maxSpeed = Config::Driver::maxSpeedMmPerSecond,
+    .maxSpeed = 0.0f,
     .maxAcceleration = Config::Driver::maxAcceleration,
-    .stepsPerMillimeter =
-        Config::Driver::motorStepPerRevolution /
-        (Config::Driver::pulleyToothCount * Config::Driver::beltPitchMm),
+    .stepsPerMillimeter = 0.0f,
     .invertDirection = true,
     .enableActiveLow = true,
     .stepPin = Pins::Driver::motorStepPin,
