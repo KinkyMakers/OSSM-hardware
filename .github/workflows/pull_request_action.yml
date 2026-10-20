@@ -88,6 +88,13 @@ jobs:
           ref: 065c1c70d8be0b6ebe3edf536051ca542b793d70 # main 1.0.39
           path: legacy-4mb
 
+      - name: Pin legacy 4 MB dependencies
+        # The pinned legacy source asks for FastLED ^3.6.0; newer releases no
+        # longer compile against it. 3.10.3 matches the current firmware.
+        run: |
+          sed -i 's#fastled/FastLED@^3.6.0#fastled/FastLED@3.10.3#' legacy-4mb/Software/platformio.ini
+          grep -qx '    fastled/FastLED@3.10.3' legacy-4mb/Software/platformio.ini
+
       - name: Test and build legacy 4 MB firmware
         run: |
           VERSION="$(python scripts/release_version.py read --header Software/src/constants/Version.h)"
