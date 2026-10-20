@@ -6,10 +6,8 @@
   assembly documentation live in `researchanddesire/OSSM`, which is the only
   source of official firmware releases. Open changes meant for official
   firmware there.
-- Builds from this repository are community firmware: unsigned and never
-  official releases. Do not add release-signing keys, firmware publish tokens,
-  or calls to the dashboard's internal firmware API here.
-- Do not enable GitHub Pages.
+- Builds from this repository are community firmware: unsigned. Do not add release-signing keys, firmware publish tokens,
+  or calls to the R+D's internal firmware API here.
 
 ## Community Firmware Publishing
 
