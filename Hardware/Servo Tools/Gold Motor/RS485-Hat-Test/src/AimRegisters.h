@@ -21,6 +21,11 @@ namespace Aim {
     constexpr uint32_t defaultBaud = 19200;
     constexpr uint16_t registerCount = 0x1A;  // 0x00..0x19
 
+    // Modbus positions (0x0C/0x0D, 0x16/0x17, FC 0x78/0x7B) are raw 15-bit encoder counts. The electronic gear
+    // (0x0A/0x0B, e.g. 32768:800) only scales the STEP/DIR input. Measured: 1425 counts/s while the speed register
+    // read ~2.6 rpm -> 32768 counts/rev.
+    constexpr uint32_t encoderCountsPerRev = 32768;
+
     namespace Reg {
         constexpr uint16_t modbusEnable = 0x00;
         constexpr uint16_t driveOutputEnable = 0x01;

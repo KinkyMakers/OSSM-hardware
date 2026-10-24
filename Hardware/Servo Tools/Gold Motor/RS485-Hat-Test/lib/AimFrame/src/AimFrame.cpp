@@ -65,15 +65,26 @@ namespace AimFrame {
         return appendCrc(out, len);
     }
 
+    namespace {
+        // 0x78 / 0x7B request: id, fc, int32 MSB first, crc
+        size_t buildInt32Frame(uint8_t *out, uint8_t id, uint8_t fc, int32_t value) {
+            auto u = static_cast<uint32_t>(value);
+            out[0] = id;
+            out[1] = fc;
+            out[2] = u >> 24;
+            out[3] = (u >> 16) & 0xFF;
+            out[4] = (u >> 8) & 0xFF;
+            out[5] = u & 0xFF;
+            return appendCrc(out, 6);
+        }
+    }
+
     size_t buildMove(uint8_t *out, uint8_t id, int32_t pulses) {
-        auto u = static_cast<uint32_t>(pulses);
-        out[0] = id;
-        out[1] = fcMove;
-        out[2] = u >> 24;
-        out[3] = (u >> 16) & 0xFF;
-        out[4] = (u >> 8) & 0xFF;
-        out[5] = u & 0xFF;
-        return appendCrc(out, 6);
+        return buildInt32Frame(out, id, fcMove, pulses);
+    }
+
+    size_t buildMoveAbsolute(uint8_t *out, uint8_t id, int32_t target) {
+        return buildInt32Frame(out, id, fcMoveAbsolute, target);
     }
 
     size_t replyLength(uint8_t fc, uint16_t readCount) {
@@ -83,6 +94,7 @@ namespace AimFrame {
             case fcWriteSingle:
             case fcWriteMultiple:
             case fcMove:
+            case fcMoveAbsolute:
                 return 8;
             default:
                 return 0;

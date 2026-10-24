@@ -13,6 +13,7 @@
 #include "AimRegisters.h"
 #include "ModbusClientRTU.h"
 #include "RTUutils.h"
+#include "SineTest.h"
 
 #ifndef RS485_TX_PIN
 #error "Define RS485_TX_PIN / RS485_RX_PIN / RS485_DE_PIN in platformio.ini"
@@ -716,6 +717,44 @@ namespace {
         }
     }
 
+    // Tiny absolute move out and back (FC 0x7B) to check that move and position units agree.
+    void cmdNudge(long counts) {
+        if (!useRawBus) {
+            Serial.println("nudge needs the AimBus backend: run `bus raw` first");
+            return;
+        }
+        if (counts == 0 || labs(counts) > 8192) {
+            Serial.println("nudge counts must be +/-1..8192 (8192 = 1/4 rev = 10 mm)");
+            return;
+        }
+        uint16_t prevEnable = 0, stepsPerRev = 0;
+        int32_t start = 0, out = 0, back = 0;
+        if (!checkedRead(Aim::Reg::modbusEnable, prevEnable) || !checkedRead(Aim::Reg::stepsPerRev, stepsPerRev) ||
+            readPosition(start) != SUCCESS) {
+            Serial.println("nudge aborted: couldn't read state");
+            return;
+        }
+        if (prevEnable != 1 && !checkedWrite(Aim::Reg::modbusEnable, 1)) {
+            return;
+        }
+        AimBus::Result r1 = aimBus.moveTo(start + counts);
+        delay(400);
+        readPosition(out);
+        AimBus::Result r2 = aimBus.moveTo(start);
+        delay(400);
+        readPosition(back);
+        if (prevEnable != 1) {
+            checkedWrite(Aim::Reg::modbusEnable, prevEnable);
+        }
+        Serial.printf("   moveTo(%ld): %s -> position %ld (moved %+ld)\n", static_cast<long>(start + counts),
+                      AimBus::resultText(r1), static_cast<long>(out), static_cast<long>(out - start));
+        Serial.printf("   moveTo(%ld): %s -> position %ld (%+ld from start)\n", static_cast<long>(start),
+                      AimBus::resultText(r2), static_cast<long>(back), static_cast<long>(back - start));
+        Serial.printf("   %ld encoder counts = %.3f mm at 40 mm/rev (%lu counts/rev; 0x0B=%u only gears STEP/DIR)\n",
+                      counts, counts * 40.0f / Aim::encoderCountsPerRev,
+                      static_cast<unsigned long>(Aim::encoderCountsPerRev), stepsPerRev);
+    }
+
     // Manual §5.6 "modify the baud rate": 0x00=1, accel=code, weak-magnetic=129, 0x00=506, then power-cycle.
     // No save needed. The manual's step list says accel/weak-magnetic are at "address 2/3", but its register
     // table puts them at 0x03/0x04, so variant 'a' follows the names and 'b' the literal addresses.
@@ -847,6 +886,10 @@ Commands (numbers accept decimal or 0x hex):
   bench read|write|both|write78|both78 [n]
                        time n position reads / 0-step position writes / both (default 200)
                        (78 = vendor FC 0x78 move instead of FC 0x10)
+  nudge <counts>       absolute move out and back, encoder counts (+/-8192 = 10 mm max)      [bus raw]
+  sine [stroke f0 f1 seconds accel rate read_every rpm_cap lookahead_ms follow_mm]
+                       stream a swept sine around the current position (default 100 0.3 3 40 60000
+                       max 8 1000 0 8); carriage must be centred; any key aborts          [bus raw]
   steps <n>            set + save steps/rev (0x0B) with full checks
   verify <n>           after a power cycle, confirm 0x0B == n
   unlock / lock        set 0x00 (Modbus enable) to 1 / 0 manually
@@ -912,6 +955,20 @@ Commands (numbers accept decimal or 0x hex):
             cmdSave();
         } else if (cmd == "monitor") {
             cmdMonitor();
+        } else if (cmd == "nudge" && hasA) {
+            cmdNudge(a);
+        } else if (cmd == "sine") {
+            if (!useRawBus) {
+                Serial.println("sine needs the AimBus backend: run `bus raw` first");
+            } else {
+                SineParams params;
+                String error;
+                if (parseSineParams(rest, params, error)) {
+                    runSine(aimBus, params);
+                } else {
+                    Serial.printf("sine: %s\n", error.c_str());
+                }
+            }
         } else if (cmd == "setbaud" && hasA) {
             cmdSetBaud(a, arg2);
         } else if (cmd == "bench" && !arg1.isEmpty()) {

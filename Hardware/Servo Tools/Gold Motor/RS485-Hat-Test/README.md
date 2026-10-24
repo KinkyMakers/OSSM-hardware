@@ -114,11 +114,53 @@ Soak: 37,380 transactions with 0 timeouts, 0 CRC errors and 0 retries, plus 10,0
 sweep showed every other frame dropped at ≤1000 µs, 1 in 1005 at 1150 µs, and 0 at ≥1200 µs. AimBus defaults to
 1500 µs (`gap <us>` to change). This gap is now the largest fixed cost per transaction, bigger than the wire time.
 
-**Position creep with repeated 0-step FC 0x78 moves (unresolved).** In the 20k-cycle soak the position crept
-+21 counts over ~150 s and tripped the 20-count safety stop. With read-only traffic it stayed exact (0 drift over
-10,000 reads), and it went back to the original position once 0x00 returned to 0. Likely cause: incremental moves are
-relative to the *actual* position, so following error accumulates into the target. Streaming motion should use
-absolute targets (0x16/0x17 via FC10, or vendor FC 0x7B). Their units still need confirming before anything moves.
+**Creep with repeated 0-step FC 0x78 moves is negligible.** In the 20k-cycle soak the position crept +21 counts
+over ~150 s. That's **0.026 mm** (see units below), not the ~1 mm first assumed. Read-only traffic showed 0 drift.
+Incremental moves seem to be relative to the actual position, so tiny settling errors accumulate. Streaming
+should still use absolute targets (FC 0x7B), which are also safe to retry.
+
+### Position units: encoder counts, not steps
+
+Modbus positions (0x0C/0x0D, 0x16/0x17, FC 0x78/0x7B) are **raw 15-bit encoder counts: 32768/rev = 819.2 counts/mm**
+at 40 mm/rev. The electronic gear (0x0A:0x0B = 32768:800) only scales the STEP/DIR input. Steps/rev = 800 is correct
+for the OSSM and has nothing to do with Modbus positions. Measured: positions changed at 1425 counts/s while the speed
+register read ~2.6 rpm, and `nudge 8192` moved the carriage 10 mm (+8183 counts). The motor settles 9–19 counts
+(~0.01–0.02 mm) short of an absolute target. `Aim::encoderCountsPerRev` in `AimRegisters.h` holds the constant.
+
+### Streamed sine sweep (`sine`), 100 mm stroke on the OSSM rail
+
+`sine` streams a log sweep (0.3 → 3 Hz, capped at 2.12 Hz = 1000 rpm because the supply is 19.1 V) as absolute FC 0x7B
+targets computed at each send time, with 2 s / 1.5 s raised-cosine fades. It logs telemetry (one block read of
+0x0E–0x17 after every N writes) and aborts on following error, alarm, bus errors, soft limits (±52 mm) or a key press.
+At the end it eases back to centre and restores 0x00/0x02/0x03 (RAM only, never saved). Second motor, 115200 baud,
+AimBus, 1500 µs gap. 7 runs, 0 bus errors.
+
+| Run | Writes/s | RMS err | Peak err | Lag | Shape (top band) | Peak current |
+|---|---|---|---|---|---|---|
+| accel 50000 (internal trapezoid) | 199 | 8.8 mm | 25.3 mm — **aborted at 2.12 Hz** | 32→37 ms | 0.83 mm | 0.49 A |
+| accel 60000 (no ramp) | 199 | 7.7 mm | 18.1 mm | **28 ms** | 0.73 mm | 0.90 A |
+| accel 60050 / 60098 (feedforward) | 199 | identical to 60000 | | 28 ms | 0.73 mm | 0.9 A |
+| 60000, 120/s | 105 | 7.8 mm | 18.5 mm | 28 ms | 0.75 mm | 1.22 A |
+| 60000, 60/s | 52 | 8.9 mm | 20.7 mm | 32 ms | 0.72 mm | 1.99 A |
+| 60000, write/read alternating | 97 | 8.5 mm | 20.0 mm | 30.5 ms | 0.70 mm | 0.70 A |
+
+Lag = best-fit pure delay between command and measured position. Shape = RMS error left after removing that delay,
+which measures distortion and roughness. Peak current is only sampled at telemetry reads.
+
+What it means:
+- **The motion is a clean sine that arrives ~28 ms late.** Shape error is 0.05 mm at 0.3–0.6 Hz, 0.17 mm at
+  0.6–1.2 Hz and ~0.7 mm at 1.2–2.12 Hz on a 100 mm stroke. Almost all of the "tracking error" is that constant delay.
+- **Use accel ≥ 60000 (no internal ramp).** The internal trapezoid adds growing lag (32→37 ms) and failed at the top
+  of the sweep. Don't change speed or accel per move: one extra write per target halves the update rate and buys nothing.
+- **Feedforward (60001–60098) has no effect on Modbus position commands.** Results matched to 0.01 mm. It likely only
+  applies to STEP/DIR.
+- **About 100+ writes/s is enough for shape.** Below that, lag grows by about half the update period, and current
+  peaks rise (0.9 A at 199/s → 2.0 A at 52/s), consistent with the motor chasing coarser steps.
+- **Next step:** compensate the fixed delay by sending targets ~28 ms ahead (`lookahead_ms`). For a known
+  trajectory that should cut tracking error from ~11 mm to about the ~0.7 mm shape error. Not yet tested.
+
+The capture and report scripts used for the table live outside the repo. The report shows command vs measured,
+error vs frequency, speed and current per run.
 
 **Changing the motor's baud (manual §5.6) — confirmed working as "variant a":** `setbaud 115200 a` writes
 0x00=1, 0x03=803, 0x04=129, 0x00=506. Power-cycle the motor and it answers at 115200. Codes: 800 = 9600, 801 = 19200,
@@ -140,6 +182,10 @@ eModbus' `syncRequest()` polls every 10 ms, which caps every transaction at 20 m
 | `bench read\|write\|both [n]` | Time position reads / 0-step position writes / both |
 | `waitmode` | Toggle fast notify wait vs eModbus `syncRequest` |
 | `sniff` | Raw FC03 read of 0x0B with a hex dump of the reply, bypassing eModbus |
+| `bus raw\|emodbus`, `gap <us>`, `busstats` | Switch to AimBus, set its inter-frame gap, show error counters |
+| `nudge <counts>` | Absolute move out and back in encoder counts (±8192 = 10 mm), `bus raw` |
+| `sine [stroke f0 f1 seconds accel rate read_every rpm_cap lookahead_ms follow_mm]` | Streamed sine sweep around the current position, `bus raw` |
+| `setbaud <baud> a\|b` | The motor's own baud change (manual §5.6); needs a power cycle |
 | `skip00` | Toggle skipping a leading 0x00 byte (on by default) |
 
 ## Things the manual says that matter

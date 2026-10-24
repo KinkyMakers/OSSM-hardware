@@ -79,6 +79,20 @@ void test_move78_manual_example() {
     assertFrame(expected, out, buildMove(out, 1, 10000));
 }
 
+void test_move7b_manual_example() {
+    // absolute target 10000, MSB first
+    const uint8_t expected[] = {0x01, 0x7B, 0x00, 0x00, 0x27, 0x10, 0xFF, 0xFC};
+    uint8_t out[8];
+    assertFrame(expected, out, buildMoveAbsolute(out, 1, 10000));
+}
+
+void test_parse_move7b_manual_reply() {
+    const uint8_t rx[] = {0x01, 0x7B, 0x27, 0x10, 0x00, 0x00, 0xEE, 0xB1};
+    Reply r = parseReply(rx, sizeof(rx), 1, fcMoveAbsolute, replyLength(fcMoveAbsolute));
+    TEST_ASSERT_EQUAL(static_cast<int>(Status::Ok), static_cast<int>(r.status));
+    TEST_ASSERT_EQUAL_INT32(10000, moveReplyValue(rx + r.offset));
+}
+
 void test_move78_negative() {
     uint8_t out[8];
     buildMove(out, 1, -1);
@@ -160,6 +174,8 @@ void setup() {
     RUN_TEST(test_write_multiple_incremental_moves);
     RUN_TEST(test_write_multiple_absolute_position);
     RUN_TEST(test_move78_manual_example);
+    RUN_TEST(test_move7b_manual_example);
+    RUN_TEST(test_parse_move7b_manual_reply);
     RUN_TEST(test_move78_negative);
     RUN_TEST(test_parse_reply_with_leading_glitch_byte);
     RUN_TEST(test_parse_reply_without_glitch_byte);

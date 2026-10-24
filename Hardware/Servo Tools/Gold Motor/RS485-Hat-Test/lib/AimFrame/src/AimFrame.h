@@ -15,7 +15,8 @@ namespace AimFrame {
     constexpr uint8_t fcReadHolding = 0x03;
     constexpr uint8_t fcWriteSingle = 0x06;
     constexpr uint8_t fcWriteMultiple = 0x10;
-    constexpr uint8_t fcMove = 0x78;  // vendor: incremental move, 4-byte signed pulse count
+    constexpr uint8_t fcMove = 0x78;          // vendor: incremental move, 4-byte signed pulse count
+    constexpr uint8_t fcMoveAbsolute = 0x7B;  // vendor: absolute move, 4-byte signed target
 
     constexpr size_t maxReadCount = 32;  // plenty for the 26-register map
     constexpr size_t maxFrame = 5 + 2 * maxReadCount;
@@ -27,6 +28,7 @@ namespace AimFrame {
     size_t buildWriteSingle(uint8_t *out, uint8_t id, uint16_t addr, uint16_t value);
     size_t buildWriteMultiple(uint8_t *out, uint8_t id, uint16_t addr, const uint16_t *words, uint8_t count);
     size_t buildMove(uint8_t *out, uint8_t id, int32_t pulses);
+    size_t buildMoveAbsolute(uint8_t *out, uint8_t id, int32_t target);
 
     // Length of a normal (non-exception) reply, including CRC.
     size_t replyLength(uint8_t fc, uint16_t readCount = 0);
@@ -55,7 +57,7 @@ namespace AimFrame {
 
     inline uint16_t be16(const uint8_t *p) { return static_cast<uint16_t>((p[0] << 8) | p[1]); }
 
-    // The 0x78 reply carries an int32 as two big-endian words, low word first (e.g. FF F9 FF FF = -7).
+    // 0x78/0x7B replies carry an int32 as two big-endian words, low word first (e.g. FF F9 FF FF = -7).
     inline int32_t moveReplyValue(const uint8_t *frame) {
         return static_cast<int32_t>((static_cast<uint32_t>(be16(frame + 4)) << 16) | be16(frame + 2));
     }

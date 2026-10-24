@@ -100,6 +100,18 @@ AimBus::Result AimBus::move(int32_t pulses, int32_t *replyValue) {
     return r;
 }
 
+AimBus::Result AimBus::moveTo(int32_t target, int32_t *replyValue) {
+    uint8_t req[8];
+    size_t len = AimFrame::buildMoveAbsolute(req, serverId_, target);
+    const uint8_t *frame = nullptr;
+    Result r = transact(req, len, AimFrame::fcMoveAbsolute, AimFrame::replyLength(AimFrame::fcMoveAbsolute), retries_,
+                        frame);
+    if (r == Result::Ok && replyValue) {
+        *replyValue = AimFrame::moveReplyValue(frame);
+    }
+    return r;
+}
+
 AimBus::Result AimBus::transact(const uint8_t *req, size_t reqLen, uint8_t fc, size_t expectedLen, uint8_t retries,
                                 const uint8_t *&frame) {
     if (!serial_) {

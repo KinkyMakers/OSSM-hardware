@@ -15,7 +15,7 @@
  * half-duplex mode). Thread-safe: calls from several tasks are serialised by
  * a mutex, but one bus-owner task is the intended design.
  *
- * Retries: reads and single-register writes are idempotent and are retried.
+ * Retries: reads, single-register writes and absolute moves are idempotent and are retried.
  * writeRegisters() and move() never are, because 0x0C/0x0D and FC 0x78 are
  * *incremental* moves: if the request landed but the reply was lost, a retry
  * would move the motor twice.
@@ -48,6 +48,8 @@ class AimBus {
     Result writeRegister(uint16_t addr, uint16_t value);
     Result writeRegisters(uint16_t addr, const uint16_t *words, uint8_t count);
     Result move(int32_t pulses, int32_t *replyValue = nullptr);
+    // Absolute move (FC 0x7B). Idempotent, so it is retried like a read.
+    Result moveTo(int32_t target, int32_t *replyValue = nullptr);
 
     uint8_t lastExceptionCode() const { return lastException_; }
     const Stats &stats() const { return stats_; }
