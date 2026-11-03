@@ -74,6 +74,7 @@ For 3D printing settings and material recommendations, see [3D Printing Parts](h
 | [Toy Mounting](Printed%20Parts/Toy%20Mounting/) | Flange Base, Vac-U-Lock Adapters | [Toy Mounting Docs](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/toy-mounting/introduction) |
 | [Mounting](Printed%20Parts/Mounting/) | PitClamp Mini Ring/Base, PCB Enclosure | [Mounting Docs](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/pitclamp/README) |
 | [Stand](Printed%20Parts/Stand/) | 3030 Extrusion Base Components | [Stand Docs](https://docs.researchanddesire.com/ossm/Hardware/standard-printed-parts/stand/introduction) |
+| [Radiating PitClamp Stand](Printed%20Parts/OSSM%20Mods/Radiating%20PitClamp%20Stand/) | One- and two-arm kits with a captured handle and four-color artwork | [Kit files and notes](Printed%20Parts/OSSM%20Mods/Radiating%20PitClamp%20Stand/README.md) |
 
 Experimental parts are developed in the [KinkyMakers Discord](https://discord.gg/wrENMKb3) `#ossm-print-testing` channel.
 

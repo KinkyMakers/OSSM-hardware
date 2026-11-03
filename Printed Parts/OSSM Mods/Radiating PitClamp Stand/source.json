@@ -1,0 +1,24 @@
+{
+  "license": "CERN-OHL-S-2.0",
+  "upstream": {
+    "repository": "https://github.com/armpitMFG/PitClamp-Mini",
+    "commit": "81e059dedff43f51d8923a464bef71d6fbc370c8",
+    "source_path": "Files/Experimental/Print In Place/STEP/PitClamp Mini - Standard - Print-In-Place.step",
+    "copyright": "Copyright (C) 2024-2026 armpitMFG"
+  },
+  "upstream_notice_verbatim": "# Notice\n\nPitClamp Mini is licensed under the\n**[CERN Open Hardware Licence Version 2 - Strongly Reciprocal](LICENSE)**\n(`CERN-OHL-S-2.0`).\n\n    Copyright (C) 2024-2026 armpitMFG\n\nThe `LICENSE` file is the official CERN-OHL-S-2.0 text, reproduced verbatim.\nCERN asks that the licence text be used in unmodified form only, so copyright\nnotices are recorded here rather than inside it.\n\n## Provenance\n\nPitClamp Mini is an original armpitMFG design. It is also distributed as part\nof the OSSM project at\n<https://github.com/KinkyMakers/OSSM-hardware> under the same licence.\n\n## Not covered by this licence\n\nPitClamp Mini interoperates with hardware and designs by others. No copyright\nin the following is claimed here:\n\n  - **iHSV57**, **57AIM**, **42AIM** and **NEMA23** motors - respective\n    manufacturers\n  - **SpockAroundTheClock** - Compact Motor Head (42AIM), supported but not\n    included in this repository\n  - **just_b** - Universal Motor Head (57AIM / 42AIM / iHSV57 NEMA23),\n    supported but not included in this repository\n  - **OSSM** and the OSSM logo - the OSSM project / Research and Desire\n",
+  "current_revision": "R+D: M5 rear jaw hinge, retained captured print-in-place handle, segmented ring artwork, blue bed-facing handle skin and black opposite skin.",
+  "artifacts": {
+    "pitclamp-stand.FCStd": {
+      "sha256": "03b83d9b4f534100b1619234e1661e23e02bb176aefc15206e519a0f127650e4",
+      "bytes": 5069840
+    },
+    "pitclamp-stand.3mf": {
+      "sha256": "ee3d1ad1c6bab06ad87a5761c0411dc8fb880b3b26564e345908c9f80cab65d6",
+      "bytes": 9977714
+    }
+  },
+  "digital_validation": "Closed material meshes, current handle color assignments, radial/axial clearances and affected plate toolpaths checked.",
+  "physical_release_fit_or_strength_tested": false,
+  "modified_date": "2026-11-03"
+}
