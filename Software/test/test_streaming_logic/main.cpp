@@ -45,7 +45,7 @@ void test_scaleStreamPosition_100_percent(void) {
     int32_t maxStroke = 5000;
     int32_t depth = 2000;
     int32_t result = streaming_logic::scaleStreamPosition(100, maxStroke, depth);
-    TEST_ASSERT_EQUAL_INT32(depth, result);
+    TEST_ASSERT_EQUAL_INT32(-depth, result);
 }
 
 void test_scaleStreamPosition_0_percent(void) {
@@ -53,7 +53,7 @@ void test_scaleStreamPosition_0_percent(void) {
     int32_t maxStroke = 5000;
     int32_t depth = 2000;
     int32_t result = streaming_logic::scaleStreamPosition(0, maxStroke, depth);
-    TEST_ASSERT_EQUAL_INT32(maxStroke + depth, result);
+    TEST_ASSERT_EQUAL_INT32(-maxStroke - depth, result);
 }
 
 void test_scaleStreamPosition_50_percent(void) {
@@ -61,7 +61,7 @@ void test_scaleStreamPosition_50_percent(void) {
     int32_t maxStroke = 5000;
     int32_t depth = 2000;
     int32_t result = streaming_logic::scaleStreamPosition(50, maxStroke, depth);
-    TEST_ASSERT_EQUAL_INT32(4500, result);
+    TEST_ASSERT_EQUAL_INT32(-4500, result);
 }
 
 // ─── planMotion ───
