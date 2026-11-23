@@ -141,6 +141,37 @@ Three operation modes:
 
 **Streaming Mode** — Real-time position from BLE (`stream:POS:TIME`)
 
+**Queued moves (`q:`, `r:`)** — binary commands on the command
+characteristic, streaming mode only. Queued positions are 16-bit (0-65535
+across the stroke window, 65535 = depth end) but travel as one byte each,
+decoded within the current range as `min + (max - min) * byte / 255`.
+- `r:` + min u16 LE + max u16 LE + up to 8 byte pairs `[position byte,
+  time 0-255 ms]` (22 bytes, one default-MTU write) sets the range and
+  queues those moves together; if they don't fit, the range doesn't change
+  either (`fail:r`). Clients send each batch with its own range, so slow
+  moves keep fine resolution (a single 0-255 range across the stroke made
+  slow moves stall on repeated values).
+- `q:` + up to 10 byte pairs queues moves in the last `r:` range. The range
+  resets to 0-65535 when streaming mode starts.
+
+Moves are decoded on arrival into a 32-slot ring buffer
+(`lib/OSSMLogic/src/queued_moves.h`) that the streaming task drains ahead of
+`stream:` targets. A move ends when its time is up, whether or not it reached
+its position; the next starts at that end time. The motor doesn't stop at
+each point: every tick it is aimed a short lookahead (20-150 ms: long enough
+not to brake mid-stroke, and at least 8 steps ahead so slow moves don't
+jitter on step rounding) along a monotone cubic curve through the started and
+buffered points (`lib/OSSMLogic/src/trajectory.h`), clamped to the stroke
+window, at the speed that gets there on time (at least 10 steps/s). The curve
+never overshoots a point and eases to a stop on the last one if the buffer
+runs dry. A command that doesn't fully fit is rejected whole (`fail:q`).
+`q:` with no bytes clears the buffer, drops pending `stream:` targets, and
+decelerates to a stop. Both are parsed on the raw bytes in `command.hpp`
+`onWrite`, before the regex/String path, which would truncate at 0x00.
+`set:lowwater:n` (0-65535 ms, default 500, not persisted) is how much queued
+time the device aims to keep; the status packet's last byte reports when it
+falls short (see Status below).
+
 ### StrokeEngine Library (`lib/StrokeEngine/`)
 
 Custom motion control library with its own state machine:
@@ -158,7 +189,22 @@ UNDEFINED → READY → PATTERN / SETUPDEPTH / STREAMING
 - **Service UUID:** `522b443a-4f53-534d-0001-420badbabe69`
 - **Characteristics:**
   - Command (0x1000) — Write
-  - State (0x2000) — Read/Notify
+  - State (0x2000) — Read/Notify, JSON. Shared with the RAD BLE library,
+    which adds its own fields; the RAD Dashboard depends on it.
+  - Status (0x2200) — Read/Notify, 9-byte binary that fits one ATT packet:
+    `[state u8][speed u8][stroke u8][depth u8][position u16 0.1 mm from
+    home][timestamp u16 ms since previous notification][lowWater u8]`,
+    little-endian. lowWater is 0 when the queued moves plus the rest of the
+    running one last at least the low-water time, else the free slot count
+    (always 0 outside streaming mode).
+    Notified like the JSON: when the state or a setting changes, plus a 1 s
+    heartbeat; position alone never triggers one, to keep BLE traffic down.
+    Also notified when a queued move completes below the low-water mark, at
+    most once per 100 ms (a pending one waits for the window, and is dropped
+    if the buffer has refilled by then).
+    Reads return live values with delta 0. State numbers are
+    `StateName::Value` in `lib/OSSMLogic/src/status_packet.h` (255 =
+    Unknown): append only, never renumber. 2010/2100/2300 are RAD BLE's.
   - Patterns (0x3000) — Read
   - GPIO (0x4000) — Read
 - **Command Format:** `go:{mode}`, `set:{param}:{value}`, `stream:{pos}:{time}`
@@ -240,6 +286,8 @@ Uses `min_spiffs.csv` (PlatformIO built-in minimal SPIFFS partition).
 
 ## Important Rules
 
+- Always put `{` and `}` around the body of `if`, `else`, `for` and `while`,
+  even when it is a single line
 - Never commit credentials or WiFi passwords
 - State machine (`OSSM.h`) is the single source of truth for device behavior
 - Display access must use mutex protection

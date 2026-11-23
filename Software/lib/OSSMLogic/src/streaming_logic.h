@@ -27,9 +27,16 @@ inline int32_t calculateDepthOffset(float measuredStrokeSteps,
 /// Scale a BLE position percentage (0-100) into stepper target position.
 /// streaming.cpp line 95
 ///
+///
+/// Homing zeroes the counter at the homed end, with the working range on the
+/// negative side (0 to -stroke). Targets must be negative too, or every move
+/// drives past the homing hard stop.
+///   posPercent=100 -> -depth                (stroke window end nearest home)
+///   posPercent=0   -> -(maxStroke + depth)  (stroke window end furthest from home)
 inline int32_t scaleStreamPosition(int posPercent, int32_t maxStroke,
                                    int32_t depth) {
-    return (1-(static_cast<float>(posPercent) / 100.0f)) * maxStroke + depth;
+    return -((1 - (static_cast<float>(posPercent) / 100.0f)) * maxStroke +
+             depth);
 }
 
 /// Result of motion profile planning.

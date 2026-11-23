@@ -32,6 +32,7 @@ enum class Commands {
     setStroke,
     setWifi,
     setBuffer,
+    setLowWater,  // ms of queued moves (q:) the device aims to keep
 
     // STREAMING
     streamPosition,
@@ -64,6 +65,16 @@ inline CommandValue setCommandValue(const String& str) {
         str.substring(4, str.lastIndexOf(':'));  // Skip "set:" and get command
     String valueStr = str.substring(lastColon + 1);
     int value = valueStr.toInt();
+
+    // lowwater is a time in ms, not a percentage.
+    if (command == "lowwater") {
+        if (value < 0 || value > 65535 || valueStr != String(value)) {
+            ESP_LOGI("COMMANDS", "Invalid value: %s", str.c_str());
+            return {Commands::ignore, 0, 0};
+        }
+        return {Commands::setLowWater, value, 0};
+    }
+
     if (value < 0 || value > 100 || valueStr != String(value)) {
         ESP_LOGI("COMMANDS", "Invalid value: %s", str.c_str());
         return {Commands::ignore, 0, 0};

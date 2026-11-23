@@ -28,6 +28,10 @@ extern StepperFrame stepperFrame;
 // when already in that frame. Call only with the motor stopped.
 void stepperTranslateFrame(StepperFrame to);
 
+// Carriage distance from the homed rest position in steps (>= 0 in normal
+// operation), whichever frame the counter is currently in.
+int32_t stepperDistanceFromHomeSteps();
+
 void initStepper();
 
 #endif  // SOFTWARE_STEPPER_H

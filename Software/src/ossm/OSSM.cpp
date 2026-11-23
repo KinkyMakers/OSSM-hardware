@@ -11,6 +11,7 @@
 #include "ossm/state/settings.h"
 #include "ossm/state/state.h"
 #include "ossm/state_json.hpp"
+#include "ossm/streaming/streaming.h"
 #include "services/communication/mqtt.h"
 #include "services/communication/queue.h"
 #include "services/encoder.h"
@@ -36,7 +37,9 @@ OSSM::OSSM() {
 }
 
 bool OSSM::triggerMenuActionFromBle(Menu option) {
-    if (stateMachine == nullptr) return false;
+    if (stateMachine == nullptr) {
+        return false;
+    }
     bleState.remoteMenuAction = true;
     // A second go:update while an update is offered is the install confirmation.
     if (option == Menu::UpdateOSSM && stateMachine->is("update.available"_s)) {
@@ -133,6 +136,9 @@ void OSSM::ble_click(String commandString) {
             encoder.setEncoderValue(command.value);
             settings.buffer = command.value;
             break;
+        case Commands::setLowWater:
+            streaming::setLowWaterMs(command.value);
+            break;
         case Commands::setPattern:
             settings.pattern = static_cast<StrokePatterns>(command.value % 7);
             break;
@@ -147,6 +153,22 @@ void OSSM::ble_click(String commandString) {
         case Commands::ignore:
             break;
     }
+}
+
+status_packet::Status OSSM::getStatus() {
+    String currentState;
+    if (stateMachine != nullptr) {
+        stateMachine->visit_current_states(
+            [&currentState](auto state) { currentState = state.c_str(); });
+    }
+    const float distanceMm =
+        float(stepperDistanceFromHomeSteps()) / float(1_mm);
+    return {status_packet::StateName(std::string_view(currentState.c_str())),
+            status_packet::clampPercent(settings.speed),
+            status_packet::clampPercent(settings.stroke),
+            status_packet::clampPercent(settings.depth),
+            status_packet::positionTenths(distanceMm),
+            streaming::lowWaterSlots()};
 }
 
 String OSSM::getStateFingerprint() {
@@ -204,7 +226,9 @@ String OSSM::getCurrentState() {
     }
 
     float positionMm = float(stepper->getCurrentPosition()) / float(1_mm);
-    if (isnan(positionMm)) positionMm = 0.0f;
+    if (isnan(positionMm)) {
+        positionMm = 0.0f;
+    }
 
     const String provenanceId =
         firmware::provenance::currentTokenId().c_str();

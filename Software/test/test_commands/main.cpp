@@ -215,6 +215,28 @@ void test_parseWiFiCommand_wrongPrefix_returnsEmpty() {
 }
 
 // ---------------------------------------------------------------------------
+// set:lowwater (milliseconds, not a percentage)
+// ---------------------------------------------------------------------------
+
+void test_lowwater_accepts_milliseconds() {
+    TEST_ASSERT_TRUE(isValidBleCommand("set:lowwater:500"));
+    auto result = commandFromString(String("set:lowwater:500"));
+    TEST_ASSERT_EQUAL(Commands::setLowWater, result.command);
+    TEST_ASSERT_EQUAL(500, result.value);
+    TEST_ASSERT_EQUAL(0, commandFromString(String("set:lowwater:0")).value);
+    TEST_ASSERT_EQUAL(65535,
+                      commandFromString(String("set:lowwater:65535")).value);
+}
+
+void test_lowwater_rejects_out_of_range() {
+    TEST_ASSERT_EQUAL(Commands::ignore,
+                      commandFromString(String("set:lowwater:65536")).command);
+    TEST_ASSERT_EQUAL(Commands::ignore,
+                      commandFromString(String("set:lowwater:abc")).command);
+    TEST_ASSERT_FALSE(isValidBleCommand("set:lowwater:-1"));
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -245,6 +267,8 @@ int main(int argc, char** argv) {
     RUN_TEST(test_setCommandValue_speedAbc_returnsIgnore);
     RUN_TEST(test_setCommandValue_unknownParam_returnsIgnore);
     RUN_TEST(test_setCommandValue_malformedSingleColon_returnsIgnore);
+    RUN_TEST(test_lowwater_accepts_milliseconds);
+    RUN_TEST(test_lowwater_rejects_out_of_range);
 
     // streamCommandValue
     RUN_TEST(test_streamCommandValue_valid);
