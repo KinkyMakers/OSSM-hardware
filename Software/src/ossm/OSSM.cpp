@@ -11,6 +11,7 @@
 #include "ossm/state/settings.h"
 #include "ossm/state/state.h"
 #include "ossm/state_json.hpp"
+#include "ossm/streaming/streaming.h"
 #include "services/communication/mqtt.h"
 #include "services/communication/queue.h"
 #include "services/encoder.h"
@@ -135,6 +136,9 @@ void OSSM::ble_click(String commandString) {
             encoder.setEncoderValue(command.value);
             settings.buffer = command.value;
             break;
+        case Commands::setLowWater:
+            streaming::setLowWaterMs(command.value);
+            break;
         case Commands::setPattern:
             settings.pattern = static_cast<StrokePatterns>(command.value % 7);
             break;
@@ -163,7 +167,8 @@ status_packet::Status OSSM::getStatus() {
             status_packet::clampPercent(settings.speed),
             status_packet::clampPercent(settings.stroke),
             status_packet::clampPercent(settings.depth),
-            status_packet::positionTenths(distanceMm)};
+            status_packet::positionTenths(distanceMm),
+            streaming::lowWaterSlots()};
 }
 
 String OSSM::getStateFingerprint() {

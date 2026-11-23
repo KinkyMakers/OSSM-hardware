@@ -10,6 +10,8 @@
 #include "NimBLEUUID.h"
 #include "queue.h"
 #include "command/command_pattern.hpp"
+#include "ossm/streaming/streaming.h"
+#include "queued_moves.h"
 #include "rad_ble.h"
 #include "services/led.h"
 
@@ -30,8 +32,30 @@ class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {
         if (!cmd.empty() && cmd.front() == '{') {
             if (!radBleServer.enqueue(
                     0, connInfo.getConnHandle(),
-                    reinterpret_cast<const uint8_t*>(cmd.data()), cmd.size()))
+                    reinterpret_cast<const uint8_t*>(cmd.data()), cmd.size())) {
                 ESP_LOGW("NIMBLE_COMMAND", "RAD BLE command queue is full");
+            }
+            return;
+        }
+
+        // Binary queued moves: "q:"/"r:" then position/time byte pairs.
+        // Handled here on the raw bytes, because the String path below would
+        // cut the payload short at the first 0x00 byte.
+        const auto* bytes = reinterpret_cast<const uint8_t*>(cmd.data());
+        if (queued_moves::isQueueCommand(bytes, cmd.size())) {
+            if (!streaming::handleQueueCommand(bytes, cmd.size())) {
+                pCharacteristic->setValue("fail:q");
+                return;
+            }
+            pulseForCommunication();
+            return;
+        }
+        if (queued_moves::isRangeCommand(bytes, cmd.size())) {
+            if (!streaming::handleRangeCommand(bytes, cmd.size())) {
+                pCharacteristic->setValue("fail:r");
+                return;
+            }
+            pulseForCommunication();
             return;
         }
 

@@ -10,7 +10,7 @@
 // Pure logic for the compact binary status notification on the status
 // characteristic (…2200…). No hardware dependencies — testable on native.
 //
-// 8 bytes, multi-byte fields little-endian, so it fits one 20-byte ATT
+// 9 bytes, multi-byte fields little-endian, so it fits one 20-byte ATT
 // payload instead of being split across several packets like the JSON:
 //   [0]    state     uint8   StateName::id(), 255 (Unknown) if not listed
 //   [1]    speed     uint8   0-100
@@ -19,11 +19,15 @@
 //   [4-5]  position  uint16  0.1 mm from home
 //   [6-7]  timestamp uint16  ms since the previous status notification
 //                            (capped at 65535; 0 for the first one)
+//   [8]    lowWater  uint8   0 when the queued moves (q:) last at least the
+//                            low-water time (set:lowwater:n, default 500 ms),
+//                            otherwise the number of free buffer slots.
+//                            Always 0 outside streaming mode.
 // A read returns the live values with a timestamp delta of 0.
 
 namespace status_packet {
 
-constexpr size_t kPacketSize = 8;
+constexpr size_t kPacketSize = 9;
 
 /// A state machine state, as the status packet's state byte. The numbering is
 /// a wire contract: only ever append; never renumber, remove, or reuse one.
@@ -156,11 +160,13 @@ struct Status {
     uint8_t stroke;
     uint8_t depth;
     uint16_t positionTenthsMm;
+    uint8_t lowWaterSlots;
 
     bool operator==(const Status& other) const {
         return state == other.state && speed == other.speed &&
                stroke == other.stroke && depth == other.depth &&
-               positionTenthsMm == other.positionTenthsMm;
+               positionTenthsMm == other.positionTenthsMm &&
+               lowWaterSlots == other.lowWaterSlots;
     }
     bool operator!=(const Status& other) const { return !(*this == other); }
 };
@@ -202,13 +208,21 @@ inline void encode(const Status& status, uint16_t deltaMs,
     out[5] = static_cast<uint8_t>(status.positionTenthsMm >> 8);
     out[6] = static_cast<uint8_t>(deltaMs & 0xFF);
     out[7] = static_cast<uint8_t>(deltaMs >> 8);
+    out[8] = status.lowWaterSlots;
 }
 
 // Send policy, matching the JSON state notifications: immediately when the
 // state or a setting changes, otherwise a heartbeat every kHeartbeatMs.
 // Position alone never triggers a send — that keeps BLE traffic down; it
 // goes out with the next heartbeat or change, or a client can read it.
+// Also, when a queued move completes below the low-water mark, a status
+// goes out, but no sooner than kLowWaterMinIntervalMs after the last one.
 constexpr uint32_t kHeartbeatMs = 1000;
+constexpr uint32_t kLowWaterMinIntervalMs = 100;
+
+inline bool lowWaterSendAllowed(uint32_t msSinceLastSend) {
+    return msSinceLastSend >= kLowWaterMinIntervalMs;
+}
 
 inline bool settingsOrStateChanged(const Status& a, const Status& b) {
     return a.state != b.state || a.speed != b.speed || a.stroke != b.stroke ||

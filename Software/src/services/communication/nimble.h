@@ -39,7 +39,7 @@
 // Clients should read the current state from this char.
 #define CHARACTERISTIC_STATE_UUID "522b443a-4f53-534d-2000-420badbabe69"
 
-// Compact 8-byte binary status (see lib/OSSMLogic/src/status_packet.h),
+// Compact 9-byte binary status (see lib/OSSMLogic/src/status_packet.h),
 // notified when the state or a setting changes plus a 1 s heartbeat, like
 // the JSON above, but fits one ATT packet. Reads return live values.
 // 2010, 2100 and 2300 belong to RAD BLE.

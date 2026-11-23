@@ -18,7 +18,7 @@ inline NimBLECharacteristic* initStateCharacteristic(NimBLEService* pService,
     return pStateChar;
 }
 
-// Binary status characteristic (8-byte status_packet). nimbleLoop keeps the
+// Binary status characteristic (9-byte status_packet). nimbleLoop keeps the
 // value current and notifies subscribers.
 inline NimBLECharacteristic* initStatusCharacteristic(NimBLEService* pService,
                                                       NimBLEUUID uuid) {
@@ -26,7 +26,7 @@ inline NimBLECharacteristic* initStatusCharacteristic(NimBLEService* pService,
         uuid, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY,
         status_packet::kPacketSize);
     uint8_t initial[status_packet::kPacketSize] = {};
-    status_packet::encode({status_packet::StateName(), 0, 0, 0, 0}, 0,
+    status_packet::encode({status_packet::StateName(), 0, 0, 0, 0, 0}, 0,
                           initial);
     pStatusChar->setValue(initial, sizeof(initial));
     return pStatusChar;

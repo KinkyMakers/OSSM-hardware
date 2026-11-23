@@ -1,7 +1,11 @@
 #include "streaming.h"
 
+#include <atomic>
+#include <cmath>
 #include <queue>
 #include <chrono>
+#include <mutex>
+#include "queued_moves.h"
 #include "streaming_logic.h"
 #include "constants/Config.h"
 #include "ossm/state/calibration.h"
@@ -18,6 +22,187 @@ namespace sml = boost::sml;
 using namespace sml;
 
 namespace streaming {
+
+// Queued moves ("q:" command). Written by the BLE task, consumed by the
+// streaming task, so every access to the buffer holds moveBufferMutex.
+static std::mutex moveBufferMutex;
+static queued_moves::MoveBuffer moveBuffer;
+// True while the streaming task runs; "q:" is rejected otherwise.
+static std::atomic<bool> acceptingMoves{false};
+// Set by "q:" with no moves; the streaming task stops the motor.
+static std::atomic<bool> stopRequested{false};
+// The range q:/r: position bytes are decoded in (set by r:). Moves are
+// decoded as they arrive, so a later range never changes queued ones.
+// Guarded by moveBufferMutex.
+static queued_moves::Range moveRange;
+// The queued move running now: a move ends when its time is up, whether or
+// not it reached its position. The next one starts at that end time so
+// timing doesn't drift, or on arrival if the buffer had run dry. Guarded by
+// moveBufferMutex, since the low-water byte reads it from the BLE task.
+static bool activeMove = false;
+static uint32_t activeMoveEndMs = 0;
+// ms of queued moves the device aims to keep (set:lowwater:n).
+static std::atomic<uint32_t> lowWaterMs{queued_moves::kDefaultLowWaterMs};
+// A queued move completed with the buffer below the low-water mark; the BLE
+// loop sends a status for it (rate limited) and clears this.
+static std::atomic<bool> lowWaterEvent{false};
+
+static void clearQueuedMoves() {
+    std::lock_guard<std::mutex> lock(moveBufferMutex);
+    moveBuffer.clear();
+    activeMove = false;
+}
+
+static void resetActiveMove() {
+    std::lock_guard<std::mutex> lock(moveBufferMutex);
+    activeMove = false;
+}
+
+// Call with moveBufferMutex held.
+static uint8_t lowWaterSlotsLocked(uint32_t nowMs) {
+    int32_t remainingMs =
+        activeMove ? static_cast<int32_t>(activeMoveEndMs - nowMs) : 0;
+    if (remainingMs < 0) {
+        remainingMs = 0;
+    }
+    return queued_moves::lowWaterSlots(
+        static_cast<uint32_t>(remainingMs) + moveBuffer.totalMs(), lowWaterMs,
+        moveBuffer.freeSlots());
+}
+
+enum class QueueStep { Running, Started, Idle };
+
+// Advance the queued moves at nowMs: keep the running move, or when its time
+// is up start the next (filling `move` and `remainingMs`), or go idle.
+static QueueStep advanceQueuedMoves(uint32_t nowMs, queued_moves::Move &move,
+                                    int32_t &remainingMs) {
+    std::lock_guard<std::mutex> lock(moveBufferMutex);
+    if (activeMove && static_cast<int32_t>(nowMs - activeMoveEndMs) < 0) {
+        return QueueStep::Running;
+    }
+    const bool completed = activeMove;
+    QueueStep step = QueueStep::Idle;
+    if (moveBuffer.pop(move)) {
+        const uint32_t startMs = activeMove ? activeMoveEndMs : nowMs;
+        activeMoveEndMs = startMs + move.timeMs;
+        activeMove = true;
+        remainingMs = static_cast<int32_t>(activeMoveEndMs - nowMs);
+        step = QueueStep::Started;
+    } else {
+        activeMove = false;
+    }
+    if (completed && lowWaterSlotsLocked(nowMs) != 0) {
+        lowWaterEvent = true;
+    }
+    return step;
+}
+
+void setLowWaterMs(uint32_t ms) {
+    lowWaterMs = ms;
+    ESP_LOGI("Streaming", "Low water mark: %u ms", static_cast<unsigned>(ms));
+}
+
+uint8_t lowWaterSlots() {
+    // Outside streaming mode q: is refused, so there's nothing to ask for.
+    if (!acceptingMoves) {
+        return 0;
+    }
+    std::lock_guard<std::mutex> lock(moveBufferMutex);
+    return lowWaterSlotsLocked(millis());
+}
+
+bool takeLowWaterEvent() { return lowWaterEvent.exchange(false); }
+
+bool handleQueueCommand(const uint8_t *data, size_t length) {
+    const auto parsed = queued_moves::parseQueueCommand(data, length);
+    if (!parsed) {
+        ESP_LOGW("Streaming", "Malformed q: command (%u bytes)",
+                 static_cast<unsigned>(length));
+        return false;
+    }
+    if (!acceptingMoves) {
+        ESP_LOGW("Streaming", "q: refused: not in streaming mode");
+        return false;
+    }
+
+    if (parsed->count == 0) {
+        clearQueuedMoves();
+        stopRequested = true;
+        ESP_LOGI("Streaming", "q: cleared buffer, stopping");
+        return true;
+    }
+
+    std::lock_guard<std::mutex> lock(moveBufferMutex);
+    if (!moveBuffer.pushAll(parsed->payload, parsed->count, moveRange)) {
+        ESP_LOGW("Streaming", "q: refused: %u moves, %u free slots",
+                 static_cast<unsigned>(parsed->count),
+                 static_cast<unsigned>(moveBuffer.freeSlots()));
+        return false;
+    }
+    return true;
+}
+
+bool handleRangeCommand(const uint8_t *data, size_t length) {
+    const auto parsed = queued_moves::parseRangeCommand(data, length);
+    if (!parsed) {
+        ESP_LOGW("Streaming", "Malformed r: command (%u bytes)",
+                 static_cast<unsigned>(length));
+        return false;
+    }
+    if (!acceptingMoves) {
+        ESP_LOGW("Streaming", "r: refused: not in streaming mode");
+        return false;
+    }
+
+    std::lock_guard<std::mutex> lock(moveBufferMutex);
+    // The range only takes effect along with its moves.
+    if (!moveBuffer.pushAll(parsed->payload, parsed->count, parsed->range)) {
+        ESP_LOGW("Streaming", "r: refused: %u moves, %u free slots",
+                 static_cast<unsigned>(parsed->count),
+                 static_cast<unsigned>(moveBuffer.freeSlots()));
+        return false;
+    }
+    moveRange = parsed->range;
+    return true;
+}
+
+// Start one queued move that must finish within remainingMs.
+static void startQueuedMove(const queued_moves::Move &move,
+                            int32_t remainingMs, uint32_t maxSpeed,
+                            uint32_t maxAccel) {
+    const uint32_t speedLimit = maxSpeed * (settings.speed / 100.0);
+    const uint32_t accelLimit = maxAccel * (settings.sensation / 100.0);
+    if (speedLimit == 0 || accelLimit == 0) {
+        ESP_LOGD("Streaming", "Speed or accel is 0, skipping queued move");
+        return;
+    }
+    // Too little time left to plan a sensible move; let it lapse.
+    if (remainingMs < 10) {
+        return;
+    }
+
+    const int32_t maxStroke = streaming_logic::calculateMaxStroke(
+        settings.stroke, settings.depth, calibration.measuredStrokeSteps);
+    const int32_t depth = streaming_logic::calculateDepthOffset(
+        calibration.measuredStrokeSteps, maxStroke, settings.depth);
+    const int32_t targetPosition = static_cast<int32_t>(std::lround(
+        queued_moves::scaleQueuedPosition(move.position, maxStroke, depth)));
+    const int32_t currentPosition = stepper->getCurrentPosition();
+    if (abs(targetPosition - currentPosition) <= 1) {
+        return;
+    }
+
+    const auto profile = streaming_logic::planMotion(
+        currentPosition, targetPosition, remainingMs / 1000.0f, speedLimit,
+        accelLimit, static_cast<int32_t>(1_mm));
+    stepper->setAcceleration(profile.acceleration);
+    stepper->setSpeedInHz(profile.speed);
+    stepper->moveTo(profile.targetPosition, false);
+
+    ESP_LOGD("Streaming", "Q(%u): %d -> %d, T: %d, S: %u, A: %u",
+             move.position, currentPosition, profile.targetPosition,
+             remainingMs, profile.speed, profile.acceleration);
+}
 
 static void startStreamingTask(void *pvParameters) {
     // Own the shared stepper config at mode entry (see simple_penetration.cpp:
@@ -38,7 +223,15 @@ static void startStreamingTask(void *pvParameters) {
     
     // Reset the queue to clear any existing commands
     targetQueue = {};
-    
+    clearQueuedMoves();
+    {
+        std::lock_guard<std::mutex> lock(moveBufferMutex);
+        moveRange = {};
+    }
+    stopRequested = false;
+    lowWaterEvent = false;
+    acceptingMoves = true;
+
     // Motion state
     int16_t currentPosition = 0;
     int16_t targetPosition = 0;
@@ -51,6 +244,29 @@ static void startStreamingTask(void *pvParameters) {
     stepper->setAcceleration(maxAccel);
 
     while (isInCorrectState()) {
+        // "q:" with no moves: drop everything pending and stop.
+        if (stopRequested.exchange(false)) {
+            targetQueue = {};
+            resetActiveMove();
+                    lastPositionTime = {};
+            stepper->stopMove();
+            vTaskDelay(1);
+            continue;
+        }
+
+        // Queued moves take priority over stream: targets.
+        queued_moves::Move queuedMove;
+        int32_t remainingMs = 0;
+        const QueueStep step =
+            advanceQueuedMoves(millis(), queuedMove, remainingMs);
+        if (step == QueueStep::Started) {
+            startQueuedMove(queuedMove, remainingMs, maxSpeed, maxAccel);
+        }
+        if (step != QueueStep::Idle) {
+            vTaskDelay(1);
+            continue;
+        }
+
         uint16_t currentBuffer = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - best).count();
         // Wait for new command from BLE
         if (targetQueue.empty()){
@@ -150,6 +366,8 @@ static void startStreamingTask(void *pvParameters) {
         vTaskDelay(1);
     }
 
+    acceptingMoves = false;
+    clearQueuedMoves();
     vTaskDelete(nullptr);
 }
 

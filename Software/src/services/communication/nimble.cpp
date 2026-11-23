@@ -12,6 +12,7 @@
 #include "config.hpp"
 #include "gpio.hpp"
 #include "ossm/OSSM.h"
+#include "ossm/streaming/streaming.h"
 #include "pairing.hpp"
 #include "patterns.hpp"
 #include "rad_ble.h"
@@ -223,7 +224,7 @@ void nimbleLoop(void* pvParameters) {
 
     // Binary status notifications (CHARACTERISTIC_STATUS_UUID).
     status_packet::Status lastStatus = {status_packet::StateName(), 0, 0, 0,
-                                        0};
+                                        0, 0};
     uint32_t lastStatusSentMs = 0;
     bool statusSent = false;
     auto sendStatusIfDue = [&]() {
@@ -235,7 +236,14 @@ void nimbleLoop(void* pvParameters) {
         const bool changed =
             !statusSent ||
             status_packet::settingsOrStateChanged(status, lastStatus);
-        if (!status_packet::shouldSend(changed, now - lastStatusSentMs)) {
+        // A queued move completed below the low-water mark: tell the client
+        // how many slots it can fill. The event stays pending until the rate
+        // limit allows a send, and is dropped if the buffer has since refilled.
+        const bool lowWater =
+            status_packet::lowWaterSendAllowed(now - lastStatusSentMs) &&
+            streaming::takeLowWaterEvent() && status.lowWaterSlots != 0;
+        if (!lowWater &&
+            !status_packet::shouldSend(changed, now - lastStatusSentMs)) {
             return;
         }
         const uint16_t delta =

@@ -48,10 +48,16 @@ void test_state_names_round_trip(void) {
 
 void test_encode_little_endian(void) {
     uint8_t out[kPacketSize];
-    encode({Value::StreamingIdle, 50, 80, 100, 0x1234}, 0xABCD, out);
+    encode({Value::StreamingIdle, 50, 80, 100, 0x1234, 7}, 0xABCD, out);
     const uint8_t expected[kPacketSize] = {14, 50, 80, 100,
-                                           0x34, 0x12, 0xCD, 0xAB};
+                                           0x34, 0x12, 0xCD, 0xAB, 7};
     TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, out, kPacketSize);
+}
+
+void test_low_water_rate_limit(void) {
+    TEST_ASSERT_FALSE(lowWaterSendAllowed(kLowWaterMinIntervalMs - 1));
+    TEST_ASSERT_TRUE(lowWaterSendAllowed(kLowWaterMinIntervalMs));
+    TEST_ASSERT_EQUAL(100, kLowWaterMinIntervalMs);
 }
 
 void test_clamp_percent(void) {
@@ -110,6 +116,7 @@ int main(int argc, char **argv) {
     RUN_TEST(test_unknown_state);
     RUN_TEST(test_state_names_round_trip);
     RUN_TEST(test_encode_little_endian);
+    RUN_TEST(test_low_water_rate_limit);
     RUN_TEST(test_clamp_percent);
     RUN_TEST(test_position_tenths);
     RUN_TEST(test_timestamp_delta);

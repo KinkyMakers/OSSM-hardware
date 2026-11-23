@@ -8,7 +8,7 @@
 // callback validates against this and the native tests exercise it, so the
 // accepted set cannot drift from commandFromString().
 inline const char* bleCommandPattern() {
-    return R"(go:(simplePenetration|strokeEngine|streaming|menu|restart|update|pairing)|set:(speed|stroke|depth|sensation|buffer|pattern):\d+|set:wifi:[^|]+\|.+|stream:\d+:\d+)";
+    return R"(go:(simplePenetration|strokeEngine|streaming|menu|restart|update|pairing)|set:(speed|stroke|depth|sensation|buffer|pattern|lowwater):\d+|set:wifi:[^|]+\|.+|stream:\d+:\d+)";
 }
 
 inline bool isValidBleCommand(const std::string& command) {
