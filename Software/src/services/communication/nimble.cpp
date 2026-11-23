@@ -24,6 +24,7 @@
 NimBLEServer* pServer = nullptr;
 
 NimBLECharacteristic* pStateCharacteristic = nullptr;
+NimBLECharacteristic* pStatusCharacteristic = nullptr;
 NimBLECharacteristic* pSpeedKnobConfigCharacteristic = nullptr;
 NimBLECharacteristic* pLatencyCompensationConfigCharacteristic = nullptr;
 NimBLECharacteristic* pCommandCharacteristic = nullptr;
@@ -62,17 +63,24 @@ class StateCallbacks : public NimBLECharacteristicCallbacks {
     uint32_t lastBuildMs = 0;
 
     void onRead(NimBLECharacteristic* characteristic, NimBLEConnInfo&) override {
-        if (!ossm) return;
+        if (!ossm) {
+            return;
+        }
         const uint32_t now = millis();
-        if (lastBuildMs != 0 && now - lastBuildMs < 300) return;
+        if (lastBuildMs != 0 && now - lastBuildMs < 300) {
+            return;
+        }
         lastBuildMs = now;
         // RADR needs full legacy state on reads; retain shared BLE metadata.
         JsonDocument value, current;
         const auto stored = characteristic->getValue();
         deserializeJson(value, stored.data(), stored.size());
-        if (deserializeJson(current, ossm->getCurrentState())) return;
-        for (JsonPairConst field : current.as<JsonObjectConst>())
+        if (deserializeJson(current, ossm->getCurrentState())) {
+            return;
+        }
+        for (JsonPairConst field : current.as<JsonObjectConst>()) {
             value[field.key()] = field.value();
+        }
         String payload;
         serializeJson(value, payload);
         characteristic->setValue(payload);
@@ -82,6 +90,19 @@ class StateCallbacks : public NimBLECharacteristicCallbacks {
         radBleServer.onStateSubscribe(connection.getConnHandle(), value);
     }
 } stateCallbacks;
+
+// Binary status reads get the live values (delta 0), so clients can poll
+// position between the change/heartbeat notifications.
+class StatusCallbacks : public NimBLECharacteristicCallbacks {
+    void onRead(NimBLECharacteristic* characteristic, NimBLEConnInfo&) override {
+        if (!ossm) {
+            return;
+        }
+        uint8_t packet[status_packet::kPacketSize];
+        status_packet::encode(ossm->getStatus(), 0, packet);
+        characteristic->setValue(packet, sizeof(packet));
+    }
+} statusCallbacks;
 
 /** Handler class for server actions */
 class ServerCallbacks : public NimBLEServerCallbacks {
@@ -199,6 +220,36 @@ void nimbleLoop(void* pvParameters) {
     String lastState = "";
     int lastConnCount = 0;
     int lastMessageTime = 0;
+
+    // Binary status notifications (CHARACTERISTIC_STATUS_UUID).
+    status_packet::Status lastStatus = {status_packet::StateName(), 0, 0, 0,
+                                        0};
+    uint32_t lastStatusSentMs = 0;
+    bool statusSent = false;
+    auto sendStatusIfDue = [&]() {
+        if (pStatusCharacteristic == nullptr) {
+            return;
+        }
+        const uint32_t now = millis();
+        const status_packet::Status status = ossm->getStatus();
+        const bool changed =
+            !statusSent ||
+            status_packet::settingsOrStateChanged(status, lastStatus);
+        if (!status_packet::shouldSend(changed, now - lastStatusSentMs)) {
+            return;
+        }
+        const uint16_t delta =
+            statusSent ? status_packet::timestampDelta(now, lastStatusSentMs)
+                       : 0;
+        uint8_t packet[status_packet::kPacketSize];
+        status_packet::encode(status, delta, packet);
+        pStatusCharacteristic->setValue(packet, sizeof(packet));
+        pStatusCharacteristic->notify();
+        lastStatus = status;
+        lastStatusSentMs = now;
+        statusSent = true;
+    };
+
     while (true) {
         // Check if we should be advertising (no connections)
         if (pServer->getConnectedCount() == 0) {
@@ -298,6 +349,8 @@ void nimbleLoop(void* pvParameters) {
             vTaskDelay(1);
         }
 
+        sendStatusIfDue();
+
         int currentTime = millis();
         String fingerprint = ossm->getStateFingerprint();
         bool stateChanged = fingerprint != lastState;
@@ -354,6 +407,10 @@ void initNimble() {
     pStateCharacteristic = initStateCharacteristic(
         pService, NimBLEUUID(CHARACTERISTIC_STATE_UUID));
     pStateCharacteristic->setCallbacks(&stateCallbacks);
+
+    pStatusCharacteristic = initStatusCharacteristic(
+        pService, NimBLEUUID(CHARACTERISTIC_STATUS_UUID));
+    pStatusCharacteristic->setCallbacks(&statusCallbacks);
 
     initPatternsCharacteristic(pService,
                                NimBLEUUID(CHARACTERISTIC_PATTERNS_UUID));

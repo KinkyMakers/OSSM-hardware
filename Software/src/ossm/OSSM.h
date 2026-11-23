@@ -9,6 +9,7 @@
 #include "ossm/state/menu.h"
 #include "ossm/state/session.h"
 #include "ossm/state/settings.h"
+#include "status_packet.h"
 #include "structs/SettingPercents.h"
 
 /**
@@ -44,6 +45,9 @@ class OSSM {
 
     // Get state fingerprint without timestamp (for change detection)
     String getStateFingerprint();
+
+    // Current values for the compact binary BLE status packet
+    status_packet::Status getStatus();
 
     // Backward compatibility accessors (deprecated - use globals directly)
     int getSpeed() { return settings.speed; }

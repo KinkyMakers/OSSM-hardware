@@ -158,7 +158,16 @@ UNDEFINED → READY → PATTERN / SETUPDEPTH / STREAMING
 - **Service UUID:** `522b443a-4f53-534d-0001-420badbabe69`
 - **Characteristics:**
   - Command (0x1000) — Write
-  - State (0x2000) — Read/Notify
+  - State (0x2000) — Read/Notify, JSON. Shared with the RAD BLE library,
+    which adds its own fields; the RAD Dashboard depends on it.
+  - Status (0x2200) — Read/Notify, 8-byte binary that fits one ATT packet:
+    `[state u8][speed u8][stroke u8][depth u8][position u16 0.1 mm from
+    home][timestamp u16 ms since previous notification]`, little-endian.
+    Notified like the JSON: when the state or a setting changes, plus a 1 s
+    heartbeat; position alone never triggers one, to keep BLE traffic down.
+    Reads return live values with delta 0. State numbers are
+    `StateName::Value` in `lib/OSSMLogic/src/status_packet.h` (255 =
+    Unknown): append only, never renumber. 2010/2100/2300 are RAD BLE's.
   - Patterns (0x3000) — Read
   - GPIO (0x4000) — Read
 - **Command Format:** `go:{mode}`, `set:{param}:{value}`, `stream:{pos}:{time}`
@@ -240,6 +249,8 @@ Uses `min_spiffs.csv` (PlatformIO built-in minimal SPIFFS partition).
 
 ## Important Rules
 
+- Always put `{` and `}` around the body of `if`, `else`, `for` and `while`,
+  even when it is a single line
 - Never commit credentials or WiFi passwords
 - State machine (`OSSM.h`) is the single source of truth for device behavior
 - Display access must use mutex protection
