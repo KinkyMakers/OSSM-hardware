@@ -1,5 +1,6 @@
 #include "streaming.h"
 
+#include <algorithm>
 #include <atomic>
 #include <cmath>
 #include <queue>
@@ -7,6 +8,7 @@
 #include <mutex>
 #include "queued_moves.h"
 #include "streaming_logic.h"
+#include "trajectory.h"
 #include "constants/Config.h"
 #include "ossm/state/calibration.h"
 #include "ossm/state/session.h"
@@ -72,29 +74,55 @@ static uint8_t lowWaterSlotsLocked(uint32_t nowMs) {
 
 enum class QueueStep { Running, Started, Idle };
 
-// Advance the queued moves at nowMs: keep the running move, or when its time
-// is up start the next (filling `move` and `remainingMs`), or go idle.
-static QueueStep advanceQueuedMoves(uint32_t nowMs, queued_moves::Move &move,
-                                    int32_t &remainingMs) {
-    std::lock_guard<std::mutex> lock(moveBufferMutex);
-    if (activeMove && static_cast<int32_t>(nowMs - activeMoveEndMs) < 0) {
-        return QueueStep::Running;
-    }
-    const bool completed = activeMove;
+// How many buffered moves to look past the running one when shaping the path.
+// The trajectory also holds the running move's start, its end and the
+// keyframe before it.
+static constexpr size_t kLookaheadMoves = trajectory::kMaxKeyframes - 3;
+
+// What advanceQueuedMoves saw, taken under one lock.
+struct QueueSnapshot {
     QueueStep step = QueueStep::Idle;
-    if (moveBuffer.pop(move)) {
-        const uint32_t startMs = activeMove ? activeMoveEndMs : nowMs;
-        activeMoveEndMs = startMs + move.timeMs;
-        activeMove = true;
-        remainingMs = static_cast<int32_t>(activeMoveEndMs - nowMs);
-        step = QueueStep::Started;
+    queued_moves::Move started{};  // the move that began (step == Started)
+    bool continued = false;        // it began where the previous one ended
+    uint32_t startMs = 0;          // its start and end time (millis)
+    uint32_t endMs = 0;
+    queued_moves::Move upcoming[kLookaheadMoves];  // the next buffered moves
+    size_t upcomingCount = 0;
+};
+
+// Advance the queued moves at nowMs: keep the running move, or when its time
+// is up start the next, or go idle. Also copies out the moves queued after
+// the running one, so the path can be shaped through them.
+static void advanceQueuedMoves(uint32_t nowMs, QueueSnapshot &snap) {
+    std::lock_guard<std::mutex> lock(moveBufferMutex);
+    snap.step = QueueStep::Idle;
+    if (activeMove && static_cast<int32_t>(nowMs - activeMoveEndMs) < 0) {
+        snap.step = QueueStep::Running;
     } else {
-        activeMove = false;
+        const bool completed = activeMove;
+        if (moveBuffer.pop(snap.started)) {
+            snap.continued = activeMove;
+            snap.startMs = activeMove ? activeMoveEndMs : nowMs;
+            activeMoveEndMs = snap.startMs + snap.started.timeMs;
+            snap.endMs = activeMoveEndMs;
+            activeMove = true;
+            snap.step = QueueStep::Started;
+        } else {
+            activeMove = false;
+        }
+        if (completed && lowWaterSlotsLocked(nowMs) != 0) {
+            lowWaterEvent = true;
+        }
     }
-    if (completed && lowWaterSlotsLocked(nowMs) != 0) {
-        lowWaterEvent = true;
+    snap.upcomingCount = 0;
+    if (snap.step == QueueStep::Idle) {
+        return;
     }
-    return step;
+    while (snap.upcomingCount < kLookaheadMoves &&
+           moveBuffer.peek(snap.upcomingCount,
+                           snap.upcoming[snap.upcomingCount])) {
+        ++snap.upcomingCount;
+    }
 }
 
 void setLowWaterMs(uint32_t ms) {
@@ -166,42 +194,114 @@ bool handleRangeCommand(const uint8_t *data, size_t length) {
     return true;
 }
 
-// Start one queued move that must finish within remainingMs.
-static void startQueuedMove(const queued_moves::Move &move,
-                            int32_t remainingMs, uint32_t maxSpeed,
-                            uint32_t maxAccel) {
-    const uint32_t speedLimit = maxSpeed * (settings.speed / 100.0);
-    const uint32_t accelLimit = maxAccel * (settings.sensation / 100.0);
-    if (speedLimit == 0 || accelLimit == 0) {
-        ESP_LOGD("Streaming", "Speed or accel is 0, skipping queued move");
-        return;
-    }
-    // Too little time left to plan a sensible move; let it lapse.
-    if (remainingMs < 10) {
-        return;
-    }
+// Queued moves are followed as one smooth path rather than started one at a
+// time: each move given its own moveTo would stop at its point, stuttering
+// every few ms. Instead, every tick the motor is aimed at a point a little
+// ahead on a curve through the queued points (see trajectory.h), at the
+// speed that reaches it on time. The aim point keeps moving ahead, so the
+// motor only slows where the path itself turns around. Only the streaming
+// task touches this state.
 
+// Keyframes of the moves already begun: the one before the running move's
+// start, its start, and its end.
+static trajectory::Trajectory startedKeyframes;
+// What was last sent to the motor, so unchanged ticks send nothing.
+static int32_t followTarget = 0;
+static uint32_t followSpeed = 0;
+static uint32_t followAccel = 0;
+static bool following = false;
+
+static void resetFollowing() {
+    startedKeyframes.clear();
+    following = false;
+}
+
+// Lowest speed the motor is asked for while following, in steps/s.
+// Low, so slow paths (below 5 mm/s) are followed rather than overrun and
+// waited out.
+static constexpr uint32_t kMinFollowSpeed = 10;
+
+// Steer the motor along the queued moves' path at nowMs. Called every tick
+// while queued moves run, and once more as they run out, to settle on the
+// last point.
+static void followQueuedMoves(const QueueSnapshot &snap, uint32_t nowMs,
+                              uint32_t maxSpeed, uint32_t maxAccel) {
     const int32_t maxStroke = streaming_logic::calculateMaxStroke(
         settings.stroke, settings.depth, calibration.measuredStrokeSteps);
     const int32_t depth = streaming_logic::calculateDepthOffset(
         calibration.measuredStrokeSteps, maxStroke, settings.depth);
-    const int32_t targetPosition = static_cast<int32_t>(std::lround(
-        queued_moves::scaleQueuedPosition(move.position, maxStroke, depth)));
-    const int32_t currentPosition = stepper->getCurrentPosition();
-    if (abs(targetPosition - currentPosition) <= 1) {
+    auto scale = [&](uint16_t position) {
+        return queued_moves::scaleQueuedPosition(position, maxStroke, depth);
+    };
+
+    if (snap.step == QueueStep::Started) {
+        // After a gap, the path starts from wherever the carriage is now.
+        if (!snap.continued || startedKeyframes.empty()) {
+            startedKeyframes.clear();
+            startedKeyframes.push(
+                snap.startMs,
+                static_cast<float>(stepper->getCurrentPosition()));
+        }
+        startedKeyframes.push(snap.endMs, scale(snap.started.position));
+        startedKeyframes.keepLast(3);
+        ESP_LOGD("Streaming", "Q(%d): T: %u, ahead: %u",
+                 snap.started.position,
+                 static_cast<unsigned>(snap.endMs - snap.startMs),
+                 static_cast<unsigned>(snap.upcomingCount));
+    }
+    if (startedKeyframes.empty()) {
         return;
     }
 
-    const auto profile = streaming_logic::planMotion(
-        currentPosition, targetPosition, remainingMs / 1000.0f, speedLimit,
-        accelLimit, static_cast<int32_t>(1_mm));
-    stepper->setAcceleration(profile.acceleration);
-    stepper->setSpeedInHz(profile.speed);
-    stepper->moveTo(profile.targetPosition, false);
+    const uint32_t speedLimit = maxSpeed * (settings.speed / 100.0);
+    const uint32_t accelLimit = maxAccel * (settings.sensation / 100.0);
+    if (speedLimit == 0 || accelLimit == 0) {
+        ESP_LOGD("Streaming", "Speed or accel is 0, not following queued moves");
+        return;
+    }
 
-    ESP_LOGD("Streaming", "Q(%u): %d -> %d, T: %d, S: %u, A: %u",
-             move.position, currentPosition, profile.targetPosition,
-             remainingMs, profile.speed, profile.acceleration);
+    trajectory::Trajectory path = startedKeyframes;
+    uint32_t timeMs = path.back().timeMs;
+    for (size_t i = 0; i < snap.upcomingCount; ++i) {
+        timeMs += snap.upcoming[i].timeMs;
+        path.push(timeMs, scale(snap.upcoming[i].position));
+    }
+
+    const float currentSpeed =
+        stepper->getCurrentSpeedInMilliHz() / 1000.0f;
+    const uint32_t lookahead =
+        trajectory::lookaheadMs(currentSpeed, static_cast<float>(accelLimit));
+    // Keep the aim inside the stroke window, whatever the path does.
+    const int32_t windowNear = -depth;
+    const int32_t windowFar = -(maxStroke + depth);
+    const float aim = std::clamp(path.positionAt(nowMs + lookahead),
+                                 static_cast<float>(windowFar),
+                                 static_cast<float>(windowNear));
+    const int32_t target = static_cast<int32_t>(std::lround(aim));
+    const int32_t currentPosition = stepper->getCurrentPosition();
+    // From the unrounded aim, so the speed doesn't jump with step rounding.
+    const uint32_t speed = trajectory::pursuitSpeed(
+        aim - static_cast<float>(currentPosition), lookahead,
+        std::min(kMinFollowSpeed, speedLimit), speedLimit);
+
+    // Skip re-sending when nothing meaningful changed (speed within 2%).
+    const uint32_t speedChange =
+        speed > followSpeed ? speed - followSpeed : followSpeed - speed;
+    if (following && target == followTarget && speedChange * 50 <= speed &&
+        accelLimit == followAccel) {
+        return;
+    }
+    if (target == currentPosition && !stepper->isRunning()) {
+        followTarget = target;
+        return;
+    }
+    stepper->setAcceleration(accelLimit);
+    stepper->setSpeedInHz(speed);
+    stepper->moveTo(target, false);
+    followTarget = target;
+    followSpeed = speed;
+    followAccel = accelLimit;
+    following = true;
 }
 
 static void startStreamingTask(void *pvParameters) {
@@ -228,6 +328,7 @@ static void startStreamingTask(void *pvParameters) {
         std::lock_guard<std::mutex> lock(moveBufferMutex);
         moveRange = {};
     }
+    resetFollowing();
     stopRequested = false;
     lowWaterEvent = false;
     acceptingMoves = true;
@@ -248,23 +349,26 @@ static void startStreamingTask(void *pvParameters) {
         if (stopRequested.exchange(false)) {
             targetQueue = {};
             resetActiveMove();
-                    lastPositionTime = {};
+            resetFollowing();
+            lastPositionTime = {};
             stepper->stopMove();
             vTaskDelay(1);
             continue;
         }
 
         // Queued moves take priority over stream: targets.
-        queued_moves::Move queuedMove;
-        int32_t remainingMs = 0;
-        const QueueStep step =
-            advanceQueuedMoves(millis(), queuedMove, remainingMs);
-        if (step == QueueStep::Started) {
-            startQueuedMove(queuedMove, remainingMs, maxSpeed, maxAccel);
-        }
-        if (step != QueueStep::Idle) {
+        const uint32_t nowMs = millis();
+        QueueSnapshot snap;
+        advanceQueuedMoves(nowMs, snap);
+        if (snap.step != QueueStep::Idle) {
+            followQueuedMoves(snap, nowMs, maxSpeed, maxAccel);
             vTaskDelay(1);
             continue;
+        }
+        if (!startedKeyframes.empty()) {
+            // The queue ran out: settle on its last point, then hand over.
+            followQueuedMoves(snap, nowMs, maxSpeed, maxAccel);
+            resetFollowing();
         }
 
         uint16_t currentBuffer = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - best).count();

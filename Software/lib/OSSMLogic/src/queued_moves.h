@@ -143,6 +143,16 @@ class MoveBuffer {
         return true;
     }
 
+    /// Copy the move `index` places from the oldest into `out`, leaving it
+    /// queued. Returns false when there aren't that many.
+    bool peek(size_t index, Move& out) const {
+        if (index >= count_) {
+            return false;
+        }
+        out = moves_[(head_ + index) % kBufferSize];
+        return true;
+    }
+
     /// Remove the oldest move into `out`. Returns false when empty.
     bool pop(Move& out) {
         if (count_ == 0) {

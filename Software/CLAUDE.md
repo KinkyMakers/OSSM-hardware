@@ -157,7 +157,14 @@ decoded within the current range as `min + (max - min) * byte / 255`.
 Moves are decoded on arrival into a 32-slot ring buffer
 (`lib/OSSMLogic/src/queued_moves.h`) that the streaming task drains ahead of
 `stream:` targets. A move ends when its time is up, whether or not it reached
-its position; the next starts at that end time. A command that doesn't fully fit is rejected whole (`fail:q`).
+its position; the next starts at that end time. The motor doesn't stop at
+each point: every tick it is aimed a short lookahead (20-150 ms: long enough
+not to brake mid-stroke, and at least 8 steps ahead so slow moves don't
+jitter on step rounding) along a monotone cubic curve through the started and
+buffered points (`lib/OSSMLogic/src/trajectory.h`), clamped to the stroke
+window, at the speed that gets there on time (at least 10 steps/s). The curve
+never overshoots a point and eases to a stop on the last one if the buffer
+runs dry. A command that doesn't fully fit is rejected whole (`fail:q`).
 `q:` with no bytes clears the buffer, drops pending `stream:` targets, and
 decelerates to a stop. Both are parsed on the raw bytes in `command.hpp`
 `onWrite`, before the regex/String path, which would truncate at 0x00.
